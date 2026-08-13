@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Архив версий</title>
+<style>
+:root{--page:#f0fafa;--card:#fff;--ink:#0f1c1d;--ink2:#4a5f61;--ink3:#82999b;
+ --accent:#1e6c72;--accent2:#2a8f97;--line:#cfe9eb;--tint:#e4f5f6}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+ --page:#0b1618;--card:#122528;--ink:#e6f3f3;--ink2:#9db6b8;--ink3:#6d8688;
+ --accent:#4cbcc5;--accent2:#6fd3da;--line:#20444a;--tint:#15343a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);line-height:1.6;
+ font-family:'Geologica',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:680px;margin:0 auto;padding:36px 20px 64px}
+h1{font-size:1.6rem;font-weight:600;letter-spacing:-.015em;margin:.2em 0 .3em}
+.eyebrow{font-size:.7rem;text-transform:uppercase;letter-spacing:.13em;color:var(--accent2);font-weight:500}
+p{color:var(--ink2);margin:0 0 20px;max-width:60ch}
+ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+a.item{display:flex;justify-content:space-between;align-items:center;gap:14px;
+ background:var(--card);border:1px solid var(--line);border-radius:12px;
+ padding:15px 17px;text-decoration:none;color:var(--ink);font-weight:500;
+ min-height:56px;transition:border-color .15s,background .15s}
+a.item:hover{border-color:var(--accent2);background:var(--tint)}
+a.item .when{color:var(--ink3);font-size:.8rem;font-weight:400;white-space:nowrap}
+.empty{background:var(--card);border:1px dashed var(--line);border-radius:12px;
+ padding:22px;color:var(--ink3);text-align:center}
+footer{margin-top:32px;padding-top:18px;border-top:1px solid var(--line);
+ color:var(--ink3);font-size:.8rem}
+code{background:var(--tint);color:var(--accent);padding:1px 5px;border-radius:4px;
+ font-family:ui-monospace,Menlo,monospace;font-size:.86em}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="eyebrow">test.calculator.baniamsk.ru/archive</div>
+    <h1>Архив версий</h1>
+    <p>Старые сборки калькулятора, работающие рядом с текущей. Открывай в соседней вкладке, чтобы сравнить с тем, что сейчас на основном адресе.</p>
+      <div class="empty">Пока пусто. Скажи, какая версия нужна, и она появится здесь отдельным файлом.</div>
+    <footer> Тестовый контур калькулятора · Баня МСК</footer>
+  </div>
+</body>
+</html>
