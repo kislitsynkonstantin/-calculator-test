@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Заливка цен в базу — этап A</title>
+<style>
+:root{
+  --bg:#f2f5f2; --w:#ffffff; --ink:#1b2a1b; --dim:#5f7a5f; --bd:#d8e4d8;
+  --g:#3d6b2f; --gm:#5a9142; --gb:#e8f2e4; --ok:#2e7d32; --err:#b3261e;
+}
+*{box-sizing:border-box;}
+body{margin:0;padding:18px 16px 48px;background:var(--bg);color:var(--ink);
+  font:16px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+.wrap{max-width:660px;margin:0 auto;}
+h1{font-size:1.32rem;line-height:1.25;margin:0 0 6px;}
+.sub{color:var(--dim);font-size:0.9rem;margin:0 0 22px;}
+.card{background:var(--w);border:1px solid var(--bd);border-radius:14px;
+  padding:16px;margin-bottom:14px;}
+.card h2{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.07em;
+  color:var(--g);margin:0 0 12px;font-weight:700;}
+label{display:block;font-size:0.8rem;color:var(--dim);margin:0 0 5px;}
+input{width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--bd);
+  border-radius:11px;background:var(--w);color:var(--ink);margin-bottom:12px;}
+input:focus{outline:none;border-color:var(--gm);}
+button{width:100%;min-height:52px;padding:14px 18px;font-size:16px;font-weight:600;
+  border:none;border-radius:11px;background:var(--g);color:#fff;cursor:pointer;}
+button:disabled{background:#a8bfa4;cursor:default;}
+.msg{padding:12px 14px;border-radius:11px;font-size:0.88rem;margin-bottom:12px;
+  display:none;line-height:1.5;}
+.msg.on{display:block;}
+.msg.err{background:#fdecea;color:var(--err);}
+.msg.ok{background:#e8f5e9;color:var(--ok);}
+.msg.info{background:var(--gb);color:var(--g);}
+table{width:100%;border-collapse:collapse;font-size:0.84rem;}
+th{text-align:left;font-size:0.66rem;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--dim);font-weight:700;padding:0 0 8px;}
+td{padding:9px 0;border-top:1px solid var(--bd);}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;
+  background:var(--bd);margin-right:8px;vertical-align:middle;}
+.dot.go{background:var(--gm);}
+.dot.done{background:var(--ok);}
+.dot.bad{background:var(--err);}
+.bar{height:7px;border-radius:4px;background:var(--gb);overflow:hidden;margin:14px 0 6px;}
+.bar i{display:block;height:100%;width:0;background:var(--gm);transition:width .25s;}
+.hint{font-size:0.8rem;color:var(--dim);line-height:1.5;}
+.hide{display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Заливка цен в базу</h1>
+  <p class="sub">Этап A: цены переезжают из <code>index.html</code> в таблицы
+     <code>pricing_*</code>. Разовая служебная страница — после успешной заливки удалить.
+     Живой калькулятор она не трогает: пишет только в новые пустые таблицы.</p>
+
+  <div class="card" id="cardAuth">
+    <h2>Шаг 1 · Вход</h2>
+    <div class="msg err" id="authErr"></div>
+    <label for="em">Почта</label>
+    <input id="em" type="email" autocomplete="username" inputmode="email">
+    <label for="pw">Пароль</label>
+    <input id="pw" type="password" autocomplete="current-password">
+    <button id="btnIn">Войти</button>
+    <p class="hint" style="margin:12px 0 0;">Нужна роль администратора или редактора.</p>
+  </div>
+
+  <div class="card hide" id="cardRead">
+    <h2>Шаг 2 · Чтение исходника</h2>
+    <div class="msg info on" id="readMsg">Забираю файл калькулятора…</div>
+    <table id="tbl"></table>
+  </div>
+
+  <div class="card hide" id="cardWrite">
+    <h2>Шаг 3 · Запись</h2>
+    <div class="msg" id="writeMsg"></div>
+    <div class="bar"><i id="barFill"></i></div>
+    <p class="hint" id="barText">Готово к записи.</p>
+    <button id="btnGo" style="margin-top:14px;">Залить в базу</button>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL = 'https://jogylulfstjsznduirub.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZ3lsdWxmc3Rqc3puZHVpcnViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDQ0NjEsImV4cCI6MjA5MTY4MDQ2MX0.cGkTkrM09ZxV3LH5wwy19ITloykao472WgppimoWiUQ';
+
+// Исходник закреплён на коммите: в main цены скоро исчезнут, а этот коммит их помнит.
+const SRC = 'https://raw.githubusercontent.com/kislitsynkonstantin/-calculator-test/'
+          + '0a04bce4180554186a957c7de24e1f0550ea79e2/index.html';
+
+const PRODUCT = 'frame';
+
+// Контрольные числа, посчитанные до заливки. Если разбор в браузере даст другие —
+// значит что-то прочиталось не так, и писать нельзя.
+const EXPECT = {
+  projects: 190, projectsSum: 2182336386,
+  prices: 4922,  pricesSum: 402508838,
+  options: 243,  optionsPriced: 120, optionsSum: 12926710,
+  sections: 7
+};
+
+const sb = supabase.createClient(SB_URL, SB_KEY);
+const $ = id => document.getElementById(id);
+function say(el, text, kind) { el.textContent = text; el.className = 'msg on ' + (kind || 'info'); }
+const fmt = n => n.toLocaleString('ru-RU');
+
+// ── Разбор ──
+// Литералы в файле — это код JS, а не JSON: незакавыченные ключи, комментарии,
+// висячие запятые. Поэтому границу считаем по балансу скобок, пропуская строки
+// и комментарии, а сам литерал отдаём движку. Файл свой, взят с закреплённого
+// коммита нашего репозитория.
+function literalEnd(s, start) {
+  const open = s[start], close = open === '{' ? '}' : ']';
+  let depth = 0, i = start;
+  while (i < s.length) {
+    const c = s[i];
+    if (c === '"' || c === "'" || c === '`') {
+      const q = c; i++;
+      while (i < s.length && s[i] !== q) { if (s[i] === '\\') i++; i++; }
+    } else if (c === '/' && s[i + 1] === '/') {
+      while (i < s.length && s[i] !== '\n') i++;
+    } else if (c === '/' && s[i + 1] === '*') {
+      i = s.indexOf('*/', i) + 1;
+    } else if (c === open) { depth++; }
+    else if (c === close) { depth--; if (depth === 0) return i + 1; }
+    i++;
+  }
+  throw new Error('незакрытый литерал');
+}
+
+function grab(t, name) {
+  const m = new RegExp('^\\s*const ' + name + '\\s*=\\s*(\\{|\\[)', 'm').exec(t);
+  if (!m) throw new Error('не найдено: ' + name);
+  const start = m.index + m[0].length - 1;
+  return new Function('return (' + t.slice(start, literalEnd(t, start)) + ')')();
+}
+
+// Точная копия projectSlug() из калькулятора: ключи должны совпасть с теми,
+// что уже лежат в project_option_prices и project_kits.
+function projectSlug(name) {
+  if (!name) return '';
+  const map = {
+    а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'y',
+    к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',
+    х:'h',ц:'c',ч:'ch',ш:'sh',щ:'sch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya'
+  };
+  return String(name).toLowerCase()
+    .split('').map(ch => map[ch] !== undefined ? map[ch] : ch).join('')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+let rows = null;
+
+// ── Шаг 1 ──
+$('btnIn').onclick = async () => {
+  const btn = $('btnIn');
+  btn.disabled = true; btn.textContent = 'Вхожу…';
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({
+      email: $('em').value.trim(), password: $('pw').value });
+    if (error) throw error;
+    const { data: prof } = await sb.from('profiles').select('role').eq('id', data.user.id).single();
+    const role = prof && prof.role;
+    if (role !== 'admin' && role !== 'editor') {
+      await sb.auth.signOut();
+      throw new Error('Роль «' + (role || 'не задана') + '» писать в ценовые таблицы не может.');
+    }
+    $('cardAuth').classList.add('hide');
+    $('cardRead').classList.remove('hide');
+    await readSource();
+  } catch (e) {
+    say($('authErr'), e.message || String(e), 'err');
+    btn.disabled = false; btn.textContent = 'Войти';
+  }
+};
+
+// ── Шаг 2 ──
+async function readSource() {
+  try {
+    const res = await fetch(SRC);
+    if (!res.ok) throw new Error('репозиторий ответил ' + res.status);
+    const t = await res.text();
+
+    const PROJECTS = grab(t, 'PROJECTS');
+    const MATRIX   = grab(t, 'PRICE_MATRIX');
+    const OPTIONS  = grab(t, 'OPTIONS');
+    const SECTIONS = grab(t, 'SECTION_PCT');
+
+    // Проекты
+    const projects = PROJECTS.map((p, i) => ({
+      product: PRODUCT, slug: projectSlug(p[0]), name: p[0],
+      price_100: p[1] ?? null, price_150: p[2] ?? null, price_200: p[3] ?? null,
+      floors: p[4] != null ? String(p[4]) : null,
+      roof_type: p[5] ?? null,
+      warm: p[6] ?? null, open_area: p[7] ?? null, closed_area: p[8] ?? null,
+      facade_area: p[9] ?? null, paint_area: p[10] ?? null, roof_area: p[11] ?? null,
+      sort: i
+    }));
+
+    // Слаги должны быть уникальны — иначе строки перезатрут друг друга
+    const seen = new Set(), collide = [];
+    projects.forEach(p => { if (seen.has(p.slug)) collide.push(p.slug); seen.add(p.slug); });
+    if (collide.length) throw new Error('одинаковые слаги: ' + collide.slice(0, 5).join(', '));
+
+    // Матрица
+    const byName = {}; projects.forEach(p => { byName[p.name] = p.slug; });
+    const matrix = [];
+    for (const [name, opts] of Object.entries(MATRIX)) {
+      const slug = byName[name];
+      if (!slug) throw new Error('в матрице проект, которого нет в списке: ' + name);
+      for (const [oid, price] of Object.entries(opts)) {
+        if (typeof price === 'number')
+          matrix.push({ product: PRODUCT, project_slug: slug, option_id: oid, price: Math.round(price) });
+      }
+    }
+
+    // Опции
+    const options = OPTIONS.map((o, i) => ({
+      product: PRODUCT, option_id: o.id, name: o.name || '',
+      section: o.section ?? null, included: !!o.included,
+      status: o.status ?? null,
+      price: (typeof o.price === 'number') ? Math.round(o.price) : null,
+      formula: o.formula ?? null, sort: i
+    }));
+
+    // Разделы. У парной сверх доли есть фиксированные 122 000 — они зашиты
+    // в расчёт отдельным числом, переносим их сюда же.
+    const sections = Object.entries(SECTIONS).map(([k, v]) => ({
+      product: PRODUCT, section_key: k, pct: v,
+      fixed: k === 'steam_base' ? 122000 : 0
+    }));
+
+    rows = { projects, matrix, options, sections };
+
+    const got = {
+      projects: projects.length,
+      projectsSum: projects.reduce((a, p) => a + (p.price_100 || 0) + (p.price_150 || 0) + (p.price_200 || 0), 0),
+      prices: matrix.length,
+      pricesSum: matrix.reduce((a, m) => a + m.price, 0),
+      options: options.length,
+      optionsPriced: options.filter(o => o.price).length,
+      optionsSum: options.reduce((a, o) => a + (o.price || 0), 0),
+      sections: sections.length
+    };
+
+    const line = (label, key) => {
+      const ok = got[key] === EXPECT[key];
+      return '<tr><td><span class="dot ' + (ok ? 'done' : 'bad') + '"></span>' + label
+           + '</td><td class="n">' + fmt(got[key]) + '</td><td class="n">'
+           + (ok ? 'сходится' : 'ждал ' + fmt(EXPECT[key])) + '</td></tr>';
+    };
+    $('tbl').innerHTML = '<tr><th>Что</th><th class="n">Получено</th><th class="n">Сверка</th></tr>'
+      + line('Проектов', 'projects') + line('Сумма базовых цен', 'projectsSum')
+      + line('Цен в матрице', 'prices') + line('Сумма цен матрицы', 'pricesSum')
+      + line('Опций', 'options') + line('Из них с ценой', 'optionsPriced')
+      + line('Сумма цен опций', 'optionsSum') + line('Разделов', 'sections');
+
+    const bad = Object.keys(EXPECT).filter(k => got[k] !== EXPECT[k]);
+    if (bad.length) {
+      say($('readMsg'), 'Разбор не сошёлся с контрольными числами: ' + bad.join(', ')
+        + '. Писать нельзя — покажи это Клоду.', 'err');
+      return;
+    }
+    say($('readMsg'), 'Разобрано, все восемь контрольных чисел сошлись.', 'ok');
+    $('cardWrite').classList.remove('hide');
+  } catch (e) {
+    say($('readMsg'), 'Не прочитал исходник: ' + (e.message || e), 'err');
+  }
+}
+
+// ── Шаг 3 ──
+async function put(table, list, conflict, chunk, progress) {
+  for (let i = 0; i < list.length; i += chunk) {
+    const { error } = await sb.from(table)
+      .upsert(list.slice(i, i + chunk), { onConflict: conflict });
+    if (error) throw new Error(table + ': ' + error.message);
+    progress(Math.min(i + chunk, list.length), list.length, table);
+  }
+}
+
+$('btnGo').onclick = async () => {
+  const btn = $('btnGo');
+  btn.disabled = true; btn.textContent = 'Заливаю…';
+  say($('writeMsg'), 'Пишу порциями, чтобы запросы не были слишком большими.', 'info');
+
+  const total = rows.projects.length + rows.matrix.length + rows.options.length + rows.sections.length;
+  let done = 0;
+  const step = (n, all, table) => {
+    done += 0; // счётчик обновляется ниже по факту
+    $('barText').textContent = table + ': ' + fmt(n) + ' из ' + fmt(all);
+  };
+  const bump = (n) => {
+    done += n;
+    $('barFill').style.width = Math.round(done / total * 100) + '%';
+  };
+
+  try {
+    await put('pricing_projects', rows.projects, 'product,slug', 190,
+      (n, all, t) => { step(n, all, t); });
+    bump(rows.projects.length);
+
+    await put('pricing_matrix', rows.matrix, 'product,project_slug,option_id', 400,
+      (n, all, t) => { step(n, all, t); $('barFill').style.width =
+        Math.round((rows.projects.length + n) / total * 100) + '%'; });
+    bump(rows.matrix.length);
+
+    await put('pricing_options', rows.options, 'product,option_id', 250,
+      (n, all, t) => step(n, all, t));
+    bump(rows.options.length);
+
+    await put('pricing_sections', rows.sections, 'product,section_key', 20,
+      (n, all, t) => step(n, all, t));
+    bump(rows.sections.length);
+
+    $('barFill').style.width = '100%';
+
+    // сверка: сколько строк реально легло
+    const count = async (t) => {
+      const { count, error } = await sb.from(t).select('*', { count: 'exact', head: true });
+      if (error) throw error; return count;
+    };
+    const c = {
+      projects: await count('pricing_projects'),
+      matrix:   await count('pricing_matrix'),
+      options:  await count('pricing_options'),
+      sections: await count('pricing_sections')
+    };
+    $('barText').textContent = 'В базе: проектов ' + fmt(c.projects) + ', цен ' + fmt(c.matrix)
+      + ', опций ' + fmt(c.options) + ', разделов ' + fmt(c.sections) + '.';
+
+    const ok = c.projects === EXPECT.projects && c.matrix === EXPECT.prices
+            && c.options === EXPECT.options && c.sections === EXPECT.sections;
+    if (ok) {
+      say($('writeMsg'), 'Готово, всё сошлось. Скажи Клоду, что залито — он сверит суммы '
+        + 'по каждой таблице и продолжит.', 'ok');
+      btn.textContent = 'Залито';
+    } else {
+      say($('writeMsg'), 'Строк в базе меньше, чем ожидалось. Повтор безопасен — '
+        + 'нажми ещё раз.', 'err');
+      btn.disabled = false; btn.textContent = 'Залить ещё раз';
+    }
+  } catch (e) {
+    say($('writeMsg'), 'Оборвалось: ' + (e.message || e)
+      + '. Повтор безопасен — уже записанное перезапишется.', 'err');
+    btn.disabled = false; btn.textContent = 'Продолжить';
+  }
+};
+</script>
+</body>
+</html>
