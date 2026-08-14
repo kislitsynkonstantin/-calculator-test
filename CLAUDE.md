@@ -28,7 +28,7 @@
 | `kislitsynkonstantin/calculator` | `index.html` | боевая сборка `v2.3.7`, 2,50 МБ, логин включён, версия без скобок |
 | `kislitsynkonstantin/calculator` | `karkас_spec_calculator_v2.2.3 (24)_2026-04-18.html` | архив релиза |
 | `kislitsynkonstantin/calculator` | `karkас_spec_calculator_v2.2.5_2026-04-21.html` | архив релиза |
-| `kislitsynkonstantin/vscode-workspace` | `docs/` | рабочая схема и план безопасности |
+| `kislitsynkonstantin/claude-workspace` | `docs/` | рабочая схема и план безопасности |
 
 Домены: `test.calculator.baniamsk.ru` (тест) и `calculator.baniamsk.ru` (бой),
 оба GitHub Pages, домены прописаны в `CNAME`. Файл в корне **обязан** называться
@@ -132,7 +132,7 @@ Google Fonts доступен. Страница отрисовывается п�
 
 ### Ветки
 
-Вся работа в `main`. Других веток не заводить: `bin/autosync.sh` в `vscode-workspace`
+Вся работа в `main`. Других веток не заводить: `bin/autosync.sh` в `claude-workspace`
 захардкожен на `main`, и на любой другой ветке синхронизация молча ломается.
 
 ### Откаты
@@ -220,7 +220,7 @@ Storage: `preset-photos`, `avatars`.
 Ключ в коде — публичный `anon`, так и должно быть. Служебного `service_role` в файле
 нет и быть не должно.
 
-**План защиты данных:** `kislitsynkonstantin/vscode-workspace`, файл
+**План защиты данных:** `kislitsynkonstantin/claude-workspace`, файл
 `docs/calculator-security-plan.md`. Там же статусы шагов — это источник правды,
 а не переписка. Шаг 2 (четыре функции `SECURITY DEFINER`, вызываемые анонимами)
 помечен как срочный.
