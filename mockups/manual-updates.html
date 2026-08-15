@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Справка — Калькулятор Баня-МСК</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#1e6c72;--gm:#2a8f97;--gl:#3db0ba;--gb:#e4f5f6;
+  --bk:#111;--gr:#555;--grl:#888;--bd:#d4e4e5;--w:#fff;
+}
+
+/* ── Layout ── */
+body{font-family:'Geologica',sans-serif;background:#f0f6f6;color:var(--bk);}
+.layout{display:flex;min-height:100vh;}
+
+/* ── Sidebar ── */
+.sb{width:192px;flex-shrink:0;background:var(--g);position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;}
+.sb-top{padding:22px 20px 14px;border-bottom:1px solid rgba(255,255,255,0.1);}
+.sb-logo{display:inline-flex;align-items:center;gap:7px;margin-bottom:8px;}
+.sb-logo-badge{font-family:'Unbounded',sans-serif;font-size:0.58rem;font-weight:900;background:rgba(255,255,255,0.15);border-radius:5px;padding:4px 8px;color:#fff;letter-spacing:0.03em;}
+.sb-top h1{font-family:'Unbounded',sans-serif;font-size:0.72rem;font-weight:800;color:#fff;line-height:1.35;}
+.sb-top p{font-size:0.63rem;color:rgba(255,255,255,0.5);margin-top:3px;}
+.sb-nav{padding:10px 0 24px;flex:1;}
+.sb-group{padding:10px 20px 3px;font-size:0.56rem;font-weight:700;color:rgba(255,255,255,0.38);text-transform:uppercase;letter-spacing:0.1em;}
+.sb-a{display:flex;align-items:center;gap:8px;padding:7px 20px;font-size:0.73rem;color:rgba(255,255,255,0.72);cursor:pointer;transition:all 0.1s;border-left:2px solid transparent;user-select:none;}
+.sb-a:hover{background:rgba(255,255,255,0.07);color:#fff;}
+.sb-a.on{background:rgba(255,255,255,0.12);color:#fff;border-left-color:var(--gl);font-weight:600;}
+.sb-a svg{flex-shrink:0;opacity:.65;}
+.sb-a.on svg{opacity:1;}
+
+/* ── Main content ── */
+.main{flex:1;padding:44px 52px 80px;max-width:800px;}
+@media(max-width:720px){
+  .sb{display:none;position:fixed;top:0;left:0;bottom:0;z-index:200;transform:translateX(-100%);transition:transform 0.25s;}
+  .sb.mob-open{display:flex;transform:translateX(0);}
+  .mob-backdrop{display:none;position:fixed;inset:0;z-index:199;background:rgba(0,0,0,0.4);}
+  .mob-backdrop.open{display:block;}
+  .mob-btn{display:flex;align-items:center;justify-content:center;position:fixed;bottom:20px;right:20px;z-index:198;width:44px;height:44px;border-radius:50%;background:var(--g);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(30,108,114,0.4);}
+  .main{padding:24px 20px 80px;}
+}
+@media(min-width:721px){.mob-btn{display:none;}.mob-backdrop{display:none;}}
+
+/* ── Chapters ── */
+.ch{display:none!important;}
+.ch.on{display:block!important;}
+
+/* ── Typography ── */
+.tag{display:inline-block;font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gm);background:var(--gb);border-radius:20px;padding:3px 12px;margin-bottom:12px;}
+h2{font-family:'Unbounded',sans-serif;font-size:1.2rem;font-weight:800;color:var(--bk);margin-bottom:8px;line-height:1.25;letter-spacing:-0.02em;}
+.lead{font-size:0.88rem;color:var(--gr);line-height:1.72;margin-bottom:32px;max-width:560px;}
+.sec{font-family:'Unbounded',sans-serif;font-size:0.6rem;font-weight:700;color:var(--g);text-transform:uppercase;letter-spacing:0.08em;margin:28px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--bd);}
+
+/* ── Steps ── */
+.steps{display:flex;flex-direction:column;margin-bottom:32px;}
+.step{display:flex;gap:14px;padding:18px 0;border-bottom:1px solid var(--bd);}
+.step:last-child{border-bottom:none;}
+.sn{width:30px;height:30px;border-radius:50%;background:var(--g);color:#fff;font-family:'Unbounded',sans-serif;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.sn.info{background:var(--gm);}
+.sb2 h3{font-family:'Unbounded',sans-serif;font-size:0.72rem;font-weight:700;color:var(--bk);margin-bottom:5px;}
+.sb2 p{font-size:0.8rem;color:var(--gr);line-height:1.65;}
+.sb2 p+p{margin-top:5px;}
+
+/* ── Tips / Warns ── */
+.tip{background:var(--gb);border-left:3px solid var(--gl);border-radius:0 8px 8px 0;padding:11px 14px;margin:10px 0;font-size:0.77rem;color:#336;line-height:1.6;}
+.tip strong{color:var(--g);}
+.warn{background:#fff8f0;border-left:3px solid #f0a030;border-radius:0 8px 8px 0;padding:11px 14px;margin:10px 0;font-size:0.77rem;color:#7a4a10;line-height:1.6;}
+.warn strong{color:#c06010;}
+
+/* ── Feature grid ── */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px;}
+@media(max-width:540px){.grid{grid-template-columns:1fr;}}
+.gc{background:var(--w);border-radius:10px;border:1px solid var(--bd);padding:14px 16px;}
+.gc-icon{width:30px;height:30px;border-radius:7px;background:var(--gb);display:flex;align-items:center;justify-content:center;margin-bottom:9px;}
+.gc h4{font-family:'Unbounded',sans-serif;font-size:0.62rem;font-weight:700;color:var(--bk);margin-bottom:4px;}
+.gc p{font-size:0.73rem;color:var(--gr);line-height:1.5;}
+
+/* ── Keyboard table ── */
+.kt{width:100%;border-collapse:collapse;margin-bottom:22px;}
+.kt th{text-align:left;padding:7px 10px;font-size:0.6rem;font-weight:700;color:var(--grl);text-transform:uppercase;letter-spacing:0.07em;border-bottom:2px solid var(--bd);}
+.kt td{padding:8px 10px;font-size:0.78rem;border-bottom:1px solid #f0f5f5;vertical-align:middle;}
+.kt tr:last-child td{border-bottom:none;}
+.kt tr:hover td{background:#f8fbfb;}
+.kt td:last-child{text-align:right;}
+.kg{display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap;}
+kbd{display:inline-flex;align-items:center;justify-content:center;background:var(--w);border:1.5px solid var(--bd);border-bottom-width:2.5px;border-radius:5px;padding:2px 8px;font-family:'Geologica',sans-serif;font-size:0.68rem;font-weight:600;color:var(--bk);min-width:26px;}
+
+/* ── Sections list ── */
+.sections-list{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:24px;}
+@media(max-width:480px){.sections-list{grid-template-columns:1fr;}}
+.sl-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--w);border-radius:8px;border:1px solid var(--bd);font-size:0.75rem;color:var(--gr);}
+.sl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sl-contract{font-size:0.6rem;color:var(--grl);margin-left:auto;flex-shrink:0;}
+
+/* ── Dark mode (both media query and JS class) ── */
+@media(prefers-color-scheme:dark){body:not(.light){--g:#1e6c72;--gm:#3db0ba;--gl:#4ecad4;--gb:rgba(30,108,114,0.2);--bk:#e8f0f1;--gr:#9ab;--grl:#678;--bd:#2a3f42;--w:#1a2a2c;}}
+@media(prefers-color-scheme:dark){body:not(.light){background:#111e20;}}
+@media(prefers-color-scheme:dark){body:not(.light) .gc{background:#1a2a2c;border-color:#2a3f42;}}
+@media(prefers-color-scheme:dark){body:not(.light) .gc-icon{background:rgba(30,108,114,0.3);}}
+@media(prefers-color-scheme:dark){body:not(.light) .sl-item{background:#1a2a2c;border-color:#2a3f42;}}
+@media(prefers-color-scheme:dark){body:not(.light) kbd{background:#1a2a2c;border-color:#2a3f42;color:var(--bk);}}
+@media(prefers-color-scheme:dark){body:not(.light) .kt td{border-bottom-color:#2a3f42;}}
+@media(prefers-color-scheme:dark){body:not(.light) .step{border-bottom-color:#2a3f42;}}
+@media(prefers-color-scheme:dark){body:not(.light) .sec{border-bottom-color:#2a3f42;}}
+@media(prefers-color-scheme:dark){body:not(.light) .tag{background:rgba(30,108,114,0.25);color:var(--gl);}}
+@media(prefers-color-scheme:dark){body:not(.light) .tip{background:rgba(30,108,114,0.15);color:#8cc;}}
+@media(prefers-color-scheme:dark){body:not(.light) .warn{background:rgba(160,100,0,0.15);color:#c8973a;border-left-color:#b06020;}}
+@media(prefers-color-scheme:dark){body:not(.light) .srch-inp{background:#1a2a2c;border-color:#2a3f42;color:#e8f0f1;}}
+@media(prefers-color-scheme:dark){body:not(.light) .srch-item:hover{background:#1a2a2c;}}
+body.dark{--g:#1e6c72;--gm:#3db0ba;--gl:#4ecad4;--gb:rgba(30,108,114,0.2);--bk:#e8f0f1;--gr:#9ab;--grl:#678;--bd:#2a3f42;--w:#1a2a2c;background:#111e20;}
+body.dark .gc{background:#1a2a2c;border-color:#2a3f42;}
+body.dark .gc-icon{background:rgba(30,108,114,0.3);}
+body.dark .sl-item{background:#1a2a2c;border-color:#2a3f42;}
+body.dark kbd{background:#243a3c;border-color:#3a5558;color:#e8f0f1;border-bottom-color:#4a6568;}
+body.dark .kt tr:hover td{background:#182e30;}
+body.dark .kt tr:hover kbd{background:#2e4e52;border-color:#4a6568;}
+body.dark .kt td{border-bottom-color:#2a3f42;}
+body.dark .step{border-bottom-color:#2a3f42;}
+body.dark .sec{border-bottom-color:#2a3f42;}
+body.dark .tag{background:rgba(30,108,114,0.25);color:var(--gl);}
+body.dark .tip{background:rgba(30,108,114,0.15);color:#8cc;}
+body.dark .warn{background:rgba(160,100,0,0.15);color:#c8973a;border-left-color:#b06020;}
+body.dark .srch-inp{background:#1a2a2c;border-color:#2a3f42;color:#e8f0f1;}
+body.dark .srch-item:hover{background:#1e3035;}
+body.dark .srch-results{background:#1a2a2c;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+body.dark .srch-item{color:#c8d8da;border-bottom-color:#2a3f42;}
+body.dark .srch-empty{color:#678;}
+body.dark .warn strong{color:#e0aa50;}
+
+/* ── Search ── */
+.srch-wrap{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.1);}
+.srch-inp{width:100%;padding:6px 10px;border-radius:7px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.9);font-family:'Geologica',sans-serif;font-size:0.73rem;outline:none;box-sizing:border-box;}
+.srch-inp::placeholder{color:rgba(255,255,255,0.45);}
+.srch-results{position:absolute;left:0;right:0;background:#fff;border-radius:0 0 10px 10px;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:100;max-height:320px;overflow-y:auto;display:none;}
+.srch-results.open{display:block;}
+.srch-item{padding:9px 14px;font-size:0.75rem;color:#333;cursor:pointer;border-bottom:1px solid #f0f0f0;line-height:1.4;}
+.srch-item:last-child{border-bottom:none;}
+.srch-item:hover{background:#f4f9f9;}
+.srch-item strong{color:var(--g);font-weight:600;}
+.srch-item small{display:block;font-size:0.65rem;color:#999;margin-top:2px;}
+.srch-empty{padding:12px 14px;font-size:0.75rem;color:#999;text-align:center;}
+.srch-pos{position:relative;}
+
+/* ── Print button ── */
+.sb-print{display:flex;align-items:center;gap:6px;padding:7px 20px;font-size:0.71rem;color:rgba(255,255,255,0.6);cursor:pointer;margin-top:auto;border-top:1px solid rgba(255,255,255,0.1);transition:all 0.1s;}
+.sb-print:hover{color:#fff;background:rgba(255,255,255,0.07);}
+.sb-print svg{flex-shrink:0;}
+
+/* ── Print media ── */
+@media print{
+  .sb{display:none!important;}
+  .srch-wrap,.srch-results{display:none!important;}
+  .main{padding:20px;max-width:none;}
+  .ch{display:block!important;}
+  .ch+.ch{page-break-before:always;padding-top:24px;}
+  h2{font-size:1rem;}
+  .lead{font-size:0.82rem;}
+  .step{padding:10px 0;}
+  .gc{break-inside:avoid;}
+  .tip{background:#f0f8f0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .warn{background:#fff8f0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+
+.kb{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:21px;padding:0 6px;border:1px solid var(--bd);border-radius:5px;background:var(--w);color:var(--g);font-family:'Unbounded',sans-serif;font-size:0.6rem;font-weight:700;line-height:1;vertical-align:middle;}
+.kb+.kb{margin-left:4px;}
+.kb-or{color:var(--grl);font-size:0.62rem;margin:0 3px;}
+.krow{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid var(--bd);}
+.krow:last-child{border-bottom:none;}
+.krow-l{font-size:0.8rem;color:var(--gr);line-height:1.4;}
+.krow-k{flex:none;white-space:nowrap;}
+body.dark .kb{background:transparent;border-color:rgba(255,255,255,0.18);color:var(--gl);}
+body.dark .krow{border-bottom-color:rgba(255,255,255,0.10);}
+@media(max-width:640px){.krow{flex-direction:column;align-items:flex-start;gap:7px;}.krow-k{align-self:flex-start;}}
+</style>
+<script>
+(function() {
+  var saved = localStorage.getItem('banya_dark');
+  if (saved === '1') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.body && document.body.classList.add('dark');
+  }
+})();
+</script>
+</head>
+<body>
+<div class="layout">
+
+<!-- ── Sidebar ── -->
+<div class="sb">
+  <div class="sb-top">
+    <div class="sb-logo"><span class="sb-logo-badge">БМСК</span></div>
+    <h1>Калькулятор<br>спецификаций</h1>
+    <p>Справка и руководство</p>
+  </div>
+  <nav class="sb-nav">
+    <!-- Search -->
+    <div class="srch-wrap srch-pos">
+      <input class="srch-inp" id="guideSearch" placeholder="Поиск…" oninput="doSearch(this.value)" onblur="setTimeout(()=>closeSearch(),200)" autocomplete="off">
+      <div class="srch-results" id="srchResults"></div>
+    </div>
+    <div class="sb-group">Начало работы</div>
+    <div class="sb-a on" onclick="go('overview')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Обзор
+    </div>
+    <div class="sb-a" onclick="go('project')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Выбор проекта
+    </div>
+    <div class="sb-a" onclick="go('options')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Опции и разделы
+    </div>
+    <div class="sb-a" onclick="go('kits')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Комплектации
+    </div>
+    <div class="sb-group">Инструменты</div>
+    <div class="sb-a" onclick="go('presets')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+      Пресеты
+    </div>
+    <div class="sb-a" onclick="go('visualization')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Визуализация
+    </div>
+    <div class="sb-a" onclick="go('payment')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      Платёжный план
+    </div>
+    <div class="sb-a" onclick="go('print')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Версия для печати
+    </div>
+    <div class="sb-a" onclick="go('guide')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      База знаний
+    </div>
+    <div class="sb-a" onclick="go('hide')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+      Показ клиенту
+    </div>
+    <div class="sb-group">Прочее</div>
+    
+    <div class="sb-a" onclick="go('checklist')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Чек-лист
+    </div>
+    <div class="sb-a" onclick="go('sharing')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Публикация и шаринг
+    </div>
+    <div class="sb-a" onclick="go('formula-options')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Расчёт по формулам
+    </div>
+    <div class="sb-a" onclick="go('gift')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      В подарок
+    </div>
+    <div class="sb-a" onclick="go('analytics')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Аналитика
+    </div>
+    <div class="sb-a" onclick="go('settings')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Настройки
+    </div>
+    <div class="sb-a" onclick="go('account')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Аккаунт и синхронизация
+    </div>
+    <div class="sb-a" onclick="go('hotkeys')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="10" x2="6" y2="10"/><line x1="10" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="14" y2="10"/><line x1="18" y1="10" x2="18" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/></svg>
+      Горячие клавиши
+    </div>
+    <div class="sb-a" onclick="go('updates')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+      Журнал обновлений
+    </div>
+    
+  </nav>
+  <div class="sb-print" onclick="printGuide()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    Сохранить PDF
+  </div>
+</div>
+
+<!-- ── Content ── -->
+<div class="main">
+
+  <!-- ОБЗОР -->
+  <div class="ch on" id="ch-overview">
+    <div class="tag">Начало работы</div>
+    <h2>Обзор калькулятора</h2>
+    <p class="lead">Инструмент для быстрого расчёта стоимости каркасного строительства. За 5–10 минут — полная спецификация под конкретного клиента с платёжным планом и готовым документом для печати.</p>
+
+    <div class="grid">
+      <div class="gc">
+        <div class="gc-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--g)" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+        <h4>190+ проектов</h4>
+        <p>Каркасные бани, дома, барнхаусы — с ценами по трём вариантам утепления</p>
+      </div>
+      <div class="gc">
+        <div class="gc-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--g)" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+        <h4>12 разделов, 150+ опций</h4>
+        <p>От фундамента до инженерных коммуникаций — всё что нужно для полной спецификации</p>
+      </div>
+      <div class="gc">
+        <div class="gc-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--g)" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+        <h4>Платёжный план</h4>
+        <p>График по трём договорам. Этапы, проценты, суммы — редактируются и копируются клиенту</p>
+      </div>
+      <div class="gc">
+        <div class="gc-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--g)" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div>
+        <h4>4 стиля печати</h4>
+        <p>Классик, Модерн, Архитект, Карточки — с фильтрацией по разделам и договорам</p>
+      </div>
+    </div>
+
+    <div class="sec">Рабочий процесс</div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2"><h3>Выбрать проект и утепление</h3><p>Введите название в поиск — список фильтруется мгновенно. Выберите проект, затем толщину утепления: 100 / 150 / 200 мм. Базовая цена обновится сразу.</p></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2"><h3>Заполнить реквизиты</h3><p>Имя менеджера, заказчика, номер и дата договора — попадут в шапку спецификации при печати.</p></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2"><h3>Включить нужные опции</h3><p>Прокрутите разделы вниз. Нажимайте на строки — итог пересчитывается мгновенно. Для быстрого поиска нажмите <kbd>Л</kbd> или кнопку лупы в шапке.</p></div></div>
+      <div class="step"><div class="sn">4</div><div class="sb2"><h3>Задать скидку</h3><p>В блоке итогов установите процент специальной цены и дату действия предложения. Итоговая сумма пересчитается автоматически.</p></div></div>
+      <div class="step"><div class="sn">5</div><div class="sb2"><h3>Открыть платёжный план</h3><p>Кнопка <strong>₽</strong> в шапке или клавиша <kbd>Щ</kbd>. Настройте этапы, скопируйте для отправки клиенту.</p></div></div>
+      <div class="step"><div class="sn">6</div><div class="sb2"><h3>Распечатать спецификацию</h3><p>Кнопка печати в шапке или клавиша <kbd>П</kbd>. Выберите стиль, отфильтруйте разделы, сохраните PDF.</p></div></div>
+    </div>
+  </div>
+
+  <!-- ПРОЕКТ -->
+  <div class="ch" id="ch-project">
+    <div class="tag">Начало работы</div>
+    <h2>Выбор проекта</h2>
+    <p class="lead">Все расчёты привязаны к выбранному проекту — цены опций считаются от базовой стоимости конкретного проекта.</p>
+
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Найти проект</h3>
+        <p>Введите название или размер в поле поиска: «Осло», «6х8», «A-frame», «Барнхаус» — список фильтруется в реальном времени.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Выбрать утепление</h3>
+        <p>После выбора проекта появятся три вкладки: <strong>100 мм / 150 мм / 200 мм</strong>. Переключение обновляет базовую цену и все зависимые опции.</p>
+        <div class="tip"><strong>Ручная корректировка:</strong> нажмите на поле с базовой ценой и введите своё значение — например если проект нестандартный или была согласована особая цена.</div>
+      </div></div>
+      <div class="step"><div class="sn info">i</div><div class="sb2">
+        <h3>Реквизиты менеджера</h3>
+        <p>Ваше имя — попадает в шапку спецификации. Инициалы генерируются автоматически (включая отчество).</p>
+      </div></div>
+      <div class="step"><div class="sn info">i</div><div class="sb2">
+        <h3>Реквизиты заказчика</h3>
+        <p>ФИО клиента, номер и дата договора. Все данные отображаются в печатной форме.</p>
+      </div></div>
+    </div>
+
+    <div class="tip"><strong>Сброс калькулятора:</strong> нажмите <kbd>С</kbd> или <kbd>C</kbd> — откроется меню сброса, где можно выбрать что именно сбросить: проект, опции или всё вместе.</div>
+
+    <div class="sec">Ручной ввод нестандартного проекта</div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Выбрать ближайший аналог</h3>
+        <p>Найдите в базе проект с похожей площадью, планировкой или типом кровли. Точное совпадение по метражу необязательно — главное взять правильную структуру цен как отправную точку.</p>
+        <p>Например, для нестандартного проекта 7×9 можно взять «Осло 8×9» и скорректировать базовую стоимость.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Скорректировать базовую стоимость</h3>
+        <p>Нажмите на поле с базовой ценой и введите согласованную сумму. Калькулятор переключится в режим ручной цены — все опции будут добавляться поверх неё.</p>
+        <div class="tip"><strong>Важно:</strong> цены индивидуальных опций в базе привязаны к площади стандартного проекта. При нестандартном размере цены части опций могут потребовать ручной корректировки через поле «Своя цена» рядом с опцией.</div>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Добавить нужные опции</h3>
+        <p>Включите все позиции которые входят в данный объект. Для позиций с нестандартной ценой — нажмите иконку карандаша рядом с опцией и введите свою сумму.</p>
+      </div></div>
+      <div class="step"><div class="sn">4</div><div class="sb2">
+        <h3>Добавить произвольные позиции</h3>
+        <p>Если нужной позиции нет в списке — нажмите <strong>«+ Добавить позицию»</strong> в нужном разделе. Введите название и стоимость. Позиция учитывается в итоге и попадает в спецификацию при печати.</p>
+      </div></div>
+      <div class="step"><div class="sn">5</div><div class="sb2">
+        <h3>Сохранить проект и пресет</h3>
+        <p>После настройки нажмите <strong>«Сохранить проект»</strong> — нестандартный проект добавится в базу и получит звёздочку (закреплён вверху списка). Он останется доступен в поиске как обычный проект.</p>
+        <p>Дополнительно сохраните <strong>пресет</strong> — это набор выбранных опций и параметров именно под этого клиента. Пресет не хранит сам проект, но при загрузке восстанавливает все отмеченные позиции, скидку и реквизиты поверх выбранного проекта.</p>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ОПЦИИ -->
+  <div class="ch" id="ch-options">
+    <div class="tag">Начало работы</div>
+    <h2>Опции и разделы</h2>
+    <p class="lead">Ниже блока с проектом расположены 12 разделов спецификации. Базовые позиции (серым) уже включены в цену — они не меняют итог. Дополнительные опции включаются кликом.</p>
+
+    <div class="sec">Разделы спецификации</div>
+    <div class="sections-list">
+      <div class="sl-item"><div class="sl-dot" style="background:#5b9bd5"></div>1. Фундамент и цоколь<span class="sl-contract">Основной</span></div>
+      <div class="sl-item"><div class="sl-dot" style="background:#70ad47"></div>2. Каркас<span class="sl-contract">Основной</span></div>
+      <div class="sl-item"><div class="sl-dot" style="background:#ed7d31"></div>3. Утепление, плёнки<span class="sl-contract">Основной</span></div>
+      <div class="sl-item"><div class="sl-dot" style="background:#a5a5a5"></div>4. Внешняя отделка<span class="sl-contract">Основной</span></div>
+      <div class="sl-item"><div class="sl-dot" style="background:#ffc000"></div>5. Окна и двери<span class="sl-contract">Основной</span></div>
+      <div class="sl-item"><div class="sl-dot" style="background:#4472c4"></div>6. Кровля<span class="sl-contract">Основной</span></div>
+      <div class="sl-item"><div class="sl-dot" style="background:#e15759"></div>7. Покраска<span class="sl-contract">Основной</span></div>
+      <div class="sl-item"><div class="sl-dot" style="background:#9b59b6"></div>8. Внутренняя отделка<span class="sl-contract">Отделка</span></div>
+      <div class="sl-item"><div class="sl-dot" style="background:#1abc9c"></div>9. Парное отделение<span class="sl-contract">Отделка</span></div>
+      <div class="sl-item"><div class="sl-dot" style="background:#e67e22"></div>10. Печь и комплектующие<span class="sl-contract">Отделка</span></div>
+      <div class="sl-item"><div class="sl-dot" style="background:#2ecc71"></div>11. Дополнительные опции<span class="sl-contract">Основной</span></div>
+      <div class="sl-item"><div class="sl-dot" style="background:#3498db"></div>12. Инженерные коммуникации<span class="sl-contract">Инженерка</span></div>
+    </div>
+
+    <div class="sec">Работа с опциями</div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Включить опцию</h3>
+        <p>Нажмите на строку или чекбокс слева — опция активируется, итог пересчитывается мгновенно. Повторное нажатие снимает галочку.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Быстрый поиск по всем опциям</h3>
+        <p>Нажмите кнопку лупы в шапке или клавишу <kbd>Л</kbd> / <kbd>K</kbd>. Начните вводить — результаты подсвечиваются по всем разделам сразу. Нажмите на результат чтобы перейти к нему.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Навигация по разделам</h3>
+        <p>Нажмите стрелку <kbd>←</kbd> на правом краю экрана — откроется боковое меню. Нажмите на раздел — страница прокрутится к нему. Закрыть — <kbd>→</kbd> или <kbd>Esc</kbd>.</p>
+      </div></div>
+      <div class="step"><div class="sn">4</div><div class="sb2">
+        <h3>Добавить произвольную позицию</h3>
+        <p>Кнопка «+ Добавить позицию» в нижней части раздела — создаёт строку с произвольным названием и ценой. Попадает в спецификацию при печати.</p>
+      </div></div>
+      <div class="step"><div class="sn">5</div><div class="sb2">
+        <h3>Добавить примечание</h3>
+        <p>Кнопка «Добавить примечание» в разделе — текст отображается под таблицей опций в печатной форме. Полезно для пояснений по материалам или срокам.</p>
+      </div></div>
+      <div class="step"><div class="sn info">i</div><div class="sb2">
+        <h3>Выделить опцию цветом</h3>
+        <p>Нажмите значок флажка справа от опции — строка подсветится. В версии для печати выделенные позиции визуально отмечены.</p>
+      </div></div>
+    </div>
+
+    <div class="tip"><strong>Скрыть пустые опции:</strong> нажмите <kbd>З</kbd> / <kbd>P</kbd> — разделы свернутся, останутся только включённые позиции. Удобно для финального просмотра без «лишнего».</div>
+  </div>
+
+  <!-- ПРЕСЕТЫ -->
+  <div class="ch" id="ch-kits">
+    <div class="tag">Расчёт</div>
+    <h2>Комплектации</h2>
+    <p class="lead">Готовые наборы опций под разные бюджеты. Одним нажатием подставляют в расчёт всю комплектацию, показывают цену набора и цену со скидкой за выбор комплектации. Удобно подсветить клиенту, что входит в каждый уровень и сколько он стоит.</p>
+
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Открыть комплектации</h3>
+        <p>Кнопка <strong>«Комплектации»</strong> в шапке калькулятора. Откроется окно с готовыми наборами для текущего проекта. Закрыть — крестик или <kbd>Esc</kbd>.</p>
+        <div class="tip">Наборы свои у каждого проекта. Если для проекта комплектации не заведены, окно будет пустым — пользуйтесь обычным выбором опций.</div>
+        <div class="tip"><strong>Если кнопка «Комплектации» неактивна (бледная):</strong> по этому проекту комплектации ещё не готовы к продаже. Пользуйтесь обычным выбором опций или уточните у руководителя, когда наборы будут доступны.</div>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Четыре уровня</h3>
+        <p>Как правило доступны четыре набора: <strong>Тёплый контур</strong> (без отделки внутри), <strong>Стандарт</strong>, <strong>Комфорт</strong> и <strong>Премиум</strong>. Каждый — это заранее подобранный состав опций и материалов под свой бюджет.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Карточки с ценой</h3>
+        <p>Вверху — карточки наборов. На каждой: название, краткое описание, <strong>цена набора</strong> и второй строкой <strong>цена со скидкой −3%</strong> — столько будет стоить набор, если клиент выберет готовую комплектацию. Цены пересчитываются автоматически.</p>
+      </div></div>
+      <div class="step"><div class="sn">4</div><div class="sb2">
+        <h3>Сравнить наборы</h3>
+        <p>Ниже — таблица сравнения: видно, какие опции входят в каждый набор (<span style="color:#1e6c72;">✓</span>) и каких нет (—). Фильтры над таблицей: <strong>«Все опции»</strong>, <strong>«Только различия»</strong> (показывает лишь то, чем наборы отличаются) и <strong>«Только доп.»</strong> (только дополнительные опции). Кнопка <strong>«Скрыть пустые»</strong> убирает разделы без позиций.</p>
+      </div></div>
+      <div class="step"><div class="sn">5</div><div class="sb2">
+        <h3>Применить набор</h3>
+        <p>Выберите карточку и нажмите <strong>«Применить»</strong>. Весь состав набора подставится в расчёт, а в шапке появится плашка с названием комплектации. Заголовок суммы сменится на <strong>«Стоимость за комплектацию»</strong>.</p>
+      </div></div>
+      <div class="step"><div class="sn">6</div><div class="sb2">
+        <h3>Скидка за комплектацию −3%</h3>
+        <p>Пока выбрана готовая комплектация, на <strong>всю сумму набора</strong> действует скидка <strong>−3%</strong>. Она считается до спец-цены: сначала −3% за набор, затем ваша спец-цена (если задана). Внизу таблицы итог дублируется строкой <strong>«Со скидкой за комплектацию −3%»</strong> в цвете набора.</p>
+        <div class="tip"><strong>Важно:</strong> скидка действует, только пока состав набора не изменён. Стоит вручную включить или выключить любую опцию — плашка снимается, и −3% перестаёт применяться (сумма становится «Общая стоимость»). Чтобы вернуть скидку, примените набор заново.</div>
+      </div></div>
+      <div class="step"><div class="sn">7</div><div class="sb2">
+        <h3>Распечатать сравнение</h3>
+        <p>Кнопка <strong>«Распечатать»</strong> в окне комплектаций формирует таблицу сравнения наборов для клиента. Печать повторяет выбранный фильтр (<strong>«Все опции» / «Только различия» / «Только доп.»</strong> и «Скрыть пустые»). Внизу — итог и строка со скидкой −3%.</p>
+      </div></div>
+      <div class="step"><div class="sn">8</div><div class="sb2">
+        <h3>Где ещё видна скидка</h3>
+        <p>После применения набора скидка −3% автоматически учитывается в <strong>шапке калькулятора</strong>, в <strong>версии для печати</strong> спецификации и в <strong>платёжном плане</strong> — везде сумма уже идёт с учётом скидки за комплектацию.</p>
+      </div></div>
+    </div>
+  </div>
+  <div class="ch" id="ch-presets">
+    <div class="tag">Инструменты</div>
+    <h2>Пресеты</h2>
+    <p class="lead">Пресет — полное сохранённое состояние калькулятора: проект, утепление, реквизиты, все включённые опции, скидка. Позволяет мгновенно вернуться к расчёту любого клиента.</p>
+
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Сохранить текущий расчёт</h3>
+        <p>Нажмите кнопку пресетов (иконка папки) в шапке. В открывшейся панели нажмите <strong>«Сохранить как новый»</strong>. Название генерируется автоматически: проект + ФИО клиента + дата. Его можно изменить.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Загрузить пресет</h3>
+        <p>Нажмите на нужный пресет в списке — всё состояние калькулятора восстановится. Поиск по названию работает в реальном времени.</p>
+        <div class="tip"><strong>Звёздочка</strong> закрепляет пресет вверху списка и защищает от случайного удаления при очистке.</div>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Обновить существующий пресет</h3>
+        <p>Загрузите пресет, внесите изменения, затем снова нажмите «Сохранить» — выберите <strong>«Обновить текущий»</strong> чтобы перезаписать без создания нового.</p>
+      </div></div>
+      <div class="step"><div class="sn">4</div><div class="sb2">
+        <h3>Экспорт и импорт</h3>
+        <p>Кнопки <strong>«Скачать все»</strong> и <strong>«Импорт файла»</strong> — перенос пресетов между браузерами или резервная копия в формате TXT.</p>
+      </div></div>
+    </div>
+
+    <div class="tip"><strong>Фотографии из «Визуализации и планировки»</strong> также сохраняются в пресете. При сохранении они загружаются в облачное хранилище, а в пресете хранятся только ссылки и координаты. При загрузке пресета фото восстанавливаются точно на своих позициях.</div>
+    <div class="tip"><strong>Звёздочка</strong> на карточке пресета закрепляет его вверху списка и защищает от случайного удаления. Кружок с процентами — прогресс чек-листа; кликните по нему чтобы перейти к этому пресету в чек-листе.</div>
+    <div class="warn"><strong>Пресеты хранятся в браузере.</strong> При очистке кэша браузера локальные пресеты удалятся. Чтобы этого не допустить — войдите в аккаунт и включите облачную синхронизацию.</div>
+  </div>
+
+  <!-- ВИЗУАЛИЗАЦИЯ -->
+  <div class="ch" id="ch-visualization">
+    <div class="tag">Инструменты</div>
+    <h2>Визуализация и планировка</h2>
+    <p class="lead">Раздел для прикрепления фотографий проекта и планировок. Изображения отображаются в версии для печати — между реквизитами и спецификацией.</p>
+
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Добавить изображения</h3>
+        <p>Нажмите «Добавить изображение» или перетащите файлы прямо в область. Поддерживается несколько изображений одновременно. Форматы: JPG, PNG, WebP, HEIC.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Расставить вручную</h3>
+        <p>Каждое изображение можно перетаскивать мышью и масштабировать за угловой маркер (квадрат в правом нижнем углу). Порядок и размер точно воспроизводятся в версии для печати.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Авто-расстановка</h3>
+        <p>Кнопка <strong>«Авто-расстановка»</strong> автоматически выравнивает все фото по сетке: 1 фото — по центру; 2 фото — рядом с одинаковыми размерами; 3 и более — сетка в 2 колонки. Удобно для быстрой подготовки к печати.</p>
+      </div></div>
+      <div class="step"><div class="sn">4</div><div class="sb2">
+        <h3>Показать / скрыть в печати</h3>
+        <p>Кнопка <strong>«В печати: вкл»</strong> управляет отображением изображений в версии для печати, не удаляя их из раздела.</p>
+      </div></div>
+    </div>
+
+    <div class="tip"><strong>Фото сохраняются в пресете.</strong> При сохранении пресета изображения загружаются в облачное хранилище. При загрузке пресета все фото восстанавливаются на своих позициях.</div>
+  </div>
+
+  <!-- ПЛАТЁЖНЫЙ ПЛАН -->
+  <div class="ch" id="ch-payment">
+    <div class="tag">Инструменты</div>
+    <h2>Платёжный план</h2>
+    <p class="lead">Автоматически рассчитывает график платежей по трём договорам: Основной, Отделка, Инженерные коммуникации.</p>
+
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Открыть план</h3>
+        <p>Кнопка <strong>₽</strong> в шапке — активна только когда выбран проект. Или клавиши <kbd>Щ</kbd>/<kbd>O</kbd> для вкладки «Платежи», <kbd>Д</kbd>/<kbd>L</kbd> для «Договоры».</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Вкладка «Платежи»</h3>
+        <p>Редактирование этапов выбранного договора. Меняйте процент или сумму — остальные пересчитаются автоматически. Перетаскивайте этапы мышью для изменения порядка. Кнопка «+» добавляет новый этап.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Вкладка «Договоры»</h3>
+        <p>Распределение разделов спецификации по договорам. Перетащите раздел из одного договора в другой — суммы пересчитаются. Это влияет на итоговые суммы в каждом договоре.</p>
+      </div></div>
+      <div class="step"><div class="sn">4</div><div class="sb2">
+        <h3>Скопировать и отправить</h3>
+        <p>Кнопка <strong>«Копировать»</strong> — план попадает в буфер обмена в текстовом формате, готовом для вставки в мессенджер или письмо. Кнопка <strong>«Печать»</strong> — отдельное окно для печати.</p>
+      </div></div>
+    </div>
+
+    <div class="tip"><strong>Спецплатёж и фиксированная сумма:</strong> некоторые этапы поддерживают ввод произвольной фиксированной суммы — полезно если первый платёж согласован отдельно.</div>
+  </div>
+
+  <!-- ПЕЧАТЬ -->
+  <div class="ch" id="ch-print">
+    <div class="tag">Инструменты</div>
+    <h2>Версия для печати</h2>
+    <p class="lead">Формирует готовый документ-спецификацию. Пять стилей оформления, фильтрация по разделам и договорам, итоги только по выбранным позициям.</p>
+
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Открыть предпросмотр</h3>
+        <p>Кнопка печати в шапке или клавиша <kbd>П</kbd>/<kbd>G</kbd>. Открывается поверх калькулятора, закрыть — <kbd>Esc</kbd> или крестик.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Выбрать стиль</h3>
+        <p><strong>Классик</strong> — деловой, строгий. <strong>Модерн</strong> — светлый, современный. <strong>Архитект</strong> — минималистичный, только суть. <strong>Карточки</strong> — каждый раздел в отдельном блоке. <strong>Люкс</strong> — премиальный стиль с крупной типографикой Cormorant и Jost, тёплая палитра, увеличенные разделы. Автоматически активируется для проекта <em>«Женева»</em>.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Выбрать разделы</h3>
+        <p>Выпадающий список <strong>«Разделы»</strong> — снимите ненужные галочки. Быстрые кнопки договоров (Основной / Отделка / Инженерка) выбирают нужный набор сразу. Итоговая сумма пересчитывается под выбранные разделы.</p>
+        <div class="tip"><strong>Горячие клавиши в режиме печати:</strong> <kbd>Р</kbd>/<kbd>H</kbd> открывает список разделов, <kbd>↑↓</kbd> — навигация, <kbd>Enter</kbd> — галочка.</div>
+      </div></div>
+      <div class="step"><div class="sn">4</div><div class="sb2">
+        <h3>Напечатать или сохранить PDF</h3>
+        <p>Кнопка <strong>«Печать»</strong> — откроется диалог браузера. Чтобы получить PDF, выберите <strong>«Сохранить как PDF»</strong> вместо принтера. Масштаб рекомендуется 80–90% для лучшего вида на листе A4.</p>
+      </div></div>
+    </div>
+
+    <div class="sec">Дополнительные параметры</div>
+    <div class="steps">
+      <div class="step"><div class="sn">5</div><div class="sb2">
+        <h3>Параметры проекта</h3>
+        <p>Кнопка <strong>«Параметры»</strong> в тулбаре печати → пункт «Параметры проекта». Включает/выключает блок с менеджером, заказчиком, технологией и проектом в шапке документа.</p>
+      </div></div>
+      <div class="step"><div class="sn">6</div><div class="sb2">
+        <h3>Суммы разделов</h3>
+        <p>«Параметры» → «Суммы разделов». Показывает или скрывает итоговую сумму по каждому разделу прямо в документе. Полезно если нужен документ без детализации по разделам.</p>
+      </div></div>
+      </div>
+    <div class="warn"><strong>Цены доп. опций</strong> в спецификации по умолчанию скрыты для клиента — показывается только итоговая сумма раздела. Если нужно показать цену конкретной опции — нажмите иконку глаза рядом с ней в основном виде калькулятора.</div>
+  </div>
+
+  <!-- ГОРЯЧИЕ КЛАВИШИ -->
+  
+
+  <!-- ЧЕК-ЛИСТ -->
+  <div class="ch" id="ch-checklist">
+    <div class="tag">Инструменты</div>
+    <h2>Чек-лист</h2>
+    <p class="lead">Система проверки проекта перед отправкой клиенту. Прогресс сохраняется и синхронизируется по пресетам.</p>
+
+    <div class="sec">Как открыть</div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Кнопка в шапке</h3>
+        <p>Нажмите кнопку чек-листа в шапке калькулятора или используйте клавиши <kbd>Ч</kbd> / <kbd>X</kbd>. Закрыть — <kbd>Esc</kbd> или повторное нажатие.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Выбрать пресет</h3>
+        <p>В выпадающем меню вверху выберите пресет, к которому привязан чек-лист. Каждый пресет имеет отдельный прогресс. Чек-лист без выбранного пресета работает как временный — данные не сохраняются.</p>
+      </div></div>
+    </div>
+
+    <div class="sec">Работа с пунктами</div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Отметить пункт</h3>
+        <p>Каждый пункт можно пометить одним из трёх статусов: <strong>Да</strong> (выполнено), <strong>Пропуск</strong> (не актуально), <strong>Не требуется</strong>. Кликните на нужный вариант рядом с пунктом.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Фильтрация</h3>
+        <p>Кнопки <strong>«Да»</strong>, <strong>«Пропуск»</strong>, <strong>«Не требуется»</strong> в тулбаре — показывают только пункты с выбранным статусом. Удобно для финальной проверки: нажмите «Да» и просмотрите что уже сделано.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Скрыть отмеченные</h3>
+        <p>Кнопка <strong>«Скрыть»</strong> убирает все уже отмеченные пункты — остаются только те, по которым ещё не принято решение.</p>
+      </div></div>
+      <div class="step"><div class="sn">4</div><div class="sb2">
+        <h3>Свернуть разделы</h3>
+        <p>Кнопка <strong>«Свернуть»</strong> сворачивает все разделы до заголовков. Кликните на заголовок раздела чтобы раскрыть его отдельно.</p>
+      </div></div>
+    </div>
+
+    <div class="sec">Прогресс</div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Кружок на карточке пресета</h3>
+        <p>На каждой карточке пресета отображается кружок с процентом заполнения чек-листа. Зелёный — полностью заполнен, остальные цвета показывают степень готовности. <strong>Кликните по кружку</strong> чтобы открыть чек-лист сразу для этого пресета.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Переход к пресету</h3>
+        <p>Кликните по кружку с процентами в шапке открытого чек-листа — закроется чек-лист и откроется панель пресетов с прокруткой к нужному пресету.</p>
+      </div></div>
+    </div>
+
+    <div class="tip"><strong>Синхронизация:</strong> прогресс чек-листа сохраняется и доступен с любого устройства при входе в аккаунт. Для общих (опубликованных) пресетов чек-лист виден всем у кого есть ссылка или код.</div>
+  </div>
+
+  <!-- ПУБЛИКАЦИЯ И ШАРИНГ -->
+  <div class="ch" id="ch-sharing">
+    <div class="tag">Инструменты</div>
+    <h2>Публикация и шаринг</h2>
+    <p class="lead">Пресет можно опубликовать — получить уникальный 6-значный код и ссылку для передачи коллеге или клиенту. Опубликованный пресет доступен в режиме просмотра без входа в аккаунт.</p>
+
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Опубликовать пресет</h3>
+        <p>На карточке пресета нажмите <strong>«Поделиться»</strong>. Пресет публикуется и получает уникальный 6-значный код. Кнопка <strong>«Скопировать»</strong> копирует код в буфер обмена.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Открыть по коду</h3>
+        <p>В строке поиска пресетов введите 6-значный код — пресет найдётся даже если он принадлежит другому менеджеру. Состояние загружается в реальном времени.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Синхронизация в реальном времени</h3>
+        <p>Пока опубликованный пресет открыт, изменения автора отображаются автоматически — без перезагрузки страницы. Используйте для совместного просмотра расчёта по видеозвонку.</p>
+      </div></div>
+      <div class="step"><div class="sn">4</div><div class="sb2">
+        <h3>Отозвать публикацию</h3>
+        <p>Нажмите <strong>«Отозвать»</strong> на карточке пресета — публикация удалится, код перестанет работать. Сам пресет остаётся у вас.</p>
+      </div></div>
+    </div>
+
+    <div class="tip"><strong>Чек-лист общего пресета</strong> синхронизируется по тому же коду — все участники видят актуальный прогресс.</div>
+    <div class="warn"><strong>Опубликованный пресет виден всем</strong> у кого есть код или прямая ссылка. Не публикуйте пресеты с конфиденциальными данными клиентов.</div>
+  </div>
+
+  <!-- РАСЧЁТ ПО ФОРМУЛАМ -->
+  <div class="ch" id="ch-formula-options">
+    <div class="tag">Инструменты</div>
+    <h2>Расчёт опций по формулам</h2>
+    <p class="lead">Опции раздела «Внешняя отделка» рассчитываются автоматически по формулам на основе площади стен фасада проекта и маржинальности. Менеджер может скорректировать параметры для каждого расчёта.</p>
+
+    <div class="sec">Как это работает</div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Автоматическая цена</h3>
+        <p>Для каждого проекта в базе заданы три площади: стен фасада, для покраски и кровли. При выборе проекта цены формульных опций пересчитываются автоматически — вводить вручную не нужно.</p>
+        <div class="tip">Площади видны в форме «Данные проекта»: поля <strong>«Пл. фасада»</strong>, <strong>«Пл. покраски»</strong>, <strong>«Пл. кровли»</strong>.</div>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Формула расчёта</h3>
+        <p>Базовая формула: <strong>Цена = ((площадь × коэффициент) / (1 − маржа)) × множитель + надбавка</strong>. Для ДПК используется упрощённая: <strong>(площадь × цена за м²) / (1 − маржа)</strong>.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Ручной ввод</h3>
+        <p>Если у проекта нет данных о площади — появляется поле ручного ввода цены (как у обычных опций без матричной цены).</p>
+      </div></div>
+    </div>
+
+    <div class="sec">Кнопка «Параметры»</div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Открыть параметры</h3>
+        <p>Рядом с ценой формульной опции появляется иконка шестерёнки ⚙. Нажмите её чтобы раскрыть панель с параметрами формулы для этой конкретной опции.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Изменить маржинальность</h3>
+        <p>В поле «Маржинальность» введите нужный процент. Цена пересчитается мгновенно. Рядом с ценой появится цветной индикатор: <strong>🟢 зелёный</strong> — маржа выше базовой, <strong>🔴 красный</strong> — маржа ниже базовой.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Изменить площадь</h3>
+        <p>Если нужно посчитать не от площади проекта, а от другого значения — введите своё число в поле площади. Кнопка <strong>«из проекта»</strong> сбросит к исходному значению.</p>
+      </div></div>
+      <div class="step"><div class="sn">4</div><div class="sb2">
+        <h3>ДПК: цена за м²</h3>
+        <p>Для опции «Террасная доска — ДПК UnoDeck Ultra» в панели параметров есть дополнительное поле <strong>«Цена за 1 м² ДПК»</strong>. Актуальную цену смотрите на сайте поставщика. База: 4 500 ₽/м².</p>
+      </div></div>
+    </div>
+
+    <div class="sec">Режим старых опций</div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Переключение режима</h3>
+        <p>В Настройках → Основные → «Расчёт опций» можно переключить между <strong>«Новые»</strong> (формульный расчёт) и <strong>«Старые»</strong> (фиксированные цены из матрицы). Настройка сохраняется в пресете.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Совместимость со старыми пресетами</h3>
+        <p>При загрузке пресета созданного до внедрения формул — режим автоматически переключится на «Старые» и появится уведомление. Вручную переключить в «Новые» можно в настройках.</p>
+      </div></div>
+    </div>
+
+    <div class="tip"><strong>Параметры сохраняются в пресете</strong> — маржа и площадь привязаны к конкретному расчёту. Кнопка «Сбросить всё» возвращает маржу всех опций к базовым значениям.</div>
+  </div>
+
+  <!-- В ПОДАРОК -->
+  <div class="ch" id="ch-gift">
+    <div class="tag">Инструменты</div>
+    <h2>Опция «В подарок»</h2>
+    <p class="lead">Любую опцию можно пометить как подарок клиенту. Цена зачёркивается, опция остаётся в спецификации визуально, но в итоговую сумму не включается.</p>
+
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Пометить опцию как подарок</h3>
+        <p>В строке с ценой опции нажмите иконку <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>. Опция получит визуальный маркер, цена зачёркнется и будет вычеркнута из итогов.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Отображение в печати</h3>
+        <p>В версии для печати подарочные опции отображаются с зачёркнутой ценой или без цены — в зависимости от стиля. Итоговая сумма раздела и документа рассчитывается без них.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Снять пометку</h3>
+        <p>Повторный клик по иконке <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg> — пометка «В подарок» снимается, цена возвращается в итог.</p>
+      </div></div>
+    </div>
+
+    <div class="tip">Управлять подарками можно через кнопку <strong>«Сбросить»</strong> в шапке → <strong>«Сбросить подарки»</strong> — снимает все пометки сразу.</div>
+  </div>
+
+  <div class="ch" id="ch-analytics">
+    <div class="tag">Инструменты</div>
+    <h2>Аналитика</h2>
+    <p class="lead">Раздел аналитики показывает вашу личную статистику расчётов и пресетов. Открывается через кнопку графика в шапке калькулятора.</p>
+
+    <div class="sec">Как открыть</div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Кнопка в шапке</h3>
+        <p>Нажмите кнопку <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> в правом углу шапки. Горячая клавиша — <kbd>Г</kbd> / <kbd>U</kbd>.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Источник данных</h3>
+        <p>Индикатор в левом углу окна показывает источник: <strong>оранжевый</strong> — данные из браузера, <strong>зелёный</strong> — данные синхронизированы с базой. Данные загружаются автоматически при открытии если есть подключение.</p>
+      </div></div>
+    </div>
+
+    <div class="sec">Сводные показатели</div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Расчётов</h3>
+        <p>Количество сохранённых расчётов за выбранный период.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Средняя сумма</h3>
+        <p>Средняя стоимость проекта по всем расчётам за период.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Средняя скидка</h3>
+        <p>Средний процент скидки, применённой в расчётах за период.</p>
+      </div></div>
+      <div class="step"><div class="sn">4</div><div class="sb2">
+        <h3>Ср. площадь</h3>
+        <p>Средняя тёплая площадь проектов в расчётах за период.</p>
+      </div></div>
+    </div>
+
+    <div class="sec">Блоки графиков</div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Активность по дням</h3>
+        <p>График количества расчётов по каждому дню выбранного периода.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Топ проектов</h3>
+        <p>Самые часто встречающиеся проекты в ваших расчётах — по количеству упоминаний.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Тип кровли</h3>
+        <p>Распределение расчётов по типу кровли — какие варианты чаще выбирают клиенты.</p>
+      </div></div>
+      <div class="step"><div class="sn">4</div><div class="sb2">
+        <h3>Топ опций</h3>
+        <p>Дополнительные опции и разделы, которые чаще всего включаются в расчёты.</p>
+      </div></div>
+      <div class="step"><div class="sn">5</div><div class="sb2">
+        <h3>По месяцам</h3>
+        <p>Динамика количества расчётов по месяцам — помогает отслеживать сезонность.</p>
+      </div></div>
+      <div class="step"><div class="sn">6</div><div class="sb2">
+        <h3>Карта активности</h3>
+        <p>Тепловая карта активности по дням недели и часам — показывает в какое время вы чаще всего работаете с калькулятором.</p>
+      </div></div>
+      <div class="step"><div class="sn info">i</div><div class="sb2">
+        <h3>Период</h3>
+        <p>Переключайте период фильтрации вверху окна: 7 дней, месяц, квартал или всё время.</p>
+      </div></div>
+    </div>
+
+    <div class="tip"><strong>Данные из браузера:</strong> если синхронизация с базой недоступна, аналитика строится на основе сохранённых пресетов. Для точных цифр используйте ручную синхронизацию в настройках.</div>
+  </div>
+
+  <!-- НАСТРОЙКИ -->
+
+<div class="ch" id="ch-settings">
+    <div class="tag">Интерфейс</div>
+    <h2>Настройки</h2>
+    <p class="lead">Настройки открываются кнопкой ⚙ в шапке калькулятора. Содержат три вкладки: Основные, Аккаунт, Горячие клавиши.</p>
+
+    <div class="sec">Основные</div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Тема оформления</h3>
+        <p>Выбор цветовой темы интерфейса: Модерн, Классик или Минимал. Влияет на внешний вид и версию для печати.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Показывать уведомления об авто-действиях</h3>
+        <p>Когда вы выбираете опцию, калькулятор автоматически снимает несовместимые опции и уведомляет об этом всплывающим сообщением. Переключатель позволяет отключить эти уведомления — автоматические действия продолжают работать, но без оповещений.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Сбросить все авто-действия</h3>
+        <p>Кнопка снимает галочки со всех опций, которые не были отмечены вручную — то есть сбрасывает только те позиции, где галочка стоит автоматически. Ручной выбор остаётся нетронутым.</p>
+      </div></div>
+      <div class="step"><div class="sn">4</div><div class="sb2">
+        <h3>Имя в подписи документа</h3>
+        <p>Имя подписанта, которое отображается в версии для печати под строкой подписи со стороны компании.</p>
+      </div></div>
+    </div>
+
+    <div class="sec">Аккаунт</div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Профиль</h3>
+        <p>Показывает ваш email и роль. Кнопка «Выйти» завершает сессию.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Синхронизация пресетов</h3>
+        <p>Статус подключения к базе данных. Кнопка «Синхронизировать» запускает принудительную синхронизацию пресетов с облаком. Интервал авто-синхронизации настраивается от 1 до 30 минут.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Безопасность</h3>
+        <p>Кнопка «Отправить» высылает письмо со ссылкой для смены пароля на ваш email.</p>
+      </div></div>
+      <div class="step"><div class="sn">4</div><div class="sb2">
+        <h3>Команда</h3>
+        <p>Доступно для администратора и редактора. Позволяет пригласить нового сотрудника — на указанный email придёт письмо, роль менеджера назначается автоматически. Здесь же отображаются заявки на регистрацию, ожидающие подтверждения.</p>
+      </div></div>
+    </div>
+
+    <div class="sec">Расчёт опций</div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Режим расчёта опций</h3>
+        <p><strong>Новые</strong> — опции раздела «Внешняя отделка» рассчитываются по формулам на основе площади проекта и маржинальности. <strong>Старые</strong> — фиксированные цены из матрицы (для совместимости со старыми пресетами). Настройка сохраняется в пресете и переключается автоматически при загрузке старого расчёта.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Стиль интерфейса</h3>
+        <p><strong>Классик</strong> — светлая тема. <strong>Модерн</strong> — тёмная. Также доступно <strong>Авто</strong> — следует за системными настройками устройства.</p>
+      </div></div>
+    </div>
+
+    <div class="tip">Горячая клавиша для открытия настроек — <kbd>N</kbd> / <kbd>Т</kbd>.</div>
+  </div>
+
+  <!-- АККАУНТ -->
+
+<div class="ch" id="ch-account">
+    <div class="tag">Прочее</div>
+    <h2>Аккаунт и синхронизация</h2>
+    <p class="lead">Аккаунт позволяет синхронизировать пресеты между устройствами — компьютер, телефон, планшет. Данные хранятся в облаке.</p>
+
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Зарегистрироваться</h3>
+        <p>Нажмите шестерёнку в шапке → вкладка <strong>«Аккаунт»</strong> → кнопка <strong>«Войти»</strong> → вкладка <strong>«Регистрация»</strong>. Введите email и придумайте пароль.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Войти в аккаунт</h3>
+        <p>Шестерёнка → <strong>«Аккаунт»</strong> → <strong>«Войти»</strong>. Введите email и пароль которые указывали при регистрации.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Синхронизация пресетов</h3>
+        <p>При входе пресеты автоматически загружаются из облака и объединяются с локальными. Для ручной синхронизации — кнопка <strong>«Синхронизировать»</strong> в том же разделе.</p>
+      </div></div>
+      <div class="step"><div class="sn">4</div><div class="sb2">
+        <h3>Авто-синхронизация</h3>
+        <p>В настройках аккаунта выберите интервал: <strong>выкл / 1 / 5 / 10 / 30 минут</strong>. Пресеты будут синхронизироваться в фоне пока калькулятор открыт.</p>
+      </div></div>
+      <div class="step"><div class="sn">5</div><div class="sb2">
+        <h3>Сменить пароль</h3>
+        <p>Настройки → Аккаунт → <strong>«Сменить пароль»</strong>. Письмо со ссылкой придёт на ваш email.</p>
+      </div></div>
+    </div>
+  </div>
+
+
+
+
+  <div class="ch" id="ch-guide">
+    <div class="tag">Инструменты</div>
+    <h2>База знаний</h2>
+    <p class="lead">Отдельный от этой справки документ — материалы по продажам: как вести клиента, что отвечать на возражения, чем отличаются комплектации. Справка объясняет калькулятор, база знаний — работу с клиентом.</p>
+
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Открыть базу знаний</h3>
+        <p>Кнопка со значком выпускной шапочки в шапке калькулятора, либо клавиша <span class="kb">Б</span><span class="kb-or">или</span><span class="kb">,</span>. Открывается поверх калькулятора, расчёт при этом не сбрасывается.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Вернуться к расчёту</h3>
+        <p>Клавиша <span class="kb">Esc</span> или крестик в правом верхнем углу. Всё, что было заполнено, остаётся на месте.</p>
+      </div></div>
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Тема подхватывается автоматически</h3>
+        <p>База знаний открывается в той же теме, что и калькулятор — переключать отдельно не нужно.</p>
+      </div></div>
+    </div>
+
+    <div class="tip"><strong>База знаний живёт и отдельно</strong> — по адресу <strong>knowledge.baniamsk.ru/sales/</strong>. Ссылку можно открыть с телефона, не заходя в калькулятор.</div>
+  </div>
+
+  <div class="ch" id="ch-hide">
+    <div class="tag">Инструменты</div>
+    <h2>Показ клиенту — кнопка «глаз»</h2>
+    <p class="lead">Одна кнопка убирает с экрана всё лишнее и оставляет спецификацию в том виде, в котором её можно развернуть к клиенту. Нажали второй раз — вернулись к рабочему виду. Расчёт при этом не меняется, скрывается только отображение.</p>
+
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>Включить и выключить</h3>
+        <p>Кнопка с перечёркнутым глазом в шапке калькулятора, либо клавиша <span class="kb">З</span><span class="kb-or">или</span><span class="kb">P</span>. Работает как переключатель.</p>
+      </div></div>
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Настроить, что именно скрывать</h3>
+        <p>Настройки → Основные → <strong>«Настройка кнопки «глаз»»</strong>. Четыре независимых переключателя, все включённые применяются одновременно.</p>
+      </div></div>
+    </div>
+
+    <div class="sec">Что можно скрыть</div>
+    <div class="krow"><div class="krow-l"><strong>Скрывать не выбранные опции</strong><br>Оставляет только активные и закреплённые звёздочкой</div></div>
+    <div class="krow"><div class="krow-l"><strong>Скрывать цены опций</strong><br>Убирает цифры напротив каждой опции. Итоги по разделам и общая сумма остаются</div></div>
+    <div class="krow"><div class="krow-l"><strong>Скрывать поля ручного ввода цен</strong><br>Поля «введите сумму» у опций без фиксированной цены</div></div>
+    <div class="krow"><div class="krow-l"><strong>Скрывать % по разделам</strong><br>Колонку процентов напротив каждого раздела в разбивке</div></div>
+
+    <div class="steps">
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>Закрепить нужную опцию</h3>
+        <p>Иконка звёздочки в строке опции — <strong>«Закрепить опцию»</strong>. Закреплённая опция остаётся видимой, даже если не выбрана и включено скрытие невыбранных. Удобно, когда нужно показать клиенту позицию, которую он ещё не согласовал.</p>
+      </div></div>
+    </div>
+
+    <div class="tip"><strong>Цену одной опции можно показать точечно</strong> — иконка глаза рядом с самой опцией открывает её цену в версии для печати, независимо от общей настройки.</div>
+  </div>
+
+  <div class="ch" id="ch-hotkeys">
+    <div class="tag">Прочее</div>
+    <h2>Горячие клавиши</h2>
+    <p class="lead">Почти всё в калькуляторе открывается с клавиатуры. У каждого действия две клавиши — русская и латинская на одной и той же физической кнопке, поэтому раскладку переключать не нужно. Полный список всегда под рукой: Настройки → Горячие клавиши.</p>
+
+    <div class="sec">Общий режим</div>
+      <div class="krow"><div class="krow-l">База знаний</div><div class="krow-k"><span class="kb">Б</span><span class="kb-or">или</span><span class="kb">,</span></div></div>
+      <div class="krow"><div class="krow-l">Справка и руководство</div><div class="krow-k"><span class="kb">Р</span><span class="kb-or">или</span><span class="kb">H</span></div></div>
+      <div class="krow"><div class="krow-l">Чек-лист</div><div class="krow-k"><span class="kb">Ч</span><span class="kb-or">или</span><span class="kb">X</span></div></div>
+      <div class="krow"><div class="krow-l">Статистика</div><div class="krow-k"><span class="kb">Ы</span><span class="kb-or">или</span><span class="kb">S</span></div></div>
+      <div class="krow"><div class="krow-l">Пресеты</div><div class="krow-k"><span class="kb">М</span><span class="kb-or">или</span><span class="kb">V</span></div></div>
+      <div class="krow"><div class="krow-l">Версия для печати</div><div class="krow-k"><span class="kb">П</span><span class="kb-or">или</span><span class="kb">G</span></div></div>
+      <div class="krow"><div class="krow-l">Платёжный план → Платежи</div><div class="krow-k"><span class="kb">Щ</span><span class="kb-or">или</span><span class="kb">O</span></div></div>
+      <div class="krow"><div class="krow-l">Платёжный план → Договоры</div><div class="krow-k"><span class="kb">Д</span><span class="kb-or">или</span><span class="kb">L</span></div></div>
+      <div class="krow"><div class="krow-l">Поиск по опциям</div><div class="krow-k"><span class="kb">Л</span><span class="kb-or">или</span><span class="kb">K</span></div></div>
+      <div class="krow"><div class="krow-l">Комплектации</div><div class="krow-k"><span class="kb">Я</span><span class="kb-or">или</span><span class="kb">Z</span></div></div>
+      <div class="krow"><div class="krow-l">День / ночь</div><div class="krow-k"><span class="kb">Н</span><span class="kb-or">или</span><span class="kb">Y</span></div></div>
+      <div class="krow"><div class="krow-l">Меню сброса</div><div class="krow-k"><span class="kb">С</span><span class="kb-or">или</span><span class="kb">C</span></div></div>
+      <div class="krow"><div class="krow-l">Скрыть / показать опции</div><div class="krow-k"><span class="kb">З</span><span class="kb-or">или</span><span class="kb">P</span></div></div>
+      <div class="krow"><div class="krow-l">Настройки → Основные</div><div class="krow-k"><span class="kb">О</span><span class="kb-or">или</span><span class="kb">J</span></div></div>
+      <div class="krow"><div class="krow-l">Настройки → Аккаунт</div><div class="krow-k"><span class="kb">А</span><span class="kb-or">или</span><span class="kb">F</span></div></div>
+      <div class="krow"><div class="krow-l">Настройки → Горячие клавиши</div><div class="krow-k"><span class="kb">Г</span><span class="kb-or">или</span><span class="kb">U</span></div></div>
+
+    <div class="sec">Навигация по разделам</div>
+      <div class="krow"><div class="krow-l">Открыть боковое меню</div><div class="krow-k"><span class="kb">←</span></div></div>
+      <div class="krow"><div class="krow-l">Закрыть боковое меню</div><div class="krow-k"><span class="kb">→</span></div></div>
+      <div class="krow"><div class="krow-l">Навигация по меню</div><div class="krow-k"><span class="kb">↑</span><span class="kb">↓</span></div></div>
+      <div class="krow"><div class="krow-l">Перейти к разделу</div><div class="krow-k"><span class="kb">Enter</span></div></div>
+      <div class="krow"><div class="krow-l">Закрыть окно</div><div class="krow-k"><span class="kb">Esc</span></div></div>
+
+    <div class="sec">В режиме печати</div>
+      <div class="krow"><div class="krow-l">Следующая тема оформления</div><div class="krow-k"><span class="kb">→</span></div></div>
+      <div class="krow"><div class="krow-l">Предыдущая тема оформления</div><div class="krow-k"><span class="kb">←</span></div></div>
+      <div class="krow"><div class="krow-l">Открыть меню разделов</div><div class="krow-k"><span class="kb">Р</span><span class="kb-or">или</span><span class="kb">H</span></div></div>
+      <div class="krow"><div class="krow-l">В меню разделов: навигация</div><div class="krow-k"><span class="kb">↑</span><span class="kb">↓</span></div></div>
+      <div class="krow"><div class="krow-l">В меню разделов: вкл/откл всё</div><div class="krow-k"><span class="kb">←</span><span class="kb">→</span></div></div>
+      <div class="krow"><div class="krow-l">В меню разделов: галочка</div><div class="krow-k"><span class="kb">Enter</span></div></div>
+      <div class="krow"><div class="krow-l">Закрыть / выйти из печати</div><div class="krow-k"><span class="kb">Esc</span></div></div>
+      <div class="krow"><div class="krow-l">Начало страницы</div><div class="krow-k"><span class="kb">0</span></div></div>
+      <div class="krow"><div class="krow-l">Перейти к разделу 1–9</div><div class="krow-k"><span class="kb">1</span><span class="kb">…</span><span class="kb">9</span></div></div>
+      <div class="krow"><div class="krow-l">Перейти к разделу 10 «Печь»</div><div class="krow-k"><span class="kb">1</span><span class="kb">0</span></div></div>
+
+    <div class="tip"><strong>Клавиши не срабатывают?</strong> Курсор стоит в поле ввода — нажмите <span class="kb">Esc</span> или кликните по пустому месту страницы, и клавиши снова заработают.</div>
+  </div>
+
+
+  <div class="ch" id="ch-updates">
+    <div class="tag">Прочее</div>
+    <h2>Журнал обновлений</h2>
+    <p class="lead">Что менялось в калькуляторе от версии к версии. Здесь только то,
+       что видно в работе, — правки под капотом сюда не попадают. Номер версии, на
+       которой ты сейчас, написан в правом верхнем углу калькулятора.</p>
+
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb2">
+        <h3>В списке проектов больше нет одинаковых названий</h3>
+        <p>Четыре проекта были заведены дважды: «Бургос 12х9», «Рейкьявик 13х4»,
+           «Сиена 16х5» и «Лондон 16х10». У двух из дублей не были заполнены площади,
+           и на них опции, которые считаются от площади — террасная доска, покраска,
+           кровля, — не считались вовсе. Если выбрать такой дубль, часть опций молча
+           оставалась без цены. Дубли убраны, в списке 190 проектов.</p>
+      </div></div>
+
+      <div class="step"><div class="sn">2</div><div class="sb2">
+        <h3>Справка пополнилась тремя разделами</h3>
+        <p>«Горячие клавиши» — весь список из 39 сочетаний, раньше про них была одна
+           строчка. «База знаний» — как открыть и как вернуться к расчёту.
+           «Показ клиенту» — что именно скрывает кнопка с глазом.</p>
+      </div></div>
+
+      <div class="step"><div class="sn">3</div><div class="sb2">
+        <h3>На телефоне таблицы в базе знаний листаются вбок</h3>
+        <p>Широкие таблицы обрезались правым краем экрана, и добраться до последней
+           колонки было нельзя. Теперь таблицу можно тянуть пальцем влево.</p>
+      </div></div>
+
+      <div class="step"><div class="sn">4</div><div class="sb2">
+        <h3>Цены обновляются без обновления калькулятора</h3>
+        <p>Раньше смена цены означала выпуск новой версии: сначала правка, потом
+           выкладка, потом все обновляют страницу. Теперь правка вступает в силу
+           сразу — достаточно перезагрузить страницу, номер версии при этом
+           не меняется.</p>
+      </div></div>
+
+      <div class="step"><div class="sn">5</div><div class="sb2">
+        <h3>Калькулятору и базе знаний нужен интернет</h3>
+        <p>Цены и учебные материалы подгружаются при входе, а не лежат внутри
+           страницы. Если связи нет, калькулятор покажет «Цены не загрузились»
+           и не пустит к расчёту. Это сделано намеренно: лучше честно сказать,
+           чем посчитать по пустым данным и выдать клиенту неверную цифру.</p>
+      </div></div>
+    </div>
+
+    <div class="tip"><strong>Если увидел «Цены не загрузились»</strong> — проверь
+       интернет и нажми «Обновить». Если не помогло, напиши администратору: считать
+       вручную по старой памяти не нужно, цифры могли поменяться.</div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /layout -->
+<div class="mob-backdrop" id="mobBackdrop" onclick="closeMobMenu()"></div>
+<button class="mob-btn" onclick="toggleMobMenu()" title="Меню">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+
+<script>
+// ── Dark mode: inherit from parent, manual toggle overrides ──
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'theme') {
+    if (!window._manualTheme) {
+      var isDark = !!e.data.dark;
+      document.body.classList.toggle('dark', isDark);
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      localStorage.setItem('banya_dark', isDark ? '1' : '0');
+    }
+  }
+});
+
+// ── Mobile menu ──
+function toggleMobMenu() {
+  const sb = document.querySelector('.sb');
+  const bd = document.getElementById('mobBackdrop');
+  const isOpen = sb.classList.contains('mob-open');
+  sb.classList.toggle('mob-open', !isOpen);
+  bd.classList.toggle('open', !isOpen);
+}
+function closeMobMenu() {
+  document.querySelector('.sb').classList.remove('mob-open');
+  document.getElementById('mobBackdrop').classList.remove('open');
+}
+
+// ── Navigation ──
+function go(id) {
+  document.querySelectorAll('.ch').forEach(c => c.classList.remove('on'));
+  document.querySelectorAll('.sb-a').forEach(a => a.classList.remove('on'));
+  const ch = document.getElementById('ch-' + id);
+  if (ch) ch.classList.add('on');
+  document.querySelectorAll('.sb-a').forEach(a => {
+    if (a.getAttribute('onclick') === `go('${id}')`) a.classList.add('on');
+  });
+  window.scrollTo({ top: 0 });
+  document.getElementById('guideSearch').value = '';
+  closeSearch();
+  closeMobMenu();
+}
+
+// ── Esc ──
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape') {
+    const r = document.getElementById('srchResults');
+    if (r && r.classList.contains('open')) { closeSearch(); return; }
+    window.parent.postMessage('closeGuide','*');
+  }
+});
+
+// ── Search index ──
+const CHAPTERS = [
+  {id:'overview',        title:'Обзор'},
+  {id:'project',         title:'Выбор проекта'},
+  {id:'options',         title:'Опции и разделы'},
+  {id:'kits',            title:'Комплектации'},
+  {id:'presets',         title:'Пресеты'},
+  {id:'visualization',   title:'Визуализация'},
+  {id:'payment',         title:'Платёжный план'},
+  {id:'print',           title:'Версия для печати'},
+  {id:'checklist',       title:'Чек-лист'},
+  {id:'sharing',         title:'Публикация и шаринг'},
+  {id:'formula-options', title:'Расчёт по формулам'},
+  {id:'gift',            title:'В подарок'},
+  {id:'analytics',       title:'Аналитика'},
+  {id:'settings',        title:'Настройки'},
+  {id:'account',         title:'Аккаунт и синхронизация'},
+];
+
+function buildIndex() {
+  const index = [];
+  CHAPTERS.forEach(ch => {
+    const el = document.getElementById('ch-' + ch.id);
+    if (!el) return;
+    // Chapter title
+    const h2 = el.querySelector('h2');
+    if (h2) index.push({ chId: ch.id, chTitle: ch.title, text: h2.textContent, type: 'chapter' });
+    // Step headers
+    el.querySelectorAll('.sb2 h3').forEach(h3 => {
+      index.push({ chId: ch.id, chTitle: ch.title, text: h3.textContent, type: 'step' });
+    });
+    // Step paragraphs
+    el.querySelectorAll('.sb2 p').forEach(p => {
+      const t = p.textContent.trim();
+      if (t.length > 20) index.push({ chId: ch.id, chTitle: ch.title, text: t, type: 'text' });
+    });
+    // Tips
+    el.querySelectorAll('.tip,.warn').forEach(tip => {
+      index.push({ chId: ch.id, chTitle: ch.title, text: tip.textContent.trim(), type: 'tip' });
+    });
+  });
+  return index;
+}
+
+let _index = null;
+
+function doSearch(q) {
+  if (!_index) _index = buildIndex();
+  const r = document.getElementById('srchResults');
+  q = q.trim().toLowerCase();
+  if (!q) { r.innerHTML = ''; r.classList.remove('open'); return; }
+
+  const scored = [];
+  const seen = new Set();
+  _index.forEach(item => {
+    const t = item.text.toLowerCase();
+    if (!t.includes(q)) return;
+    const key = item.chId + '|' + item.text.slice(0,40);
+    if (seen.has(key)) return;
+    seen.add(key);
+    // Score: chapter title exact=100, h3 exact=80, h3 contains=60, text=10, tip=5
+    let score = 0;
+    if (item.type === 'chapter') score = t === q ? 100 : 70;
+    else if (item.type === 'step') score = t.startsWith(q) ? 80 : 60;
+    else if (item.type === 'tip') score = 5;
+    else score = 10;
+    scored.push({ ...item, score });
+  });
+
+  scored.sort((a,b) => b.score - a.score);
+
+  // Dedupe by chapter — show best match per chapter first, then others
+  const byChapter = [];
+  const chapterSeen = new Set();
+  scored.forEach(m => {
+    if (!chapterSeen.has(m.chId)) {
+      chapterSeen.add(m.chId);
+      byChapter.push(m);
+    }
+  });
+  // Add remaining non-chapter-deduped
+  scored.forEach(m => {
+    if (!byChapter.includes(m)) byChapter.push(m);
+  });
+  const matches = byChapter.slice(0, 10);
+
+  if (!matches.length) {
+    r.innerHTML = '<div class="srch-empty">Ничего не найдено</div>';
+  } else {
+    const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const hl = t => t.replace(new RegExp(escRe(q), 'gi'), m => `<strong>${m}</strong>`);
+    r.innerHTML = matches.map(m => {
+      const snippet = m.text.length > 80 ? m.text.slice(0,80) + '…' : m.text;
+      return `<div class="srch-item" onmousedown="go('${m.chId}')">
+        ${hl(snippet)}
+        <small>${m.chTitle}</small>
+      </div>`;
+    }).join('');
+  }
+  r.classList.add('open');
+}
+
+function closeSearch() {
+  const r = document.getElementById('srchResults');
+  if (r) r.classList.remove('open');
+}
+
+// ── Print all chapters ──
+function printGuide() {
+  // Show all chapters temporarily for print
+  document.querySelectorAll('.ch').forEach(c => c.style.display = 'block');
+  window.print();
+  // Restore after print
+  setTimeout(() => {
+    document.querySelectorAll('.ch').forEach(c => c.style.display = '');
+    // Re-apply the active one
+    const active = document.querySelector('.sb-a.on');
+    if (active) {
+      const fn = active.getAttribute('onclick');
+      const m = fn && fn.match(/go\('([^']+)'\)/);
+      if (m) {
+        document.getElementById('ch-' + m[1]).style.display = 'block';
+      }
+    }
+  }, 500);
+}
+
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'darkMode') {
+    if (!window._manualTheme) {
+      var isDark = !!e.data.dark;
+      document.body.classList.toggle('dark', isDark);
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      localStorage.setItem('banya_dark', isDark ? '1' : '0');
+    }
+  }
+});
+</script>
+</body>
+</html>
