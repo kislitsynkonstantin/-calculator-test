@@ -173,6 +173,26 @@ body.dark .warn strong{color:#e0aa50;}
 body.dark .kb{background:transparent;border-color:rgba(255,255,255,0.18);color:var(--gl);}
 body.dark .krow{border-bottom-color:rgba(255,255,255,0.10);}
 @media(max-width:640px){.krow{flex-direction:column;align-items:flex-start;gap:7px;}.krow-k{align-self:flex-start;}}
+
+.upd{border:1px solid var(--bd);border-radius:10px;background:var(--w);margin:0 0 12px;overflow:hidden;}
+.upd-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 14px;
+  background:var(--gb);border-bottom:1px solid var(--bd);}
+.upd-ver{font-weight:700;font-size:0.92rem;color:var(--gl);letter-spacing:0.01em;}
+.upd-date{font-size:0.7rem;color:var(--grl);}
+.upd-state{margin-left:auto;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;
+  font-weight:700;padding:3px 9px;border-radius:20px;background:var(--w);
+  border:1px solid var(--bd);color:var(--grl);white-space:nowrap;}
+.upd-state.now{color:var(--gl);border-color:var(--gl);}
+.upd-list{padding:4px 14px 10px;}
+.upd-item{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--bd);
+  font-size:0.79rem;line-height:1.5;color:var(--gr);}
+.upd-list .upd-item:first-child{border-top:none;}
+.upd-item::before{content:'';flex:none;width:5px;height:5px;border-radius:50%;
+  background:var(--gl);margin-top:7px;}
+@media(max-width:640px){
+  .upd-state{margin-left:0;}
+  .upd-item{font-size:0.76rem;}
+}
 </style>
 <script>
 (function() {
@@ -1049,53 +1069,51 @@ body.dark .krow{border-bottom-color:rgba(255,255,255,0.10);}
   <div class="ch" id="ch-updates">
     <div class="tag">Прочее</div>
     <h2>Журнал обновлений</h2>
-    <p class="lead">Что менялось в калькуляторе от версии к версии. Здесь только то,
-       что видно в работе, — правки под капотом сюда не попадают. Номер версии, на
-       которой ты сейчас, написан в правом верхнем углу калькулятора.</p>
+    <p class="lead">Что менялось от версии к версии — коротко, тезисами. Здесь только
+       то, что видно в работе. Номер версии, на которой ты сейчас, написан в правом
+       верхнем углу калькулятора.</p>
 
-    <div class="steps">
-      <div class="step"><div class="sn">1</div><div class="sb2">
-        <h3>В списке проектов больше нет одинаковых названий</h3>
-        <p>Четыре проекта были заведены дважды: «Бургос 12х9», «Рейкьявик 13х4»,
-           «Сиена 16х5» и «Лондон 16х10». У двух из дублей не были заполнены площади,
-           и на них опции, которые считаются от площади — террасная доска, покраска,
-           кровля, — не считались вовсе. Если выбрать такой дубль, часть опций молча
-           оставалась без цены. Дубли убраны, в списке 190 проектов.</p>
-      </div></div>
+    <div class="upd">
+      <div class="upd-head">
+        <span class="upd-ver">v2.3.8</span>
+        <span class="upd-date">15.08.2026</span>
+        <span class="upd-state now">текущая</span>
+      </div>
+      <div class="upd-list">
+        <div class="upd-item">Убраны четыре проекта-дубля: «Бургос 12х9»,
+          «Рейкьявик 13х4», «Сиена 16х5», «Лондон 16х10». У двух дублей не были
+          заполнены площади, и опции, которые считаются от площади — террасная доска,
+          покраска, кровля, — на них молча оставались без цены.</div>
+        <div class="upd-item">В справку добавлены три раздела: горячие клавиши,
+          база знаний, показ клиенту.</div>
+        <div class="upd-item">На телефоне широкие таблицы в базе знаний теперь
+          листаются вбок — раньше правая колонка обрезалась.</div>
+        <div class="upd-item">Цены обновляются без выпуска новой версии: правка
+          вступает в силу сразу, достаточно перезагрузить страницу.</div>
+        <div class="upd-item">Калькулятору и базе знаний нужен интернет. Без связи
+          вместо расчёта появится «Цены не загрузились» — это сделано намеренно,
+          чтобы не посчитать по пустым данным.</div>
+      </div>
+    </div>
 
-      <div class="step"><div class="sn">2</div><div class="sb2">
-        <h3>Справка пополнилась тремя разделами</h3>
-        <p>«Горячие клавиши» — весь список из 39 сочетаний, раньше про них была одна
-           строчка. «База знаний» — как открыть и как вернуться к расчёту.
-           «Показ клиенту» — что именно скрывает кнопка с глазом.</p>
-      </div></div>
-
-      <div class="step"><div class="sn">3</div><div class="sb2">
-        <h3>На телефоне таблицы в базе знаний листаются вбок</h3>
-        <p>Широкие таблицы обрезались правым краем экрана, и добраться до последней
-           колонки было нельзя. Теперь таблицу можно тянуть пальцем влево.</p>
-      </div></div>
-
-      <div class="step"><div class="sn">4</div><div class="sb2">
-        <h3>Цены обновляются без обновления калькулятора</h3>
-        <p>Раньше смена цены означала выпуск новой версии: сначала правка, потом
-           выкладка, потом все обновляют страницу. Теперь правка вступает в силу
-           сразу — достаточно перезагрузить страницу, номер версии при этом
-           не меняется.</p>
-      </div></div>
-
-      <div class="step"><div class="sn">5</div><div class="sb2">
-        <h3>Калькулятору и базе знаний нужен интернет</h3>
-        <p>Цены и учебные материалы подгружаются при входе, а не лежат внутри
-           страницы. Если связи нет, калькулятор покажет «Цены не загрузились»
-           и не пустит к расчёту. Это сделано намеренно: лучше честно сказать,
-           чем посчитать по пустым данным и выдать клиенту неверную цифру.</p>
-      </div></div>
+    <div class="upd">
+      <div class="upd-head">
+        <span class="upd-ver">v2.3.7</span>
+        <span class="upd-date">до 13.08.2026</span>
+        <span class="upd-state">прежняя</span>
+      </div>
+      <div class="upd-list">
+        <div class="upd-item">Скидка за комплектацию убрана полностью — комплектация
+          стала просто готовым набором опций.</div>
+        <div class="upd-item">Скидка по умолчанию 0% вместо 3%.</div>
+        <div class="upd-item">Строки «Спец. цена −0%» и «Скидка за комплектацию −0%»
+          больше не показываются, когда скидка нулевая.</div>
+      </div>
     </div>
 
     <div class="tip"><strong>Если увидел «Цены не загрузились»</strong> — проверь
-       интернет и нажми «Обновить». Если не помогло, напиши администратору: считать
-       вручную по старой памяти не нужно, цифры могли поменяться.</div>
+       интернет и нажми «Обновить». Если не помогло, напиши администратору. Считать
+       по памяти не нужно: цифры могли поменяться.</div>
   </div>
 
 </div><!-- /main -->
