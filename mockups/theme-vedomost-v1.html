@@ -42,6 +42,13 @@
   --ink3:#8da3a5;
   --rule:#dceaeb;    /* волосяная линейка */
   --rule-strong:#bcd9db;
+  /* Бирюзовый живёт в двух ролях, и в ночи они расходятся:
+     --gd/--gm — чернила (текст, линейки, иконки), ночью светлеют;
+     --acc-fill — заливка под белым (галочка), --bar — прицепленная панель
+     и полоса итога. Раньше и то и другое брало --gd, поэтому в ночи текст
+     оставался тёмно-бирюзовым на тёмном листе. */
+  --acc-fill:#1e6c72;
+  --bar:#1e6c72;
 
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px;
   --sheet-pad:clamp(16px, 4vw, 44px);
@@ -51,11 +58,18 @@
   --sheet:#132528;
   --ink:#e6f3f3;
   --ink2:#9db6b8;
-  --ink3:#6d8688;
+  --ink3:#8aa4a6;   /* было #6d8688 — контраст 4,09 против нужных 4,5 */
   --rule:#224347;
   --rule-strong:#2d585d;
   --gb:#173338;
   --gp:#2d585d;
+  /* Чернила акцента светлеют — иначе бирюзовый текст тонет в тёмном листе */
+  --gd:#8fd6dc;
+  --gm:#5fc2ca;
+  --gl:#3db0ba;
+  /* Заливки остаются тёмными: под ними белый текст и белая галочка */
+  --acc-fill:#2a8f97;
+  --bar:#143638;
 }
 
 *{box-sizing:border-box}
@@ -115,10 +129,11 @@ button,input,select{font:inherit;color:inherit}
 .tool:hover{background:var(--gb);color:var(--gd)}
 .tool:focus-visible{outline:2px solid var(--gl);outline-offset:1px}
 .tool svg{flex:none;opacity:.75}
-.tools-sep{width:1px;align-self:stretch;background:var(--rule);margin:4px 6px}
+.tool-caret{opacity:.55;margin-left:-2px}
+/* Разделителей в панели нет: в «Модерне» кнопки идут одним рядом без них */
 
 /* Прицепилась: иконки в полоску */
-.tools.stuck{background:var(--gd);border-bottom-color:transparent;
+.tools.stuck{background:var(--bar);border-bottom-color:transparent;
   padding-top:var(--s2);padding-bottom:var(--s2);flex-wrap:nowrap;
   box-shadow:0 6px 18px rgba(18,38,42,.16)}
 [data-theme="night"] .tools.stuck{box-shadow:0 6px 18px rgba(0,0,0,.5)}
@@ -127,7 +142,6 @@ button,input,select{font:inherit;color:inherit}
 .tools.stuck .tool:hover{background:rgba(255,255,255,.26)}
 .tools.stuck .tool svg{opacity:1}
 .tools.stuck .tool span{display:none}
-.tools.stuck .tools-sep{display:none}
 /* Кнопки, которые сохраняют подпись и в полоске, — как «Пресеты» сейчас */
 .tools.stuck .tool--keep{width:auto;padding:0 11px;gap:7px}
 .tools.stuck .tool--keep span{display:inline}
@@ -150,7 +164,6 @@ button,input,select{font:inherit;color:inherit}
 .par dd{order:2;flex:none;margin:0;font-size:.82rem;font-weight:500;
   white-space:nowrap}
 .par dd.accent{color:var(--gd);font-weight:600}
-[data-theme="night"] .par dd.accent{color:var(--gl)}
 
 /* ── Секция: линейка, а не плашка ──────────────────────────────────────── */
 .sec{margin-top:var(--s6)}
@@ -164,7 +177,6 @@ button,input,select{font:inherit;color:inherit}
   letter-spacing:.01em;color:var(--gd)}
 [data-theme="night"] .sec-name{color:#bfe6e8}
 .sec-sum{font-size:.86rem;font-weight:600;color:var(--gd);white-space:nowrap}
-[data-theme="night"] .sec-sum{color:#bfe6e8}
 .sec-sum.quiet{font-weight:400;color:var(--ink3)}
 .sec-note{grid-column:2/-1;font-size:.68rem;color:var(--ink3);font-weight:300;
   margin-top:2px}
@@ -316,8 +328,7 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
 .row-chk::after{content:"";position:absolute;top:-5px;right:-5px;bottom:-5px;left:-5px}
 .row-chk:hover{box-shadow:inset 0 0 0 1.5px var(--gm)}
 .row-chk:focus-visible{outline:2px solid var(--gl);outline-offset:2px}
-.row-chk.on{background:var(--gd);box-shadow:none;color:#fff}
-[data-theme="night"] .row-chk.on{background:var(--gm)}
+.row-chk.on{background:var(--acc-fill);box-shadow:none;color:#fff}
 /* Ручка перетаскивания — как в калькуляторе, только без коробки */
 .row-drag{position:relative;grid-column:1;align-self:start;justify-self:center;
   margin-top:1px;
@@ -348,7 +359,6 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
 /* Цена стоит во второй строке первым элементом — там же, где она в
    «Модерне»: сразу под названием, перед кнопками строки. */
 .row-sum{font-size:.72rem;font-weight:500;white-space:nowrap;color:var(--gm)}
-[data-theme="night"] .row-sum{color:var(--gl)}
 .row-note{grid-column:4/6;font-size:.68rem;color:var(--ink3);margin-top:3px;
   display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap}
 /* Кнопки строки — одной группой: поодиночке они рвались по разным рядам,
@@ -370,7 +380,6 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
 .fx-formula{font-family:'SF Mono',Consolas,monospace;font-size:.68rem;
   line-height:1.55;color:var(--gd);border-left:2px solid var(--gl);
   padding:2px 0 2px 10px;margin-bottom:var(--s2)}
-[data-theme="night"] .fx-formula{color:#bfe6e8}
 .fx-row{display:flex;align-items:baseline;gap:6px;padding:5px 0;min-width:0}
 .fx-lab{order:0;flex:none;font-size:.7rem;color:var(--ink3)}
 /* та же отбивка точками, что у параметров проекта — это одна линейка */
@@ -392,7 +401,6 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
 .fx-def:focus-visible{outline:2px solid var(--gl);outline-offset:2px}
 /* Шестерёнка светится, пока блок раскрыт */
 .mini.on{color:var(--gd);background:var(--gb)}
-[data-theme="night"] .mini.on{color:#bfe6e8}
 
 /* Поле ручного ввода цены — у опций без фиксированной цены */
 .manual-price{display:inline-flex;align-items:center;gap:4px;min-height:30px;
@@ -436,8 +444,6 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
   cursor:pointer;color:var(--gm)}
 .mini:hover{color:var(--gd);background:var(--gb)}
 .mini:focus-visible{outline:2px solid var(--gl);outline-offset:1px}
-[data-theme="night"] .mini{color:var(--gl)}
-[data-theme="night"] .mini:hover{color:#bfe6e8}
 
 /* ── Свёрнутый блок ─────────────────────────────────────────────────────── */
 .fold{margin-top:var(--s6);border-top:1px solid var(--rule)}
@@ -456,7 +462,7 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
 /* ── Итоговая строка — подпись под ведомостью ──────────────────────────── */
 .total-bar{position:sticky;bottom:0;z-index:20;margin:var(--s6) calc(var(--sheet-pad)*-1) 0;
   padding:var(--s3) var(--sheet-pad) calc(var(--s3) + env(safe-area-inset-bottom,0px));
-  background:var(--gd);color:#fff;
+  background:var(--bar);color:#fff;
   display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap}
 .total-lab{font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;
   color:rgba(255,255,255,.7)}
@@ -483,7 +489,6 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
   .tools:not(.stuck) .tool span{display:none}
   .tools:not(.stuck) .tool--keep{width:auto;padding:0 11px}
   .tools:not(.stuck) .tool--keep span{display:inline}
-  .tools:not(.stuck) .tools-sep{display:none}
 }
 /* В полоске иконки не переносятся — при нехватке места полоска
    прокручивается вбок, но ни одна кнопка не уходит под обрез */
@@ -528,19 +533,23 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
 
   <!-- Панель: в покое ряд с подписями, при прокрутке — полоска иконок -->
   <div class="tools-sentinel" id="sentinel"></div>
+  <!-- Панель кнопок: состав, порядок и подписи — один в один с «Модерном».
+       Подпись при прицепленной панели сохраняют «Пресеты» и «Сбросить»,
+       как в калькуляторе; остальные сжимаются в иконки. -->
   <div class="tools" id="tools">
-    <button class="tool" onclick="flip()" title="Тема"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><span>Тема</span></button>
-    <button class="tool" title="Печать"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg><span>Печать</span></button>
+    <button class="tool" onclick="flip()" title="Тёмный / светлый режим"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><span>Тема</span></button>
+    <button class="tool" title="Версия для печати"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg><span>Печать</span></button>
     <button class="tool" title="Платёжный план"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg><span>Платёжный план</span></button>
-    <button class="tool" title="Аналитика"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Аналитика</span></button>
-    <button class="tool" title="Скрыть цены"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg><span>Скрыть цены</span></button>
-    <span class="tools-sep"></span>
-    <button class="tool" title="Поиск"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Поиск</span></button>
-    <button class="tool" title="Комплектации"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Комплектации</span></button>
-    <button class="tool tool--keep" title="Пресеты"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg><span>Пресеты</span></button>
-    <span class="tools-sep"></span>
-    <button class="tool" title="Справка"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.5 9.5a3 3 0 0 1 5.5 1c0 1.5-1.5 2.2-2.5 3v.5"/></svg><span>Справка</span></button>
-    <button class="tool" title="Настройки"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82 2 2 0 1 1-2.83 2.83 1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0 1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33 2 2 0 1 1-2.83-2.83A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4 1.65 1.65 0 0 0 1.6-1 1.65 1.65 0 0 0-.33-1.82 2 2 0 1 1 2.83-2.83A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0 1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33 2 2 0 1 1 2.83 2.83A1.65 1.65 0 0 0 19.4 9v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Настройки</span></button>
+    <button class="tool" title="Аналитика"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="6" y1="20" x2="6" y2="13"/><line x1="12" y1="20" x2="12" y2="8"/><line x1="18" y1="20" x2="18" y2="16"/></svg><span>Аналитика</span></button>
+    <button class="tool" title="Скрыть / показать опции"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg><span>Скрыть опции</span></button>
+    <button class="tool" title="Поиск по опциям"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Поиск</span></button>
+    <button class="tool" title="Комплектации"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M17 14h.01M14 17h.01M17 20h.01M20 17h.01"/></svg><span>Комплектации</span></button>
+    <button class="tool tool--keep" title="Пресеты"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span>Пресеты</span></button>
+    <button class="tool tool--keep" title="Сбросить"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg><span>Сбросить</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tool-caret" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <button class="tool" title="Справка — руководство пользователя"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.5 9.5a3 3 0 0 1 5.5 1c0 1.5-1.5 2.2-2.5 3v.5"/><circle cx="12" cy="17.5" r=".5" fill="currentColor"/></svg><span>Справка</span></button>
+    <button class="tool" title="База знаний"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg><span>База знаний</span></button>
+    <button class="tool" title="Чек-лист проверки спецификации"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Чек-лист</span></button>
+    <button class="tool" title="Настройки и горячие клавиши"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V15z"/></svg><span>Настройки</span></button>
   </div>
 
   <!-- Выбор проекта и реквизиты: на десктопе рядом, как в калькуляторе -->
