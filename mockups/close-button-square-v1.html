@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Крестик в скруглённом квадрате — 28 px</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gd:#1e6c72; --gm:#2a8f97; --gl:#3db0ba; --gp:#a8dde0;
+  --page:#f0fafa; --card:#fff; --ink:#111; --gray:#555; --grl:#888;
+  --line:#d6e6e7;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:'Geologica',system-ui,-apple-system,'Segoe UI',sans-serif;
+  line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:26px 16px 70px}
+h1{font-family:'Unbounded',sans-serif;font-size:1.18rem;letter-spacing:-.02em;
+  margin:.2em 0 .3em;line-height:1.25}
+.sub{color:var(--gray);font-size:.85rem;margin:0 0 6px;max-width:64ch}
+.hint{color:var(--grl);font-size:.76rem;margin:0 0 24px;max-width:64ch}
+.hint b{color:var(--gray)}
+
+/* ── Полоса сравнения: все обрамления разом, на одном фоне ─────────────── */
+.strip{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:16px;margin-bottom:22px}
+.strip-h{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--gm);margin-bottom:12px}
+.strip-row{display:flex;gap:10px;flex-wrap:wrap}
+.chip{flex:1 1 120px;min-width:120px;border-radius:12px;border:1px solid var(--line);
+  padding:14px 10px 10px;display:flex;flex-direction:column;align-items:center;gap:9px;
+  background:linear-gradient(160deg,#ffffff,#eef7f8)}
+.chip-lab{font-size:.68rem;color:var(--gray);text-align:center;line-height:1.35}
+.chip-lab b{display:block;color:var(--ink);font-size:.74rem;font-weight:600}
+
+/* Увеличение втрое. На 28 px разница между радиусами 7, 9 и 11 почти не
+   видна — выбирать вслепую нечестно, поэтому та же кнопка показана крупно. */
+.zoom{height:104px;display:flex;align-items:center;justify-content:center;
+  border-radius:12px;border:1px dashed var(--line);
+  background:linear-gradient(160deg,#ffffff,#e9f4f5);margin-bottom:9px}
+/* Крупная копия собрана настоящим размером, а не transform:scale():
+   при масштабировании Chromium рисует слой backdrop-filter отдельно от
+   формы, и вокруг кнопки вылезал бледный хвост сверху и снизу. */
+.zoom .x{width:84px;height:84px}
+.zoom .x::after{content:none}
+.zoom .x:hover{background:rgba(255,255,255,.72)}   /* при увеличении не мигаем */
+.zoom .r7 {border-radius:21px}
+.zoom .r9 {border-radius:27px}
+.zoom .r11{border-radius:33px}
+
+/* ── Вариант ──────────────────────────────────────────────────────────── */
+.v{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:16px 16px 18px;margin-bottom:18px}
+.v-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.v-num{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--gm)}
+.v-name{font-size:.98rem;font-weight:700}
+.v-r{font-size:.7rem;color:var(--grl);font-variant-numeric:tabular-nums}
+.v-note{color:var(--gray);font-size:.79rem;margin:0 0 14px;max-width:70ch}
+.v-note b{color:var(--ink)}
+
+.ctx{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:760px){.ctx{grid-template-columns:1fr}}
+.box{position:relative;border-radius:12px;overflow:hidden;min-height:132px;
+  border:1px solid var(--line)}
+.box-cap{position:absolute;left:10px;bottom:8px;font-size:.66rem;letter-spacing:.04em;
+  text-transform:uppercase;font-weight:700;opacity:.5}
+.b-light{background:#fff}
+.b-dark{background:#16262a}
+.b-dark .box-cap{color:#cfe3e5}
+/* Текст под крестиком прокручивается — так и в базе знаний. Стекло имеет
+   смысл смотреть именно в движении: важно, что уходит под него, а не только
+   что видно в покое. */
+.b-text{background:#fff}
+.tx{max-height:132px;overflow-y:auto;overscroll-behavior:contain;
+  padding:12px 14px;font-size:.72rem;color:#3a4a4c}
+.tx p{margin:0 0 7px;padding-right:38px}
+.tx table{border-collapse:collapse;width:100%;font-size:.68rem}
+.tx td{border-top:1px solid #e6eff0;padding:4px 6px;vertical-align:top}
+.tx-hint{display:block;margin-top:8px;color:#8fa6a8;font-size:.64rem}
+.slot{position:absolute;top:10px;right:12px;z-index:5}
+
+/* ── Крестик: 28×28 видимых, стекло — то же оформление, что сейчас ──────
+   Площадь нажатия расширена невидимо до 40×40: сама плашка остаётся
+   мелкой и тихой, а мимо пальцем не промахнёшься.                      */
+.x{position:relative;width:28px;height:28px;padding:0;display:inline-flex;
+  align-items:center;justify-content:center;cursor:pointer;border:none;
+  background:rgba(255,255,255,.72);color:var(--gd);
+  -webkit-backdrop-filter:blur(10px) saturate(1.4);backdrop-filter:blur(10px) saturate(1.4);
+  box-shadow:0 1px 3px rgba(20,60,64,.14), inset 0 0 0 1px rgba(255,255,255,.6);
+  transition:background .15s,box-shadow .15s}
+.x::after{content:"";position:absolute;top:-6px;right:-6px;bottom:-6px;left:-6px}
+.x:hover{background:rgba(255,255,255,.92)}
+.x:active{background:rgba(255,255,255,1)}
+.x:focus-visible{outline:2px solid var(--gl);outline-offset:2px}
+.x svg{pointer-events:none}
+.b-dark .x{background:rgba(18,32,35,.6);color:#cfe9eb;
+  box-shadow:0 1px 3px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.12)}
+.b-dark .x:hover{background:rgba(18,32,35,.85)}
+
+/* Обрамление — единственное, чем отличаются варианты */
+.r-circle{border-radius:50%}
+.r7 {border-radius:7px}
+.r9 {border-radius:9px}
+.r11{border-radius:11px}
+
+/* Ряд «как в приложении»: полоса с заголовком, как шапка окна */
+.appbar{display:flex;align-items:center;gap:10px;background:var(--gd);color:#fff;
+  padding:0 10px 0 14px;min-height:54px;border-radius:12px 12px 0 0}
+.appbar-t{font-family:'Unbounded',sans-serif;font-weight:700;font-size:.74rem;
+  letter-spacing:.01em}
+.appbar .x{margin-left:auto;background:rgba(255,255,255,.16);color:rgba(255,255,255,.92);
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.appbar .x:hover{background:rgba(255,255,255,.26)}
+.appbar-body{border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px;
+  padding:12px 14px;font-size:.72rem;color:#3a4a4c;background:#fff}
+
+footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);
+  color:var(--grl);font-size:.76rem}
+
+@media(prefers-color-scheme:dark){
+  body{background:#111e20;color:#e8f4f5}
+  .v,.strip{background:#1a2a2c;border-color:#26454a}
+  .sub{color:#9db6b8}.hint,footer{color:#7d9a9d}.hint b{color:#9db6b8}
+  .v-r{color:#7d9a9d}
+  .v-note{color:#9db6b8}.v-note b{color:#e8f4f5}
+  .box{border-color:#26454a}
+  .chip{border-color:#26454a;background:linear-gradient(160deg,#22383c,#1a2a2c)}
+  .chip-lab{color:#9db6b8}.chip-lab b{color:#e8f4f5}
+  .b-light{background:#fff}
+  /* когда сама страница тёмная, ночной образец сливался с карточкой —
+     уводим его глубже, иначе сравнивать нечего */
+  .b-dark{background:#0d1719}
+  .b-text{background:#fff;color:#3a4a4c}
+  .appbar-body{background:#fff;border-color:#26454a}
+  footer{border-top-color:#26454a}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Крестик в скруглённом квадрате</h1>
+  <p class="sub">То же обрамление, что у кнопок «+» и «−» дневной цели: скруглённый
+     квадрат, а не круг. Оформление оставлено прежним — стекло: полупрозрачная
+     подложка с размытием того, что под ней. Высота 28 px, как сейчас.</p>
+  <p class="hint">Отличается только радиус скругления, всё остальное у четырёх
+     вариантов одинаковое. Первый — нынешний круг, он здесь для сравнения.
+     <b>Площадь нажатия у всех 40×40</b> — расширена невидимо за края плашки,
+     поэтому мелкий размер не мешает попадать пальцем. Наведи курсор или нажми
+     пальцем, чтобы увидеть состояние при наведении.</p>
+
+  <!-- Полоса сравнения -->
+  <div class="strip">
+    <div class="strip-h">Все четыре рядом, один фон</div>
+    <div class="strip-row">
+      <div class="chip">
+        <div class="zoom"><button class="x r-circle" tabindex="-1" aria-hidden="true"><svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+        <button class="x r-circle" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <span class="chip-lab"><b>Круг</b>сейчас в калькуляторе</span>
+      </div>
+      <div class="chip">
+        <div class="zoom"><button class="x r7" tabindex="-1" aria-hidden="true"><svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+        <button class="x r7" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <span class="chip-lab"><b>Радиус 7</b>квадрат заметен</span>
+      </div>
+      <div class="chip">
+        <div class="zoom"><button class="x r9" tabindex="-1" aria-hidden="true"><svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+        <button class="x r9" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <span class="chip-lab"><b>Радиус 9</b>как на снимке</span>
+      </div>
+      <div class="chip">
+        <div class="zoom"><button class="x r11" tabindex="-1" aria-hidden="true"><svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+        <button class="x r11" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <span class="chip-lab"><b>Радиус 11</b>почти круг</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Круг — для сравнения -->
+  <div class="v">
+    <div class="v-head"><span class="v-num">Сейчас</span><span class="v-name">Круг</span>
+      <span class="v-r">28 × 28 · радиус 50%</span></div>
+    <p class="v-note">То, что стоит в калькуляторе сегодня. Показан здесь, чтобы
+       разницу было видно в тех же трёх условиях, а не по памяти.</p>
+    <div class="ctx">
+      <div class="box b-light"><span class="slot"><button class="x r-circle" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></span><span class="box-cap">день</span></div>
+      <div class="box b-dark"><span class="slot"><button class="x r-circle" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></span><span class="box-cap">ночь</span></div>
+      <div class="box b-text"><span class="slot"><button class="x r-circle" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></span>
+        <div class="tx">
+          <p><b>Лестница Ханта: как клиент выбирает решение</b></p>
+          <table>
+            <tr><td>1</td><td>Не знает о проблеме</td><td>Показать саму задачу и её цену для владельца участка</td></tr>
+            <tr><td>2</td><td>Осознал желание</td><td>Раскрыть сценарии использования и базовую задачу</td></tr>
+            <tr><td>3</td><td>Выбирает формат</td><td>Помочь сравнить форматы, участок, бюджет и ожидания</td></tr>
+            <tr><td>4</td><td>Сравнивает подрядчиков</td><td>Дать состав работ, сроки и порядок оплаты без оговорок</td></tr>
+            <tr><td>5</td><td>Готов к договору</td><td>Снять последние возражения и зафиксировать спецификацию</td></tr>
+          </table>
+          <span class="tx-hint">Прокрути внутри — видно, как текст уходит под крестик.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1 -->
+  <div class="v">
+    <div class="v-head"><span class="v-num">Вариант 1</span><span class="v-name">Квадрат, радиус 7</span>
+      <span class="v-r">28 × 28 · радиус 7 px</span></div>
+    <p class="v-note">Углы читаются отчётливо, форма ближе к кнопкам панели, чем к
+       круглым медиа-кнопкам. <b>Плюс</b> — крестик перестаёт выбиваться из ряда
+       прямоугольных кнопок. <b>Минус</b> — на 28 px угол выглядит жёстко, рядом с
+       мягкими карточками спорит.</p>
+    <div class="ctx">
+      <div class="box b-light"><span class="slot"><button class="x r7" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></span><span class="box-cap">день</span></div>
+      <div class="box b-dark"><span class="slot"><button class="x r7" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></span><span class="box-cap">ночь</span></div>
+      <div class="box b-text"><span class="slot"><button class="x r7" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></span>
+        <div class="tx">
+          <p><b>Лестница Ханта: как клиент выбирает решение</b></p>
+          <table>
+            <tr><td>1</td><td>Не знает о проблеме</td><td>Показать саму задачу и её цену для владельца участка</td></tr>
+            <tr><td>2</td><td>Осознал желание</td><td>Раскрыть сценарии использования и базовую задачу</td></tr>
+            <tr><td>3</td><td>Выбирает формат</td><td>Помочь сравнить форматы, участок, бюджет и ожидания</td></tr>
+            <tr><td>4</td><td>Сравнивает подрядчиков</td><td>Дать состав работ, сроки и порядок оплаты без оговорок</td></tr>
+            <tr><td>5</td><td>Готов к договору</td><td>Снять последние возражения и зафиксировать спецификацию</td></tr>
+          </table>
+          <span class="tx-hint">Прокрути внутри — видно, как текст уходит под крестик.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="v">
+    <div class="v-head"><span class="v-num">Вариант 2</span><span class="v-name">Квадрат, радиус 9</span>
+      <span class="v-r">28 × 28 · радиус 9 px</span></div>
+    <p class="v-note">Ровно та пропорция, что у кнопок «+» и «−» на твоём снимке:
+       квадрат виден, но угол мягкий. <b>Плюс</b> — попадает и в форму кнопок панели,
+       и в скругления карточек. <b>Минус</b> — разница с кругом небольшая, на бегу
+       её можно и не заметить.</p>
+    <div class="ctx">
+      <div class="box b-light"><span class="slot"><button class="x r9" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></span><span class="box-cap">день</span></div>
+      <div class="box b-dark"><span class="slot"><button class="x r9" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></span><span class="box-cap">ночь</span></div>
+      <div class="box b-text"><span class="slot"><button class="x r9" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></span>
+        <div class="tx">
+          <p><b>Лестница Ханта: как клиент выбирает решение</b></p>
+          <table>
+            <tr><td>1</td><td>Не знает о проблеме</td><td>Показать саму задачу и её цену для владельца участка</td></tr>
+            <tr><td>2</td><td>Осознал желание</td><td>Раскрыть сценарии использования и базовую задачу</td></tr>
+            <tr><td>3</td><td>Выбирает формат</td><td>Помочь сравнить форматы, участок, бюджет и ожидания</td></tr>
+            <tr><td>4</td><td>Сравнивает подрядчиков</td><td>Дать состав работ, сроки и порядок оплаты без оговорок</td></tr>
+            <tr><td>5</td><td>Готов к договору</td><td>Снять последние возражения и зафиксировать спецификацию</td></tr>
+          </table>
+          <span class="tx-hint">Прокрути внутри — видно, как текст уходит под крестик.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="v">
+    <div class="v-head"><span class="v-num">Вариант 3</span><span class="v-name">Квадрат, радиус 11</span>
+      <span class="v-r">28 × 28 · радиус 11 px</span></div>
+    <p class="v-note">Предел, за которым квадрат превращается в круг: до круга
+       остаётся 3 px. <b>Плюс</b> — самый мягкий из трёх, ни с чем не спорит.
+       <b>Минус</b> — форма почти не читается, и смысл затеи теряется.</p>
+    <div class="ctx">
+      <div class="box b-light"><span class="slot"><button class="x r11" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></span><span class="box-cap">день</span></div>
+      <div class="box b-dark"><span class="slot"><button class="x r11" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></span><span class="box-cap">ночь</span></div>
+      <div class="box b-text"><span class="slot"><button class="x r11" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></span>
+        <div class="tx">
+          <p><b>Лестница Ханта: как клиент выбирает решение</b></p>
+          <table>
+            <tr><td>1</td><td>Не знает о проблеме</td><td>Показать саму задачу и её цену для владельца участка</td></tr>
+            <tr><td>2</td><td>Осознал желание</td><td>Раскрыть сценарии использования и базовую задачу</td></tr>
+            <tr><td>3</td><td>Выбирает формат</td><td>Помочь сравнить форматы, участок, бюджет и ожидания</td></tr>
+            <tr><td>4</td><td>Сравнивает подрядчиков</td><td>Дать состав работ, сроки и порядок оплаты без оговорок</td></tr>
+            <tr><td>5</td><td>Готов к договору</td><td>Снять последние возражения и зафиксировать спецификацию</td></tr>
+          </table>
+          <span class="tx-hint">Прокрути внутри — видно, как текст уходит под крестик.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- В шапке окна -->
+  <div class="v">
+    <div class="v-head"><span class="v-num">В шапке окна</span><span class="v-name">Как это выглядит на месте</span>
+      <span class="v-r">радиусы 7 · 9 · 11</span></div>
+    <p class="v-note">В зелёной шапке крестик стоит на заливке, поэтому стекло там
+       заменено на светлую полупрозрачную подложку — так он и сделан сейчас.
+       Три шапки подряд с разными радиусами, чтобы сравнить в реальном окружении.</p>
+    <div class="ctx">
+      <div>
+        <div class="appbar"><span class="appbar-t">Справка</span>
+          <button class="x r7" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+        <div class="appbar-body">Радиус 7 — углы отчётливые.</div>
+      </div>
+      <div>
+        <div class="appbar"><span class="appbar-t">База знаний</span>
+          <button class="x r9" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+        <div class="appbar-body">Радиус 9 — как на твоём снимке.</div>
+      </div>
+      <div>
+        <div class="appbar"><span class="appbar-t">Платёжный план</span>
+          <button class="x r11" title="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+        <div class="appbar-body">Радиус 11 — почти круг.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Макет, а не рабочая страница. Скажи радиус — поставлю во все восемь окон
+    калькулятора и в базу знаний разом, крестик там один и тот же.</footer>
+</div>
+</body>
+</html>
