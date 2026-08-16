@@ -292,17 +292,77 @@ table.sum tr.zero td,table.sum tr.zero td.amt{color:var(--ink3);font-weight:300}
 table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid var(--ink);
   font-weight:600;font-size:.84rem}
 
-/* ── Строка ведомости ──────────────────────────────────────────────────── */
-.row{display:grid;grid-template-columns:44px 1fr auto;align-items:baseline;
-  gap:var(--s3);padding:10px 0 9px;border-bottom:1px solid var(--rule);
-  position:relative}
+/* ── Строка ведомости ──────────────────────────────────────────────────────
+   Колонки те же, что у строки опции в калькуляторе: ручка перетаскивания,
+   номер, название, сумма, звёздочка. Кнопки действий (глаз, выделение,
+   подарок) стоят во второй строке — там, где в калькуляторе они идут
+   рядом с ценой.                                                        */
+.row{display:grid;grid-template-columns:16px 40px 1fr auto 30px;
+  align-items:baseline;gap:var(--s2) var(--s3);padding:10px 0 9px;
+  border-bottom:1px solid var(--rule);position:relative}
+/* Ручка перетаскивания — как в калькуляторе, только без коробки */
+.row-drag{position:relative;grid-column:1;align-self:start;justify-self:center;
+  margin-top:1px;
+  width:16px;height:26px;display:inline-flex;align-items:center;
+  justify-content:center;border:0;background:none;padding:0;cursor:grab;
+  color:var(--rule-strong);font-size:.8rem;line-height:1}
+/* Сама метка узкая — иначе она лезла бы в номер позиции; площадь нажатия
+   расширена невидимо до 30×30, чтобы попадать пальцем. */
+.row-drag::after{content:"";position:absolute;top:-2px;right:-7px;bottom:-2px;left:-7px}
+.row-drag:hover{color:var(--gm)}
+.row-drag:active{cursor:grabbing}
+.row-drag:focus-visible{outline:2px solid var(--gl);outline-offset:1px}
+/* Звёздочка — крайняя справа, как в калькуляторе */
+.row-star{grid-column:5;align-self:start;justify-self:end;margin-top:-4px;width:30px;height:30px;
+  margin:-6px 0;display:inline-flex;align-items:center;justify-content:center;
+  border:0;background:none;border-radius:7px;cursor:pointer;color:var(--rule-strong)}
+.row-star:hover{color:var(--gm);background:var(--gb)}
+.row-star:focus-visible{outline:2px solid var(--gl);outline-offset:1px}
+.row-star.on{color:var(--gl)}
+.row-star.on svg{fill:currentColor}
 .row:last-child{border-bottom:0}
-.row-pos{font-size:.68rem;color:var(--ink3);font-weight:400;letter-spacing:.02em}
-.row-name{font-size:.83rem;font-weight:400;line-height:1.35}
-.row-sum{font-size:.83rem;font-weight:500;white-space:nowrap;text-align:right}
+.row-pos{grid-column:2;font-size:.68rem;color:var(--ink3);font-weight:400;
+  letter-spacing:.02em}
+.row-name{grid-column:3;font-size:.83rem;font-weight:400;line-height:1.35}
+.row-sum{grid-column:4;font-size:.83rem;font-weight:500;white-space:nowrap;
+  text-align:right}
 .row-sum.muted{color:var(--ink3);font-weight:300}
-.row-note{grid-column:2/-1;font-size:.68rem;color:var(--ink3);margin-top:3px;
+.row-note{grid-column:3/5;font-size:.68rem;color:var(--ink3);margin-top:3px;
   display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap}
+/* Кнопки строки — одной группой: поодиночке они рвались по разным рядам,
+   и на телефоне глаз оставался с текстом, а выделение и подарок уезжали вниз.
+   Без margin-left:auto: с ним группа «съедала» свободное место, флекс считал,
+   что она помещается, и на 390 px со счётчиком количества она уезжала за край
+   экрана вместо переноса на свою строку. Кнопки идут сразу за текстом —
+   так же, как в калькуляторе они идут сразу за ценой. */
+.row-acts{display:inline-flex;align-items:center;gap:var(--s1);flex:none}
+
+/* Поле ручного ввода цены — у опций без фиксированной цены */
+.manual-price{display:inline-flex;align-items:center;gap:4px;min-height:30px;
+  padding:0 8px;border:1px dashed var(--rule-strong);border-radius:7px;
+  color:var(--ink3);font-size:.72rem;background:none;cursor:text}
+.manual-price:hover{border-color:var(--gm)}
+/* Счётчик количества — там, где опция считается штуками */
+.qty{display:inline-flex;align-items:center;gap:2px}
+.qty-b{width:30px;height:30px;display:inline-flex;align-items:center;
+  justify-content:center;border:1px solid var(--rule-strong);border-radius:6px;
+  background:none;cursor:pointer;color:var(--ink2);font-size:.8rem;line-height:1}
+.qty-b:hover{border-color:var(--gm);color:var(--gd)}
+.qty-n{min-width:22px;text-align:center;font-size:.74rem;font-weight:500}
+
+/* Хвост раздела: примечание и две пунктирные кнопки, как в калькуляторе */
+.sec-note-row{display:flex;align-items:center;gap:var(--s2);padding:10px 0;
+  margin-top:var(--s2);border-left:2px solid var(--gl);padding-left:var(--s3);
+  background:linear-gradient(90deg,var(--gb),transparent 340px);
+  font-size:.74rem;color:var(--ink2)}
+.sec-note-row .mini{margin-left:auto}
+.sec-add-row{display:flex;gap:var(--s2);flex-wrap:wrap;padding:var(--s3) 0 0}
+.sec-add{flex:1 1 200px;min-height:34px;display:inline-flex;align-items:center;
+  justify-content:center;gap:7px;border:1px dashed var(--rule-strong);
+  border-radius:8px;background:none;color:var(--ink3);font-size:.74rem;
+  cursor:pointer}
+.sec-add:hover{border-color:var(--gm);color:var(--gd)}
+.sec-add:focus-visible{outline:2px solid var(--gl);outline-offset:2px}
 .tick{color:var(--gm);font-weight:500}
 /* Отметка «в договоре» — заливка гаснет через 300 px, а не тянется во всю
    ширину: на десктопе сплошная плашка вернула бы ту самую коробку.
@@ -595,41 +655,64 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
     </div>
 
     <div class="row row--in">
+      <button class="row-drag" title="Переместить" aria-label="Переместить">⠿</button>
       <span class="row-pos">3.1</span>
       <span class="row-name">Утеплитель — базальтовая вата KNAUF Insulation PROF TS 037 Aquastatik</span>
       <span class="row-sum muted">в базе</span>
-      <span class="row-note"><span class="tick">✓ входит в комплектацию</span>
-        <button class="mini" title="Выделить"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button>
-        <button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/></svg></button>
-      </span>
+      <button class="row-star on" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="row-note"><span class="tick">✓ входит в комплектацию</span><span class="row-acts"><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
     </div>
 
     <div class="row row--in">
+      <button class="row-drag" title="Переместить" aria-label="Переместить">⠿</button>
       <span class="row-pos">3.2</span>
       <span class="row-name">Утепление наружных стен — 150 мм</span>
       <span class="row-sum muted">в базе</span>
-      <span class="row-note"><span class="tick">✓ входит в комплектацию</span></span>
+      <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="row-note"><span class="tick">✓ входит в комплектацию</span><span class="row-acts"><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
     </div>
 
     <div class="row row--in">
+      <button class="row-drag" title="Переместить" aria-label="Переместить">⠿</button>
       <span class="row-pos">3.3</span>
       <span class="row-name">Мембранные плёнки Finka Premium — гидро-, ветрозащита, пароизоляция</span>
       <span class="row-sum muted">в базе</span>
-      <span class="row-note"><span class="tick">✓ входит в комплектацию</span></span>
+      <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="row-note"><span class="tick">✓ входит в комплектацию</span><span class="row-acts"><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
     </div>
 
     <div class="row row--off">
+      <button class="row-drag" title="Переместить" aria-label="Переместить">⠿</button>
       <span class="row-pos">3.6</span>
       <span class="row-name">Утепление пола и потолка — 200 мм с изменением конструктива 45 × 195</span>
       <span class="row-sum">119 549 ₽</span>
-      <span class="row-note">не отмечено · в сумму не входит</span>
+      <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="row-note">не отмечено · в сумму не входит<span class="row-acts"><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
     </div>
 
     <div class="row row--off">
+      <button class="row-drag" title="Переместить" aria-label="Переместить">⠿</button>
       <span class="row-pos">3.7</span>
       <span class="row-name">Дополнительная ветро-, шумо- и теплоизоляция — Изоплат / Белтермо</span>
       <span class="row-sum">83 543 ₽</span>
-      <span class="row-note">не отмечено · в сумму не входит</span>
+      <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="row-note">не отмечено · в сумму не входит<span class="row-acts"><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
+    </div>
+
+    <div class="row row--off">
+      <button class="row-drag" title="Переместить" aria-label="Переместить">⠿</button>
+      <span class="row-pos">3.8</span>
+      <span class="row-name">Эковата — напыление по каркасу</span>
+      <span class="row-sum muted">по запросу</span>
+      <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="row-note"><button class="manual-price">введите сумму ₽</button><span class="row-acts"><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
+    </div>
+    <div class="sec-note-row">Отделка цоколя в базовую стоимость не входит
+      <button class="mini" title="Скрыть примечание в печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    </div>
+    <div class="sec-add-row">
+      <button class="sec-add"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Добавить примечание</button>
+      <button class="sec-add"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Добавить опцию</button>
     </div>
   </section>
 
@@ -643,24 +726,46 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
     </div>
 
     <div class="row row--in">
+      <button class="row-drag" title="Переместить" aria-label="Переместить">⠿</button>
       <span class="row-pos">6.1</span>
       <span class="row-name">Обрешётка и контробрешётка — доска камерной сушки</span>
       <span class="row-sum muted">в базе</span>
-      <span class="row-note"><span class="tick">✓ входит в комплектацию</span></span>
+      <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="row-note"><span class="tick">✓ входит в комплектацию</span><span class="row-acts"><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
     </div>
 
     <div class="row">
+      <button class="row-drag" title="Переместить" aria-label="Переместить">⠿</button>
       <span class="row-pos">6.4</span>
       <span class="row-name">Металлочерепица Grand Line — покрытие Velur</span>
       <span class="row-sum">208 954 ₽</span>
-      <span class="row-note">отмечено вручную · площадь кровли 96 м²</span>
+      <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="row-note">отмечено вручную · площадь кровли 96 м²<span class="row-acts"><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
     </div>
 
     <div class="row row--off">
+      <button class="row-drag" title="Переместить" aria-label="Переместить">⠿</button>
       <span class="row-pos">6.5</span>
       <span class="row-name">Фальцевая кровля Кликфальц — оцинкованная сталь 0,5 мм</span>
       <span class="row-sum">341 200 ₽</span>
-      <span class="row-note">не отмечено · в сумму не входит</span>
+      <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="row-note">не отмечено · в сумму не входит<span class="row-acts"><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
+    </div>
+
+    <div class="row row--off">
+      <button class="row-drag" title="Переместить" aria-label="Переместить">⠿</button>
+      <span class="row-pos">6.7</span>
+      <span class="row-name">Снегозадержатель трубчатый, 3 м</span>
+      <span class="row-sum">24 990 ₽</span>
+      <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="row-note">считается штуками<span class="row-acts"><span class="qty"><button class="qty-b" title="Меньше">−</button><span class="qty-n">2</span><button class="qty-b" title="Больше">+</button></span><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
+    </div>
+    <div class="sec-note-row">Водосточная система считается отдельно
+      <button class="mini" title="Скрыть примечание в печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    </div>
+    <div class="sec-add-row">
+      <button class="sec-add"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Добавить примечание</button>
+      <button class="sec-add"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Добавить опцию</button>
     </div>
   </section>
 
