@@ -132,19 +132,16 @@ button,input,select{font:inherit;color:inherit}
 .tool-caret{opacity:.55;margin-left:-2px}
 /* Разделителей в панели нет: в «Модерне» кнопки идут одним рядом без них */
 
-/* Прицепилась: иконки в полоску */
-.tools.stuck{background:var(--bar);border-bottom-color:transparent;
-  padding-top:var(--s2);padding-bottom:var(--s2);flex-wrap:nowrap;
-  box-shadow:0 6px 18px rgba(18,38,42,.16)}
-[data-theme="night"] .tools.stuck{box-shadow:0 6px 18px rgba(0,0,0,.5)}
-.tools.stuck .tool{width:36px;height:36px;padding:0;justify-content:center;
-  color:#fff;background:rgba(255,255,255,.14);border-radius:9px;flex:none}
-.tools.stuck .tool:hover{background:rgba(255,255,255,.26)}
-.tools.stuck .tool svg{opacity:1}
-.tools.stuck .tool span{display:none}
-/* Кнопки, которые сохраняют подпись и в полоске, — как «Пресеты» сейчас */
-.tools.stuck .tool--keep{width:auto;padding:0 11px;gap:7px}
-.tools.stuck .tool--keep span{display:inline}
+/* Прицепилась — и только. Кнопки те же: тот же стиль, те же поля, те же
+   подписи; меняется одно — ряд перестаёт переноситься и едет вбок.
+   Раньше при прицеплении они превращались в белые квадраты на бирюзовой
+   заливке — другой вид у тех же кнопок, из-за которого панель читалась как
+   вторая, чужая. */
+.tools.stuck{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;
+  scrollbar-width:none;box-shadow:0 6px 18px rgba(18,38,42,.10)}
+.tools.stuck::-webkit-scrollbar{display:none}
+[data-theme="night"] .tools.stuck{box-shadow:0 6px 18px rgba(0,0,0,.45)}
+.tools.stuck .tool{flex:none}
 
 /* ── Параметры: определения с отбивкой точками, как в смете ─────────────── */
 .params{display:grid;grid-template-columns:repeat(2,1fr);gap:0 var(--s5);
@@ -484,11 +481,11 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
    калькуляторе. С подписями у всех десяти кнопок панель разъезжалась на
    четыре ряда и съедала первый экран; так их два, как в «Модерне». */
 @media (max-width:560px){
-  .tools:not(.stuck){gap:4px}
-  .tools:not(.stuck) .tool{width:36px;height:36px;padding:0;justify-content:center}
-  .tools:not(.stuck) .tool span{display:none}
-  .tools:not(.stuck) .tool--keep{width:auto;padding:0 11px}
-  .tools:not(.stuck) .tool--keep span{display:inline}
+  .tools{gap:4px}
+  .tools .tool{width:36px;height:36px;padding:0;justify-content:center}
+  .tools .tool span{display:none}
+  .tools .tool--keep{width:auto;padding:0 11px}
+  .tools .tool--keep span{display:inline}
 }
 /* В полоске иконки не переносятся — при нехватке места полоска
    прокручивается вбок, но ни одна кнопка не уходит под обрез */
@@ -497,10 +494,7 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
    и с «Пресетов» тоже. Прокрутка вбок оставлена страховкой, но при
    штатной ширине не нужна — ни одна кнопка не уходит за край. */
 @media (max-width:560px){
-  .tools.stuck{overflow-x:auto;overscroll-behavior-x:contain;gap:3px}
-  .tools.stuck .tool,
-  .tools.stuck .tool--keep{width:32px;height:32px;padding:0;gap:0}
-  .tools.stuck .tool--keep span{display:none}
+
 }
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -527,7 +521,7 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
   </div>
 
   <div class="doc-title">
-    <div class="doc-kicker">Приложение №1 к договору подряда</div>
+    <div class="doc-kicker">Расчёт стоимости комплектации</div>
     <h1>Спецификация<br><em>Каркасный дом / Баня</em></h1>
   </div>
 
