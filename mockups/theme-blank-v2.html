@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Тема «Бланк» — версия 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────────────────────────────────
+   ТЕМА «БЛАНК», ВЕРСИЯ 2
+
+   Первая версия сняла с экрана коробки и оставила разлинованный лист.
+   Она тихая, и в этом её предел: двенадцать разделов и полтораста строк
+   выглядят одинаково ровно, и глазу не за что зацепиться — где я сейчас,
+   что уже набрано, какой раздел тянет цену.
+
+   Вторая версия оставляет ту же природу документа и добавляет то, чего
+   бланку не хватало: скелет.
+
+   1. КОРЕШОК. Слева вдоль всего документа идёт поле с засечками — как у
+      настоящего бланка под подшивку. В нём живут номера: раздела и позиции.
+      Номера уходят из строки, строка становится шире, а поле работает
+      линейкой прокрутки: по засечкам видно, как далеко ушёл.
+
+   2. РАЗДЕЛ — ЗАЛИТАЯ ПОЛОСА. Номер в Unbounded, название, справа сумма
+      раздела. Это единственная заливка внутри документа, и она же —
+      единица навигации: полоса цепляется под панелью кнопок, пока раздел
+      на экране, поэтому «где я» видно всегда.
+
+   3. ДОЛЯ ПОЛОСКОЙ. В своде по разделам процент нарисован, а не написан:
+      тонкая полоса под названием. Сравнение — это работа для длины, а не
+      для чтения двузначных чисел в столбик.
+
+   4. ЦИФРЫ ЖИВУТ В ОДНОЙ КОЛОНКЕ. Табличные цифры, выключка по разряду,
+      колонка суммы фиксированной ширины. Цену сравнивают взглядом сверху
+      вниз, а не читают слева направо.
+
+   Палитра та же, ни одного нового оттенка. Шрифты те же. Меняется
+   устройство, а не цвет.
+   ───────────────────────────────────────────────────────────────────── */
+
+:root{
+  --gd:#1e6c72;   /* глубокий — заливка разделов, полоса итога */
+  --gm:#2a8f97;   /* средний — чернила акцента */
+  --gl:#3db0ba;   /* светлый — отметки, доли */
+  --gp:#a8dde0;   /* бледный */
+  --gb:#e4f5f6;   /* заливка выделенной строки */
+
+  --page:#eef4f5;
+  --sheet:#fff;
+  --zebra:#f7fafb;   /* чётная строка ведомости */
+  --ink:#0f2427;
+  --ink2:#526c70;
+  /* 4,6:1 на листе и 4,6 на зебре. Прежний #8aa4a7 давал 2,6 — на нём
+     сидят все подписи полей, «в базе» и кнопки «по умолчанию». */
+  --ink3:#5a7073;
+  --rule:#e0ebec;
+  --rule-2:#c6dcde;  /* линейка потолще — границы блоков */
+
+  --band:#1e6c72;    /* полоса раздела */
+  --band-ink:#fff;
+  --fill:#1e6c72;    /* сплошная заливка под белым (галочка) */
+
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:22px; --s6:30px; --s7:44px;
+  --pad:clamp(14px,3.4vw,34px);
+  --gutter:clamp(30px,7vw,58px);   /* корешок */
+  --sum:clamp(88px,22vw,132px);    /* колонка суммы */
+}
+:root[data-theme="night"]{
+  --page:#0b1618;
+  --sheet:#101f22;
+  --zebra:#132528;
+  --ink:#e8f4f4;
+  --ink2:#9cb6b9;
+  --ink3:#89a3a6;
+  --rule:#1e3b3f;
+  --rule-2:#2b5257;
+  --gb:#163236;
+  --gp:#2b5257;
+  --gd:#8ad6dc;          /* чернила акцента светлеют */
+  --gm:#63c4cc;
+  --gl:#3db0ba;
+  --band:#164448;        /* заливка остаётся тёмной */
+  --fill:#2a8f97;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--page);color:var(--ink);
+  font-family:'Geologica',system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-weight:300;line-height:1.5;-webkit-font-smoothing:antialiased;
+  font-variant-numeric:tabular-nums;
+}
+button,input,select{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ── Лист ───────────────────────────────────────────────────────────────
+   Один лист на всю страницу; на широком экране он отрывается от края
+   и получает тень — как бумага на столе.                              */
+.sheet{max-width:1140px;margin:0 auto;background:var(--sheet);min-height:100vh;
+  position:relative;padding-bottom:120px}
+@media(min-width:1200px){
+  .sheet{margin:var(--s5) auto;min-height:calc(100vh - 44px);
+    box-shadow:0 20px 60px rgba(15,36,39,.10)}
+  :root[data-theme="night"] .sheet{box-shadow:0 20px 60px rgba(0,0,0,.5)}
+}
+
+/* ── Корешок: поле с засечками вдоль всего документа ─────────────────────
+   Засечки нарисованы фоном, а не элементами: их сотни, и каждая лишняя
+   нода стоила бы прокрутки. Шаг 28 px — примерно строка ведомости.     */
+.doc{position:relative;padding-left:var(--gutter)}
+.doc::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:var(--gutter);
+  border-right:1px solid var(--rule-2);
+  background-image:linear-gradient(var(--rule) 1px,transparent 1px);
+  background-size:100% 28px;background-position:0 12px;
+  opacity:.55;pointer-events:none}
+.doc>*{position:relative}
+
+/* ── Шапка документа ───────────────────────────────────────────────────── */
+.top{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:var(--s4);padding:var(--s5) var(--pad) var(--s3) var(--s3)}
+.brand{display:flex;align-items:center;gap:9px;min-width:0}
+.brand svg{width:26px;height:26px;flex:none}
+.brand b{font-family:'Unbounded',sans-serif;font-weight:700;font-size:.76rem;
+  letter-spacing:.14em;text-transform:uppercase}
+.meta{text-align:right;font-size:.66rem;color:var(--ink3);line-height:1.7;
+  white-space:nowrap}
+.meta b{color:var(--ink2);font-weight:500}
+
+.title{padding:0 var(--pad) var(--s4) var(--s3)}
+.kicker{font-size:.63rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--gd);font-weight:500;margin-bottom:6px}
+.title h1{margin:0;font-family:'Unbounded',sans-serif;font-weight:600;
+  font-size:clamp(1.4rem,4.2vw,2.3rem);line-height:1.08;letter-spacing:-.02em}
+.title h1 em{font-style:normal;color:var(--gm)}
+
+/* ── Панель кнопок ──────────────────────────────────────────────────────
+   Прицепляется сверху и при этом не меняет вид кнопок: ряд просто
+   перестаёт переноситься и едет вбок.                                  */
+.tools{position:sticky;top:0;z-index:60;display:flex;flex-wrap:wrap;gap:2px;
+  padding:var(--s2) var(--pad) var(--s2) var(--s3);
+  margin-left:calc(var(--gutter)*-1);padding-left:calc(var(--gutter) + var(--s3));
+  background:var(--sheet);border-top:1px solid var(--rule);
+  border-bottom:1px solid var(--rule-2);
+  transition:box-shadow .18s}
+.tools.stuck{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;
+  scrollbar-width:none;box-shadow:0 8px 20px rgba(15,36,39,.10)}
+.tools.stuck::-webkit-scrollbar{display:none}
+:root[data-theme="night"] .tools.stuck{box-shadow:0 8px 20px rgba(0,0,0,.5)}
+.tool{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 10px;
+  background:none;border:0;border-radius:8px;cursor:pointer;color:var(--ink2);
+  font-size:.74rem;font-weight:400;white-space:nowrap;flex:none;
+  transition:background .14s,color .14s}
+.tool svg{flex:none;opacity:.8}
+.tool:hover{background:var(--gb);color:var(--gd)}
+.tool:focus-visible{outline:2px solid var(--gl);outline-offset:1px}
+.caret{opacity:.5;margin-left:-3px}
+@media(max-width:620px){
+  .tools{gap:1px}
+  .tool{width:38px;height:38px;padding:0;justify-content:center}
+  .tool span{display:none}
+  .tool--keep{width:auto;padding:0 11px}
+  .tool--keep span{display:inline}
+}
+
+/* ── Блок: заголовок с волосяной чертой, без рамки ──────────────────────── */
+.blk{padding:var(--s5) var(--pad) var(--s5) var(--s3)}
+.blk+.blk{border-top:1px solid var(--rule)}
+.blk-h{display:flex;align-items:baseline;justify-content:space-between;
+  gap:var(--s3);padding-bottom:6px;border-bottom:2px solid var(--ink);
+  margin-bottom:var(--s4)}
+:root[data-theme="night"] .blk-h{border-bottom-color:var(--rule-2)}
+.blk-h h2{margin:0;font-size:.86rem;font-weight:600;letter-spacing:.01em}
+.blk-h .aside{font-size:.72rem;color:var(--ink3)}
+
+.cols{display:grid;grid-template-columns:1fr;gap:var(--s5)}
+@media(min-width:820px){.cols{grid-template-columns:1fr 1fr;gap:var(--s7)}}
+
+/* поля формы — подчёркнутые места для ответа, как в бумажном бланке */
+/* Поле — это и есть цель нажатия, поэтому высоту даёт сам контрол, а не
+   отступы строки: у поля без своей высоты площадь была 20 px. */
+.fld{display:flex;align-items:baseline;gap:var(--s3);padding:3px 0;
+  border-bottom:1px solid var(--rule)}
+.fld dt{flex:none;width:104px;font-size:.7rem;color:var(--ink3);padding-top:12px}
+.fld dd{flex:1;margin:0;min-width:0}
+.fld input,.fld select{width:100%;border:0;background:none;padding:9px 0;
+  min-height:38px;font-size:.84rem;font-weight:400;outline:none;color:var(--ink)}
+.fld input::placeholder{color:var(--ink3);font-weight:300}
+.fld input:focus,.fld select:focus{box-shadow:0 2px 0 -1px var(--gm)}
+.seg{display:inline-flex;gap:2px}
+.seg b{font-weight:400;font-size:.8rem;color:var(--ink3);cursor:pointer;
+  padding:3px 9px;border-radius:6px}
+.seg b.on{color:var(--gd);font-weight:600;background:var(--gb)}
+
+/* характеристики проекта — определения с отбивкой точками */
+.par{display:flex;align-items:baseline;gap:6px;padding:6px 0;min-width:0}
+/* Порядок задаём явно: ::before вставляется первым, и без order отбивка
+   вставала слева от подписи — «····· Тёплый контур 35 м²». */
+.par dt{order:0;flex:none;font-size:.7rem;color:var(--ink3);white-space:nowrap}
+.par::before{content:"";order:1;flex:1 1 8px;height:3px;margin-bottom:2px;
+  background-image:radial-gradient(circle,var(--rule-2) .9px,transparent .9px);
+  background-size:5px 3px;background-repeat:repeat-x;background-position:0 100%}
+.par dd{order:2;flex:none;margin:0;font-size:.8rem;font-weight:500;white-space:nowrap}
+
+/* ── Сводка цифрами: четыре ячейки в один ряд ───────────────────────────
+   Плотная строка вместо четырёх карточек: то же содержание, вчетверо
+   меньше высоты. Разделены линейками, а не коробками.                  */
+.kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;
+  background:var(--rule);border:1px solid var(--rule);margin-bottom:var(--s4)}
+@media(min-width:700px){.kpi{grid-template-columns:repeat(4,1fr)}}
+.kpi>div{background:var(--sheet);padding:var(--s3) var(--s4)}
+.kpi dt{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink3);margin-bottom:4px}
+.kpi dd{margin:0;font-family:'Unbounded',sans-serif;font-weight:600;
+  font-size:clamp(.92rem,2.6vw,1.15rem);letter-spacing:-.02em}
+.kpi dd.big{color:var(--gd)}
+.kpi dd small{font-family:'Geologica',sans-serif;font-weight:400;
+  font-size:.66rem;color:var(--ink3);margin-left:4px}
+
+.pricerow{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s3) var(--s5);
+  padding-top:var(--s2)}
+.pricerow label{display:inline-flex;align-items:center;gap:7px;font-size:.74rem;
+  color:var(--ink2);cursor:pointer}
+.pricerow input[type=number],.pricerow input[type=text]{border:0;
+  border-bottom:1px solid var(--rule-2);background:none;padding:6px 2px 7px;
+  min-height:32px;font-size:.84rem;font-weight:600;color:var(--gd);outline:none}
+.pricerow input[type=number]{width:52px;text-align:right}
+.pricerow input[type=checkbox]{width:20px;height:20px;accent-color:var(--gm)}
+/* Подпись — часть цели нажатия, поэтому у неё своя высота, а не только
+   у самой галочки: 20 px квадрата пальцем не берутся. */
+.pricerow label{min-height:34px}
+.disc{margin-left:auto;font-family:'Unbounded',sans-serif;font-weight:700;
+  font-size:clamp(1rem,3.4vw,1.3rem);letter-spacing:-.02em;color:var(--gd)}
+
+/* ── Свод по разделам: доля нарисована, а не написана ──────────────────── */
+table.sum{width:100%;border-collapse:collapse;font-size:.78rem}
+table.sum th{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink3);font-weight:500;text-align:left;padding:0 0 7px;
+  border-bottom:1px solid var(--rule-2)}
+table.sum th:last-child{text-align:right}
+table.sum td{padding:8px 0;border-bottom:1px solid var(--rule);vertical-align:middle}
+table.sum tr:hover td{background:var(--zebra)}
+table.sum .nm{width:100%}
+table.sum .vl{text-align:right;font-weight:500;white-space:nowrap;
+  padding-left:var(--s4);width:1%}
+.bar{height:3px;margin-top:5px;background:var(--rule);border-radius:2px;
+  overflow:hidden;max-width:340px}
+.bar i{display:block;height:100%;background:var(--gl);border-radius:2px}
+table.sum tr.tot td{border-bottom:0;border-top:2px solid var(--ink);
+  padding-top:10px;font-weight:600}
+:root[data-theme="night"] table.sum tr.tot td{border-top-color:var(--rule-2)}
+table.sum tr.tot .vl{font-family:'Unbounded',sans-serif;font-weight:700;
+  font-size:.94rem;color:var(--gd)}
+table.sum tr.zero td{color:var(--ink3)}
+
+/* ── Раздел ─────────────────────────────────────────────────────────────
+   Полоса цепляется под панелью кнопок, пока раздел на экране: номер и
+   сумма раздела всегда перед глазами.                                   */
+.sec{margin-top:var(--s6)}
+.sec-band{position:sticky;top:53px;z-index:40;
+  display:grid;grid-template-columns:var(--gutter) 1fr auto;align-items:center;
+  gap:var(--s3);margin-left:calc(var(--gutter)*-1);
+  padding:9px var(--pad) 9px 0;
+  background:var(--band);color:var(--band-ink)}
+.sec-no{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.8rem;
+  text-align:center;opacity:.75}
+.sec-nm{font-size:.82rem;font-weight:500;min-width:0}
+.sec-nm i{display:block;font-style:normal;font-size:.62rem;font-weight:300;
+  opacity:.62;margin-top:1px}
+.sec-vl{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.86rem;
+  letter-spacing:-.01em;white-space:nowrap}
+.sec-vl.zero{opacity:.5;font-weight:400}
+
+/* ── Строка позиции ─────────────────────────────────────────────────────
+   Номер ушёл в корешок, поэтому строка начинается с галочки. Сумма —
+   в своей колонке фиксированной ширины: цифры стоят столбиком.         */
+.row{display:grid;grid-template-columns:22px 1fr var(--sum) 28px;
+  align-items:start;gap:var(--s3);padding:9px var(--pad) 9px var(--s3);
+  border-bottom:1px solid var(--rule);position:relative}
+.row:nth-child(even){background:var(--zebra)}
+.row:hover{background:var(--gb)}
+.row.on{background:var(--gb)}
+.row.on::before{content:"";position:absolute;left:calc(var(--gutter)*-1);
+  top:-1px;bottom:-1px;width:3px;background:var(--gl)}
+.row.off .nm,.row.off .sm{color:var(--ink3)}
+.row-no{position:absolute;left:calc(var(--gutter)*-1);width:var(--gutter);
+  text-align:center;font-size:.64rem;color:var(--ink3);padding-top:3px}
+.chk{width:20px;height:20px;margin-top:1px;flex:none;border:0;padding:0;
+  background:none;cursor:pointer;border-radius:5px;position:relative;
+  box-shadow:inset 0 0 0 1.5px var(--rule-2);color:transparent;
+  display:inline-flex;align-items:center;justify-content:center}
+.chk::after{content:"";position:absolute;inset:-6px}
+.chk:hover{box-shadow:inset 0 0 0 1.5px var(--gm)}
+.chk:focus-visible{outline:2px solid var(--gl);outline-offset:2px}
+.chk.on{background:var(--fill);box-shadow:none;color:#fff}
+.nm{font-size:.83rem;line-height:1.35;min-width:0}
+.sm{text-align:right;font-size:.83rem;font-weight:500;white-space:nowrap;
+  padding-top:1px}
+.sm.q{color:var(--ink3);font-weight:300;font-size:.74rem}
+.star{width:28px;height:28px;margin:-4px 0;border:0;background:none;padding:0;
+  border-radius:7px;cursor:pointer;color:var(--rule-2);
+  display:inline-flex;align-items:center;justify-content:center}
+.star:hover{color:var(--gm);background:var(--gb)}
+.star.on{color:var(--gl)}
+.star.on svg{fill:currentColor}
+/* вторая строка: пометка и кнопки строки */
+.note{grid-column:2/4;display:flex;align-items:center;gap:var(--s2);
+  flex-wrap:wrap;margin-top:3px;font-size:.67rem;color:var(--ink3)}
+/* Отметка «входит в комплектацию» — на --gd, а не на --gm: на подсвеченной
+   строке средний бирюзовый давал 3,41 при норме 4,5. У --gd там 5,43. */
+.tick{color:var(--gd);font-weight:500}
+.acts{display:inline-flex;align-items:center;gap:2px;flex:none}
+.mini{width:28px;height:28px;margin:-5px 0;border:0;background:none;
+  border-radius:7px;cursor:pointer;color:var(--gm);
+  display:inline-flex;align-items:center;justify-content:center}
+.mini:hover{color:var(--gd);background:var(--gb)}
+.mini.on{color:var(--gd);background:var(--gb)}
+.mini:focus-visible{outline:2px solid var(--gl);outline-offset:1px}
+.manual{display:inline-flex;align-items:center;gap:4px;min-height:28px;
+  padding:0 9px;border:1px dashed var(--rule-2);border-radius:7px;
+  color:var(--ink3);font-size:.7rem;background:none;cursor:text}
+.manual:hover{border-color:var(--gm)}
+.qty{display:inline-flex;align-items:center;gap:2px}
+.qty b{min-width:22px;text-align:center;font-size:.74rem;font-weight:500}
+.qty button{width:28px;height:28px;border:1px solid var(--rule-2);
+  border-radius:7px;background:none;cursor:pointer;color:var(--ink2);
+  display:inline-flex;align-items:center;justify-content:center}
+.qty button:hover{border-color:var(--gm);color:var(--gd)}
+
+/* формульная опция */
+.fx{grid-column:2/5;margin-top:7px;padding-top:8px;
+  border-top:1px dashed var(--rule-2)}
+.fx-f{font-family:'SF Mono',Consolas,monospace;font-size:.68rem;line-height:1.55;
+  color:var(--gd);border-left:2px solid var(--gl);padding:2px 0 2px 10px;
+  margin-bottom:var(--s2)}
+/* Перенос обязателен: на 360 px кнопка «по умолчанию 30%» не помещалась
+   в строку и уходила за край листа на 14 px. */
+.fx-r{display:flex;align-items:baseline;gap:6px;padding:5px 0;flex-wrap:wrap}
+.fx-r>span:first-child{flex:none;font-size:.7rem;color:var(--ink3)}
+.fx-r::before{content:"";order:1;flex:1 1 8px;height:3px;margin-bottom:2px;
+  background-image:radial-gradient(circle,var(--rule-2) .9px,transparent .9px);
+  background-size:5px 3px;background-repeat:repeat-x;background-position:0 100%}
+.fx-r input{order:2;flex:none;width:58px;text-align:right;font:inherit;
+  font-size:.82rem;font-weight:500;background:none;border:0;
+  border-bottom:1px solid var(--rule-2);padding:3px 2px 4px;color:inherit}
+.fx-r input:focus{outline:none;border-bottom-color:var(--gm)}
+.fx-r .u{order:3;flex:none;font-size:.68rem;color:var(--ink3)}
+.fx-r .d{order:4;flex:none;background:none;border:0;padding:5px 0 6px;
+  border-bottom:1px dotted var(--rule-2);font:inherit;font-size:.64rem;
+  color:var(--ink3);cursor:pointer;display:inline-flex;align-items:center}
+.fx-r .d:hover{color:var(--gd);border-bottom-color:var(--gm)}
+
+/* хвост раздела */
+.tailnote{display:flex;align-items:center;gap:var(--s2);margin:var(--s3) 0 0;
+  padding:9px var(--pad) 9px var(--s3);font-size:.72rem;color:var(--ink2);
+  border-left:2px solid var(--gl);background:var(--zebra)}
+.tailnote .mini{margin-left:auto}
+.add{display:block;width:calc(100% - var(--pad) - var(--s3));
+  margin:var(--s2) 0 0 var(--s3);padding:9px;border:1px dashed var(--rule-2);
+  border-radius:9px;background:none;color:var(--ink3);font-size:.74rem;
+  cursor:pointer}
+.add:hover{border-color:var(--gm);color:var(--gd)}
+
+/* ── Полоса итога ───────────────────────────────────────────────────────── */
+/* Заливка во всю ширину окна, содержимое — по краям листа: иначе на
+   мониторе сумма улетала к краю экрана, за версту от спецификации. */
+.total{position:sticky;bottom:0;z-index:50;
+  padding:var(--s3) var(--pad) calc(var(--s3) + env(safe-area-inset-bottom,0px));
+  margin-top:var(--s6);background:var(--band);color:var(--band-ink)}
+.total-in{max-width:1140px;margin:0 auto;display:flex;align-items:center;
+  gap:var(--s3);flex-wrap:wrap;
+  padding-left:calc(var(--gutter) + var(--s3) - var(--pad))}
+.total .lb{font-size:.63rem;letter-spacing:.14em;text-transform:uppercase;
+  opacity:.72}
+.total .vl{margin-left:auto;font-family:'Unbounded',sans-serif;font-weight:700;
+  font-size:clamp(1.05rem,4vw,1.5rem);letter-spacing:-.02em}
+.total .sub{width:100%;font-size:.66rem;opacity:.6}
+
+.foot{padding:var(--s5) var(--pad) 0 var(--s3);font-size:.7rem;color:var(--ink3);
+  border-top:1px solid var(--rule);margin-top:var(--s6)}
+.foot b{color:var(--ink2);font-weight:500}
+
+details>summary{list-style:none;cursor:pointer}
+details>summary::-webkit-details-marker{display:none}
+.disc-h{display:flex;align-items:baseline;justify-content:space-between;
+  gap:var(--s3);padding-bottom:6px;border-bottom:2px solid var(--ink)}
+:root[data-theme="night"] .disc-h{border-bottom-color:var(--rule-2)}
+.disc-h h2{margin:0;font-size:.86rem;font-weight:600}
+.disc-h .aside{font-size:.72rem;color:var(--ink3)}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));
+  gap:var(--s2);margin-top:var(--s4)}
+.thumb{aspect-ratio:4/3;border:1px dashed var(--rule-2);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;color:var(--ink3);
+  font-size:.68rem;background:var(--zebra)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="sheet"><div class="doc">
+
+  <div class="top">
+    <div class="brand">
+      <svg viewBox="0 0 40 28" fill="none" aria-hidden="true">
+        <path d="M2 14 L20 2 L38 14" stroke="var(--gd)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M8 26 h24" stroke="var(--gm)" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+      <b>Баня МСК</b>
+    </div>
+    <div class="meta">Бланк комплектации<br>Версия <b>v2.4.1</b></div>
+  </div>
+
+  <div class="title">
+    <div class="kicker">Расчёт стоимости комплектации</div>
+    <h1>Спецификация<br><em>Каркасный дом / Баня</em></h1>
+  </div>
+
+  <!-- Панель кнопок: состав, порядок и подписи — один в один с «Модерном» -->
+  <div class="tools" id="tools">
+    <button class="tool" onclick="flip()" title="Тёмный / светлый режим"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><span>Тема</span></button>
+    <button class="tool" title="Версия для печати"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg><span>Печать</span></button>
+    <button class="tool" title="Платёжный план"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg><span>Платёжный план</span></button>
+    <button class="tool" title="Аналитика"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="6" y1="20" x2="6" y2="13"/><line x1="12" y1="20" x2="12" y2="8"/><line x1="18" y1="20" x2="18" y2="16"/></svg><span>Аналитика</span></button>
+    <button class="tool" title="Скрыть / показать опции"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg><span>Скрыть опции</span></button>
+    <button class="tool" title="Поиск по опциям"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Поиск</span></button>
+    <button class="tool" title="Комплектации"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M17 14h.01M14 17h.01M17 20h.01M20 17h.01"/></svg><span>Комплектации</span></button>
+    <button class="tool tool--keep" title="Пресеты"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span>Пресеты</span></button>
+    <button class="tool tool--keep" title="Сбросить"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg><span>Сбросить</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="caret" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <button class="tool" title="Справка — руководство пользователя"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.5 9.5a3 3 0 0 1 5.5 1c0 1.5-1.5 2.2-2.5 3v.5"/><circle cx="12" cy="17.5" r=".5" fill="currentColor"/></svg><span>Справка</span></button>
+    <button class="tool" title="База знаний"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg><span>База знаний</span></button>
+    <button class="tool" title="Чек-лист проверки спецификации"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Чек-лист</span></button>
+    <button class="tool" title="Настройки и горячие клавиши"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V15z"/></svg><span>Настройки</span></button>
+  </div>
+
+  <!-- Выбор проекта и реквизиты -->
+  <div class="blk">
+    <div class="cols">
+      <div>
+        <div class="blk-h"><h2>Выбор проекта</h2><span class="aside">Берлин 9 × 5</span></div>
+        <dl style="margin:0">
+          <div class="fld"><dt>Поиск</dt><dd><input placeholder="Поиск по названию…" aria-label="Поиск проекта"></dd></div>
+          <div class="fld"><dt>Проект</dt><dd><select aria-label="Проект"><option>Фахверковая баня «Берлин» 9 × 5</option><option>Фахверковая баня «Мюнхен» 6 × 4</option></select></dd></div>
+          <div class="fld"><dt>Утепление</dt><dd><span class="seg"><b>100 мм</b><b class="on">150 мм</b><b>200 мм</b></span></dd></div>
+        </dl>
+        <dl style="margin:var(--s3) 0 0">
+          <div class="par"><dt>Тёплый контур</dt><dd class="num">35 м²</dd></div>
+          <div class="par"><dt>Крыт. терраса</dt><dd class="num">10 м²</dd></div>
+          <div class="par"><dt>Этажей</dt><dd class="num">1</dd></div>
+          <div class="par"><dt>Кровля</dt><dd>двускатная</dd></div>
+          <div class="par"><dt>Цена 150 мм</dt><dd class="num">2 943 019 ₽</dd></div>
+          <div class="par"><dt>Цена за м²</dt><dd class="num">84 086 ₽</dd></div>
+        </dl>
+      </div>
+      <div>
+        <div class="blk-h"><h2>Реквизиты</h2><span class="aside">не заполнено</span></div>
+        <dl style="margin:0">
+          <div class="fld"><dt>Менеджер</dt><dd><input placeholder="Фамилия Имя Отчество" aria-label="Менеджер"></dd></div>
+          <div class="fld"><dt>Заказчик</dt><dd><input placeholder="Фамилия Имя Отчество" aria-label="Заказчик"></dd></div>
+          <div class="fld"><dt>№ договора</dt><dd><input placeholder="00000000" aria-label="Номер договора"></dd></div>
+          <div class="fld"><dt>Дата договора</dt><dd><input placeholder="дд.мм.гггг" aria-label="Дата договора"></dd></div>
+          <div class="fld"><dt>Технология</dt><dd><select aria-label="Технология"><option>Каркас</option><option>Фахверк</option></select></dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- Визуализация -->
+  <div class="blk">
+    <details>
+      <summary><div class="disc-h"><h2>Визуализация и планировка</h2><span class="aside">3 файла ▾</span></div></summary>
+      <div class="thumbs">
+        <div class="thumb">Фасад</div><div class="thumb">План 1 этажа</div><div class="thumb">Разрез</div>
+      </div>
+    </details>
+  </div>
+
+  <!-- Стоимость -->
+  <div class="blk">
+    <div class="blk-h"><h2>Стоимость</h2><span class="aside">скидка не применена</span></div>
+    <dl class="kpi">
+      <div><dt>База, 150 мм</dt><dd class="num">2 943 019 ₽</dd></div>
+      <div><dt>Опции сверх базы</dt><dd class="num">+ 81 433 ₽</dd></div>
+      <div><dt>Общая стоимость</dt><dd class="num big">3 024 452 ₽</dd></div>
+      <div><dt>За квадратный метр</dt><dd class="num">86 413 ₽ <small>/ м²</small></dd></div>
+    </dl>
+    <div class="pricerow">
+      <label>Спец. цена <input type="number" value="0" aria-label="Скидка, процент"> %</label>
+      <label><input type="checkbox" aria-label="За наличные"> за наличные</label>
+      <label>Действительна до <input type="text" placeholder="дд.мм.гггг" style="width:104px;text-align:left" aria-label="Действительна до"></label>
+      <span class="disc num">3 024 452 ₽</span>
+    </div>
+  </div>
+
+  <!-- Свод по разделам -->
+  <div class="blk">
+    <div class="blk-h"><h2>Свод по разделам</h2><span class="aside">доля от общей стоимости</span></div>
+    <table class="sum">
+      <thead><tr><th class="nm">Раздел</th><th class="vl">Сумма</th></tr></thead>
+      <tbody>
+        <tr><td class="nm">Базовая комплектация<div class="bar"><i style="width:97.3%"></i></div></td><td class="vl num">2 943 019 ₽</td></tr>
+        <tr><td class="nm">01 · Фундамент и цоколь<div class="bar"><i style="width:1.1%"></i></div></td><td class="vl num">33 705 ₽</td></tr>
+        <tr><td class="nm">03 · Утепление и ветрозащита<div class="bar"><i style="width:0.5%"></i></div></td><td class="vl num">14 728 ₽</td></tr>
+        <tr><td class="nm">06 · Кровля<div class="bar"><i style="width:1.1%"></i></div></td><td class="vl num">33 000 ₽</td></tr>
+        <tr class="zero"><td class="nm">07 · Покраска<div class="bar"><i style="width:0%"></i></div></td><td class="vl num">0 ₽</td></tr>
+        <tr class="tot"><td class="nm">Общая стоимость</td><td class="vl num">3 024 452 ₽</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Раздел 03 -->
+  <section class="sec">
+    <div class="sec-band">
+      <span class="sec-no">03</span>
+      <span class="sec-nm">Утепление и ветрозащита<i>3 позиции в договоре · расчёт по площади контура</i></span>
+      <span class="sec-vl num">14 728 ₽</span>
+    </div>
+
+    <div class="row on">
+      <span class="row-no">1</span>
+      <button class="chk on" role="checkbox" aria-checked="true" aria-label="Позиция в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+      <span class="nm">Утеплитель — базальтовая вата KNAUF Insulation PROF TS 037 Aquastatik</span>
+      <span class="sm q">в базе</span>
+      <button class="star on" title="Закрепить" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="note"><span class="tick">✓ входит в комплектацию</span><span class="acts">
+        <button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button>
+        <button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button>
+      </span></span>
+    </div>
+
+    <div class="row on">
+      <span class="row-no">2</span>
+      <button class="chk on" role="checkbox" aria-checked="true" aria-label="Позиция в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+      <span class="nm">Утепление наружных стен — 150 мм</span>
+      <span class="sm q">в базе</span>
+      <button class="star" title="Закрепить" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="note"><span class="tick">✓ входит в комплектацию</span></span>
+    </div>
+
+    <div class="row off">
+      <button class="chk" role="checkbox" aria-checked="false" aria-label="Позиция не в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+      <span class="nm">Утепление пола и потолка — 200 мм с изменением конструктива 45 × 195</span>
+      <span class="sm num">119 549 ₽</span>
+      <button class="star" title="Закрепить" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="note"><span class="acts">
+        <button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+        <button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button>
+        <button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button>
+      </span></span>
+    </div>
+
+    <div class="row off">
+      <button class="chk" role="checkbox" aria-checked="false" aria-label="Позиция не в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+      <span class="nm">Эковата — напыление по каркасу</span>
+      <span class="sm q">по запросу</span>
+      <button class="star" title="Закрепить" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="note"><button class="manual">введите сумму ₽</button><span class="acts">
+        <button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+        <button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button>
+      </span></span>
+    </div>
+
+    <div class="tailnote">Отделка цоколя в базовую стоимость не входит
+      <button class="mini" title="Скрыть примечание в печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    </div>
+    <button class="add">+ Добавить примечание</button>
+    <button class="add">+ Добавить опцию</button>
+  </section>
+
+  <!-- Раздел 06 -->
+  <section class="sec">
+    <div class="sec-band">
+      <span class="sec-no">06</span>
+      <span class="sec-nm">Кровля<i>3 позиции в договоре · расчёт по площади ската</i></span>
+      <span class="sec-vl num">33 000 ₽</span>
+    </div>
+
+    <div class="row on">
+      <span class="row-no">1</span>
+      <button class="chk on" role="checkbox" aria-checked="true" aria-label="Позиция в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+      <span class="nm">Обрешётка и контробрешётка — доска камерной сушки</span>
+      <span class="sm q">в базе</span>
+      <button class="star" title="Закрепить" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="note"><span class="tick">✓ входит в комплектацию</span></span>
+    </div>
+
+    <div class="row on">
+      <span class="row-no">2</span>
+      <button class="chk on" role="checkbox" aria-checked="true" aria-label="Позиция в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+      <span class="nm">Металлочерепица Grand Line — покрытие Velur</span>
+      <span class="sm num">208 954 ₽</span>
+      <button class="star" title="Закрепить" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="note"><span class="acts">
+        <button class="mini on" title="Параметры формулы"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.63.68 1.09 1.32 1.09H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+        <button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+      </span></span>
+      <div class="fx">
+        <div class="fx-f">Цена = ((площадь × 1450) / (1 − маржа)) × 1.01 ₽</div>
+        <div class="fx-r"><span>Маржинальность</span><input type="number" value="30" aria-label="Маржинальность, %"><span class="u">%</span><button class="d">по умолчанию 30%</button></div>
+        <div class="fx-r"><span>Площадь кровли</span><input type="number" value="96" aria-label="Площадь кровли, м²"><span class="u">м²</span><button class="d">из проекта 96</button></div>
+      </div>
+    </div>
+
+    <div class="row off">
+      <button class="chk" role="checkbox" aria-checked="false" aria-label="Позиция не в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+      <span class="nm">Фальцевая кровля Кликфальц — оцинкованная сталь 0,5 мм</span>
+      <span class="sm num">341 200 ₽</span>
+      <button class="star" title="Закрепить" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="note"><span class="acts">
+        <button class="mini" title="Параметры формулы"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.63.68 1.09 1.32 1.09H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+        <button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+      </span></span>
+    </div>
+
+    <div class="row on">
+      <span class="row-no">3</span>
+      <button class="chk on" role="checkbox" aria-checked="true" aria-label="Позиция в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+      <span class="nm">Снегозадержатель трубчатый, 3 м</span>
+      <span class="sm num">24 990 ₽</span>
+      <button class="star" title="Закрепить" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <span class="note">считается штуками<span class="acts">
+        <span class="qty"><button title="Меньше">−</button><b>2</b><button title="Больше">+</button></span>
+        <button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+      </span></span>
+    </div>
+
+    <button class="add">+ Добавить опцию</button>
+  </section>
+
+  <div class="foot">Макет второй версии темы «Бланк». Цифры взяты из реального
+    расчёта по проекту «Берлин» 9 × 5. Кнопки не работают, кроме
+    <b>переключателя темы</b> — он первый в панели.</div>
+
+</div></div>
+
+<div class="total">
+  <div class="total-in">
+    <span class="lb">Итого по спецификации</span>
+    <span class="vl num">3 024 452 ₽</span>
+    <span class="sub">База 2 943 019 ₽ · опции +81 433 ₽ · 12 разделов · 47 позиций в договоре</span>
+  </div>
+</div>
+
+<script>
+function setTheme(m){document.documentElement.setAttribute('data-theme',m);}
+function flip(){setTheme(document.documentElement.getAttribute('data-theme')==='night'?'day':'night');}
+setTheme(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'day');
+
+/* Панель цепляется, когда её собственный верх дошёл до верха окна.
+   Наблюдатель не годится: на телефоне панель ниже первого экрана и порога
+   не пересекает — считаем при прокрутке, с ограничением по кадру. */
+(function(){
+  var tools=document.getElementById('tools'),base=null,tick=false;
+  function calc(){
+    if(base===null){var r=tools.getBoundingClientRect();base=r.top+window.scrollY;}
+    tools.classList.toggle('stuck',window.scrollY>=base-1);
+    tick=false;
+  }
+  addEventListener('scroll',function(){if(!tick){tick=true;requestAnimationFrame(calc);}},{passive:true});
+  addEventListener('resize',function(){base=null;calc();});
+  calc();
+})();
+</script>
+</body>
+</html>
