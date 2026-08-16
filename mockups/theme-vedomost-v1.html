@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Тема «Ведомость» — макет</title>
+<title>Тема «Бланк» — макет</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -78,9 +78,10 @@ button,input,select{font:inherit;color:inherit}
 }
 
 /* ── Шапка документа ────────────────────────────────────────────────────── */
+/* Ни линии под выходными данными, ни места под переключатель: линия резала
+   шапку пополам, а тема переключается кнопкой в общей панели. */
 .doc-top{display:flex;align-items:flex-start;justify-content:space-between;
-  gap:var(--s4);padding:var(--s5) 104px var(--s3) 0;  /* справа место под переключатель */
-  border-bottom:2px solid var(--ink)}
+  gap:var(--s4);padding:var(--s5) 0 var(--s3)}
 .brand{display:flex;align-items:center;gap:10px;min-width:0}
 .brand-mark{width:26px;height:26px;flex:none}
 .brand-name{font-family:'Unbounded',sans-serif;font-weight:700;font-size:.78rem;
@@ -95,7 +96,6 @@ button,input,select{font:inherit;color:inherit}
 .doc-title h1{margin:0;font-family:'Unbounded',sans-serif;font-weight:600;
   font-size:clamp(1.45rem,4.4vw,2.4rem);line-height:1.1;letter-spacing:-.02em}
 .doc-title h1 em{font-style:normal;color:var(--gm)}
-.doc-sub{margin:var(--s3) 0 0;font-size:.8rem;color:var(--ink2);max-width:56ch}
 
 /* ── Панель действий ────────────────────────────────────────────────────────
    В покое — тихий ряд с подписями, без коробок. При прокрутке цепляется
@@ -297,8 +297,14 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
    номер, название, сумма, звёздочка. Кнопки действий (глаз, выделение,
    подарок) стоят во второй строке — там, где в калькуляторе они идут
    рядом с ценой.                                                        */
-.row{display:grid;grid-template-columns:14px 20px 30px 1fr auto 30px;
-  align-items:baseline;gap:var(--s2) var(--s2);padding:10px 0 9px;
+/* Между галочкой и названием было 46 px пустоты — колонка номера в 30 px
+   плюс два отступа по 8. В «Модерне» там 10 px, и строка читается плотнее.
+   Номер оставлен (это ведомость, позиции нумеруются), но колонка ужата до
+   13 px, а горизонтальный отступ до 5: остаётся 23 px вместо 46.
+   Колонка суммы убрана совсем — цена переехала во вторую строку, как
+   в «Модерне». */
+.row{display:grid;grid-template-columns:14px 20px 13px 1fr 30px;
+  align-items:baseline;gap:var(--s2) 5px;padding:10px 0 9px;
   border-bottom:1px solid var(--rule);position:relative}
 /* Галочка — плоский квадрат по духу линейки, без коробки-плашки.
    Без неё в макете нечем было отмечать опцию: это главное действие экрана. */
@@ -325,7 +331,7 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
 .row-drag:active{cursor:grabbing}
 .row-drag:focus-visible{outline:2px solid var(--gl);outline-offset:1px}
 /* Звёздочка — крайняя справа, как в калькуляторе */
-.row-star{grid-column:6;align-self:start;justify-self:end;margin-top:-4px;width:30px;height:30px;
+.row-star{grid-column:5;align-self:start;justify-self:end;margin-top:-4px;width:30px;height:30px;
   margin:-6px 0;display:inline-flex;align-items:center;justify-content:center;
   border:0;background:none;border-radius:7px;cursor:pointer;color:var(--rule-strong)}
 .row-star:hover{color:var(--gm);background:var(--gb)}
@@ -336,12 +342,13 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
 /* Номер стоит только у позиций, которые идут в договор, и нумерует их
    подряд. У снятых номера нет: сквозная нумерация всех опций оставляла
    дыры (1, 2, 3, 6, 7) и читалась как «что-то пропало». */
-.row-pos{grid-column:3;font-size:.68rem;color:var(--ink3);font-weight:400;
-  letter-spacing:.02em;text-align:right}
+.row-pos{grid-column:3;font-size:.64rem;color:var(--ink3);font-weight:400;
+  letter-spacing:.01em;text-align:right}
 .row-name{grid-column:4;font-size:.83rem;font-weight:400;line-height:1.35}
-.row-sum{grid-column:5;font-size:.83rem;font-weight:500;white-space:nowrap;
-  text-align:right}
-.row-sum.muted{color:var(--ink3);font-weight:300}
+/* Цена стоит во второй строке первым элементом — там же, где она в
+   «Модерне»: сразу под названием, перед кнопками строки. */
+.row-sum{font-size:.72rem;font-weight:500;white-space:nowrap;color:var(--gm)}
+[data-theme="night"] .row-sum{color:var(--gl)}
 .row-note{grid-column:4/6;font-size:.68rem;color:var(--ink3);margin-top:3px;
   display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap}
 /* Кнопки строки — одной группой: поодиночке они рвались по разным рядам,
@@ -351,6 +358,41 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
    экрана вместо переноса на свою строку. Кнопки идут сразу за текстом —
    так же, как в калькуляторе они идут сразу за ценой. */
 .row-acts{display:inline-flex;align-items:center;gap:var(--s1);flex:none}
+
+/* ── Формульная опция ───────────────────────────────────────────────────
+   Цена такой опции считается по формуле, и её параметры менеджер правит
+   на месте. В «Модерне» это плашка с пунктирной рамкой; здесь рамки не
+   нужны — блок отбивается сверху пунктирной линейкой, формула стоит на
+   вертикальной черте, а поля ввода — это подчёркнутые места для цифры,
+   как в бумажном бланке.                                                */
+.fx{grid-column:4/6;margin-top:7px;padding-top:8px;
+  border-top:1px dashed var(--rule-strong)}
+.fx-formula{font-family:'SF Mono',Consolas,monospace;font-size:.68rem;
+  line-height:1.55;color:var(--gd);border-left:2px solid var(--gl);
+  padding:2px 0 2px 10px;margin-bottom:var(--s2)}
+[data-theme="night"] .fx-formula{color:#bfe6e8}
+.fx-row{display:flex;align-items:baseline;gap:6px;padding:5px 0;min-width:0}
+.fx-lab{order:0;flex:none;font-size:.7rem;color:var(--ink3)}
+/* та же отбивка точками, что у параметров проекта — это одна линейка */
+.fx-row::before{content:"";order:1;flex:1 1 8px;height:3px;margin-bottom:2px;
+  background-image:radial-gradient(circle,var(--rule-strong) .9px,transparent .9px);
+  background-size:5px 3px;background-repeat:repeat-x;background-position:0 100%}
+.fx-in{order:2;flex:none;width:58px;text-align:right;font:inherit;
+  font-size:.82rem;font-weight:500;color:inherit;background:none;border:0;
+  border-bottom:1px solid var(--rule-strong);padding:3px 2px 4px}
+.fx-in:focus{outline:none;border-bottom-color:var(--gm)}
+.fx-unit{order:3;flex:none;font-size:.68rem;color:var(--ink3)}
+/* Площадь нажатия у «по умолчанию» — не меньше 26 px: пунктирная черта
+   тонкая, а палец у неё такой же, как у любой другой кнопки. */
+.fx-def{order:4;flex:none;background:none;border:0;
+  border-bottom:1px dotted var(--rule-strong);padding:5px 0 6px;
+  display:inline-flex;align-items:center;
+  font:inherit;font-size:.64rem;color:var(--ink3);cursor:pointer}
+.fx-def:hover{color:var(--gd);border-bottom-color:var(--gm)}
+.fx-def:focus-visible{outline:2px solid var(--gl);outline-offset:2px}
+/* Шестерёнка светится, пока блок раскрыт */
+.mini.on{color:var(--gd);background:var(--gb)}
+[data-theme="night"] .mini.on{color:#bfe6e8}
 
 /* Поле ручного ввода цены — у опций без фиксированной цены */
 .manual-price{display:inline-flex;align-items:center;gap:4px;min-height:30px;
@@ -422,16 +464,6 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
   font-size:clamp(1.15rem,4.4vw,1.7rem);letter-spacing:-.02em;white-space:nowrap}
 .total-sub{width:100%;font-size:.68rem;color:rgba(255,255,255,.62)}
 
-/* ── Переключатель темы макета ─────────────────────────────────────────────
-   Стоит в потоке листа, а не поверх него: плавающая кнопка на телефоне
-   закрывала строку ведомости, а прятать текст ради демо-кнопки нельзя.
-   Второй способ переключиться — кнопка «Тема» в панели действий.        */
-.theme-tog{position:absolute;right:var(--sheet-pad);top:var(--s5);z-index:30;
-  display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;
-  border:1px solid var(--rule-strong);border-radius:20px;background:var(--sheet);
-  color:var(--ink2);font-size:.72rem;cursor:pointer}
-.theme-tog:hover{border-color:var(--gm);color:var(--gd)}
-.theme-tog:focus-visible{outline:2px solid var(--gl);outline-offset:2px}
 
 .foot{padding:var(--s5) 0 0;font-size:.72rem;color:var(--ink3);
   border-top:1px solid var(--rule);margin-top:var(--s6)}
@@ -473,10 +505,6 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
 
 <div class="sheet">
 
-  <button class="theme-tog" id="tog" onclick="flip()" aria-label="Переключить день и ночь">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-    <span id="togLabel">Ночь</span>
-  </button>
 
   <!-- Шапка: выходные данные документа, а не баннер -->
   <div class="doc-top">
@@ -488,7 +516,7 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
       <span class="brand-name">Баня МСК</span>
     </div>
     <div class="doc-meta">
-      Ведомость комплектации<br>
+      Бланк комплектации<br>
       Версия <b>v2.4.1</b>
     </div>
   </div>
@@ -496,9 +524,6 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
   <div class="doc-title">
     <div class="doc-kicker">Приложение №1 к договору подряда</div>
     <h1>Спецификация<br><em>Каркасный дом / Баня</em></h1>
-    <p class="doc-sub">Расчёт стоимости комплектации. Ведомость собирается по
-       разделам: отмеченные позиции идут в договор, снятые — остаются в списке,
-       но в сумму не входят.</p>
   </div>
 
   <!-- Панель: в покое ряд с подписями, при прокрутке — полоска иконок -->
@@ -674,7 +699,6 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
       <button class="row-chk on" role="checkbox" aria-checked="true" aria-label="Опция в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
       <span class="row-pos">1</span>
       <span class="row-name">Утеплитель — базальтовая вата KNAUF Insulation PROF TS 037 Aquastatik</span>
-      <span class="row-sum muted">в базе</span>
       <button class="row-star on" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
       <span class="row-note"><span class="tick">✓ входит в комплектацию</span><span class="row-acts"><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
     </div>
@@ -684,7 +708,6 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
       <button class="row-chk on" role="checkbox" aria-checked="true" aria-label="Опция в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
       <span class="row-pos">2</span>
       <span class="row-name">Утепление наружных стен — 150 мм</span>
-      <span class="row-sum muted">в базе</span>
       <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
       <span class="row-note"><span class="tick">✓ входит в комплектацию</span><span class="row-acts"><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
     </div>
@@ -694,7 +717,6 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
       <button class="row-chk on" role="checkbox" aria-checked="true" aria-label="Опция в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
       <span class="row-pos">3</span>
       <span class="row-name">Мембранные плёнки Finka Premium — гидро-, ветрозащита, пароизоляция</span>
-      <span class="row-sum muted">в базе</span>
       <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
       <span class="row-note"><span class="tick">✓ входит в комплектацию</span><span class="row-acts"><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
     </div>
@@ -704,9 +726,8 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
       <button class="row-chk" role="checkbox" aria-checked="false" aria-label="Опция не в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
       <span class="row-pos"></span>
       <span class="row-name">Утепление пола и потолка — 200 мм с изменением конструктива 45 × 195</span>
-      <span class="row-sum">119 549 ₽</span>
       <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
-      <span class="row-note">не отмечено · в сумму не входит<span class="row-acts"><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
+      <span class="row-note"><span class="row-sum">119 549 ₽</span><span class="row-acts"><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
     </div>
 
     <div class="row row--off">
@@ -714,9 +735,8 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
       <button class="row-chk" role="checkbox" aria-checked="false" aria-label="Опция не в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
       <span class="row-pos"></span>
       <span class="row-name">Дополнительная ветро-, шумо- и теплоизоляция — Изоплат / Белтермо</span>
-      <span class="row-sum">83 543 ₽</span>
       <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
-      <span class="row-note">не отмечено · в сумму не входит<span class="row-acts"><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
+      <span class="row-note"><span class="row-sum">83 543 ₽</span><span class="row-acts"><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
     </div>
 
     <div class="row row--off">
@@ -724,7 +744,6 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
       <button class="row-chk" role="checkbox" aria-checked="false" aria-label="Опция не в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
       <span class="row-pos"></span>
       <span class="row-name">Эковата — напыление по каркасу</span>
-      <span class="row-sum muted">по запросу</span>
       <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
       <span class="row-note"><button class="manual-price">введите сумму ₽</button><span class="row-acts"><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
     </div>
@@ -751,7 +770,6 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
       <button class="row-chk on" role="checkbox" aria-checked="true" aria-label="Опция в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
       <span class="row-pos">1</span>
       <span class="row-name">Обрешётка и контробрешётка — доска камерной сушки</span>
-      <span class="row-sum muted">в базе</span>
       <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
       <span class="row-note"><span class="tick">✓ входит в комплектацию</span><span class="row-acts"><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
     </div>
@@ -761,9 +779,14 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
       <button class="row-chk on" role="checkbox" aria-checked="true" aria-label="Опция в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
       <span class="row-pos">2</span>
       <span class="row-name">Металлочерепица Grand Line — покрытие Velur</span>
-      <span class="row-sum">208 954 ₽</span>
       <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
-      <span class="row-note">отмечено вручную · площадь кровли 96 м²<span class="row-acts"><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
+      <span class="row-note"><span class="row-sum">208 954 ₽</span><span class="row-acts"><button class="mini on" title="Параметры формулы"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.63.68 1.09 1.32 1.09H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
+    
+      <div class="fx">
+        <div class="fx-formula">Цена = ((площадь × 1450) / (1 − маржа)) × 1.01 ₽</div>
+        <div class="fx-row"><span class="fx-lab">Маржинальность</span><input class="fx-in" type="number" value="30" aria-label="Маржинальность, %"><span class="fx-unit">%</span><button class="fx-def">по умолчанию 30%</button></div>
+        <div class="fx-row"><span class="fx-lab">Площадь кровли</span><input class="fx-in" type="number" value="96" aria-label="Площадь кровли, м²"><span class="fx-unit">м²</span><button class="fx-def">из проекта 96</button></div>
+      </div>
     </div>
 
     <div class="row row--off">
@@ -771,9 +794,8 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
       <button class="row-chk" role="checkbox" aria-checked="false" aria-label="Опция не в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
       <span class="row-pos"></span>
       <span class="row-name">Фальцевая кровля Кликфальц — оцинкованная сталь 0,5 мм</span>
-      <span class="row-sum">341 200 ₽</span>
       <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
-      <span class="row-note">не отмечено · в сумму не входит<span class="row-acts"><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
+      <span class="row-note"><span class="row-sum">341 200 ₽</span><span class="row-acts"><button class="mini" title="Параметры формулы"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.63.68 1.09 1.32 1.09H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
     </div>
 
     <div class="row row--off">
@@ -781,9 +803,8 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
       <button class="row-chk" role="checkbox" aria-checked="false" aria-label="Опция не в договоре"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
       <span class="row-pos"></span>
       <span class="row-name">Снегозадержатель трубчатый, 3 м</span>
-      <span class="row-sum">24 990 ₽</span>
       <button class="row-star" title="Закрепить опцию (не скрывается при фильтре)" aria-label="Закрепить"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
-      <span class="row-note">считается штуками<span class="row-acts"><span class="qty"><button class="qty-b" title="Меньше">−</button><span class="qty-n">2</span><button class="qty-b" title="Больше">+</button></span><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
+      <span class="row-note"><span class="row-sum">24 990 ₽</span>считается штуками<span class="row-acts"><span class="qty"><button class="qty-b" title="Меньше">−</button><span class="qty-n">2</span><button class="qty-b" title="Больше">+</button></span><button class="mini" title="Показать цену в версии для печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button><button class="mini" title="Выделить опцию цветом"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg></button><button class="mini" title="В подарок"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button></span></span>
     </div>
     <div class="sec-note-row">Водосточная система считается отдельно
       <button class="mini" title="Скрыть примечание в печати"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -808,7 +829,6 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
 <script>
 function setTheme(mode){
   document.documentElement.setAttribute('data-theme',mode);
-  document.getElementById('togLabel').textContent = mode==='night' ? 'День' : 'Ночь';
 }
 function flip(){
   setTheme(document.documentElement.getAttribute('data-theme')==='night'?'day':'night');
