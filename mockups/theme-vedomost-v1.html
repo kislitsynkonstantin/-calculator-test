@@ -136,6 +136,11 @@ button,input,select{font:inherit;color:inherit}
 .params{display:grid;grid-template-columns:repeat(2,1fr);gap:0 var(--s5);
   padding:var(--s4) 0 var(--s5);border-bottom:1px solid var(--rule);margin:0}
 @media(min-width:700px){.params{grid-template-columns:repeat(4,1fr);gap:0 var(--s6)}}
+/* Внутри колонки «Выбор проекта» параметры идут одним столбцом */
+/* Внутри колонки «Выбор проекта» параметры идут одним столбцом:
+   четыре колонки в половине листа превратились бы в кашу */
+.params--col{grid-template-columns:1fr;border-bottom:0;padding-bottom:var(--s2)}
+@media(min-width:700px){.params--col{grid-template-columns:1fr;gap:0}}
 .par{display:flex;align-items:baseline;gap:6px;padding:7px 0;min-width:0}
 .par dt{order:0;flex:none;font-size:.7rem;color:var(--ink3);white-space:nowrap}
 /* отбивка точками — она же и есть линейка, поэтому рамок у ячеек нет */
@@ -168,30 +173,64 @@ button,input,select{font:inherit;color:inherit}
 .sec--nonum .sec-head{grid-template-columns:1fr auto}
 .sec--nonum .sec-note{grid-column:1/-1}
 
-/* ── Реквизиты: бланк, а не форма ───────────────────────────────────────────
-   Поля без коробок — одна линейка снизу, как в бумажном приложении к
-   договору, которое заполняют от руки.                                    */
-.req{display:grid;grid-template-columns:1fr;gap:0 var(--s6);padding-top:var(--s2)}
-@media(min-width:700px){.req{grid-template-columns:1fr 1fr}}
-.rq{display:flex;align-items:baseline;gap:var(--s3);padding:10px 0;
-  border-bottom:1px solid var(--rule);min-width:0}
-.rq-l{flex:none;width:11ch;font-size:.7rem;color:var(--ink3)}
-.rq-i{flex:1 1 auto;min-width:0;min-height:34px;border:0;background:transparent;
-  padding:0 0 2px;font-size:.83rem;font-weight:500;color:var(--ink);
-  border-bottom:1px solid var(--rule-strong)}
-.rq-i::placeholder{color:var(--ink3);font-weight:300}
-.rq-i:focus{outline:none;border-bottom-color:var(--gm)}
-.rq--wide{grid-column:1/-1}
-.req-foot{grid-column:1/-1;display:flex;align-items:center;gap:var(--s3);
-  flex-wrap:wrap;padding:var(--s3) 0 0}
-.lnk{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px;
+/* ── Кнопка-ссылка и метка состояния ────────────────────────────────────── */
+.lnk{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:0 12px;
   border:1px solid var(--gm);border-radius:8px;background:none;color:var(--gd);
   font-size:.75rem;font-weight:500;cursor:pointer}
 .lnk:hover{background:var(--gb)}
+.lnk:focus-visible{outline:2px solid var(--gl);outline-offset:2px}
 [data-theme="night"] .lnk{color:#bfe6e8;border-color:var(--gm)}
 .flag{font-size:.68rem;color:var(--ink3)}
 .flag::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;
   background:var(--ink3);margin-right:6px;vertical-align:middle}
+
+/* ── Две колонки: выбор проекта и реквизиты, как в калькуляторе ─────────────
+   На десктопе рядом, разделены волосяной линейкой, а не двумя коробками;
+   на телефоне одна под другой.                                          */
+.two-col{display:grid;grid-template-columns:1fr;gap:var(--s6)}
+@media(min-width:900px){
+  .two-col{grid-template-columns:1fr 1fr;gap:var(--s7)}
+  .two-col > :last-child{border-left:1px solid var(--rule);padding-left:var(--s7)}
+}
+.two-col .sec{margin-top:var(--s6)}
+@media(min-width:900px){.two-col > * > .sec:first-child{margin-top:var(--s6)}}
+
+/* Поле-строка: подпись слева, значение на линейке справа */
+.fields{padding-top:var(--s2)}
+.fld{display:flex;align-items:center;gap:var(--s3);padding:9px 0;
+  border-bottom:1px solid var(--rule);min-width:0}
+.fld-l{flex:none;width:11ch;font-size:.7rem;color:var(--ink3)}
+.fld-i{flex:1 1 auto;min-width:0;min-height:34px;border:0;background:transparent;
+  padding:0 0 2px;font-size:.83rem;font-weight:500;color:var(--ink);
+  border-bottom:1px solid var(--rule-strong)}
+.fld-i::placeholder{color:var(--ink3);font-weight:300}
+.fld-i:focus{outline:none;border-bottom-color:var(--gm)}
+/* Выпадающий список — та же линейка, галка справа */
+.fld-sel{flex:1 1 auto;min-width:0;min-height:34px;display:flex;align-items:center;
+  gap:var(--s2);padding:0 0 2px;border:0;border-bottom:1px solid var(--rule-strong);
+  background:transparent;font-size:.83rem;font-weight:500;color:var(--ink);
+  cursor:pointer;text-align:left}
+.fld-sel span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fld-sel svg{margin-left:auto;flex:none;color:var(--ink3)}
+.fld-sel:hover{border-bottom-color:var(--gm)}
+.fld-sel:focus-visible{outline:2px solid var(--gl);outline-offset:2px}
+.fld--stack{align-items:flex-start;flex-wrap:wrap}
+.fld--stack .fld-l{padding-top:8px}
+
+/* Толщина утепления: три варианта одной строкой, выбранный подчёркнут */
+.seg{display:flex;gap:var(--s1);flex-wrap:wrap;flex:1 1 auto}
+.seg-b{min-height:34px;padding:0 12px;border:0;background:none;cursor:pointer;
+  font-size:.78rem;color:var(--ink2);border-bottom:2px solid transparent}
+.seg-b:hover{color:var(--gd)}
+.seg-b:focus-visible{outline:2px solid var(--gl);outline-offset:1px}
+.seg-b.on{color:var(--gd);font-weight:600;border-bottom-color:var(--gd)}
+[data-theme="night"] .seg-b.on{color:#bfe6e8;border-bottom-color:var(--gl)}
+
+/* Кнопка-ссылка пунктиром — «добавить проект вручную» */
+.lnk--dash{border-style:dashed;border-color:var(--rule-strong);color:var(--ink2);
+  width:100%;justify-content:center}
+.lnk--dash:hover{border-color:var(--gm);color:var(--gd)}
+.btn-row{display:flex;gap:var(--s2);flex-wrap:wrap;padding:var(--s3) 0 var(--s2)}
 
 /* ── Стоимость: главная цифра документа ─────────────────────────────────── */
 .cost{margin-top:var(--s2);padding-top:var(--s2)}
@@ -328,6 +367,17 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
   .brand{padding-right:104px}
   .doc-meta{text-align:left;white-space:normal;line-height:1.55}
 }
+/* На телефоне и в покое подписи остаются только у «Пресетов» — как в
+   калькуляторе. С подписями у всех десяти кнопок панель разъезжалась на
+   четыре ряда и съедала первый экран; так их два, как в «Модерне». */
+@media (max-width:560px){
+  .tools:not(.stuck){gap:4px}
+  .tools:not(.stuck) .tool{width:36px;height:36px;padding:0;justify-content:center}
+  .tools:not(.stuck) .tool span{display:none}
+  .tools:not(.stuck) .tool--keep{width:auto;padding:0 11px}
+  .tools:not(.stuck) .tool--keep span{display:inline}
+  .tools:not(.stuck) .tools-sep{display:none}
+}
 /* В полоске иконки не переносятся — при нехватке места полоска
    прокручивается вбок, но ни одна кнопка не уходит под обрез */
 /* На телефоне в полоску влезают все десять кнопок только иконками:
@@ -393,41 +443,89 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
     <button class="tool" title="Настройки"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82 2 2 0 1 1-2.83 2.83 1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0 1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33 2 2 0 1 1-2.83-2.83A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4 1.65 1.65 0 0 0 1.6-1 1.65 1.65 0 0 0-.33-1.82 2 2 0 1 1 2.83-2.83A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0 1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33 2 2 0 1 1 2.83 2.83A1.65 1.65 0 0 0 19.4 9v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Настройки</span></button>
   </div>
 
-  <!-- Параметры проекта: пары «что — сколько», выключка цифр вправо -->
-  <dl class="params">
-    <div class="par"><dt>Проект</dt><dd>Берлин 9 × 5</dd></div>
-    <div class="par"><dt>Технология</dt><dd>Каркас</dd></div>
-    <div class="par"><dt>Утепление</dt><dd class="accent">150 мм</dd></div>
-    <div class="par"><dt>Тёплый контур</dt><dd>35 м²</dd></div>
-    <div class="par"><dt>Крытая терраса</dt><dd>10 м²</dd></div>
-    <div class="par"><dt>Этажей</dt><dd>1</dd></div>
-    <div class="par"><dt>Кровля</dt><dd>двускатная</dd></div>
-    <div class="par"><dt>Цена за м²</dt><dd class="accent">86 413 ₽</dd></div>
-  </dl>
+  <!-- Выбор проекта и реквизиты: на десктопе рядом, как в калькуляторе -->
+  <div class="two-col">
 
-  <!-- Реквизиты: бланк приложения, поля на линейках -->
-  <section class="sec">
-    <div class="sec-head">
-      <span class="sec-no">00</span>
-      <span class="sec-name">Реквизиты</span>
-      <span class="sec-sum quiet">не заполнено</span>
-      <span class="sec-note">Подставляются в договор и в печатную форму</span>
+    <div>
+      <section class="sec sec--nonum">
+        <div class="sec-head">
+          <span class="sec-name">Выбор проекта</span>
+          <span class="sec-sum quiet">Берлин 9 × 5</span>
+          <span class="sec-note">Проект задаёт базовую цену и площади для расчёта</span>
+        </div>
+        <div class="fields">
+          <label class="fld"><span class="fld-l">Поиск</span>
+            <input class="fld-i" type="search" placeholder="Поиск по названию…"></label>
+          <div class="fld"><span class="fld-l">Проект</span>
+            <button class="fld-sel"><span>Фахверковая баня «Берлин» 9 × 5</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button></div>
+          <div class="fld fld--stack"><span class="fld-l">Утепление</span>
+            <div class="seg">
+              <button class="seg-b">100 мм</button>
+              <button class="seg-b on">150 мм</button>
+              <button class="seg-b">200 мм</button>
+            </div>
+          </div>
+        </div>
+
+        <dl class="params params--col">
+          <div class="par"><dt>Тёплый контур</dt><dd>35 м²</dd></div>
+          <div class="par"><dt>Крыт. терраса</dt><dd>10 м²</dd></div>
+          <div class="par"><dt>Этажей</dt><dd>1</dd></div>
+          <div class="par"><dt>Кровля</dt><dd>двускатная</dd></div>
+          <div class="par"><dt>Цена 150 мм</dt><dd>2 943 019 ₽</dd></div>
+          <div class="par"><dt>Цена за м²</dt><dd class="accent">86 413 ₽</dd></div>
+        </dl>
+
+        <div class="btn-row">
+          <button class="lnk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Посмотреть</button>
+          <button class="lnk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>Сохранить пресет</button>
+        </div>
+        <button class="lnk lnk--dash"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Добавить проект вручную</button>
+      </section>
     </div>
-    <div class="req">
-      <label class="rq rq--wide"><span class="rq-l">Менеджер</span>
-        <input class="rq-i" type="text" placeholder="Фамилия Имя Отчество"></label>
-      <label class="rq rq--wide"><span class="rq-l">Заказчик</span>
-        <input class="rq-i" type="text" placeholder="Фамилия Имя Отчество"></label>
-      <label class="rq"><span class="rq-l">№ договора</span>
-        <input class="rq-i" type="text" inputmode="numeric" placeholder="00000000"></label>
-      <label class="rq"><span class="rq-l">Дата договора</span>
-        <input class="rq-i" type="text" placeholder="дд.мм.гггг"></label>
-      <div class="req-foot">
-        <button class="lnk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Данные для договора</button>
-        <span class="flag">Не заполнено</span>
-      </div>
+
+    <div>
+      <section class="sec sec--nonum">
+        <div class="sec-head">
+          <span class="sec-name">Реквизиты</span>
+          <span class="sec-sum quiet">не заполнено</span>
+          <span class="sec-note">Подставляются в договор и в печатную форму</span>
+        </div>
+        <div class="fields">
+          <label class="fld"><span class="fld-l">Менеджер</span>
+            <input class="fld-i" type="text" placeholder="Фамилия Имя Отчество"></label>
+          <label class="fld"><span class="fld-l">Заказчик</span>
+            <input class="fld-i" type="text" placeholder="Фамилия Имя Отчество"></label>
+          <label class="fld"><span class="fld-l">№ договора</span>
+            <input class="fld-i" type="text" inputmode="numeric" placeholder="00000000"></label>
+          <label class="fld"><span class="fld-l">Дата договора</span>
+            <input class="fld-i" type="text" placeholder="дд.мм.гггг"></label>
+          <div class="btn-row">
+            <button class="lnk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Данные для договора</button>
+            <span class="flag">Не заполнено</span>
+          </div>
+          <div class="fld"><span class="fld-l">Технология</span>
+            <button class="fld-sel"><span>Каркас</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button></div>
+        </div>
+      </section>
     </div>
-  </section>
+
+  </div>
+
+  <!-- Визуализация и планировка: во всю ширину, свёрнута -->
+  <details class="fold">
+    <summary class="fold-btn"><span class="fold-t">Визуализация и планировка</span>
+      <span class="fold-n">3 файла</span>
+      <svg class="fold-c" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </summary>
+    <div class="fold-body">
+      <p>Планировка первого этажа, развёртки стен и внешний вид. Файлы идут
+         приложением к спецификации и печатаются вместе с ней.</p>
+      <p>В макете содержимое не подставлено — блок показан, чтобы было видно,
+         как свёрнутая секция выглядит в этой теме: линейка сверху, заголовок,
+         счётчик справа.</p>
+    </div>
+  </details>
 
   <!-- Стоимость: главная цифра документа -->
   <section class="sec sec--nonum">
@@ -565,21 +663,6 @@ table.sum tfoot td{padding-top:var(--s3);border-bottom:0;border-top:2px solid va
       <span class="row-note">не отмечено · в сумму не входит</span>
     </div>
   </section>
-
-  <!-- Свёрнутый блок -->
-  <details class="fold">
-    <summary class="fold-btn"><span class="fold-t">Визуализация и планировка</span>
-      <span class="fold-n">3 файла</span>
-      <svg class="fold-c" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
-    </summary>
-    <div class="fold-body">
-      <p>Планировка первого этажа, развёртки стен и внешний вид. Файлы идут
-         приложением к спецификации и печатаются вместе с ней.</p>
-      <p>В макете содержимое не подставлено — блок показан, чтобы было видно,
-         как свёрнутая секция выглядит в этой теме: линейка сверху, заголовок,
-         счётчик справа.</p>
-    </div>
-  </details>
 
   <!-- Подпись под ведомостью: единственное залитое место внизу экрана -->
   <div class="total-bar">
