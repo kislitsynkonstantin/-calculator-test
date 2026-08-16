@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Окна калькулятора — к одному стандарту</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gd:#1e6c72; --gm:#2a8f97; --gl:#3db0ba; --gp:#a8dde0; --gb:#e4f5f6;
+  --page:#f0fafa; --card:#fff; --ink:#111; --gray:#555; --grl:#888; --line:#d6e6e7;
+  --warn:#c46a2a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:'Geologica',system-ui,-apple-system,'Segoe UI',sans-serif;
+  line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:26px 16px 70px}
+h1{font-family:'Unbounded',sans-serif;font-size:1.18rem;letter-spacing:-.02em;
+  margin:.2em 0 .35em;line-height:1.25}
+h2{font-family:'Unbounded',sans-serif;font-size:.86rem;letter-spacing:-.01em;
+  margin:0 0 4px}
+.sub{color:var(--gray);font-size:.85rem;margin:0 0 6px;max-width:66ch}
+.hint{color:var(--grl);font-size:.76rem;margin:0 0 24px;max-width:66ch}
+
+.block{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:16px 16px 18px;margin-bottom:18px}
+.eyebrow{font-size:.66rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--gm);margin-bottom:6px}
+.note{color:var(--gray);font-size:.79rem;margin:0 0 14px;max-width:74ch}
+.note b{color:var(--ink)}
+
+/* ── Инвентаризация ─────────────────────────────────────────────────────── */
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:.76rem;
+  font-variant-numeric:tabular-nums}
+th{text-align:left;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--grl);font-weight:600;padding:0 10px 7px 0;border-bottom:2px solid var(--gd)}
+td{padding:8px 10px 8px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{font-weight:500}
+.odd{color:var(--warn);font-weight:600}
+.ok{color:var(--gm)}
+
+/* ── Живые окна ─────────────────────────────────────────────────────────── */
+.pair{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:760px){.pair{grid-template-columns:1fr 1fr}}
+.demo{background:#dfeaea;border:1px solid var(--line);border-radius:12px;
+  padding:18px 14px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.demo-cap{font-size:.7rem;color:var(--gray);text-align:center;max-width:34ch}
+.demo-cap b{display:block;color:var(--ink);font-size:.78rem;font-weight:600;
+  margin-bottom:2px}
+
+/* Окно: настоящие размеры калькулятора в миниатюре */
+.win{width:100%;max-width:320px;background:#fff;overflow:hidden;
+  box-shadow:0 8px 28px rgba(20,60,64,.18)}
+.win--r12{border-radius:12px}
+.win--r16{border-radius:16px}
+.win--r18{border-radius:18px}
+.win--bottom{border-radius:16px 16px 0 0}
+.win-head{display:flex;align-items:center;gap:9px;min-height:52px;
+  padding:0 14px 0 16px;background:var(--gd);color:#fff}
+.win-title{font-family:'Unbounded',sans-serif;font-weight:700;font-size:.72rem}
+.win-body{padding:14px 16px 18px;font-size:.72rem;color:#3a4a4c;position:relative}
+.win-body p{margin:0 0 7px}
+.win-body table{min-width:0;font-size:.68rem}
+.win-body td{border-bottom:1px solid #eef4f5;padding:4px 6px 4px 0}
+.win-doc{position:relative;background:#fff;max-height:190px;overflow-y:auto;
+  padding:14px 16px 18px;font-size:.72rem;color:#3a4a4c}
+/* Таблица внутри окна не наследует общий min-width страницы — иначе она
+   распирала окно и вылезала за край на 768 px */
+.win-doc table{min-width:0;font-size:.68rem}
+.win-doc td{border-bottom:1px solid #eef4f5;padding:4px 6px 4px 0;
+  vertical-align:top}
+/* Заголовок уступает место крестику: под ним он читался как накрытый */
+.win-doc > p:first-of-type{padding-right:40px}
+
+/* Крестик — тот же, что уже стоит в калькуляторе */
+.x{position:relative;width:28px;height:28px;padding:0;display:inline-flex;
+  align-items:center;justify-content:center;cursor:pointer;border:none;
+  border-radius:8px;transition:background .15s}
+.x::after{content:"";position:absolute;top:-6px;right:-6px;bottom:-6px;left:-6px}
+.x:focus-visible{outline:2px solid var(--gl);outline-offset:2px}
+/* в шапке — полупрозрачная заливка на бирюзовом */
+.x--head{margin-left:auto;background:rgba(255,255,255,.16);color:rgba(255,255,255,.92);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.x--head:hover{background:rgba(255,255,255,.28);color:#fff}
+/* над документом — стекло */
+.x--float{position:absolute;top:12px;right:14px;z-index:5;
+  background:rgba(255,255,255,.72);color:var(--gd);
+  -webkit-backdrop-filter:blur(10px) saturate(1.4);backdrop-filter:blur(10px) saturate(1.4);
+  box-shadow:0 1px 3px rgba(20,60,64,.14), inset 0 0 0 1px rgba(255,255,255,.6)}
+.x--float:hover{background:rgba(255,255,255,.92)}
+
+/* Выноски с размерами */
+.mark{position:absolute;font-size:.6rem;color:var(--gm);font-weight:600;
+  letter-spacing:.02em;white-space:nowrap;background:#fff;padding:0 3px;
+  border-radius:3px}
+
+/* ── Скругления рядом ───────────────────────────────────────────────────── */
+.radii{display:flex;gap:12px;flex-wrap:wrap}
+.rad{flex:1 1 150px;min-width:150px;display:flex;flex-direction:column;
+  align-items:center;gap:9px}
+.rad-box{width:100%;height:96px;background:#fff;border:1px solid var(--line);
+  box-shadow:0 4px 14px rgba(20,60,64,.10);position:relative;overflow:hidden}
+.rad-box .win-head{min-height:34px;padding:0 8px 0 10px}
+.rad-box .win-title{font-size:.6rem}
+.rad-lab{font-size:.68rem;color:var(--gray);text-align:center}
+.rad-lab b{display:block;color:var(--ink);font-size:.76rem;font-weight:600}
+.rad--12{border-radius:12px}
+.rad--16{border-radius:16px}
+.rad--18{border-radius:18px}
+/* Угол крупно, втрое: на окне 96 px разница между 12 и 18 почти не видна,
+   а выбирать вслепую нечестно. Показан левый верхний угол шапки. */
+.corner{width:78px;height:78px;background:var(--gd);position:relative;
+  box-shadow:0 2px 10px rgba(20,60,64,.16)}
+.corner--12{border-top-left-radius:36px}
+.corner--16{border-top-left-radius:48px}
+.corner--18{border-top-left-radius:54px}
+.corner-cap{font-size:.6rem;color:var(--grl);letter-spacing:.04em}
+
+footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);
+  color:var(--grl);font-size:.76rem}
+footer b{color:var(--gray)}
+
+@media(prefers-color-scheme:dark){
+  body{background:#111e20;color:#e8f4f5}
+  .block{background:#1a2a2c;border-color:#26454a}
+  .sub{color:#9db6b8}.hint,footer{color:#7d9a9d}footer b{color:#9db6b8}
+  .note{color:#9db6b8}.note b{color:#e8f4f5}
+  th{color:#7d9a9d}td{border-bottom-color:#26454a}
+  .demo{background:#12212300;border-color:#26454a;background:#16282b}
+  .demo-cap{color:#9db6b8}.demo-cap b{color:#e8f4f5}
+  .rad-box{border-color:#26454a}
+  .rad-lab{color:#9db6b8}.rad-lab b{color:#e8f4f5}
+  .mark{background:#1a2a2c}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Окна калькулятора — к одному стандарту</h1>
+  <p class="sub">Девять всплывающих окон. Крестик у всех уже одинаковый — 28×28,
+     скругление 8, — а вот скругление самих окон и положение крестика разные.
+     Здесь сначала замеры того, как есть, потом предложение, к чему свести.</p>
+  <p class="hint">Замеры сняты в браузере на 390 px, не на глаз. Оранжевым
+     отмечено то, что выбивается из большинства.</p>
+
+  <!-- 1. Как сейчас -->
+  <div class="block">
+    <div class="eyebrow">Как сейчас</div>
+    <h2>Замеры девяти окон</h2>
+    <p class="note">Скругление окна принимает четыре разных значения, а крестик
+       живёт в двух разных местах: внутри бирюзовой шапки и поверх содержимого.
+       Само по себе второе не дефект — у окон-документов шапки нет и быть не
+       должно, — но выглядеть в этих двух местах он должен одинаково.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Окно</th><th>Скругление</th><th>Шапка</th><th>Крестик</th><th>Отступы</th></tr></thead>
+        <tbody>
+          <tr><td>Пресеты</td><td class="ok">16 px</td><td>есть, 52</td><td>в шапке</td><td>12 / 14</td></tr>
+          <tr><td>Настройки</td><td class="odd">18 px</td><td>есть, 52</td><td>в шапке</td><td>12 / 14</td></tr>
+          <tr><td>Поиск опций</td><td class="ok">16 px</td><td>есть, 52</td><td>в шапке</td><td>12 / 14</td></tr>
+          <tr><td>Комплектации</td><td class="ok">16 16 0 0</td><td>есть, 52</td><td>в шапке</td><td>12 / 14</td></tr>
+          <tr><td>Платёжный план</td><td class="ok">16 px</td><td>есть, <span class="odd">53</span></td><td>в шапке</td><td>13 / 14</td></tr>
+          <tr><td>Аналитика</td><td class="ok">16 px</td><td>есть, 52</td><td>в шапке</td><td>12 / 14</td></tr>
+          <tr><td>Печать</td><td class="odd">12 px</td><td>нет</td><td>поверх</td><td class="odd">45 / 28</td></tr>
+          <tr><td>Справка</td><td class="ok">16 px</td><td>нет</td><td>поверх</td><td>12 / 14</td></tr>
+          <tr><td>База знаний</td><td class="ok">16 16 0 0</td><td>нет</td><td>поверх</td><td>14 / 18</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 2. Предложение -->
+  <div class="block">
+    <div class="eyebrow">Предложение</div>
+    <h2>Два типа окна, один крестик</h2>
+    <p class="note">Окон по существу два вида, и сводить их в один не нужно —
+       нужно, чтобы внутри каждого вида всё было одинаково.
+       <b>Окно с шапкой</b> — там, где у окна есть название и действия.
+       <b>Окно-документ</b> — справка, база знаний, печать: там шапки нет, под
+       крестиком прокручивается страница, поэтому он стеклянный. Размер, форма
+       и отступы у него те же самые.</p>
+    <div class="pair">
+      <div class="demo">
+        <div class="win win--r16">
+          <div class="win-head"><span class="win-title">Настройки</span>
+            <button class="x x--head" title="Закрыть" aria-label="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </div>
+          <div class="win-body">
+            <p><b>Внешний вид</b></p>
+            <table><tr><td>Тема</td><td>Авто</td></tr>
+            <tr><td>Стиль интерфейса</td><td>Модерн</td></tr>
+            <tr><td>Утепление по умолчанию</td><td>150 мм</td></tr></table>
+          </div>
+        </div>
+        <span class="demo-cap"><b>Окно с шапкой</b>
+          скругление 16 · шапка 52 · крестик в шапке, справа 14, по центру шапки</span>
+      </div>
+
+      <div class="demo">
+        <div class="win win--r16">
+          <div class="win-doc">
+            <button class="x x--float" title="Закрыть" aria-label="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <p><b>Лестница Ханта: как клиент выбирает решение</b></p>
+            <table>
+              <tr><td>1</td><td>Не знает о проблеме</td><td>Показать задачу и её цену</td></tr>
+              <tr><td>2</td><td>Осознал желание</td><td>Раскрыть сценарии использования</td></tr>
+              <tr><td>3</td><td>Выбирает формат</td><td>Сравнить участок и бюджет</td></tr>
+              <tr><td>4</td><td>Сравнивает подрядчиков</td><td>Состав работ, сроки, оплата</td></tr>
+              <tr><td>5</td><td>Готов к договору</td><td>Снять возражения</td></tr>
+            </table>
+            <p style="color:#8fa6a8;font-size:.64rem;margin-top:8px">Прокрути внутри — видно, как текст уходит под крестик.</p>
+          </div>
+        </div>
+        <span class="demo-cap"><b>Окно-документ</b>
+          скругление 16 · шапки нет · крестик поверх, сверху 12, справа 14, стеклянный</span>
+      </div>
+    </div>
+    <p class="note" style="margin:14px 0 0">Отдельное правило для окон, которые
+       доходят до нижнего края экрана — комплектации и база знаний:
+       <b>скругляем только видимые углы</b>, нижние остаются прямыми
+       (16 16 0 0). Это не разнобой, а следствие: округлять угол, которого
+       не видно, незачем.</p>
+  </div>
+
+  <!-- 3. Скругление -->
+  <div class="block">
+    <div class="eyebrow">Выбрать</div>
+    <h2>Скругление окна: 12, 16 или 18</h2>
+    <p class="note">Сейчас в ходу все три. <b>16</b> стоит у шести окон из
+       девяти — если брать большинство, то его. 12 ближе к кнопкам панели
+       (у них 8), 18 мягче и ближе к карточкам главного экрана (у них 14 и 18).
+       Разница между 16 и 18 на глаз почти не читается, между 12 и 18 — читается.</p>
+    <div class="radii">
+      <div class="rad">
+        <div class="rad-box rad--12">
+          <div class="win-head"><span class="win-title">Окно</span>
+            <button class="x x--head" tabindex="-1" aria-hidden="true" style="width:22px;height:22px;border-radius:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </div>
+        </div>
+        <div class="corner corner--12" aria-hidden="true"></div><span class="corner-cap">угол втрое</span><span class="rad-lab"><b>12 px</b>сейчас у печати</span>
+      </div>
+      <div class="rad">
+        <div class="rad-box rad--16">
+          <div class="win-head"><span class="win-title">Окно</span>
+            <button class="x x--head" tabindex="-1" aria-hidden="true" style="width:22px;height:22px;border-radius:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </div>
+        </div>
+        <div class="corner corner--16" aria-hidden="true"></div><span class="corner-cap">угол втрое</span><span class="rad-lab"><b>16 px</b>у шести окон из девяти</span>
+      </div>
+      <div class="rad">
+        <div class="rad-box rad--18">
+          <div class="win-head"><span class="win-title">Окно</span>
+            <button class="x x--head" tabindex="-1" aria-hidden="true" style="width:22px;height:22px;border-radius:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </div>
+        </div>
+        <div class="corner corner--18" aria-hidden="true"></div><span class="corner-cap">угол втрое</span><span class="rad-lab"><b>18 px</b>сейчас у настроек</span>
+      </div>
+    </div>
+  </div>
+
+  <footer><b>Что предлагаю свести:</b> скругление окна — к одному значению
+    (по замерам это 16); шапка — ровно 52 у всех, где она есть (у платёжного
+    плана сейчас 53); крестик — 28×28, скругление 8, справа 14, в шапке по её
+    центру, а над документом сверху 12; у печати крестик переехать с 45 / 28
+    на общие 12 / 14. Скажи радиус — и приведу все девять окон разом.
+    Макет, а не рабочая страница.</footer>
+</div>
+</body>
+</html>
