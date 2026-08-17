@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Боковая панель — тема «Бланк»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────────────────────────────────
+   БОКОВАЯ ПАНЕЛЬ В ТЕМЕ «БЛАНК»
+
+   Панель осталась от «Модерна»: белая коробка со скруглением, тенью и
+   рамкой, внутри — ссылки одного кегля с цветной точкой у раздела. На листе
+   это чужая вещь: тут нет коробок, есть поля, линейки и выключка цифр.
+
+   Слева — та же панель, переодетая в «Бланк»: ничего не добавлено и не
+   убрано, только цвета, линейки и шрифты темы. Справа — предложение: панель
+   становится оглавлением документа, а не списком якорей.
+
+   Переключатель сверху показывает то, что и требуется в калькуляторе:
+   оформление панели меняется вместе с темой.
+   ───────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --bl-page:#f7fbfb; --bl-sheet:#fff; --bl-zebra:#f7fafb;
+  --bl-ink:#12262a; --bl-ink2:#5b7376; --bl-ink3:#8da3a5;
+  --bl-rule:#dceaeb; --bl-rule2:#bcd9db;
+  --bl-acc:#1e6c72; --bl-acc2:#2a8f97; --bl-pale:#a8dde0;
+  --bl-tint:#e4f5f6; --bl-fill:#1e6c72;
+  --bl-shadow: 0 18px 48px rgba(18,38,42,.10);
+}
+[data-theme="night"] {
+  --bl-page:#0e1a1c; --bl-sheet:#132528; --bl-zebra:#173338;
+  --bl-ink:#e6f3f3; --bl-ink2:#9db6b8; --bl-ink3:#8aa4a6;
+  --bl-rule:#224347; --bl-rule2:#2d585d;
+  --bl-acc:#8fd6dc; --bl-acc2:#5fc2ca; --bl-pale:#5fc2ca;
+  --bl-tint:#173338; --bl-fill:#2a8f97;
+  --bl-shadow: 0 18px 48px rgba(0,0,0,.45);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 32px 24px 64px;
+  background: var(--bl-page); color: var(--bl-ink);
+  font-family: 'Geologica', sans-serif; font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  transition: background .2s, color .2s;
+}
+.wrap { max-width: 1120px; margin: 0 auto; }
+
+.head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.eyebrow {
+  font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: .66rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--bl-acc);
+}
+h1 { font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 1.5rem; margin: 6px 0 0; }
+.lede { color: var(--bl-ink2); font-size: .86rem; max-width: 62ch; margin: 10px 0 0; line-height: 1.6; }
+
+.switch { display: inline-flex; border: 1px solid var(--bl-rule2); border-radius: 999px; overflow: hidden; }
+.switch button {
+  appearance: none; border: 0; background: none; cursor: pointer;
+  font-family: 'Geologica', sans-serif; font-size: .78rem; color: var(--bl-ink2);
+  padding: 9px 18px; min-height: 40px;
+}
+.switch button.on { background: var(--bl-fill); color: #fff; }
+[data-theme="night"] .switch button.on { color: #0e1a1c; }
+
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; margin-top: 34px; }
+.col-title {
+  font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: .82rem;
+  color: var(--bl-acc); padding-bottom: 8px; border-bottom: 2px solid var(--bl-acc);
+}
+.col-note { color: var(--bl-ink2); font-size: .78rem; line-height: 1.6; margin: 12px 0 18px; }
+.stage {
+  background: repeating-linear-gradient(-45deg, transparent 0 9px, var(--bl-rule) 9px 10px);
+  border-radius: 12px; padding: 26px 0 26px 26px; display: flex; justify-content: flex-end;
+}
+
+/* ── Общая основа панели в «Бланке» ───────────────────────────────────────
+   Коробки нет: панель — это край листа, приложенный к правой кромке экрана.
+   Скругление только слева, тень мягкая, рамка — одна волосяная линейка. */
+.panel {
+  width: 246px; background: var(--bl-sheet);
+  border: 1px solid var(--bl-rule); border-right: 0;
+  border-radius: 10px 0 0 10px; box-shadow: var(--bl-shadow);
+  padding: 12px 0; overflow: hidden;
+}
+.panel.wide { width: 286px; }
+
+/* ── Вариант 1: как сейчас, только в цветах темы ─────────────────────── */
+.nav-item {
+  display: block; padding: 7px 16px; font-size: .78rem; color: var(--bl-ink2);
+  text-decoration: none; border-left: 2px solid transparent;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.nav-item:hover { background: var(--bl-tint); color: var(--bl-acc); border-left-color: var(--bl-acc2); }
+.nav-item.sec {
+  font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: .7rem;
+  color: var(--bl-ink); padding-top: 9px;
+}
+.nav-item.sec .dot {
+  width: 7px; height: 7px; border-radius: 50%; display: inline-block;
+  margin-right: 7px; vertical-align: middle;
+}
+.nav-rule { height: 1px; background: var(--bl-rule); margin: 8px 16px; }
+
+/* ── Вариант 2: оглавление документа ──────────────────────────────────── */
+.p-head { padding: 4px 16px 12px; border-bottom: 2px solid var(--bl-acc); margin: 0 0 8px; }
+.p-head .k {
+  font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: .56rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--bl-acc);
+}
+.p-head .name { font-size: .78rem; color: var(--bl-ink); margin-top: 5px; line-height: 1.4; }
+.p-head .sum {
+  font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 1.02rem;
+  color: var(--bl-ink); margin-top: 7px; font-variant-numeric: tabular-nums;
+}
+.p-head .sub { font-size: .68rem; color: var(--bl-ink3); margin-top: 3px; }
+
+.grp {
+  font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: .56rem;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--bl-ink3);
+  padding: 12px 16px 5px; display: flex; align-items: center; gap: 7px;
+}
+.grp i { width: 8px; height: 2px; border-radius: 1px; flex: 0 0 auto; }
+
+.row {
+  display: grid; grid-template-columns: 26px 1fr auto; align-items: baseline;
+  gap: 8px; padding: 7px 16px; text-decoration: none;
+  border-left: 2px solid transparent; color: var(--bl-ink);
+}
+.row:hover { background: var(--bl-tint); border-left-color: var(--bl-acc2); }
+.row.here { border-left-color: var(--bl-acc); background: var(--bl-tint); }
+.row .no {
+  font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: .82rem;
+  color: var(--bl-pale); font-variant-numeric: tabular-nums;
+}
+.row .nm { font-size: .76rem; line-height: 1.35; }
+.row .vl {
+  font-size: .72rem; color: var(--bl-ink2); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.row.zero { opacity: .45; }
+.row.zero .vl { color: var(--bl-ink3); }
+.row.plain { grid-template-columns: 1fr auto; }
+.row.plain .nm { color: var(--bl-ink2); }
+
+.p-foot { border-top: 1px solid var(--bl-rule); margin-top: 10px; padding: 10px 16px 2px; display: flex; gap: 8px; }
+.p-foot a {
+  flex: 1; text-align: center; text-decoration: none; font-size: .72rem;
+  color: var(--bl-acc); border: 1px solid var(--bl-rule2); border-radius: 8px;
+  padding: 9px 6px; min-height: 40px; display: flex; align-items: center; justify-content: center;
+}
+.p-foot a:hover { border-color: var(--bl-acc2); background: var(--bl-tint); }
+
+/* ── Разбор предложений ──────────────────────────────────────────────── */
+.list { margin-top: 40px; border-top: 2px solid var(--bl-acc); padding-top: 18px; }
+.list h2 { font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 1rem; margin: 0 0 14px; }
+.item { display: grid; grid-template-columns: 30px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--bl-rule); }
+.item .n { font-family: 'Unbounded', sans-serif; font-weight: 600; color: var(--bl-pale); font-size: .9rem; }
+.item b { font-weight: 500; font-size: .88rem; display: block; margin-bottom: 4px; }
+.item p { margin: 0; color: var(--bl-ink2); font-size: .8rem; line-height: 1.6; }
+.tag {
+  display: inline-block; font-size: .6rem; letter-spacing: .1em; text-transform: uppercase;
+  font-family: 'Unbounded', sans-serif; font-weight: 600; border-radius: 4px;
+  padding: 2px 7px; margin-left: 8px; vertical-align: 2px;
+}
+.tag.add { color: var(--bl-acc); border: 1px solid var(--bl-rule2); }
+.tag.cut { color: #b4573f; border: 1px solid #e6bdb0; }
+[data-theme="night"] .tag.cut { color: #e8a48c; border-color: #6b4436; }
+</style>
+</head>
+<body data-theme="day">
+<div class="wrap">
+
+  <div class="head">
+    <div>
+      <div class="eyebrow">Калькулятор спецификаций</div>
+      <h1>Боковая панель в теме «Бланк»</h1>
+    </div>
+    <div class="switch">
+      <button id="btnDay" class="on" onclick="setTheme('day')">Дневная</button>
+      <button id="btnNight" onclick="setTheme('night')">Ночная</button>
+    </div>
+  </div>
+
+  <p class="lede">
+    Панель досталась от «Модерна» и осталась коробкой: белый прямоугольник со
+    скруглением по обеим сторонам, тенью и рамкой. На листе коробок нет —
+    поэтому здесь она приложена к правой кромке экрана как край второго листа:
+    скругление только слева, одна волосяная линейка вместо рамки.
+    Переключатель меняет тему целиком — так же, как это будет в калькуляторе.
+  </p>
+
+  <div class="cols">
+
+    <div>
+      <div class="col-title">Как сейчас, в цветах «Бланка»</div>
+      <p class="col-note">
+        Ни один пункт не добавлен и не убран. Поменялись только цвета, шрифты
+        и линейки. Раздел по-прежнему помечен цветной точкой договора, суммы
+        нет, пустые разделы неотличимы от заполненных.
+      </p>
+      <div class="stage">
+        <div class="panel">
+          <a class="nav-item" href="#">Выбор проекта</a>
+          <a class="nav-item" href="#">Реквизиты</a>
+          <a class="nav-item" href="#">Изображения</a>
+          <a class="nav-item" href="#">Итоги</a>
+          <div class="nav-rule"></div>
+          <a class="nav-item sec" href="#"><span class="dot" style="background:#3aa06a"></span>1. Фундамент и цоколь</a>
+          <a class="nav-item sec" href="#"><span class="dot" style="background:#3aa06a"></span>2. Каркас</a>
+          <a class="nav-item sec" href="#"><span class="dot" style="background:#3aa06a"></span>3. Утепление, плёнки</a>
+          <a class="nav-item sec" href="#"><span class="dot" style="background:#3aa06a"></span>4. Внешняя отделка</a>
+          <a class="nav-item sec" href="#"><span class="dot" style="background:#3aa06a"></span>5. Окна и двери</a>
+          <a class="nav-item sec" href="#"><span class="dot" style="background:#3aa06a"></span>6. Кровля</a>
+          <a class="nav-item sec" href="#"><span class="dot" style="background:#3aa06a"></span>7. Покраска</a>
+          <a class="nav-item sec" href="#"><span class="dot" style="background:#d8a52e"></span>8. Внутренняя отделка</a>
+          <a class="nav-item sec" href="#"><span class="dot" style="background:#d8a52e"></span>9. Парное отделение</a>
+          <a class="nav-item sec" href="#"><span class="dot" style="background:#d8a52e"></span>10. Печь и комплектующ…</a>
+          <a class="nav-item sec" href="#"><span class="dot" style="background:#3aa06a"></span>11. Дополнительные опц…</a>
+          <a class="nav-item sec" href="#"><span class="dot" style="background:#3aa06a"></span>12. Инженерные коммун…</a>
+          <div class="nav-rule"></div>
+          <a class="nav-item" href="#">Версия для печати</a>
+          <a class="nav-item" href="#">Пресеты</a>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="col-title">Предложение: оглавление документа</div>
+      <p class="col-note">
+        Та же навигация, но панель отвечает на вопрос, ради которого её и
+        открывают посреди длинной спецификации: где я и сколько где набрано.
+        Номер раздела — тот же бледный, что на листе; сумма выключена вправо
+        по разряду; договоры стали подписями групп, и цветные точки не нужны.
+      </p>
+      <div class="stage">
+        <div class="panel wide">
+          <div class="p-head">
+            <div class="k">Спецификация</div>
+            <div class="name">Фахверковая баня «Эссен» 6×4 · 150 мм</div>
+            <div class="sum">2 461 905 ₽</div>
+            <div class="sub">50 позиций · спец. цена 2 289 572 ₽</div>
+          </div>
+
+          <a class="row plain" href="#"><span class="nm">Выбор проекта</span><span class="vl"></span></a>
+          <a class="row plain" href="#"><span class="nm">Реквизиты</span><span class="vl"></span></a>
+          <a class="row plain" href="#"><span class="nm">Изображения</span><span class="vl">3</span></a>
+          <a class="row plain" href="#"><span class="nm">Итоги</span><span class="vl"></span></a>
+
+          <div class="grp"><i style="background:#3aa06a"></i>Основной договор</div>
+          <a class="row" href="#"><span class="no">01</span><span class="nm">Фундамент и цоколь</span><span class="vl">319 711</span></a>
+          <a class="row here" href="#"><span class="no">02</span><span class="nm">Каркас</span><span class="vl">1 107 191</span></a>
+          <a class="row" href="#"><span class="no">03</span><span class="nm">Утепление, плёнки</span><span class="vl">107 110</span></a>
+          <a class="row" href="#"><span class="no">04</span><span class="nm">Внешняя отделка</span><span class="vl">154 238</span></a>
+          <a class="row" href="#"><span class="no">05</span><span class="nm">Окна и двери</span><span class="vl">149 954</span></a>
+          <a class="row" href="#"><span class="no">06</span><span class="nm">Кровля</span><span class="vl">152 096</span></a>
+          <a class="row zero" href="#"><span class="no">07</span><span class="nm">Покраска</span><span class="vl">—</span></a>
+
+          <div class="grp"><i style="background:#d8a52e"></i>Отделка</div>
+          <a class="row" href="#"><span class="no">08</span><span class="nm">Внутренняя отделка</span><span class="vl">259 205</span></a>
+          <a class="row" href="#"><span class="no">09</span><span class="nm">Парное отделение</span><span class="vl">150 277</span></a>
+          <a class="row zero" href="#"><span class="no">10</span><span class="nm">Печь и комплектующие</span><span class="vl">—</span></a>
+
+          <div class="grp"><i style="background:var(--bl-rule2)"></i>Без договора</div>
+          <a class="row" href="#"><span class="no">11</span><span class="nm">Дополнительные опции</span><span class="vl">62 124</span></a>
+          <a class="row zero" href="#"><span class="no">12</span><span class="nm">Инженерные коммуникации</span><span class="vl">—</span></a>
+
+          <div class="p-foot">
+            <a href="#">Наверх</a>
+            <a href="#">К итогам</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="list">
+    <h2>Что предлагаю поменять и почему</h2>
+
+    <div class="item">
+      <div class="n">1</div>
+      <div>
+        <b>Шапка панели: проект, сумма, счёт позиций <span class="tag add">добавить</span></b>
+        <p>Панель открывают в середине списка, где ни итога, ни названия проекта на экране уже нет.
+           Три строки сверху отвечают на это, не заставляя прокручивать вверх и обратно.</p>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="n">2</div>
+      <div>
+        <b>Сумма раздела справа <span class="tag add">добавить</span></b>
+        <p>Главный вопрос к разделу — сколько в нём набрано. Сейчас за ответом надо идти в разбивку
+           наверху или в сам раздел. Цифры выключены по разряду, как в ведомости.</p>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="n">3</div>
+      <div>
+        <b>Номер раздела бледной цифрой <span class="tag add">добавить</span></b>
+        <p>Тот же приём, что на листе: «01» стоит слева от названия и держит колонку.
+           Сейчас номер вклеен в текст («1. Фундамент и цоколь») и не даёт зацепиться взгляду.</p>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="n">4</div>
+      <div>
+        <b>Договоры — подписями групп, а не точками <span class="tag cut">убрать точки</span></b>
+        <p>Цветная точка требует помнить, что значит зелёная и что жёлтая. Подпись говорит прямо,
+           а заодно показывает, что разделы уже разложены по договорам — это видно с одного взгляда.</p>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="n">5</div>
+      <div>
+        <b>Пустые разделы приглушены <span class="tag add">добавить</span></b>
+        <p>Раздел без позиций сейчас выглядит так же, как полный. Приглушённая строка с прочерком
+           сразу показывает, что там ничего нет, и не отнимает нажатие.</p>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="n">6</div>
+      <div>
+        <b>Отметка текущего раздела <span class="tag add">добавить</span></b>
+        <p>Пока листаешь спецификацию, панель не показывает, где ты. Полоса слева у активной строки
+           отвечает на это без единого нажатия.</p>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="n">7</div>
+      <div>
+        <b>«Версия для печати» и «Пресеты» из панели убрать <span class="tag cut">убрать</span></b>
+        <p>Обе кнопки уже стоят в верхней панели и видны всегда, в том числе когда она прилипает
+           сверху. В боковой они дублируются и уводят её от главного дела — навигации.
+           На их месте — «Наверх» и «К итогам», которых в интерфейсе нет.</p>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="n">8</div>
+      <div>
+        <b>«Изображения» показывает счётчик <span class="tag add">добавить</span></b>
+        <p>Одна цифра справа говорит, загружены ли картинки в проект. Сейчас это выясняется только
+           переходом в блок.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function setTheme(t) {
+  document.body.dataset.theme = t;
+  document.getElementById('btnDay').classList.toggle('on', t === 'day');
+  document.getElementById('btnNight').classList.toggle('on', t === 'night');
+}
+</script>
+</body>
+</html>
