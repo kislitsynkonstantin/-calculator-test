@@ -11,15 +11,13 @@
 /* ─────────────────────────────────────────────────────────────────────────
    БЛОК ВВОДА ДАННЫХ ПОД КЛЕЁНЫЙ БРУС
 
-   Слева — карточка «Выбор проекта», как она будет выглядеть при технологии
-   «Клеёный брус». Справа — форма ручного проекта: в КБ она нужна чаще, чем
-   в каркасе, потому что характеристики проектов ещё заполняются.
+   Структура листа не меняется, и менять её незачем: слева «Выбор проекта»,
+   справа «Реквизиты», ручной проект раскрывается вниз по кнопке внутри левой
+   карточки — ровно как в каркасе. Под клеёный брус меняется содержимое.
 
-   Переключатели сверху делают ровно то, что должно быть в калькуляторе:
-   оформление меняется вместе с темой и со временем суток.
-
-   Токены и правила скопированы из index.html один в один — это не новая
-   тема, а те же две («Бланк» и «Модерн») на новом содержимом.
+   Переключатели сверху делают то же, что калькулятор: тема и время суток.
+   Токены и правила скопированы из index.html — это не новая тема, а те же
+   две на новом содержимом.
    ───────────────────────────────────────────────────────────────────────── */
 
 :root {
@@ -86,34 +84,34 @@ body.ui-blank .sw button.on { background: var(--bl-acc); color: var(--bl-sheet);
   margin: 0 0 18px; padding: 16px 18px; border-radius: 14px;
   background: var(--white); border: 1px solid var(--green-pale);
 }
-body.ui-blank .doc-head { background: var(--bl-sheet); border: 0; border-bottom: 1px solid var(--bl-rule2); border-radius: 0; padding: 14px 0; }
 body.dark .doc-head { border-color: #2a4a4e; }
+body.ui-blank .doc-head { background: var(--bl-sheet); border: 0; border-bottom: 1px solid var(--bl-rule2); border-radius: 0; padding: 14px 0; }
 .doc-head .kicker { font-size: .6rem; letter-spacing: .16em; text-transform: uppercase; color: var(--green-mid); font-weight: 600; }
 body.ui-blank .doc-head .kicker { color: var(--bl-ink3); }
 .doc-head h2 { font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 1.2rem; margin: 6px 0 0; line-height: 1.25; }
 .doc-head h2 em { font-style: normal; color: var(--green-mid); display: block; }
 body.ui-blank .doc-head h2 em { color: var(--bl-acc2); }
 
-/* ── Сетка макета ──────────────────────────────────────────────────────── */
-.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: start; }
-@media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
-
-.col-label {
-  font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
-  font-weight: 600; color: var(--gray-light); margin: 0 0 8px;
+/* ── Две колонки, как в калькуляторе ───────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 44px; align-items: start; }
+@media (max-width: 900px) { .two-col { grid-template-columns: 1fr; gap: 0; } }
+/* В «Бланке» колонки делит линейка ровно по середине листа — как в калькуляторе */
+@media (min-width: 901px) {
+  body.ui-blank .two-col { gap: 0; }
+  body.ui-blank .two-col > .col:first-child { padding-right: 44px; }
+  body.ui-blank .two-col > .col:last-child { border-left: 1px solid var(--bl-rule); padding-left: 44px; }
 }
-body.ui-blank .col-label { color: var(--bl-ink3); }
 
 /* ── Карточка ──────────────────────────────────────────────────────────── */
 .card {
   background: var(--white); border-radius: 16px; border: 1.5px solid var(--border);
-  box-shadow: var(--shadow); padding: 24px 26px 20px;
+  box-shadow: var(--shadow); padding: 24px 26px 20px; margin-bottom: 15px;
 }
 body.dark .card { border-color: #2a4a4e; }
 body.ui-light .card { border: none; box-shadow: 0 1px 8px rgba(30,108,114,.08), 0 0 0 1px rgba(30,108,114,.06); }
 body.ui-blank .card {
   background: none; border: 0; border-radius: 0; box-shadow: none;
-  padding: 20px 0 18px; border-top: 1px solid var(--bl-rule);
+  padding: 22px 0 20px; margin-bottom: 0;
 }
 .card-title {
   font-family: 'Unbounded', sans-serif; font-size: .75rem; font-weight: 600;
@@ -130,9 +128,9 @@ body.ui-blank .card-title {
 body.ui-light .card-title .dot { background: #1e6c72; }
 body.ui-blank .card-title .dot { display: none; }
 
-/* ── Поля ──────────────────────────────────────────────────────────────── */
+/* ── Поля: подпись слева (лист) или сверху (модерн) ────────────────────── */
 .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
-.field label { font-size: .75rem; color: var(--gray); font-weight: 500; }
+.field > label { font-size: .75rem; color: var(--gray); font-weight: 500; }
 body.ui-blank .field {
   display: grid; grid-template-columns: minmax(64px, 96px) minmax(0, 1fr);
   align-items: center; gap: 0 14px; margin-bottom: 0; padding: 6px 0;
@@ -149,6 +147,12 @@ body.ui-blank .field > *:not(label) { grid-column: 2; }
 }
 input.inp { display: block; }
 body.ui-light .inp, body.ui-light .trigger { background: #f5fafa; border-color: #cde3e4; }
+/* Ночью у «Модерна» поле обязано темнеть: светлое правило выше по весу
+   перебивает общее, поэтому ночная пара пишется отдельно — иначе текст в
+   поле оказывается светлым по белому и не читается. */
+body.ui-light.dark .inp, body.ui-light.dark .trigger {
+  background: var(--field-bg); border-color: #2a4a4e; color: var(--black);
+}
 body.dark .inp, body.dark .trigger { border-color: #2a4a4e; }
 body.ui-blank .inp, body.ui-blank .trigger {
   background: none !important; border: 0 !important; border-bottom: 1px solid var(--bl-rule2) !important;
@@ -156,21 +160,18 @@ body.ui-blank .inp, body.ui-blank .trigger {
 }
 .trigger .chev { color: var(--green-mid); font-size: .8rem; }
 body.ui-blank .trigger .chev { color: var(--bl-ink3); }
-.ph { color: var(--gray-light); }
-body.ui-blank .ph { color: var(--bl-ink3); }
+.inp::placeholder { color: var(--gray-light); }
+body.ui-blank .inp::placeholder { color: var(--bl-ink3); }
 
 .search-wrap { position: relative; }
 .search-wrap input { padding-left: 36px; }
 body.ui-blank .search-wrap input { padding-left: 24px !important; }
-.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--green-pale); pointer-events: none; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--green-pale); pointer-events: none; display: flex; }
 body.ui-blank .search-icon { left: 0; color: var(--bl-ink3); }
 
 /* ── Толщина бруса ─────────────────────────────────────────────────────── */
 .thickness-tabs { display: flex; gap: 6px; margin-bottom: 18px; width: 100%; }
-/* Подпись «Толщина бруса» в две строки — сегменты держим по верху,
-   иначе в «Бланке» они уезжают к середине подписи. */
-body.ui-blank .field.f-thick { align-items: center; }
-body.ui-blank .thickness-tabs { margin: 4px 0 6px; gap: 0; }
+body.ui-blank .thickness-tabs { margin: 2px 0 4px; gap: 0; }
 .thick-btn {
   flex: 1; padding: 9px 6px; border-radius: 9px; border: 1.5px solid var(--green-pale);
   background: var(--field-bg); font-family: 'Unbounded', sans-serif; font-size: .68rem;
@@ -180,6 +181,9 @@ body.ui-blank .thickness-tabs { margin: 4px 0 6px; gap: 0; }
 body.ui-light .thick-btn { background: #f5fafa; border-color: #cde3e4; color: #5a9ea4; }
 body.dark .thick-btn { border-color: #2a4a4e; }
 .thick-btn.active { background: var(--green-dark); border-color: var(--green-dark); color: #fff; }
+/* В «Модерне» у сегмента своя заливка, и она по весу перебивает общее
+   правило выбранного — без этой строки выбранная толщина ничем не отличалась. */
+body.ui-light .thick-btn.active { background: #1e6c72; border-color: #1e6c72; color: #fff; }
 body.ui-blank .thick-btn {
   background: none; border: 0; border-bottom: 2px solid transparent; border-radius: 0;
   color: var(--bl-ink3); font-family: 'Geologica', sans-serif; font-weight: 400; font-size: .8rem;
@@ -188,33 +192,26 @@ body.ui-blank .thick-btn.active { background: none; color: var(--bl-acc); font-w
 .thick-sub { display: block; font-size: .58rem; font-weight: 400; letter-spacing: 0; opacity: .75; margin-top: 2px; }
 body.ui-blank .thick-sub { font-size: .62rem; }
 
-/* ── Площади для расчёта — новое в КБ ──────────────────────────────────── */
-.areas {
-  margin: 16px 0 6px; padding: 14px 16px; border-radius: 12px;
-  background: var(--green-bg); border: 1px solid var(--green-pale);
-}
+/* ── Площади для расчёта ───────────────────────────────────────────────── */
+.areas { margin: 14px 0 4px; padding: 13px 15px; border-radius: 12px;
+         background: var(--green-bg); border: 1px solid var(--green-pale); }
 body.dark .areas { border-color: #2a4a4e; }
 body.ui-blank .areas {
   background: none; border: 0; border-top: 1px solid var(--bl-rule);
-  border-bottom: 1px solid var(--bl-rule); border-radius: 0; padding: 10px 0; margin: 12px 0 4px;
+  border-bottom: 1px solid var(--bl-rule); border-radius: 0; padding: 8px 0; margin: 10px 0 2px;
 }
-.areas-t {
-  font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 600;
-  color: var(--green-dark); margin-bottom: 10px;
-}
+.areas-t { font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+           font-weight: 600; color: var(--green-dark); margin-bottom: 8px; }
 body.ui-blank .areas-t { color: var(--bl-ink3); letter-spacing: .08em; }
-.areas .field:last-of-type { margin-bottom: 0; }
 .unit { font-size: .78rem; color: var(--gray-light); margin-left: 8px; white-space: nowrap; }
 body.ui-blank .unit { color: var(--bl-ink3); }
-.hint { font-size: .7rem; line-height: 1.5; color: var(--gray-light); margin: 10px 0 0; }
+.hint { font-size: .7rem; line-height: 1.5; color: var(--gray-light); margin: 9px 0 0; }
 body.ui-blank .hint { color: var(--bl-ink3); }
 
 /* ── Характеристики проекта ────────────────────────────────────────────── */
 .project-info { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
-.info-chip {
-  background: var(--green-bg); border: 1px solid var(--green-pale); border-radius: 8px;
-  padding: 6px 12px; font-size: .75rem; color: var(--green-dark);
-}
+.info-chip { background: var(--green-bg); border: 1px solid var(--green-pale); border-radius: 8px;
+             padding: 6px 12px; font-size: .75rem; color: var(--green-dark); }
 body.dark .info-chip { border-color: #2a4a4e; }
 .info-chip b { font-weight: 600; }
 .info-chip .ic-k::after { content: ':\00a0'; }
@@ -246,6 +243,8 @@ body.ui-blank .price-chip b { color: var(--bl-acc); }
 }
 body.dark .btn { border-color: #2a4a4e; }
 body.ui-blank .btn { border-color: var(--bl-rule2); color: var(--bl-acc); border-radius: 6px; }
+.btn.primary { background: var(--green-bg); border-color: var(--green-pale); color: var(--green-dark); font-weight: 500; }
+body.ui-blank .btn.primary { background: var(--bl-tint); border-color: var(--bl-rule2); color: var(--bl-acc); }
 .btn-add {
   display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%;
   margin-top: 10px; padding: 9px 14px; border: 1.5px dashed var(--green-pale);
@@ -253,20 +252,45 @@ body.ui-blank .btn { border-color: var(--bl-rule2); color: var(--bl-acc); border
   font-size: .8rem; color: var(--green-mid); cursor: pointer; min-height: 40px;
 }
 body.ui-blank .btn-add { border-color: var(--bl-rule2); color: var(--bl-ink3); }
+.btn-add.open { border-style: solid; color: var(--green-dark); }
+body.ui-blank .btn-add.open { color: var(--bl-acc); }
 
-/* ── Пояснения под макетом ─────────────────────────────────────────────── */
-.notes { margin-top: 34px; }
-.notes h3 {
-  font-family: 'Unbounded', sans-serif; font-size: .82rem; font-weight: 600;
-  margin: 0 0 12px; color: var(--green-dark);
+/* ── Форма ручного проекта: раскрывается вниз внутри карточки ──────────── */
+.cp-form { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--green-pale); }
+body.dark .cp-form { border-top-color: #2a4a4e; }
+body.ui-blank .cp-form { border-top-color: var(--bl-rule); }
+.f-col { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+.f-col > label { font-size: .72rem; color: var(--gray); font-weight: 500; }
+body.ui-blank .f-col > label { color: var(--bl-ink3); font-size: .7rem; }
+.f3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px 14px; margin-bottom: 12px; }
+.f2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px 14px; margin-bottom: 12px; }
+@media (max-width: 420px) { .f3 { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+.cp-note { font-size: .7rem; color: var(--gray-light); font-weight: 400; }
+body.ui-blank .cp-note { color: var(--bl-ink3); }
+.sub-t { font-size: .72rem; color: var(--green-dark); font-weight: 600; margin: 4px 0 8px; }
+body.ui-blank .sub-t { color: var(--bl-ink2); }
+
+/* ── Реквизиты: пара «номер + дата» ────────────────────────────────────── */
+.pair { display: flex; gap: 12px; flex-wrap: wrap; }
+.pair > .field { flex: 1; min-width: 140px; }
+body.ui-blank .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
+body.ui-blank .pair > .field { display: block; padding: 6px 0; }
+body.ui-blank .pair > .field > label { display: block; margin-bottom: 2px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px;
+  background: var(--green-bg); font-size: .74rem; color: var(--gray);
 }
+body.ui-blank .pill { background: none; border: 1px solid var(--bl-rule2); color: var(--bl-ink3); }
+.pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--gray-light); flex: none; }
+
+/* ── Пояснения ─────────────────────────────────────────────────────────── */
+.notes { margin-top: 34px; }
+.notes h3 { font-family: 'Unbounded', sans-serif; font-size: .82rem; font-weight: 600; margin: 0 0 12px; color: var(--green-dark); }
 body.ui-blank .notes h3 { color: var(--bl-acc); }
 .nlist { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 26px; }
 @media (max-width: 900px) { .nlist { grid-template-columns: 1fr; } }
-.n {
-  padding: 12px 14px; border-radius: 10px; background: var(--white);
-  border: 1px solid var(--green-pale); font-size: .8rem; line-height: 1.55; color: var(--gray);
-}
+.n { padding: 12px 14px; border-radius: 10px; background: var(--white);
+     border: 1px solid var(--green-pale); font-size: .8rem; line-height: 1.55; color: var(--gray); }
 body.dark .n { border-color: #2a4a4e; }
 body.ui-blank .n { background: none; border: 0; border-left: 2px solid var(--bl-rule2); border-radius: 0; padding: 4px 0 4px 14px; color: var(--bl-ink2); }
 .n b { color: var(--green-dark); font-weight: 600; }
@@ -280,9 +304,10 @@ body.ui-blank .n.open { border-left-color: #e0ab21; }
 
   <div class="eyebrow">test.calculator.baniamsk.ru/mockups</div>
   <h1>Блок ввода данных — клеёный брус</h1>
-  <p class="lede">Как выглядит карточка ввода, когда в реквизитах выбрана технология «Клеёный брус».
-     Слева — проект из списка, справа — проект, добавленный вручную. Переключатели меняют тему и
-     время суток: оформление блока следует за темой, как и всё остальное на листе.</p>
+  <p class="lede">Структура листа та же, что в каркасе: слева «Выбор проекта», справа «Реквизиты»,
+     ручной проект раскрывается вниз по кнопке внутри левой карточки. Под клеёный брус меняется
+     содержимое: толщина бруса вместо толщины утепления и два поля площади. Форма ручного проекта
+     показана раскрытой, чтобы её было видно.</p>
 
   <div class="switches">
     <div class="sw" id="swTheme">
@@ -300,11 +325,10 @@ body.ui-blank .n.open { border-left-color: #e0ab21; }
     <h2>Спецификация<em>Клеёный брус</em></h2>
   </div>
 
-  <div class="cols">
+  <div class="two-col">
 
-    <!-- ── Проект из списка ────────────────────────────────────────────── -->
-    <div>
-      <div class="col-label">Проект из списка</div>
+    <!-- ── Левая колонка: выбор проекта ────────────────────────────────── -->
+    <div class="col">
       <div class="card">
         <div class="card-title"><span class="dot"></span>Выбор проекта</div>
 
@@ -325,7 +349,7 @@ body.ui-blank .n.open { border-left-color: #e0ab21; }
           <div class="trigger"><span>Баня из клееного бруса «Севилья» 6,5х12</span><span class="chev">▾</span></div>
         </div>
 
-        <div class="field f-thick">
+        <div class="field">
           <label>Толщина бруса</label>
           <div class="thickness-tabs">
             <button class="thick-btn">125х185<span class="thick-sub">мм</span></button>
@@ -371,83 +395,82 @@ body.ui-blank .n.open { border-left-color: #e0ab21; }
           </button>
         </div>
 
-        <button class="btn-add">+ Добавить проект вручную</button>
+        <button class="btn-add open">+ Добавить проект вручную</button>
+
+        <!-- Раскрытая форма ручного проекта — внутри той же карточки -->
+        <div class="cp-form">
+          <div class="f-col">
+            <label>Название проекта</label>
+            <input class="inp" type="text" placeholder="Например: Баня из клееного бруса «Аоста» 7х9">
+          </div>
+
+          <div class="f-col">
+            <label>Тип этажности</label>
+            <div class="trigger"><span>1 этаж</span><span class="chev">▾</span></div>
+          </div>
+
+          <div class="f3">
+            <div class="f-col" style="margin:0;"><label>Тёплый контур (м²)</label><input class="inp" type="text" value="0"></div>
+            <div class="f-col" style="margin:0;"><label>Откр. терраса (м²)</label><input class="inp" type="text" value="0"></div>
+            <div class="f-col" style="margin:0;"><label>Крыт. терраса (м²)</label><input class="inp" type="text" value="0"></div>
+          </div>
+
+          <div class="f2">
+            <div class="f-col" style="margin:0;"><label>Пл. фасада со свесами (м²)</label><input class="inp" type="text" placeholder="—"></div>
+            <div class="f-col" style="margin:0;"><label>Пл. кровли (м²)</label><input class="inp" type="text" placeholder="—"></div>
+          </div>
+
+          <div class="sub-t">Базовая стоимость по толщине бруса <span class="cp-note">(вводится вручную — ставок ₽/м² для клеёного бруса пока нет)</span></div>
+          <div class="f3">
+            <div class="f-col" style="margin:0;"><label>125х185 (₽)</label><input class="inp" type="text" value="0"></div>
+            <div class="f-col" style="margin:0;"><label>160х185 (₽)</label><input class="inp" type="text" value="0"></div>
+            <div class="f-col" style="margin:0;"><label>205х185 (₽)</label><input class="inp" type="text" value="0"></div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn primary">Добавить проект</button>
+            <button class="btn">Отмена</button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- ── Ручной проект ──────────────────────────────────────────────── -->
-    <div>
-      <div class="col-label">Проект добавлен вручную</div>
+    <!-- ── Правая колонка: реквизиты, как сейчас ───────────────────────── -->
+    <div class="col">
       <div class="card">
-        <div class="card-title"><span class="dot"></span>Новый проект</div>
+        <div class="card-title"><span class="dot"></span>Реквизиты</div>
 
         <div class="field">
-          <label>Название</label>
-          <input class="inp" type="text" value="Баня из клееного бруса «Аоста» 7х9">
-        </div>
-
-        <div class="field f-thick">
-          <label>Толщина бруса</label>
-          <div class="thickness-tabs">
-            <button class="thick-btn active">125х185<span class="thick-sub">мм</span></button>
-            <button class="thick-btn">160х185<span class="thick-sub">мм</span></button>
-            <button class="thick-btn">205х185<span class="thick-sub">мм</span></button>
-          </div>
-        </div>
-
-        <div class="field">
-          <label>Цена 125х185</label>
-          <div style="display:flex;align-items:center;">
-            <input class="inp" type="text" placeholder="введите"><span class="unit">₽</span>
-          </div>
+          <label>Менеджер</label>
+          <input class="inp" type="text" placeholder="Фамилия Имя Отчество">
         </div>
         <div class="field">
-          <label>Цена 160х185</label>
-          <div style="display:flex;align-items:center;">
-            <input class="inp" type="text" placeholder="введите"><span class="unit">₽</span>
-          </div>
-        </div>
-        <div class="field">
-          <label>Цена 205х185</label>
-          <div style="display:flex;align-items:center;">
-            <input class="inp" type="text" placeholder="введите"><span class="unit">₽</span>
-          </div>
+          <label>Заказчик</label>
+          <input class="inp" type="text" placeholder="Фамилия Имя Отчество">
         </div>
 
-        <div class="areas">
-          <div class="areas-t">Площади для расчёта</div>
+        <div class="pair">
           <div class="field">
-            <label>Фасад<br>со свесами</label>
-            <div style="display:flex;align-items:center;">
-              <input class="inp" type="text" value="178,5"><span class="unit">м²</span>
-            </div>
+            <label>№ договора подряда</label>
+            <input class="inp" type="text" value="00000000">
           </div>
           <div class="field">
-            <label>Кровля</label>
-            <div style="display:flex;align-items:center;">
-              <input class="inp" type="text" value="104"><span class="unit">м²</span>
-            </div>
+            <label>Дата договора</label>
+            <input class="inp" type="text" placeholder="дд.мм.гггг">
           </div>
         </div>
 
-        <div class="field" style="margin-top:12px;">
-          <label>Тёплый контур</label>
-          <div style="display:flex;align-items:center;">
-            <input class="inp" type="text" placeholder="введите"><span class="unit">м²</span>
-          </div>
-        </div>
-        <div class="field">
-          <label>Этажей</label>
-          <div class="trigger"><span class="ph">не выбрано</span><span class="chev">▾</span></div>
-        </div>
-        <div class="field">
-          <label>Кровля</label>
-          <div class="trigger"><span class="ph">не выбрано</span><span class="chev">▾</span></div>
+        <div class="btn-row" style="align-items:center;">
+          <button class="btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+            Данные для договора
+          </button>
+          <span class="pill"><i></i>Не заполнено</span>
         </div>
 
-        <div class="btn-row">
-          <button class="btn">Добавить проект</button>
-          <button class="btn">Отмена</button>
+        <div class="field" style="margin-top:14px;">
+          <label>Технология</label>
+          <div class="trigger"><span>Клеёный брус</span><span class="chev">▾</span></div>
         </div>
       </div>
     </div>
@@ -457,12 +480,12 @@ body.ui-blank .n.open { border-left-color: #e0ab21; }
   <div class="notes">
     <h3>Что здесь другое против каркаса</h3>
     <div class="nlist">
+      <div class="n"><b>Структура та же.</b> Слева выбор проекта, справа реквизиты, ручной проект раскрывается вниз по кнопке. Менеджеру переучиваться не надо.</div>
       <div class="n"><b>Толщина бруса вместо толщины утепления.</b> Три сечения из таблицы — 125х185, 160х185, 205х185. Переключатель тот же, меняются подписи и цена базы.</div>
       <div class="n"><b>Два поля площади.</b> Фасад со свесами и кровля. По ним считаются кровельное покрытие и покраска фасада — движок расчёта от площади в калькуляторе уже работает.</div>
-      <div class="n"><b>Характеристики пока пустые.</b> Тёплый контур, этажность и тип кровли в таблице КБ не заполнены ни у одного из 48 проектов, поэтому в макете стоят прочерки, а не выдуманные числа.</div>
-      <div class="n"><b>Ручной проект нужнее, чем в каркасе.</b> Пока характеристики не заведены, менеджер добавляет проект руками: название, три цены, площади.</div>
-      <div class="n open"><b>Ждёт решения: ставки ₽/м².</b> Кровля и покраска фасада считаются автоматически, когда придут ставки. До этого обе позиции — ручной ввод, поля под них в форме уже стоят.</div>
-      <div class="n open"><b>Ждёт решения: площади по проектам.</b> Если заведём их в базе — поля заполнятся при выборе проекта, и вводить руками не придётся.</div>
+      <div class="n"><b>Характеристики пока пустые.</b> Тёплый контур, этажность и тип кровли в таблице КБ не заполнены ни у одного из 48 проектов, поэтому стоят прочерки, а не выдуманные числа.</div>
+      <div class="n"><b>Цены ручного проекта вводятся руками.</b> В каркасе они считаются по ставкам ₽/м² тёплого контура; для клеёного бруса таких ставок нет, поэтому три цены вводит менеджер.</div>
+      <div class="n open"><b>Ждёт решения: ставки ₽/м² и площади по проектам.</b> Придут ставки — кровля и покраска фасада начнут считаться сами; заведём площади в базе — поля заполнятся при выборе проекта.</div>
     </div>
   </div>
 
