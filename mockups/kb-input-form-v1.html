@@ -62,8 +62,6 @@ body.ui-light.dark { background: var(--page-bg); }
 }
 body.ui-blank .eyebrow { color: var(--bl-acc); }
 h1 { font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 1.42rem; margin: 6px 0 0; }
-.lede { color: var(--gray); font-size: .84rem; max-width: 66ch; margin: 10px 0 0; line-height: 1.6; }
-body.ui-blank .lede { color: var(--bl-ink2); }
 
 /* ── Переключатели ─────────────────────────────────────────────────────── */
 .switches { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0 26px; }
@@ -283,20 +281,6 @@ body.ui-blank .pair > .field > label { display: block; margin-bottom: 2px; }
 body.ui-blank .pill { background: none; border: 1px solid var(--bl-rule2); color: var(--bl-ink3); }
 .pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--gray-light); flex: none; }
 
-/* ── Пояснения ─────────────────────────────────────────────────────────── */
-.notes { margin-top: 34px; }
-.notes h3 { font-family: 'Unbounded', sans-serif; font-size: .82rem; font-weight: 600; margin: 0 0 12px; color: var(--green-dark); }
-body.ui-blank .notes h3 { color: var(--bl-acc); }
-.nlist { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 26px; }
-@media (max-width: 900px) { .nlist { grid-template-columns: 1fr; } }
-.n { padding: 12px 14px; border-radius: 10px; background: var(--white);
-     border: 1px solid var(--green-pale); font-size: .8rem; line-height: 1.55; color: var(--gray); }
-body.dark .n { border-color: #2a4a4e; }
-body.ui-blank .n { background: none; border: 0; border-left: 2px solid var(--bl-rule2); border-radius: 0; padding: 4px 0 4px 14px; color: var(--bl-ink2); }
-.n b { color: var(--green-dark); font-weight: 600; }
-body.ui-blank .n b { color: var(--bl-ink); }
-.n.open { border-color: #e0ab21; }
-body.ui-blank .n.open { border-left-color: #e0ab21; }
 </style>
 </head>
 <body class="ui-blank">
@@ -304,10 +288,6 @@ body.ui-blank .n.open { border-left-color: #e0ab21; }
 
   <div class="eyebrow">test.calculator.baniamsk.ru/mockups</div>
   <h1>Блок ввода данных — клеёный брус</h1>
-  <p class="lede">Структура листа та же, что в каркасе: слева «Выбор проекта», справа «Реквизиты»,
-     ручной проект раскрывается вниз по кнопке внутри левой карточки. Под клеёный брус меняется
-     содержимое: толщина бруса вместо толщины утепления и два поля площади. Форма ручного проекта
-     показана раскрытой, чтобы её было видно.</p>
 
   <div class="switches">
     <div class="sw" id="swTheme">
@@ -395,10 +375,10 @@ body.ui-blank .n.open { border-left-color: #e0ab21; }
           </button>
         </div>
 
-        <button class="btn-add open">+ Добавить проект вручную</button>
+        <button class="btn-add" id="btnAdd">+ Добавить проект вручную</button>
 
         <!-- Раскрытая форма ручного проекта — внутри той же карточки -->
-        <div class="cp-form">
+        <div class="cp-form" id="cpForm" hidden>
           <div class="f-col">
             <label>Название проекта</label>
             <input class="inp" type="text" placeholder="Например: Баня из клееного бруса «Аоста» 7х9">
@@ -429,7 +409,7 @@ body.ui-blank .n.open { border-left-color: #e0ab21; }
 
           <div class="btn-row">
             <button class="btn primary">Добавить проект</button>
-            <button class="btn">Отмена</button>
+            <button class="btn" id="cpCancel">Отмена</button>
           </div>
         </div>
       </div>
@@ -477,17 +457,6 @@ body.ui-blank .n.open { border-left-color: #e0ab21; }
 
   </div>
 
-  <div class="notes">
-    <h3>Что здесь другое против каркаса</h3>
-    <div class="nlist">
-      <div class="n"><b>Структура та же.</b> Слева выбор проекта, справа реквизиты, ручной проект раскрывается вниз по кнопке. Менеджеру переучиваться не надо.</div>
-      <div class="n"><b>Толщина бруса вместо толщины утепления.</b> Три сечения из таблицы — 125х185, 160х185, 205х185. Переключатель тот же, меняются подписи и цена базы.</div>
-      <div class="n"><b>Два поля площади.</b> Фасад со свесами и кровля. По ним считаются кровельное покрытие и покраска фасада — движок расчёта от площади в калькуляторе уже работает.</div>
-      <div class="n"><b>Характеристики пока пустые.</b> Тёплый контур, этажность и тип кровли в таблице КБ не заполнены ни у одного из 48 проектов, поэтому стоят прочерки, а не выдуманные числа.</div>
-      <div class="n"><b>Цены ручного проекта вводятся руками.</b> В каркасе они считаются по ставкам ₽/м² тёплого контура; для клеёного бруса таких ставок нет, поэтому три цены вводит менеджер.</div>
-      <div class="n open"><b>Ждёт решения: ставки ₽/м² и площади по проектам.</b> Придут ставки — кровля и покраска фасада начнут считаться сами; заведём площади в базе — поля заполнятся при выборе проекта.</div>
-    </div>
-  </div>
 
 </div>
 
@@ -500,6 +469,19 @@ document.getElementById('swTheme').addEventListener('click', e => {
   document.body.classList.toggle('ui-light', b.dataset.theme === 'light');
   [...e.currentTarget.children].forEach(x => x.classList.toggle('on', x === b));
 });
+// Как в каркасе: нажатие раскрывает форму и убирает саму кнопку,
+// «Отмена» сворачивает форму и возвращает кнопку на место.
+const кнопкаДобавить = document.getElementById('btnAdd');
+const формаПроекта = document.getElementById('cpForm');
+кнопкаДобавить.addEventListener('click', () => {
+  формаПроекта.hidden = false;
+  кнопкаДобавить.style.display = 'none';
+});
+document.getElementById('cpCancel').addEventListener('click', () => {
+  формаПроекта.hidden = true;
+  кнопкаДобавить.style.display = '';
+});
+
 document.getElementById('swMode').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   document.body.classList.toggle('dark', b.dataset.mode === 'night');
