@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Блок ввода данных — Клеёный брус</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Geologica:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────────────────────────────────
+   БЛОК ВВОДА ДАННЫХ ПОД КЛЕЁНЫЙ БРУС
+
+   Слева — карточка «Выбор проекта», как она будет выглядеть при технологии
+   «Клеёный брус». Справа — форма ручного проекта: в КБ она нужна чаще, чем
+   в каркасе, потому что характеристики проектов ещё заполняются.
+
+   Переключатели сверху делают ровно то, что должно быть в калькуляторе:
+   оформление меняется вместе с темой и со временем суток.
+
+   Токены и правила скопированы из index.html один в один — это не новая
+   тема, а те же две («Бланк» и «Модерн») на новом содержимом.
+   ───────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --green-dark:#1e6c72; --green-mid:#2a8f97; --green-light:#3db0ba;
+  --green-pale:#a8dde0; --green-bg:#e4f5f6;
+  --black:#111; --gray:#555; --gray-light:#888; --white:#fff;
+  --border:#3db0ba; --shadow:0 4px 24px rgba(30,108,114,.10);
+  --page-bg:#f0fafa; --field-bg:#f7fefe;
+}
+body.dark {
+  --black:#e8f4f5; --gray:#9ab8bc; --gray-light:#6a9098; --white:#1a2a2c;
+  --border:#2a8f97; --green-bg:#1e3538; --page-bg:#111e20; --field-bg:#1e3538;
+  --shadow:0 4px 24px rgba(0,0,0,.4);
+}
+body.ui-blank {
+  --bl-page:#f7fbfb; --bl-sheet:#fff; --bl-ink:#12262a; --bl-ink2:#5b7376;
+  --bl-ink3:#8da3a5; --bl-rule:#dceaeb; --bl-rule2:#bcd9db;
+  --bl-acc:#1e6c72; --bl-acc2:#2a8f97; --bl-pale:#a8dde0; --bl-tint:#e4f5f6;
+}
+body.ui-blank.dark {
+  --bl-page:#0e1a1c; --bl-sheet:#132528; --bl-ink:#e6f3f3; --bl-ink2:#9db6b8;
+  --bl-ink3:#8aa4a6; --bl-rule:#224347; --bl-rule2:#2d585d;
+  --bl-acc:#8fd6dc; --bl-acc2:#5fc2ca; --bl-pale:#5fc2ca; --bl-tint:#173338;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 30px 22px 70px;
+  font-family: 'Geologica', sans-serif; font-weight: 300;
+  background: var(--page-bg); color: var(--black);
+  -webkit-font-smoothing: antialiased;
+  transition: background .18s, color .18s;
+}
+body.ui-blank { background: var(--bl-page); color: var(--bl-ink); font-variant-numeric: tabular-nums; }
+body.ui-light { background: #f0f5f5; }
+body.ui-light.dark { background: var(--page-bg); }
+
+.wrap { max-width: 1180px; margin: 0 auto; }
+.eyebrow {
+  font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: .64rem;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--green-dark);
+}
+body.ui-blank .eyebrow { color: var(--bl-acc); }
+h1 { font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 1.42rem; margin: 6px 0 0; }
+.lede { color: var(--gray); font-size: .84rem; max-width: 66ch; margin: 10px 0 0; line-height: 1.6; }
+body.ui-blank .lede { color: var(--bl-ink2); }
+
+/* ── Переключатели ─────────────────────────────────────────────────────── */
+.switches { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0 26px; }
+.sw { display: flex; gap: 4px; padding: 4px; border-radius: 999px;
+      border: 1px solid var(--green-pale); background: var(--white); }
+body.ui-blank .sw { border-color: var(--bl-rule2); background: var(--bl-sheet); }
+.sw button {
+  border: 0; background: none; cursor: pointer; border-radius: 999px;
+  padding: 7px 15px; font-family: 'Geologica', sans-serif; font-size: .76rem;
+  color: var(--gray); min-height: 34px;
+}
+body.ui-blank .sw button { color: var(--bl-ink3); }
+.sw button.on { background: var(--green-dark); color: #fff; font-weight: 500; }
+body.ui-blank .sw button.on { background: var(--bl-acc); color: var(--bl-sheet); }
+
+/* ── Шапка листа: показывает смену заголовка ───────────────────────────── */
+.doc-head {
+  margin: 0 0 18px; padding: 16px 18px; border-radius: 14px;
+  background: var(--white); border: 1px solid var(--green-pale);
+}
+body.ui-blank .doc-head { background: var(--bl-sheet); border: 0; border-bottom: 1px solid var(--bl-rule2); border-radius: 0; padding: 14px 0; }
+body.dark .doc-head { border-color: #2a4a4e; }
+.doc-head .kicker { font-size: .6rem; letter-spacing: .16em; text-transform: uppercase; color: var(--green-mid); font-weight: 600; }
+body.ui-blank .doc-head .kicker { color: var(--bl-ink3); }
+.doc-head h2 { font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 1.2rem; margin: 6px 0 0; line-height: 1.25; }
+.doc-head h2 em { font-style: normal; color: var(--green-mid); display: block; }
+body.ui-blank .doc-head h2 em { color: var(--bl-acc2); }
+
+/* ── Сетка макета ──────────────────────────────────────────────────────── */
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: start; }
+@media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+
+.col-label {
+  font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+  font-weight: 600; color: var(--gray-light); margin: 0 0 8px;
+}
+body.ui-blank .col-label { color: var(--bl-ink3); }
+
+/* ── Карточка ──────────────────────────────────────────────────────────── */
+.card {
+  background: var(--white); border-radius: 16px; border: 1.5px solid var(--border);
+  box-shadow: var(--shadow); padding: 24px 26px 20px;
+}
+body.dark .card { border-color: #2a4a4e; }
+body.ui-light .card { border: none; box-shadow: 0 1px 8px rgba(30,108,114,.08), 0 0 0 1px rgba(30,108,114,.06); }
+body.ui-blank .card {
+  background: none; border: 0; border-radius: 0; box-shadow: none;
+  padding: 20px 0 18px; border-top: 1px solid var(--bl-rule);
+}
+.card-title {
+  font-family: 'Unbounded', sans-serif; font-size: .75rem; font-weight: 600;
+  color: var(--green-dark); text-transform: uppercase; letter-spacing: .08em;
+  margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
+}
+body.ui-light .card-title { font-family: 'Geologica', sans-serif; font-size: .72rem; font-weight: 700; letter-spacing: .09em; }
+body.ui-blank .card-title {
+  color: var(--bl-acc); font-family: 'Unbounded', sans-serif; font-size: .86rem;
+  text-transform: none; letter-spacing: 0; padding-bottom: 8px;
+  border-bottom: 2px solid var(--bl-acc); margin-bottom: 14px;
+}
+.card-title .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-light); flex-shrink: 0; }
+body.ui-light .card-title .dot { background: #1e6c72; }
+body.ui-blank .card-title .dot { display: none; }
+
+/* ── Поля ──────────────────────────────────────────────────────────────── */
+.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.field label { font-size: .75rem; color: var(--gray); font-weight: 500; }
+body.ui-blank .field {
+  display: grid; grid-template-columns: minmax(64px, 96px) minmax(0, 1fr);
+  align-items: center; gap: 0 14px; margin-bottom: 0; padding: 6px 0;
+}
+body.ui-blank .field > label { grid-column: 1; margin: 0; font-size: .7rem; line-height: 1.25; color: var(--bl-ink3); }
+body.ui-blank .field > *:not(label) { grid-column: 2; }
+@media (max-width: 480px) { body.ui-blank .field { grid-template-columns: 72px minmax(0, 1fr); gap: 0 10px; } }
+
+.inp, .trigger {
+  width: 100%; border: 1.5px solid var(--green-pale); border-radius: 9px;
+  padding: 10px 14px; font-family: 'Geologica', sans-serif; font-size: .9rem;
+  background: var(--field-bg); color: var(--black); outline: none; min-height: 44px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+input.inp { display: block; }
+body.ui-light .inp, body.ui-light .trigger { background: #f5fafa; border-color: #cde3e4; }
+body.dark .inp, body.dark .trigger { border-color: #2a4a4e; }
+body.ui-blank .inp, body.ui-blank .trigger {
+  background: none !important; border: 0 !important; border-bottom: 1px solid var(--bl-rule2) !important;
+  border-radius: 0 !important; padding: 6px 0 !important; min-height: 34px; color: var(--bl-ink);
+}
+.trigger .chev { color: var(--green-mid); font-size: .8rem; }
+body.ui-blank .trigger .chev { color: var(--bl-ink3); }
+.ph { color: var(--gray-light); }
+body.ui-blank .ph { color: var(--bl-ink3); }
+
+.search-wrap { position: relative; }
+.search-wrap input { padding-left: 36px; }
+body.ui-blank .search-wrap input { padding-left: 24px !important; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--green-pale); pointer-events: none; }
+body.ui-blank .search-icon { left: 0; color: var(--bl-ink3); }
+
+/* ── Толщина бруса ─────────────────────────────────────────────────────── */
+.thickness-tabs { display: flex; gap: 6px; margin-bottom: 18px; width: 100%; }
+/* Подпись «Толщина бруса» в две строки — сегменты держим по верху,
+   иначе в «Бланке» они уезжают к середине подписи. */
+body.ui-blank .field.f-thick { align-items: center; }
+body.ui-blank .thickness-tabs { margin: 4px 0 6px; gap: 0; }
+.thick-btn {
+  flex: 1; padding: 9px 6px; border-radius: 9px; border: 1.5px solid var(--green-pale);
+  background: var(--field-bg); font-family: 'Unbounded', sans-serif; font-size: .68rem;
+  font-weight: 600; cursor: pointer; color: var(--gray); text-align: center;
+  letter-spacing: .02em; transition: all .15s; min-height: 40px;
+}
+body.ui-light .thick-btn { background: #f5fafa; border-color: #cde3e4; color: #5a9ea4; }
+body.dark .thick-btn { border-color: #2a4a4e; }
+.thick-btn.active { background: var(--green-dark); border-color: var(--green-dark); color: #fff; }
+body.ui-blank .thick-btn {
+  background: none; border: 0; border-bottom: 2px solid transparent; border-radius: 0;
+  color: var(--bl-ink3); font-family: 'Geologica', sans-serif; font-weight: 400; font-size: .8rem;
+}
+body.ui-blank .thick-btn.active { background: none; color: var(--bl-acc); font-weight: 600; border-bottom-color: var(--bl-acc); }
+.thick-sub { display: block; font-size: .58rem; font-weight: 400; letter-spacing: 0; opacity: .75; margin-top: 2px; }
+body.ui-blank .thick-sub { font-size: .62rem; }
+
+/* ── Площади для расчёта — новое в КБ ──────────────────────────────────── */
+.areas {
+  margin: 16px 0 6px; padding: 14px 16px; border-radius: 12px;
+  background: var(--green-bg); border: 1px solid var(--green-pale);
+}
+body.dark .areas { border-color: #2a4a4e; }
+body.ui-blank .areas {
+  background: none; border: 0; border-top: 1px solid var(--bl-rule);
+  border-bottom: 1px solid var(--bl-rule); border-radius: 0; padding: 10px 0; margin: 12px 0 4px;
+}
+.areas-t {
+  font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 600;
+  color: var(--green-dark); margin-bottom: 10px;
+}
+body.ui-blank .areas-t { color: var(--bl-ink3); letter-spacing: .08em; }
+.areas .field:last-of-type { margin-bottom: 0; }
+.unit { font-size: .78rem; color: var(--gray-light); margin-left: 8px; white-space: nowrap; }
+body.ui-blank .unit { color: var(--bl-ink3); }
+.hint { font-size: .7rem; line-height: 1.5; color: var(--gray-light); margin: 10px 0 0; }
+body.ui-blank .hint { color: var(--bl-ink3); }
+
+/* ── Характеристики проекта ────────────────────────────────────────────── */
+.project-info { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.info-chip {
+  background: var(--green-bg); border: 1px solid var(--green-pale); border-radius: 8px;
+  padding: 6px 12px; font-size: .75rem; color: var(--green-dark);
+}
+body.dark .info-chip { border-color: #2a4a4e; }
+.info-chip b { font-weight: 600; }
+.info-chip .ic-k::after { content: ':\00a0'; }
+body.ui-blank .info-chip .ic-k::after { content: none; }
+body.ui-blank .project-info { display: block; margin-top: 10px; }
+body.ui-blank .info-chip {
+  display: flex; align-items: baseline; gap: 6px; width: 100%; background: none;
+  border: 0; border-radius: 0; padding: 7px 0; font-size: .82rem; color: var(--bl-ink);
+}
+body.ui-blank .info-chip .ic-k { order: 0; flex: none; font-size: .7rem; color: var(--bl-ink3); white-space: nowrap; }
+body.ui-blank .info-chip::before {
+  content: ""; order: 1; flex: 1 1 8px; height: 3px; margin-bottom: 2px;
+  background-image: radial-gradient(circle, var(--bl-rule2) .9px, transparent .9px);
+  background-size: 5px 3px; background-repeat: repeat-x; background-position: 0 100%;
+}
+body.ui-blank .info-chip b { order: 2; flex: none; font-weight: 500; color: var(--bl-ink); white-space: nowrap; }
+.empty-val { color: var(--gray-light); font-weight: 400; }
+body.ui-blank .empty-val { color: var(--bl-ink3); }
+.price-chip b { color: var(--green-dark); }
+body.ui-blank .price-chip b { color: var(--bl-acc); }
+
+/* ── Кнопки ────────────────────────────────────────────────────────────── */
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px;
+  border: 1.5px solid var(--green-pale); border-radius: 7px; background: transparent;
+  font-family: 'Geologica', sans-serif; font-size: .78rem; color: var(--green-mid);
+  cursor: pointer; min-height: 34px;
+}
+body.dark .btn { border-color: #2a4a4e; }
+body.ui-blank .btn { border-color: var(--bl-rule2); color: var(--bl-acc); border-radius: 6px; }
+.btn-add {
+  display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%;
+  margin-top: 10px; padding: 9px 14px; border: 1.5px dashed var(--green-pale);
+  border-radius: 9px; background: transparent; font-family: 'Geologica', sans-serif;
+  font-size: .8rem; color: var(--green-mid); cursor: pointer; min-height: 40px;
+}
+body.ui-blank .btn-add { border-color: var(--bl-rule2); color: var(--bl-ink3); }
+
+/* ── Пояснения под макетом ─────────────────────────────────────────────── */
+.notes { margin-top: 34px; }
+.notes h3 {
+  font-family: 'Unbounded', sans-serif; font-size: .82rem; font-weight: 600;
+  margin: 0 0 12px; color: var(--green-dark);
+}
+body.ui-blank .notes h3 { color: var(--bl-acc); }
+.nlist { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 26px; }
+@media (max-width: 900px) { .nlist { grid-template-columns: 1fr; } }
+.n {
+  padding: 12px 14px; border-radius: 10px; background: var(--white);
+  border: 1px solid var(--green-pale); font-size: .8rem; line-height: 1.55; color: var(--gray);
+}
+body.dark .n { border-color: #2a4a4e; }
+body.ui-blank .n { background: none; border: 0; border-left: 2px solid var(--bl-rule2); border-radius: 0; padding: 4px 0 4px 14px; color: var(--bl-ink2); }
+.n b { color: var(--green-dark); font-weight: 600; }
+body.ui-blank .n b { color: var(--bl-ink); }
+.n.open { border-color: #e0ab21; }
+body.ui-blank .n.open { border-left-color: #e0ab21; }
+</style>
+</head>
+<body class="ui-blank">
+<div class="wrap">
+
+  <div class="eyebrow">test.calculator.baniamsk.ru/mockups</div>
+  <h1>Блок ввода данных — клеёный брус</h1>
+  <p class="lede">Как выглядит карточка ввода, когда в реквизитах выбрана технология «Клеёный брус».
+     Слева — проект из списка, справа — проект, добавленный вручную. Переключатели меняют тему и
+     время суток: оформление блока следует за темой, как и всё остальное на листе.</p>
+
+  <div class="switches">
+    <div class="sw" id="swTheme">
+      <button class="on" data-theme="blank">Бланк</button>
+      <button data-theme="light">Модерн</button>
+    </div>
+    <div class="sw" id="swMode">
+      <button class="on" data-mode="day">День</button>
+      <button data-mode="night">Ночь</button>
+    </div>
+  </div>
+
+  <div class="doc-head">
+    <div class="kicker">Расчёт стоимости комплектации</div>
+    <h2>Спецификация<em>Клеёный брус</em></h2>
+  </div>
+
+  <div class="cols">
+
+    <!-- ── Проект из списка ────────────────────────────────────────────── -->
+    <div>
+      <div class="col-label">Проект из списка</div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Выбор проекта</div>
+
+        <div class="field">
+          <label>Поиск</label>
+          <div class="search-wrap">
+            <span class="search-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
+              </svg>
+            </span>
+            <input class="inp" type="text" placeholder="Поиск по названию…">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Проект</label>
+          <div class="trigger"><span>Баня из клееного бруса «Севилья» 6,5х12</span><span class="chev">▾</span></div>
+        </div>
+
+        <div class="field f-thick">
+          <label>Толщина бруса</label>
+          <div class="thickness-tabs">
+            <button class="thick-btn">125х185<span class="thick-sub">мм</span></button>
+            <button class="thick-btn active">160х185<span class="thick-sub">мм</span></button>
+            <button class="thick-btn">205х185<span class="thick-sub">мм</span></button>
+          </div>
+        </div>
+
+        <div class="areas">
+          <div class="areas-t">Площади для расчёта</div>
+          <div class="field">
+            <label>Фасад<br>со свесами</label>
+            <div style="display:flex;align-items:center;">
+              <input class="inp" type="text" placeholder="введите"><span class="unit">м²</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Кровля</label>
+            <div style="display:flex;align-items:center;">
+              <input class="inp" type="text" placeholder="введите"><span class="unit">м²</span>
+            </div>
+          </div>
+          <p class="hint">По этим двум числам считаются кровельное покрытие и покраска фасада.
+             Пока площади не заведены в базе — вводятся руками; когда заполним, подставятся из проекта.</p>
+        </div>
+
+        <div class="project-info">
+          <div class="info-chip"><span class="ic-k">Тёплый контур</span><b class="empty-val">—</b></div>
+          <div class="info-chip"><span class="ic-k">Этажей</span><b class="empty-val">—</b></div>
+          <div class="info-chip"><span class="ic-k">Кровля</span><b class="empty-val">—</b></div>
+          <div class="info-chip price-chip"><span class="ic-k">Цена 160х185</span><b>6 088 300 ₽</b></div>
+          <div class="info-chip price-chip"><span class="ic-k">Цена за м²</span><b class="empty-val">—</b></div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            Посмотреть
+          </button>
+          <button class="btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+            Сохранить пресет
+          </button>
+        </div>
+
+        <button class="btn-add">+ Добавить проект вручную</button>
+      </div>
+    </div>
+
+    <!-- ── Ручной проект ──────────────────────────────────────────────── -->
+    <div>
+      <div class="col-label">Проект добавлен вручную</div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Новый проект</div>
+
+        <div class="field">
+          <label>Название</label>
+          <input class="inp" type="text" value="Баня из клееного бруса «Аоста» 7х9">
+        </div>
+
+        <div class="field f-thick">
+          <label>Толщина бруса</label>
+          <div class="thickness-tabs">
+            <button class="thick-btn active">125х185<span class="thick-sub">мм</span></button>
+            <button class="thick-btn">160х185<span class="thick-sub">мм</span></button>
+            <button class="thick-btn">205х185<span class="thick-sub">мм</span></button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Цена 125х185</label>
+          <div style="display:flex;align-items:center;">
+            <input class="inp" type="text" placeholder="введите"><span class="unit">₽</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Цена 160х185</label>
+          <div style="display:flex;align-items:center;">
+            <input class="inp" type="text" placeholder="введите"><span class="unit">₽</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Цена 205х185</label>
+          <div style="display:flex;align-items:center;">
+            <input class="inp" type="text" placeholder="введите"><span class="unit">₽</span>
+          </div>
+        </div>
+
+        <div class="areas">
+          <div class="areas-t">Площади для расчёта</div>
+          <div class="field">
+            <label>Фасад<br>со свесами</label>
+            <div style="display:flex;align-items:center;">
+              <input class="inp" type="text" value="178,5"><span class="unit">м²</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Кровля</label>
+            <div style="display:flex;align-items:center;">
+              <input class="inp" type="text" value="104"><span class="unit">м²</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:12px;">
+          <label>Тёплый контур</label>
+          <div style="display:flex;align-items:center;">
+            <input class="inp" type="text" placeholder="введите"><span class="unit">м²</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Этажей</label>
+          <div class="trigger"><span class="ph">не выбрано</span><span class="chev">▾</span></div>
+        </div>
+        <div class="field">
+          <label>Кровля</label>
+          <div class="trigger"><span class="ph">не выбрано</span><span class="chev">▾</span></div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn">Добавить проект</button>
+          <button class="btn">Отмена</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="notes">
+    <h3>Что здесь другое против каркаса</h3>
+    <div class="nlist">
+      <div class="n"><b>Толщина бруса вместо толщины утепления.</b> Три сечения из таблицы — 125х185, 160х185, 205х185. Переключатель тот же, меняются подписи и цена базы.</div>
+      <div class="n"><b>Два поля площади.</b> Фасад со свесами и кровля. По ним считаются кровельное покрытие и покраска фасада — движок расчёта от площади в калькуляторе уже работает.</div>
+      <div class="n"><b>Характеристики пока пустые.</b> Тёплый контур, этажность и тип кровли в таблице КБ не заполнены ни у одного из 48 проектов, поэтому в макете стоят прочерки, а не выдуманные числа.</div>
+      <div class="n"><b>Ручной проект нужнее, чем в каркасе.</b> Пока характеристики не заведены, менеджер добавляет проект руками: название, три цены, площади.</div>
+      <div class="n open"><b>Ждёт решения: ставки ₽/м².</b> Кровля и покраска фасада считаются автоматически, когда придут ставки. До этого обе позиции — ручной ввод, поля под них в форме уже стоят.</div>
+      <div class="n open"><b>Ждёт решения: площади по проектам.</b> Если заведём их в базе — поля заполнятся при выборе проекта, и вводить руками не придётся.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Переключатели: тема меняет класс ui-blank/ui-light, режим — класс dark.
+// Ровно так же это устроено в самом калькуляторе, чтобы макет не врал.
+document.getElementById('swTheme').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.body.classList.toggle('ui-blank', b.dataset.theme === 'blank');
+  document.body.classList.toggle('ui-light', b.dataset.theme === 'light');
+  [...e.currentTarget.children].forEach(x => x.classList.toggle('on', x === b));
+});
+document.getElementById('swMode').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.body.classList.toggle('dark', b.dataset.mode === 'night');
+  [...e.currentTarget.children].forEach(x => x.classList.toggle('on', x === b));
+});
+</script>
+</body>
+</html>
