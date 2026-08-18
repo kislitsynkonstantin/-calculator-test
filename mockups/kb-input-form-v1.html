@@ -268,6 +268,30 @@ body.ui-blank .cp-note { color: var(--bl-ink3); }
 .sub-t { font-size: .72rem; color: var(--green-dark); font-weight: 600; margin: 4px 0 8px; }
 body.ui-blank .sub-t { color: var(--bl-ink2); }
 
+/* ── Цены опций в форме ручного проекта ────────────────────────────────── */
+.cp-prices { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--green-pale); }
+body.dark .cp-prices { border-top-color: #2a4a4e; }
+body.ui-blank .cp-prices { border-top-color: var(--bl-rule); }
+.cp-prices-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.cp-prices-t { font-family: 'Unbounded', sans-serif; font-size: .72rem; font-weight: 600; letter-spacing: .04em; color: var(--green-dark); }
+body.ui-blank .cp-prices-t { color: var(--bl-acc); font-size: .78rem; letter-spacing: 0; }
+.mini {
+  display: inline-flex; align-items: center; gap: 4px; font-size: .68rem; padding: 6px 10px;
+  border-radius: 6px; border: 1px solid var(--green-mid); background: transparent;
+  color: var(--green-dark); font-weight: 600; cursor: pointer; white-space: nowrap; min-height: 32px;
+}
+.mini.plain { border-color: var(--green-pale); color: var(--gray); font-weight: 400; }
+body.ui-blank .mini { border-color: var(--bl-acc); color: var(--bl-acc); }
+body.ui-blank .mini.plain { border-color: var(--bl-rule2); color: var(--bl-ink3); }
+body.dark .mini.plain { border-color: #2a4a4e; }
+.sec-h { font-size: .7rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+         color: var(--gray-light); margin: 12px 0 6px; }
+body.ui-blank .sec-h { color: var(--bl-ink3); }
+.opt-row { display: grid; grid-template-columns: minmax(0,1fr) 128px; gap: 10px; align-items: center; padding: 5px 0; }
+.opt-row span { font-size: .78rem; }
+body.ui-blank .opt-row { border-bottom: 1px solid var(--bl-rule); }
+@media (max-width: 480px) { .opt-row { grid-template-columns: minmax(0,1fr) 96px; } }
+
 /* ── Реквизиты: пара «номер + дата» ────────────────────────────────────── */
 .pair { display: flex; gap: 12px; flex-wrap: wrap; }
 .pair > .field { flex: 1; min-width: 140px; }
@@ -407,6 +431,28 @@ body.ui-blank .pill { background: none; border: 1px solid var(--bl-rule2); color
             <div class="f-col" style="margin:0;"><label>205х185 (₽)</label><input class="inp" type="text" value="0"></div>
           </div>
 
+
+          <div class="cp-prices">
+            <div class="cp-prices-head">
+              <div class="cp-prices-t">Цены опций</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="mini">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  Взять из выбранного
+                </button>
+                <button class="mini plain">Скрыть пустые</button>
+              </div>
+            </div>
+
+            <div class="sec-h">1. Фундамент и цоколь</div>
+            <div class="opt-row"><span>Свайно-винтовой без обвязки (D108/L2500)</span><input class="inp" type="text" value="119 249"></div>
+            <div class="opt-row"><span>Забивные сваи (D150/L3000)</span><input class="inp" type="text" value="155 818"></div>
+            <div class="opt-row"><span>Ленточный фундамент (мелкозаглубленный)</span><input class="inp" type="text" placeholder="—"></div>
+
+            <div class="sec-h">6. Кровля</div>
+            <div class="opt-row"><span>Кровельное покрытие — мягкая черепица Shinglas Кантри</span><input class="inp" type="text" placeholder="—"></div>
+            <div class="opt-row"><span>Водосточная система (металл)</span><input class="inp" type="text" value="52 500"></div>
+          </div>
           <div class="btn-row">
             <button class="btn primary">Добавить проект</button>
             <button class="btn" id="cpCancel">Отмена</button>
