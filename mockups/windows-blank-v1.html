@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Окна калькулятора в теме «Бланк»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&family=Unbounded:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═════ Обвязка макета ═════ */
+:root{--mk-bg:#eef5f6;--mk-card:#fff;--mk-ink:#12262a;--mk-ink2:#5b7376;
+  --mk-ink3:#8da3a5;--mk-line:#cfe4e6;--mk-acc:#1e6c72}
+body.night{--mk-bg:#0a1416;--mk-card:#111f22;--mk-ink:#e6f3f3;--mk-ink2:#9db6b8;
+  --mk-ink3:#6d8688;--mk-line:#1e3a3e;--mk-acc:#5fc2ca}
+*{box-sizing:border-box}
+body{margin:0;background:var(--mk-bg);color:var(--mk-ink);
+  font-family:'Geologica',system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
+.mk-wrap{max-width:1280px;margin:0 auto;padding:26px 16px 72px}
+.mk-eyebrow{font-size:.68rem;text-transform:uppercase;letter-spacing:.14em;
+  color:var(--mk-acc);font-weight:500}
+.mk-h1{font-family:'Unbounded',sans-serif;font-size:1.4rem;font-weight:600;
+  letter-spacing:-.012em;margin:.25em 0 .35em}
+.mk-lead{color:var(--mk-ink2);max-width:66ch;margin:0 0 20px;font-size:.86rem;line-height:1.65}
+.mk-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
+.mk-group{display:flex;flex-wrap:wrap;gap:4px;background:var(--mk-card);
+  border:1px solid var(--mk-line);border-radius:11px;padding:4px}
+.mk-btn{border:none;background:none;font-family:'Geologica',sans-serif;font-size:.75rem;
+  font-weight:500;color:var(--mk-ink2);padding:8px 13px;border-radius:8px;cursor:pointer;
+  min-height:42px;transition:background .15s,color .15s;white-space:nowrap}
+.mk-btn:hover{color:var(--mk-ink)}
+.mk-btn.on{background:var(--mk-acc);color:#fff}
+body.night .mk-btn.on{color:#08181a}
+.mk-hint{font-size:.72rem;color:var(--mk-ink3);margin:0 0 18px;max-width:70ch;line-height:1.6}
+.mk-stage{padding:18px 0 6px;display:flex;justify-content:center;overflow:hidden}
+.mk-scaler{transform-origin:top center}
+.mk-frame{background:transparent}
+.mk-caption{text-align:center;font-size:.7rem;color:var(--mk-ink3);margin:12px 0 0;
+  font-variant-numeric:tabular-nums}
+.mk-note{background:var(--mk-card);border:1px solid var(--mk-line);border-radius:12px;
+  padding:18px 20px;margin-top:30px}
+.mk-note h2{font-family:'Unbounded',sans-serif;font-size:.84rem;font-weight:600;margin:0 0 10px}
+.mk-note ul{margin:0;padding-left:18px;color:var(--mk-ink2);font-size:.82rem;line-height:1.72}
+.mk-note li{margin-bottom:5px}
+.mk-note b{color:var(--mk-ink);font-weight:600}
+.mk-note[hidden]{display:none}
+
+/* ═════ Тема «Бланк» — токены калькулятора ═════ */
+.bl{--bl-sheet:#fff;--bl-page:#f7fbfb;--bl-zebra:#f7fafb;--bl-ink:#12262a;--bl-ink2:#5b7376;
+  --bl-ink3:#8da3a5;--bl-rule:#dceaeb;--bl-rule2:#bcd9db;--bl-acc:#1e6c72;--bl-acc2:#2a8f97;
+  --bl-pale:#a8dde0;--bl-tint:#e4f5f6;--bl-warn:#c0392b;--bl-warn-bg:#fdf1f0;
+  --bl-hold:#b06a12;--bl-shadow:0 18px 50px rgba(18,38,42,.13)}
+body.night .bl{--bl-sheet:#132528;--bl-page:#0e1a1c;--bl-zebra:#173338;--bl-ink:#e6f3f3;
+  --bl-ink2:#9db6b8;--bl-ink3:#8aa4a6;--bl-rule:#224347;--bl-rule2:#2d585d;--bl-acc:#8fd6dc;
+  --bl-acc2:#5fc2ca;--bl-pale:#5fc2ca;--bl-tint:#173338;--bl-warn:#ff8f80;
+  --bl-warn-bg:#2b1c1b;--bl-hold:#e0a24a;--bl-shadow:0 18px 50px rgba(0,0,0,.5)}
+
+/* Подложка окна: имитируем затемнение поверх листа, как в калькуляторе */
+.win{display:none;background:rgba(12,28,31,.42);padding:16px;min-height:200px}
+.win.on{display:block}
+body.night .win{background:rgba(0,0,0,.55)}
+
+/* ── Общий лист окна ── */
+.w{background:var(--bl-sheet);color:var(--bl-ink);border-radius:14px;box-shadow:var(--bl-shadow);
+  overflow:hidden;margin:0 auto;position:relative;font-family:'Geologica',sans-serif}
+.w-head{padding:20px 22px 0}
+.w-eyebrow{display:inline-block;font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--bl-ink3);font-weight:500}
+.w-headrow{display:flex;align-items:flex-end;gap:16px;margin-top:6px;padding-right:52px}
+.w-title{font-family:'Unbounded',sans-serif;font-size:1rem;font-weight:600;line-height:1.25;
+  flex:1;min-width:0;letter-spacing:-.01em}
+.w-aside{font-family:'Unbounded',sans-serif;font-size:1rem;font-weight:700;white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.w-x{position:absolute;top:12px;right:12px;width:42px;height:42px;border-radius:10px;
+  border:1px solid var(--bl-rule);background:var(--bl-sheet);color:var(--bl-ink2);
+  display:flex;align-items:center;justify-content:center;cursor:pointer}
+.w-x:hover{color:var(--bl-ink);border-color:var(--bl-rule2)}
+.w-rule{height:2px;background:var(--bl-acc);margin:14px 22px 0;opacity:.85}
+.w-tabs{display:flex;gap:22px;padding:0 22px;border-bottom:1px solid var(--bl-rule);
+  overflow-x:auto;scrollbar-width:none}
+.w-tabs::-webkit-scrollbar{display:none}
+.w-tab{background:none;border:none;padding:15px 0 13px;margin-bottom:-1px;cursor:pointer;
+  font-family:'Geologica',sans-serif;font-size:.79rem;font-weight:500;color:var(--bl-ink3);
+  border-bottom:2px solid transparent;white-space:nowrap;min-height:44px}
+.w-tab.on{color:var(--bl-ink);font-weight:600;border-bottom-color:var(--bl-acc)}
+.w-body{padding:0 22px 4px}
+.w-foot{display:flex;align-items:center;gap:10px;padding:14px 22px 20px;
+  border-top:1px solid var(--bl-rule);margin-top:16px;flex-wrap:wrap}
+.w-foot-info{flex:1;min-width:120px;font-size:.72rem;color:var(--bl-ink3)}
+.w-foot-info b{display:block;font-family:'Unbounded',sans-serif;font-size:.9rem;font-weight:700;
+  color:var(--bl-ink);margin-top:2px;font-variant-numeric:tabular-nums}
+.w-act{display:flex;align-items:center;gap:7px;padding:10px 16px;min-height:42px;border-radius:9px;
+  cursor:pointer;font-family:'Geologica',sans-serif;font-size:.77rem;font-weight:500;
+  background:none;border:1px solid var(--bl-rule2);color:var(--bl-ink);white-space:nowrap}
+.w-act:hover{border-color:var(--bl-acc2);color:var(--bl-acc)}
+.w-act.primary{background:var(--bl-acc);border-color:var(--bl-acc);color:#fff;font-weight:600}
+body.night .w-act.primary{color:#08181a}
+
+/* Общие мелочи */
+.w-sect{font-size:.62rem;letter-spacing:.13em;text-transform:uppercase;color:var(--bl-ink3);
+  font-weight:600;padding:20px 0 8px;border-bottom:1.5px solid var(--bl-rule2);margin-bottom:2px}
+.w-lead-row{display:flex;align-items:baseline;gap:8px;padding:11px 0;font-size:.78rem}
+.w-lead-row .lead{flex:1;border-bottom:1px dotted var(--bl-rule2);transform:translateY(-3px)}
+.w-lead-row .v{font-family:'Unbounded',sans-serif;font-weight:600;font-variant-numeric:tabular-nums;
+  white-space:nowrap}
+.w-num{font-family:'Unbounded',sans-serif;font-weight:600;color:var(--bl-pale);
+  font-variant-numeric:tabular-nums}
+.w-inp{background:none;border:none;border-bottom:1px solid var(--bl-rule2);color:var(--bl-ink);
+  font-family:'Geologica',sans-serif;font-size:.82rem;padding:8px 2px;outline:none;
+  min-height:42px;width:100%;font-variant-numeric:tabular-nums}
+.w-inp:focus{border-bottom-color:var(--bl-acc2);border-bottom-width:2px;padding-bottom:7px}
+.w-chip{border:1px solid var(--bl-rule2);background:none;color:var(--bl-ink2);border-radius:20px;
+  padding:8px 14px;min-height:42px;font-family:'Geologica',sans-serif;font-size:.73rem;
+  cursor:pointer;white-space:nowrap}
+.w-chip.on{border-color:var(--bl-acc);color:var(--bl-acc);font-weight:600}
+.w-dash{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin:12px 0 4px;
+  padding:10px;min-height:42px;border-radius:9px;cursor:pointer;background:none;
+  border:1px dashed var(--bl-rule2);color:var(--bl-ink2);font-family:'Geologica',sans-serif;
+  font-size:.75rem;font-weight:500}
+.w-dash:hover{border-color:var(--bl-acc2);color:var(--bl-acc)}
+
+/* ═════ 1. Платёжный план ═════ */
+.pp-chead{display:flex;align-items:baseline;gap:12px;padding:20px 0 2px}
+.pp-cnum{font-family:'Unbounded',sans-serif;font-size:1.3rem;font-weight:600;color:var(--bl-pale);
+  line-height:1;flex-shrink:0;font-variant-numeric:tabular-nums}
+.pp-ctitle{font-family:'Unbounded',sans-serif;font-size:.83rem;font-weight:600;flex:1;min-width:0;
+  line-height:1.3}
+.pp-ctotal{font-family:'Unbounded',sans-serif;font-size:.83rem;font-weight:700;white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.pp-csections{font-size:.68rem;color:var(--bl-ink3);padding:0 0 10px 40px;line-height:1.45}
+.pp-cline{height:1.5px;background:var(--bl-rule2)}
+.pp-row{display:grid;grid-template-columns:26px 1fr 66px 128px 42px;align-items:center;gap:10px;
+  padding:9px 0;border-bottom:1px solid var(--bl-rule)}
+.pp-row:hover{background:var(--bl-zebra)}
+.pp-row.final{background:var(--bl-tint)}
+.pp-row.final .pp-label{font-weight:600}
+.pp-label{font-size:.82rem;line-height:1.35;min-width:0}
+.pp-label small{display:block;font-size:.67rem;color:var(--bl-ink3);margin-top:2px}
+.pp-field{display:flex;align-items:center;gap:5px;justify-content:flex-end}
+.pp-field .w-inp{text-align:right;font-weight:500}
+.pp-row.final .w-inp{font-weight:700}
+.pp-unit{font-size:.67rem;color:var(--bl-ink3);flex-shrink:0}
+.pp-del{background:none;border:none;color:var(--bl-ink3);cursor:pointer;border-radius:8px;
+  opacity:0;transition:opacity .15s,color .15s;display:flex;align-items:center;
+  justify-content:center;min-width:42px;min-height:42px}
+.pp-row:hover .pp-del,.pp-del:focus{opacity:1}
+.pp-del:hover{color:var(--bl-warn)}
+.pp-rest{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;
+  border-radius:9px;font-size:.75rem;background:var(--bl-tint);color:var(--bl-ink2)}
+.pp-rest b{font-family:'Unbounded',sans-serif;font-weight:700;color:var(--bl-acc);
+  font-variant-numeric:tabular-nums}
+
+/* ═════ 2. Пресеты ═════ */
+.pr-tools{display:flex;gap:8px;padding:14px 0 4px;overflow-x:auto;scrollbar-width:none}
+.pr-tools::-webkit-scrollbar{display:none}
+.pr-search{display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--bl-rule2);
+  padding:4px 2px;margin:10px 0 4px}
+.pr-search svg{color:var(--bl-ink3);flex-shrink:0}
+.pr-card{padding:14px 0;border-bottom:1px solid var(--bl-rule)}
+.pr-card.fav{box-shadow:inset 3px 0 0 var(--bl-hold);padding-left:12px}
+.pr-card.mine{box-shadow:inset 3px 0 0 var(--bl-acc2);padding-left:12px}
+.pr-top{display:flex;align-items:baseline;gap:10px}
+.pr-name{font-family:'Unbounded',sans-serif;font-size:.8rem;font-weight:600;flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pr-badge{font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--bl-ink3);
+  white-space:nowrap;flex-shrink:0}
+.pr-meta{display:flex;align-items:baseline;gap:8px;margin-top:5px;font-size:.73rem;
+  color:var(--bl-ink2)}
+.pr-meta .lead{flex:1;border-bottom:1px dotted var(--bl-rule2);transform:translateY(-3px)}
+.pr-sum{font-family:'Unbounded',sans-serif;font-weight:700;font-variant-numeric:tabular-nums;
+  white-space:nowrap}
+.pr-by{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:.7rem;color:var(--bl-ink3)}
+.pr-by .who{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pr-by .when{flex-shrink:0;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pr-acts{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+.pr-code{margin-top:10px;display:flex;align-items:baseline;gap:8px;font-size:.7rem;
+  color:var(--bl-ink3)}
+.pr-code .lead{flex:1;border-bottom:1px dotted var(--bl-rule2);transform:translateY(-3px)}
+.pr-code b{font-family:'Unbounded',sans-serif;letter-spacing:.12em;color:var(--bl-ink);
+  font-variant-numeric:tabular-nums}
+
+/* ═════ 3. Печать ═════ */
+.pt-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:14px 0 12px}
+.pt-drop{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--bl-rule2);
+  background:none;color:var(--bl-ink);border-radius:9px;padding:9px 13px;min-height:42px;
+  font-family:'Geologica',sans-serif;font-size:.76rem;cursor:pointer;white-space:nowrap}
+.pt-drop.key{border-color:var(--bl-acc);color:var(--bl-acc);font-weight:600}
+.pt-sheet{background:var(--bl-page);border:1px solid var(--bl-rule);border-radius:10px;
+  padding:22px;margin-bottom:16px}
+.pt-doc{background:var(--bl-sheet);border:1px solid var(--bl-rule);padding:26px 24px;
+  box-shadow:0 1px 0 var(--bl-rule)}
+.pt-doc h3{font-family:'Unbounded',sans-serif;font-size:.95rem;font-weight:700;margin:0 0 2px}
+.pt-doc .sub{font-size:.72rem;color:var(--bl-ink3);margin-bottom:16px}
+.pt-secline{display:flex;align-items:baseline;gap:10px;border-bottom:1.5px solid var(--bl-rule2);
+  padding:14px 0 6px;margin-bottom:4px}
+.pt-secline .n{font-family:'Unbounded',sans-serif;font-size:1.05rem;color:var(--bl-pale);
+  font-weight:600;line-height:1}
+.pt-secline .t{font-family:'Unbounded',sans-serif;font-size:.78rem;font-weight:600;flex:1}
+.pt-secline .s{font-family:'Unbounded',sans-serif;font-size:.78rem;font-weight:700;
+  font-variant-numeric:tabular-nums}
+
+/* ═════ 4. Аналитика ═════ */
+.an-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:16px 0 6px;
+  border-top:1.5px solid var(--bl-rule2);border-bottom:1.5px solid var(--bl-rule2)}
+.an-kpi{padding:14px 16px 14px 0;border-right:1px solid var(--bl-rule)}
+.an-kpi:last-child{border-right:none}
+.an-kpi .l{font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;color:var(--bl-ink3);
+  font-weight:600}
+.an-kpi .v{font-family:'Unbounded',sans-serif;font-size:1.25rem;font-weight:700;margin-top:6px;
+  font-variant-numeric:tabular-nums;line-height:1.1}
+.an-kpi .n{font-size:.67rem;color:var(--bl-ink3);margin-top:3px}
+.an-card{padding:18px 0 6px}
+.an-card h4{font-family:'Unbounded',sans-serif;font-size:.78rem;font-weight:600;margin:0}
+.an-card .sub{font-size:.67rem;color:var(--bl-ink3);margin:2px 0 14px}
+.an-bars{display:flex;align-items:flex-end;gap:8px;height:120px;padding-top:6px;
+  border-bottom:1.5px solid var(--bl-rule2)}
+.an-bar{flex:1;background:var(--bl-tint);border-top:2px solid var(--bl-acc2);position:relative}
+.an-bars .lbl{display:flex;gap:8px;margin-top:6px}
+.an-xrow{display:flex;gap:8px;margin-top:6px}
+.an-xrow span{flex:1;text-align:center;font-size:.62rem;color:var(--bl-ink3)}
+.an-top{display:flex;align-items:baseline;gap:8px;padding:9px 0;font-size:.78rem;
+  border-bottom:1px solid var(--bl-rule)}
+.an-top .lead{flex:1;border-bottom:1px dotted var(--bl-rule2);transform:translateY(-3px)}
+.an-top .v{font-family:'Unbounded',sans-serif;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ═════ 5. Комплектации ═════ */
+.kt-pills{display:flex;gap:8px;padding:14px 0 4px;overflow-x:auto;scrollbar-width:none}
+.kt-pills::-webkit-scrollbar{display:none}
+.kt-ctrls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 0 12px}
+.kt-tblwrap{overflow-x:auto;border-top:1.5px solid var(--bl-rule2)}
+.kt-tbl{width:100%;border-collapse:collapse;font-size:.76rem;min-width:460px}
+.kt-tbl th{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--bl-ink3);
+  font-weight:600;text-align:center;padding:10px 8px;border-bottom:1px solid var(--bl-rule)}
+.kt-tbl th:first-child{text-align:left;padding-left:0}
+.kt-tbl td{padding:9px 8px;border-bottom:1px solid var(--bl-rule);text-align:center;
+  font-variant-numeric:tabular-nums}
+.kt-tbl td:first-child{text-align:left;padding-left:0}
+.kt-tbl tr:hover td{background:var(--bl-zebra)}
+.kt-sec td{font-size:.62rem;letter-spacing:.11em;text-transform:uppercase;color:var(--bl-ink3);
+  font-weight:600;padding-top:16px;border-bottom:1.5px solid var(--bl-rule2)}
+.kt-yes{color:var(--bl-acc);font-weight:700}
+.kt-no{color:var(--bl-ink3)}
+.kt-diff td{background:var(--bl-tint)}
+
+/* ═════ 6. Настройки ═════ */
+.st-row{display:flex;align-items:center;gap:14px;padding:13px 0;
+  border-bottom:1px solid var(--bl-rule)}
+.st-txt{flex:1;min-width:0}
+.st-label{font-size:.81rem;line-height:1.35}
+.st-sub{font-size:.68rem;color:var(--bl-ink3);margin-top:3px;line-height:1.45}
+.st-seg{display:flex;gap:0;flex-shrink:0;border:1px solid var(--bl-rule2);border-radius:9px;
+  overflow:hidden}
+.st-seg button{background:none;border:none;border-right:1px solid var(--bl-rule2);padding:9px 13px;
+  min-height:42px;font-family:'Geologica',sans-serif;font-size:.73rem;color:var(--bl-ink2);
+  cursor:pointer;white-space:nowrap}
+.st-seg button:last-child{border-right:none}
+.st-seg button.on{background:var(--bl-tint);color:var(--bl-acc);font-weight:600}
+/* Пилюля выглядит на 46×28, но нажимается по всей высоте строки: 46×42.
+   Иначе палец на телефоне промахивается мимо тумблера. */
+.st-sw{position:relative;width:46px;height:42px;flex-shrink:0;cursor:pointer;border:none;
+  background:none;padding:0}
+.st-sw i{position:absolute;left:0;right:0;top:7px;height:28px;border-radius:20px;
+  background:var(--bl-rule2);transition:background .15s}
+.st-sw i::before{content:'';position:absolute;width:22px;height:22px;left:3px;top:3px;
+  border-radius:50%;background:var(--bl-sheet);transition:transform .15s;
+  box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.st-sw.on i{background:var(--bl-acc)}
+.st-sw.on i::before{transform:translateX(18px)}
+
+/* ═════ Узкий экран ═════ */
+.mk-frame[data-w="390"] .w-head{padding:18px 16px 0}
+.mk-frame[data-w="390"] .w-rule{margin:12px 16px 0}
+.mk-frame[data-w="390"] .w-tabs,
+.mk-frame[data-w="390"] .w-body{padding-left:16px;padding-right:16px}
+.mk-frame[data-w="390"] .w-foot{padding:14px 16px 18px}
+.mk-frame[data-w="390"] .w-headrow{flex-direction:column;align-items:flex-start;gap:4px}
+.mk-frame[data-w="390"] .w-title{font-size:.92rem}
+.mk-frame[data-w="390"] .win{padding:10px}
+.mk-frame[data-w="390"] .pp-row{grid-template-columns:26px 1fr 42px;
+  grid-template-areas:"num label del" ". fields fields";row-gap:4px;padding:11px 0}
+.mk-frame[data-w="390"] .pp-num{grid-area:num}
+.mk-frame[data-w="390"] .pp-label{grid-area:label}
+.mk-frame[data-w="390"] .pp-del{grid-area:del;opacity:1}
+.mk-frame[data-w="390"] .pp-fields{grid-area:fields;display:flex;gap:14px;justify-content:flex-end}
+.mk-frame[data-w="390"] .pp-fields .pp-field{width:92px}
+.mk-frame[data-w="390"] .pp-fields .pp-field.wide{width:136px}
+.mk-frame[data-w="390"] .pp-csections{padding-left:38px}
+.mk-frame[data-w="390"] .an-kpis{grid-template-columns:repeat(2,1fr)}
+.mk-frame[data-w="390"] .an-kpi:nth-child(2){border-right:none}
+.mk-frame[data-w="390"] .an-kpi:nth-child(1),
+.mk-frame[data-w="390"] .an-kpi:nth-child(2){border-bottom:1px solid var(--bl-rule)}
+.mk-frame[data-w="390"] .st-row{flex-direction:column;align-items:stretch;gap:10px}
+.mk-frame[data-w="390"] .st-row .st-seg{align-self:flex-start}
+.mk-frame[data-w="390"] .st-row .st-sw{align-self:flex-start}
+.mk-frame:not([data-w="390"]) .pp-fields{display:contents}
+</style>
+</head>
+<body>
+<div class="mk-wrap">
+  <div class="mk-eyebrow">макет · калькулятор спецификаций</div>
+  <h1 class="mk-h1">Окна калькулятора в теме «Бланк»</h1>
+  <p class="mk-lead">Шесть всплывающих окон, переведённых на язык «Бланка»: шапка документа
+  вместо тёмной заливки, линейки вместо коробок, цифры по разряду, отточие вместо колонок.
+  Переключай окно, тему и ширину экрана. Справка и база знаний не трогались.</p>
+
+  <div class="mk-bar">
+    <div class="mk-group" role="group" aria-label="Окно">
+      <button class="mk-btn on" data-win="pay">Платёжный план</button>
+      <button class="mk-btn" data-win="pre">Пресеты</button>
+      <button class="mk-btn" data-win="prt">Печать</button>
+      <button class="mk-btn" data-win="ana">Аналитика</button>
+      <button class="mk-btn" data-win="kit">Комплектации</button>
+      <button class="mk-btn" data-win="set">Настройки</button>
+    </div>
+  </div>
+  <div class="mk-bar">
+    <div class="mk-group" role="group" aria-label="Тема">
+      <button class="mk-btn on" data-theme="day">День</button>
+      <button class="mk-btn" data-theme="night">Ночь</button>
+    </div>
+    <div class="mk-group" role="group" aria-label="Ширина">
+      <button class="mk-btn on" data-w="390">390 · телефон</button>
+      <button class="mk-btn" data-w="768">768 · планшет</button>
+      <button class="mk-btn" data-w="1440">1440 · десктоп</button>
+    </div>
+  </div>
+  <p class="mk-hint">Ширина — это ширина экрана, а не окна: окно внутри держит свой предел,
+  как в калькуляторе. Кадр 1440 уменьшается, чтобы поместиться на странице целиком —
+  пропорции при этом сохраняются.</p>
+
+  <div class="mk-stage" id="stage">
+    <div class="mk-scaler" id="scaler">
+      <div class="mk-frame bl" id="frame" data-w="390" style="width:390px">
+
+        <!-- ══════ 1. ПЛАТЁЖНЫЙ ПЛАН ══════ -->
+        <section class="win on" data-win="pay">
+          <div class="w" style="max-width:640px">
+            <button class="w-x" aria-label="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div class="w-head">
+              <div class="w-eyebrow">Платёжный план</div>
+              <div class="w-headrow">
+                <div class="w-title">Хай-тек баня «Брюгге» 6х8</div>
+                <div class="w-aside">2 142 194 ₽</div>
+              </div>
+            </div>
+            <div class="w-rule"></div>
+            <div class="w-tabs"><button class="w-tab on">Платежи</button><button class="w-tab">Договоры</button></div>
+            <div class="w-body">
+
+              <div class="pp-chead">
+                <div class="pp-cnum">01</div>
+                <div class="pp-ctitle">Договор на комплект дома</div>
+                <div class="pp-ctotal">1 617 000 ₽</div>
+              </div>
+              <div class="pp-csections">Фундамент · Каркас · Утепление · Внешняя отделка · Окна и двери · Кровля · Покраска</div>
+              <div class="pp-cline"></div>
+
+              <div class="pp-row">
+                <div class="pp-num w-num">1</div>
+                <div class="pp-label">Аванс при подписании<small>в течение 3 рабочих дней</small></div>
+                <div class="pp-fields">
+                  <div class="pp-field"><input class="w-inp" value="15"><span class="pp-unit">%</span></div>
+                  <div class="pp-field wide"><input class="w-inp" value="242 550"><span class="pp-unit">₽</span></div>
+                </div>
+                <button class="pp-del" aria-label="Удалить этап"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+              </div>
+              <div class="pp-row">
+                <div class="pp-num w-num">2</div>
+                <div class="pp-label">Закупка материалов<small>за 10 дней до начала работ</small></div>
+                <div class="pp-fields">
+                  <div class="pp-field"><input class="w-inp" value="35"><span class="pp-unit">%</span></div>
+                  <div class="pp-field wide"><input class="w-inp" value="565 950"><span class="pp-unit">₽</span></div>
+                </div>
+                <button class="pp-del" aria-label="Удалить этап"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+              </div>
+              <div class="pp-row">
+                <div class="pp-num w-num">3</div>
+                <div class="pp-label">Начало монтажа</div>
+                <div class="pp-fields">
+                  <div class="pp-field"><input class="w-inp" value="30"><span class="pp-unit">%</span></div>
+                  <div class="pp-field wide"><input class="w-inp" value="485 100"><span class="pp-unit">₽</span></div>
+                </div>
+                <button class="pp-del" aria-label="Удалить этап"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+              </div>
+              <div class="pp-row final">
+                <div class="pp-num w-num">4</div>
+                <div class="pp-label">Финальный платёж<small>по факту сдачи работ</small></div>
+                <div class="pp-fields">
+                  <div class="pp-field"><input class="w-inp" value="20"><span class="pp-unit">%</span></div>
+                  <div class="pp-field wide"><input class="w-inp" value="323 400"><span class="pp-unit">₽</span></div>
+                </div>
+                <button class="pp-del" aria-label="Удалить этап"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+              </div>
+
+              <div class="w-lead-row" style="color:var(--bl-ink3)">
+                <span>Итого распределено</span><span class="lead"></span>
+                <span class="v" style="color:var(--bl-acc)">100,0 %</span>
+              </div>
+
+              <button class="w-dash">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Добавить этап
+              </button>
+
+              <div class="pp-chead">
+                <div class="pp-cnum">02</div>
+                <div class="pp-ctitle">Договор на отделку и оборудование</div>
+                <div class="pp-ctotal">525 194 ₽</div>
+              </div>
+              <div class="pp-csections">Внутренняя отделка · Парное · Печь · Дополнительные · Инженерные коммуникации</div>
+              <div class="pp-cline"></div>
+
+              <div class="pp-row">
+                <div class="pp-num w-num">1</div>
+                <div class="pp-label">Аванс на материалы отделки</div>
+                <div class="pp-fields">
+                  <div class="pp-field"><input class="w-inp" value="45"><span class="pp-unit">%</span></div>
+                  <div class="pp-field wide"><input class="w-inp" value="236 337"><span class="pp-unit">₽</span></div>
+                </div>
+                <button class="pp-del" aria-label="Удалить этап"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+              </div>
+              <div class="pp-row final">
+                <div class="pp-num w-num">2</div>
+                <div class="pp-label">Финальный платёж<small>по факту сдачи работ</small></div>
+                <div class="pp-fields">
+                  <div class="pp-field"><input class="w-inp" value="50"><span class="pp-unit">%</span></div>
+                  <div class="pp-field wide"><input class="w-inp" value="262 597"><span class="pp-unit">₽</span></div>
+                </div>
+                <button class="pp-del" aria-label="Удалить этап"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+              </div>
+
+              <div class="w-lead-row" style="color:var(--bl-ink3)">
+                <span>Итого распределено</span><span class="lead"></span>
+                <span class="v" style="color:var(--bl-hold)">95,0 % <span style="font-family:'Geologica',sans-serif;font-size:.68rem">(−5,0 %)</span></span>
+              </div>
+              <div class="pp-rest"><span>Нераспределённый остаток</span><b>26 260 ₽</b></div>
+
+              <button class="w-dash">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Добавить этап
+              </button>
+            </div>
+            <div class="w-foot">
+              <div class="w-foot-info">К оплате по двум договорам<b>2 142 194 ₽</b></div>
+              <button class="w-act"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Печать</button>
+              <button class="w-act primary">Готово</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ══════ 2. ПРЕСЕТЫ ══════ -->
+        <section class="win" data-win="pre">
+          <div class="w" style="max-width:560px">
+            <button class="w-x" aria-label="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div class="w-head">
+              <div class="w-eyebrow">Пресеты</div>
+              <div class="w-headrow">
+                <div class="w-title">Сохранённые расчёты</div>
+                <div class="w-aside" style="font-size:.78rem;color:var(--bl-ink3);font-weight:500">43</div>
+              </div>
+            </div>
+            <div class="w-rule"></div>
+            <div class="w-tabs">
+              <button class="w-tab on">Мои</button><button class="w-tab">Общие</button><button class="w-tab">Поиск</button>
+            </div>
+            <div class="w-body">
+              <div class="pr-tools">
+                <button class="w-act primary"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>Сохранить как новый</button>
+                <button class="w-act">Импорт файла</button>
+                <button class="w-act">Скачать все</button>
+              </div>
+              <div class="pr-search">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input class="w-inp" style="border:none" placeholder="Поиск по названию или коду…">
+              </div>
+
+              <div class="w-sect">Избранные — 1</div>
+              <div class="pr-card fav">
+                <div class="pr-top"><div class="pr-name">Финская баня «Альц Big» 6х7 · 26.04.26</div><div class="pr-badge">мой</div></div>
+                <div class="pr-meta"><span>Финская баня «Альц Big» 6х7 · 150 мм</span><span class="lead"></span><span class="pr-sum">3 063 742 ₽</span></div>
+                <div class="pr-by"><span class="who">Константин Кислицын (вы)</span><span class="when">26 апр., 14:20</span></div>
+                <div class="pr-acts">
+                  <button class="w-act primary" style="flex:1">Открыть</button>
+                  <button class="w-act" aria-label="Скачать"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+                  <button class="w-act" title="Отозвать из общих" aria-label="Отозвать из общих"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
+                </div>
+                <div class="pr-code"><span>Код</span><span class="lead"></span><b>831 863</b></div>
+              </div>
+
+              <div class="w-sect">Все — 43</div>
+              <div class="pr-card mine">
+                <div class="pr-top"><div class="pr-name">Санторини хай-тек 11 · 20.08.26</div><div class="pr-badge">для всех</div></div>
+                <div class="pr-meta"><span>Санторини хай-тек · 150 мм</span><span class="lead"></span><span class="pr-sum">12 733 389 ₽</span></div>
+                <div class="pr-by"><span class="who">Анатолий Шевалдов</span><span class="when">20 авг., 11:08</span></div>
+                <div class="pr-acts">
+                  <button class="w-act primary" style="flex:1">Открыть</button>
+                  <button class="w-act" aria-label="Скачать"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+                  <button class="w-act" aria-label="Удалить"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
+                </div>
+                <div class="pr-code"><span>Код</span><span class="lead"></span><b>499 833</b></div>
+              </div>
+              <div class="pr-card">
+                <div class="pr-top"><div class="pr-name">Хай-тек баня «Брюгге» 6х8 · 19.08.26</div><div class="pr-badge">черновик</div></div>
+                <div class="pr-meta"><span>Хай-тек баня «Брюгге» 6х8 · 150 мм</span><span class="lead"></span><span class="pr-sum">2 142 194 ₽</span></div>
+                <div class="pr-by"><span class="who">Константин Кислицын (вы)</span><span class="when">19 авг., 23:41</span></div>
+                <div class="pr-acts">
+                  <button class="w-act primary" style="flex:1">Открыть</button>
+                  <button class="w-act" aria-label="Скачать"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+                  <button class="w-act" aria-label="Удалить"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
+                </div>
+                <div class="pr-code"><span>Код</span><span class="lead"></span><b>277 070</b></div>
+              </div>
+            </div>
+            <div class="w-foot">
+              <div class="w-foot-info">Всего сохранено<b>43 расчёта</b></div>
+              <button class="w-act primary">Готово</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ══════ 3. ПЕЧАТЬ ══════ -->
+        <section class="win" data-win="prt">
+          <div class="w" style="max-width:900px">
+            <button class="w-x" aria-label="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div class="w-head">
+              <div class="w-eyebrow">Версия для печати</div>
+              <div class="w-headrow">
+                <div class="w-title">Хай-тек баня «Брюгге» 6х8</div>
+                <div class="w-aside">2 142 194 ₽</div>
+              </div>
+            </div>
+            <div class="w-rule"></div>
+            <div class="w-body">
+              <div class="pt-tools">
+                <button class="pt-drop key">Спецификация
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+                <button class="pt-drop">Классик
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+                <button class="pt-drop">Параметры
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+                <button class="pt-drop">Изображения</button>
+                <span style="flex:1"></span>
+                <button class="w-act"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Печать</button>
+                <button class="w-act primary">PDF</button>
+              </div>
+
+              <div class="pt-sheet">
+                <div class="pt-doc">
+                  <h3>Спецификация комплектации</h3>
+                  <div class="sub">Хай-тек баня «Брюгге» 6х8 · утепление 150 мм · договор № 41 от 19.08.2026</div>
+
+                  <div class="pt-secline"><span class="n">01</span><span class="t">Фундамент и цоколь</span><span class="s">312 400 ₽</span></div>
+                  <div class="w-lead-row"><span>Свайно-винтовой фундамент (D108/L2500)</span><span class="lead"></span><span class="v">110 800 ₽</span></div>
+                  <div class="w-lead-row"><span>Двойная обвязка профилированной трубой</span><span class="lead"></span><span class="v">26 372 ₽</span></div>
+                  <div class="w-lead-row"><span>Забивные сваи (D150/L3000)</span><span class="lead"></span><span class="v">134 655 ₽</span></div>
+
+                  <div class="pt-secline"><span class="n">02</span><span class="t">Каркас</span><span class="s">648 900 ₽</span></div>
+                  <div class="w-lead-row"><span>Каркас наружных стен — доска 45×145 мм</span><span class="lead"></span><span class="v">включено</span></div>
+                  <div class="w-lead-row"><span>Стропильная система — доска 45×145 мм</span><span class="lead"></span><span class="v">включено</span></div>
+
+                  <div class="pt-secline"><span class="n">07</span><span class="t">Покраска</span><span class="s">339 571 ₽</span></div>
+                  <div class="w-lead-row"><span>Покраска клеёного бруса со шлифовкой</span><span class="lead"></span><span class="v">339 571 ₽</span></div>
+                  <div style="font-size:.7rem;color:var(--bl-ink3);padding:8px 0 0;line-height:1.5">Лессирующий состав краски может удорожать стоимость покраски</div>
+
+                  <div style="display:flex;align-items:baseline;gap:10px;margin-top:22px;padding-top:12px;border-top:2px solid var(--bl-acc)">
+                    <span style="font-family:'Unbounded',sans-serif;font-size:.82rem;font-weight:600">Итого по спецификации</span>
+                    <span style="flex:1"></span>
+                    <span style="font-family:'Unbounded',sans-serif;font-size:1.05rem;font-weight:700;font-variant-numeric:tabular-nums">2 142 194 ₽</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="w-foot">
+              <div class="w-foot-info">Стиль «Классик» · 4 страницы<b>2 142 194 ₽</b></div>
+              <button class="w-act primary">Готово</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ══════ 4. АНАЛИТИКА ══════ -->
+        <section class="win" data-win="ana">
+          <div class="w" style="max-width:1000px">
+            <button class="w-x" aria-label="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div class="w-head">
+              <div class="w-eyebrow">Аналитика</div>
+              <div class="w-headrow">
+                <div class="w-title">Расчёты за год</div>
+                <div class="w-aside" style="font-size:.8rem;font-weight:500;color:var(--bl-ink3)">янв — авг 2026</div>
+              </div>
+            </div>
+            <div class="w-rule"></div>
+            <div class="w-tabs"><button class="w-tab on">Год</button><button class="w-tab">Квартал</button><button class="w-tab">Месяц</button><button class="w-tab">Неделя</button></div>
+            <div class="w-body">
+              <div class="an-kpis">
+                <div class="an-kpi"><div class="l">Расчётов</div><div class="v">412</div><div class="n">за период</div></div>
+                <div class="an-kpi"><div class="l">Средний чек</div><div class="v">2,74 млн</div><div class="n">по расчётам</div></div>
+                <div class="an-kpi"><div class="l">Средняя скидка</div><div class="v">3,1 %</div><div class="n">по расчётам</div></div>
+                <div class="an-kpi"><div class="l">Ср. площадь</div><div class="v">41 м²</div><div class="n">тёплый контур</div></div>
+              </div>
+
+              <div class="an-card">
+                <h4>Активность по месяцам</h4>
+                <div class="sub">Расчётов сохранено</div>
+                <div class="an-bars">
+                  <div class="an-bar" style="height:38%"></div><div class="an-bar" style="height:52%"></div>
+                  <div class="an-bar" style="height:44%"></div><div class="an-bar" style="height:67%"></div>
+                  <div class="an-bar" style="height:81%"></div><div class="an-bar" style="height:73%"></div>
+                  <div class="an-bar" style="height:96%"></div><div class="an-bar" style="height:59%"></div>
+                </div>
+                <div class="an-xrow"><span>янв</span><span>фев</span><span>мар</span><span>апр</span><span>май</span><span>июн</span><span>июл</span><span>авг</span></div>
+              </div>
+
+              <div class="an-card">
+                <h4>Топ проектов</h4>
+                <div class="sub">По количеству расчётов</div>
+                <div class="an-top"><span>Хай-тек баня «Брюгге» 6х8</span><span class="lead"></span><span class="v">54</span></div>
+                <div class="an-top"><span>Финская баня «Альц Big» 6х7</span><span class="lead"></span><span class="v">41</span></div>
+                <div class="an-top"><span>Фахверковая баня «Берлин» 9х5</span><span class="lead"></span><span class="v">33</span></div>
+                <div class="an-top"><span>Санторини хай-тек</span><span class="lead"></span><span class="v">28</span></div>
+              </div>
+
+              <div class="an-card">
+                <h4>Тип кровли</h4>
+                <div class="sub">% выбора по расчётам</div>
+                <div class="an-top"><span>Двускатная</span><span class="lead"></span><span class="v">61 %</span></div>
+                <div class="an-top"><span>Односкатная</span><span class="lead"></span><span class="v">28 %</span></div>
+                <div class="an-top"><span>Плоская</span><span class="lead"></span><span class="v">11 %</span></div>
+              </div>
+            </div>
+            <div class="w-foot">
+              <div class="w-foot-info">Всего за год<b>412 расчётов · 1,13 млрд ₽</b></div>
+              <button class="w-act">Выгрузить</button>
+              <button class="w-act primary">Готово</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ══════ 5. КОМПЛЕКТАЦИИ ══════ -->
+        <section class="win" data-win="kit">
+          <div class="w" style="max-width:1000px">
+            <button class="w-x" aria-label="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div class="w-head">
+              <div class="w-eyebrow">Комплектация</div>
+              <div class="w-headrow">
+                <div class="w-title">Хай-тек баня «Брюгге» 6х8</div>
+                <div class="w-aside" style="font-size:.78rem;font-weight:500;color:var(--bl-ink3)">4 варианта</div>
+              </div>
+            </div>
+            <div class="w-rule"></div>
+            <div class="w-tabs"><button class="w-tab on">Таблица</button><button class="w-tab">Редактор</button></div>
+            <div class="w-body">
+              <div class="kt-pills">
+                <button class="w-chip on">Базовая</button>
+                <button class="w-chip">Стандарт</button>
+                <button class="w-chip">Комфорт</button>
+                <button class="w-chip">Премиум</button>
+              </div>
+              <div class="kt-ctrls">
+                <button class="w-chip on">Все опции</button>
+                <button class="w-chip">Только различия</button>
+                <button class="w-chip">Только доп.</button>
+                <span style="flex:1"></span>
+                <button class="w-act">Скрыть пустые</button>
+              </div>
+
+              <div class="kt-tblwrap">
+                <table class="kt-tbl">
+                  <thead>
+                    <tr><th>Позиция</th><th>Базовая</th><th>Стандарт</th><th>Комфорт</th><th>Премиум</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr class="kt-sec"><td colspan="5">01 · Фундамент и цоколь</td></tr>
+                    <tr><td>Свайно-винтовой фундамент</td><td class="kt-yes">✓</td><td class="kt-yes">✓</td><td class="kt-yes">✓</td><td class="kt-yes">✓</td></tr>
+                    <tr class="kt-diff"><td>Закрытие цоколя профлистом</td><td class="kt-no">—</td><td class="kt-no">—</td><td class="kt-yes">✓</td><td class="kt-yes">✓</td></tr>
+
+                    <tr class="kt-sec"><td colspan="5">03 · Утепление, плёнки</td></tr>
+                    <tr><td>Утеплитель KNAUF Aquastatik</td><td class="kt-yes">✓</td><td class="kt-yes">✓</td><td class="kt-yes">✓</td><td class="kt-yes">✓</td></tr>
+                    <tr class="kt-diff"><td>Утепление стен — 200 мм</td><td class="kt-no">—</td><td class="kt-no">—</td><td class="kt-no">—</td><td class="kt-yes">✓</td></tr>
+
+                    <tr class="kt-sec"><td colspan="5">07 · Покраска</td></tr>
+                    <tr class="kt-diff"><td>Заводская покраска снаружи маслом</td><td class="kt-no">—</td><td class="kt-yes">✓</td><td class="kt-yes">✓</td><td class="kt-yes">✓</td></tr>
+                    <tr class="kt-diff"><td>Обработка террасной доски маслом</td><td class="kt-no">—</td><td class="kt-no">—</td><td class="kt-yes">✓</td><td class="kt-yes">✓</td></tr>
+
+                    <tr class="kt-sec"><td colspan="5">10 · Печь</td></tr>
+                    <tr class="kt-diff"><td>Печь дровяная с закрытой каменкой</td><td class="kt-no">—</td><td class="kt-yes">✓</td><td class="kt-yes">✓</td><td class="kt-yes">✓</td></tr>
+                  </tbody>
+                  <tfoot>
+                    <tr><td style="font-weight:600;padding-top:14px">Итого</td>
+                      <td style="font-family:'Unbounded',sans-serif;font-weight:700;padding-top:14px">2,14 млн</td>
+                      <td style="font-family:'Unbounded',sans-serif;font-weight:700;padding-top:14px">2,48 млн</td>
+                      <td style="font-family:'Unbounded',sans-serif;font-weight:700;padding-top:14px">2,86 млн</td>
+                      <td style="font-family:'Unbounded',sans-serif;font-weight:700;padding-top:14px">3,31 млн</td></tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+            <div class="w-foot">
+              <div class="w-foot-info">Выбран вариант<b>Базовая · 2 142 194 ₽</b></div>
+              <button class="w-act primary">Применить</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ══════ 6. НАСТРОЙКИ ══════ -->
+        <section class="win" data-win="set">
+          <div class="w" style="max-width:560px">
+            <button class="w-x" aria-label="Закрыть"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div class="w-head">
+              <div class="w-eyebrow">Настройки</div>
+              <div class="w-headrow">
+                <div class="w-title">Как ведёт себя калькулятор</div>
+              </div>
+            </div>
+            <div class="w-rule"></div>
+            <div class="w-tabs"><button class="w-tab on">Основные</button><button class="w-tab">Горячие клавиши</button></div>
+            <div class="w-body">
+
+              <div class="w-sect">Внешний вид</div>
+              <div class="st-row">
+                <div class="st-txt"><div class="st-label">Тема</div></div>
+                <div class="st-seg"><button>Светлая</button><button class="on">Тёмная</button><button>Авто</button></div>
+              </div>
+              <div class="st-row">
+                <div class="st-txt"><div class="st-label">Стиль интерфейса</div><div class="st-sub">Модерн — плотные карточки, Бланк — вид документа</div></div>
+                <div class="st-seg"><button>Модерн</button><button class="on">Бланк</button></div>
+              </div>
+
+              <div class="w-sect">Отображение</div>
+              <div class="st-row">
+                <div class="st-txt"><div class="st-label">Уведомления об авто-действиях</div><div class="st-sub">Сообщения при блокировке и автодобавлении опций</div></div>
+                <button class="st-sw on" aria-pressed="true"><i></i></button>
+              </div>
+              <div class="st-row">
+                <div class="st-txt"><div class="st-label">Показывать цену за м² по умолчанию</div></div>
+                <button class="st-sw" aria-pressed="false"><i></i></button>
+              </div>
+              <div class="st-row">
+                <div class="st-txt"><div class="st-label">Полоска итога внизу экрана</div><div class="st-sub">Появляется, когда карточка итога уходит вверх</div></div>
+                <button class="st-sw on" aria-pressed="true"><i></i></button>
+              </div>
+              <div class="st-row">
+                <div class="st-txt"><div class="st-label">Закреплять панель на широком экране</div><div class="st-sub">Боковая панель остаётся открытой, как меню навигации</div></div>
+                <button class="st-sw" aria-pressed="false"><i></i></button>
+              </div>
+
+              <div class="w-sect">Кнопка «глаз»</div>
+              <div class="st-row">
+                <div class="st-txt"><div class="st-label">Скрывать не выбранные опции</div><div class="st-sub">Оставляет только активные и со звёздочкой</div></div>
+                <button class="st-sw on" aria-pressed="true"><i></i></button>
+              </div>
+              <div class="st-row">
+                <div class="st-txt"><div class="st-label">Скрывать цены опций</div><div class="st-sub">Итоги и общая сумма остаются</div></div>
+                <button class="st-sw" aria-pressed="false"><i></i></button>
+              </div>
+
+              <div class="w-sect">Расчёт опций</div>
+              <div class="st-row">
+                <div class="st-txt"><div class="st-label">Режим расчёта опций</div><div class="st-sub">Применяется только к этому пресету</div></div>
+                <div class="st-seg"><button class="on">Новые</button><button>Старые</button></div>
+              </div>
+              <div class="st-row" style="border-bottom:none">
+                <div class="st-txt"><div class="st-label">Скидка по умолчанию</div><div class="st-sub">Подставляется в новый расчёт</div></div>
+                <div style="display:flex;align-items:center;gap:6px;width:110px">
+                  <input class="w-inp" style="text-align:right" value="2,4"><span style="font-size:.68rem;color:var(--bl-ink3)">%</span>
+                </div>
+              </div>
+            </div>
+            <div class="w-foot">
+              <div class="w-foot-info">Настройки сохраняются сразу<b>Версия v2.5.1</b></div>
+              <button class="w-act primary">Готово</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+  <p class="mk-caption" id="cap">Платёжный план · 390 px · день</p>
+
+  <div class="mk-note" data-note="pay">
+    <h2>Платёжный план</h2>
+    <ul>
+      <li><b>Шапка документа вместо заливки.</b> Разрядные прописные, под ними проект и общая сумма, снизу линейка акцентом — так же начинается спецификация.</li>
+      <li><b>Поля на линейках.</b> Процент и сумма без коробок; ввод виден по утолщённой линейке.</li>
+      <li><b>Номер договора — крупной бледной цифрой</b>, как номер раздела. Под ним перечень входящих разделов.</li>
+      <li><b>«Итого распределено» — строка с отточием.</b> Недобор охрой, перебор красным.</li>
+      <li><b>Кнопки ушли в подвал</b>, крестик остался в углу. Корзина проявляется при наведении, на телефоне видна всегда.</li>
+    </ul>
+  </div>
+  <div class="mk-note" data-note="pre" hidden>
+    <h2>Пресеты</h2>
+    <ul>
+      <li><b>Карточки стали строками ведомости.</b> Рамка вокруг каждой карточки убрана — записи разделяет волосяная линейка, как позиции в спецификации.</li>
+      <li><b>Проект и сумма — на отточии.</b> Взгляд идёт по строке слева направо и упирается в цифру, столбец сумм читается сверху вниз.</li>
+      <li><b>Полоска слева вместо цветной рамки:</b> охра — избранное, бирюза — свой пресет.</li>
+      <li><b>Код внизу карточки — тоже строка с отточием</b>, набран разрядкой, чтобы диктовать по телефону.</li>
+      <li><b>Метка «мой» / «для всех»</b> — мелкими прописными без плашки: в «Бланке» плашка выглядит наклейкой на бланке.</li>
+    </ul>
+  </div>
+  <div class="mk-note" data-note="prt" hidden>
+    <h2>Печать</h2>
+    <ul>
+      <li><b>Тёмная панель инструментов стала строкой кнопок на листе.</b> Активный выбор — «Спецификация» — отмечен акцентом, остальные нейтральны.</li>
+      <li><b>Документ лежит на подложке цвета поля страницы</b> — видно, где кончается лист и начинается окно.</li>
+      <li><b>Разделы документа</b> набраны так же, как на экране: крупная бледная цифра, название, сумма справа.</li>
+      <li><b>Строки позиций — на отточии</b>, включённые в базу помечены словом «включено» вместо цены.</li>
+      <li><b>Подвал говорит, что печатается:</b> стиль и число страниц слева, «Печать» и «PDF» справа.</li>
+    </ul>
+  </div>
+  <div class="mk-note" data-note="ana" hidden>
+    <h2>Аналитика</h2>
+    <ul>
+      <li><b>Плитки без коробок.</b> Четыре показателя разделены волосяными линейками и зажаты между двумя жирными — как шапка таблицы.</li>
+      <li><b>Столбики — заливка с линией сверху</b>, без скруглений и теней: диаграмма читается как чертёж, а не как виджет.</li>
+      <li><b>Списки «Топ проектов» и «Тип кровли» — строки с отточием</b>, те же, что в спецификации.</li>
+      <li><b>Период — вкладками</b>, а не выпадающим списком: четыре значения проще показать целиком.</li>
+    </ul>
+  </div>
+  <div class="mk-note" data-note="kit" hidden>
+    <h2>Комплектации</h2>
+    <ul>
+      <li><b>Таблица без вертикальных линий.</b> Колонки держит выравнивание и моноширинные цифры, разделяют только горизонтальные волосяные линейки.</li>
+      <li><b>Разделы — строкой прописными</b> с жирной линейкой под ней, как заголовок раздела в спецификации.</li>
+      <li><b>Различия подсвечены заливкой строки</b>, а не цветом текста: видно, где варианты расходятся, не вчитываясь.</li>
+      <li><b>Варианты — овалами</b>, выбранный обведён акцентом. Это единственное скруглённое место в окне.</li>
+      <li><b>На узком экране таблица прокручивается вбок</b> внутри своей рамки, страница при этом не едет.</li>
+    </ul>
+  </div>
+  <div class="mk-note" data-note="set" hidden>
+    <h2>Настройки</h2>
+    <ul>
+      <li><b>Иконки в кружках убраны.</b> В «Бланке» они читались как украшение; строка настройки — это подпись, пояснение и переключатель.</li>
+      <li><b>Разделы — прописными с жирной линейкой</b>, как в спецификации.</li>
+      <li><b>Переключатели остались тумблерами</b> — это единственный способ показать «включено / выключено» без слов; выбор из трёх и более значений — сегментами.</li>
+      <li><b>Числовое поле — на линейке</b>, выровнено вправо, как суммы в других окнах.</li>
+      <li><b>На телефоне подпись и управление встают друг под другом</b>, а не сжимаются в одну строку.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const frame = document.getElementById('frame');
+const scaler = document.getElementById('scaler');
+const stage = document.getElementById('stage');
+const cap = document.getElementById('cap');
+const ИМЕНА = {pay:'Платёжный план',pre:'Пресеты',prt:'Печать',ana:'Аналитика',
+               kit:'Комплектации',set:'Настройки'};
+let окно = 'pay', ширина = 390, тема = 'день';
+
+function подпись(){ cap.textContent = ИМЕНА[окно] + ' · ' + ширина + ' px · ' + тема; }
+
+// Кадр 1440 шире страницы — уменьшаем его целиком, сохраняя пропорции.
+function масштаб(){
+  const место = stage.clientWidth;
+  const k = Math.min(1, место / ширина);
+  scaler.style.transform = 'scale(' + k + ')';
+  scaler.style.width = ширина + 'px';
+  stage.style.height = (scaler.scrollHeight * k) + 'px';
+}
+
+function выбратьОкно(w){
+  окно = w;
+  document.querySelectorAll('.win').forEach(s => s.classList.toggle('on', s.dataset.win === w));
+  document.querySelectorAll('.mk-note').forEach(n => { n.hidden = n.dataset.note !== w; });
+  подпись(); requestAnimationFrame(масштаб);
+}
+
+document.querySelectorAll('.mk-btn[data-win]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.mk-btn[data-win]').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); выбратьОкно(b.dataset.win);
+});
+document.querySelectorAll('.mk-btn[data-theme]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.mk-btn[data-theme]').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  const ночь = b.dataset.theme === 'night';
+  document.body.classList.toggle('night', ночь);
+  тема = ночь ? 'ночь' : 'день'; подпись(); requestAnimationFrame(масштаб);
+});
+document.querySelectorAll('.mk-btn[data-w]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.mk-btn[data-w]').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  ширина = parseInt(b.dataset.w, 10);
+  frame.dataset.w = String(ширина);
+  frame.style.width = ширина + 'px';
+  подпись(); requestAnimationFrame(масштаб);
+});
+
+// Тумблеры и сегменты живые — чтобы макет вёл себя как окно, а не как картинка.
+document.querySelectorAll('.st-sw').forEach(t => t.onclick = () => {
+  const вкл = t.classList.toggle('on');
+  t.setAttribute('aria-pressed', вкл ? 'true' : 'false');
+});
+document.querySelectorAll('.st-seg').forEach(g =>
+  g.querySelectorAll('button').forEach(b => b.onclick = () => {
+    g.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+  }));
+document.querySelectorAll('.w-tabs').forEach(g =>
+  g.querySelectorAll('.w-tab').forEach(b => b.onclick = () => {
+    g.querySelectorAll('.w-tab').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+  }));
+document.querySelectorAll('.kt-pills, .kt-ctrls').forEach(g =>
+  g.querySelectorAll('.w-chip').forEach(b => b.onclick = () => {
+    g.querySelectorAll('.w-chip').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+  }));
+
+window.addEventListener('resize', масштаб);
+подпись();
+requestAnimationFrame(масштаб);
+</script>
+</body>
+</html>
