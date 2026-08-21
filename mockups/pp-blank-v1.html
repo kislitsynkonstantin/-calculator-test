@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Платёжный план — тема «Бланк»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&family=Unbounded:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══ Обвязка макета: панель управления, к самому окну отношения не имеет ═══ */
+:root{
+  --mk-bg:#eef5f6; --mk-card:#fff; --mk-ink:#12262a; --mk-ink2:#5b7376;
+  --mk-ink3:#8da3a5; --mk-line:#cfe4e6; --mk-acc:#1e6c72;
+}
+body.night{
+  --mk-bg:#0a1416; --mk-card:#111f22; --mk-ink:#e6f3f3; --mk-ink2:#9db6b8;
+  --mk-ink3:#6d8688; --mk-line:#1e3a3e; --mk-acc:#5fc2ca;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--mk-bg); color:var(--mk-ink);
+  font-family:'Geologica',system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased; transition:background .2s,color .2s;
+}
+.mk-wrap{max-width:1180px;margin:0 auto;padding:28px 18px 72px}
+.mk-eyebrow{font-size:.68rem;text-transform:uppercase;letter-spacing:.14em;
+  color:var(--mk-acc);font-weight:500}
+.mk-h1{font-family:'Unbounded',sans-serif;font-size:1.45rem;font-weight:600;
+  letter-spacing:-.01em;margin:.25em 0 .35em}
+.mk-lead{color:var(--mk-ink2);max-width:64ch;margin:0 0 22px;font-size:.86rem;line-height:1.65}
+.mk-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px}
+.mk-group{display:flex;gap:4px;background:var(--mk-card);border:1px solid var(--mk-line);
+  border-radius:10px;padding:4px}
+.mk-btn{border:none;background:none;font-family:'Geologica',sans-serif;font-size:.76rem;
+  font-weight:500;color:var(--mk-ink2);padding:7px 13px;border-radius:7px;cursor:pointer;
+  min-height:38px;transition:background .15s,color .15s}
+.mk-btn:hover{color:var(--mk-ink)}
+.mk-btn.on{background:var(--mk-acc);color:#fff}
+body.night .mk-btn.on{color:#08181a}
+.mk-hint{font-size:.72rem;color:var(--mk-ink3);margin:0 0 22px}
+.mk-stage{display:flex;justify-content:center;padding:22px 0 8px}
+.mk-frame{width:100%;max-width:var(--w,640px);transition:max-width .22s}
+.mk-caption{text-align:center;font-size:.7rem;color:var(--mk-ink3);margin:14px 0 0;
+  font-variant-numeric:tabular-nums}
+.mk-note{background:var(--mk-card);border:1px solid var(--mk-line);border-radius:12px;
+  padding:18px 20px;margin-top:36px}
+.mk-note h2{font-family:'Unbounded',sans-serif;font-size:.86rem;font-weight:600;margin:0 0 10px}
+.mk-note ul{margin:0;padding-left:18px;color:var(--mk-ink2);font-size:.82rem;line-height:1.75}
+.mk-note li{margin-bottom:5px}
+.mk-note b{color:var(--mk-ink);font-weight:600}
+
+/* ═══ Тема «Бланк»: те же токены, что в калькуляторе ═══ */
+.bl{
+  --bl-sheet:#fff; --bl-zebra:#f7fafb; --bl-ink:#12262a; --bl-ink2:#5b7376;
+  --bl-ink3:#8da3a5; --bl-rule:#dceaeb; --bl-rule2:#bcd9db; --bl-acc:#1e6c72;
+  --bl-acc2:#2a8f97; --bl-pale:#a8dde0; --bl-tint:#e4f5f6; --bl-warn:#c0392b;
+  --bl-warn-bg:#fdf1f0; --bl-hold:#b06a12; --bl-shadow:0 18px 50px rgba(18,38,42,.13);
+}
+body.night .bl{
+  --bl-sheet:#132528; --bl-zebra:#173338; --bl-ink:#e6f3f3; --bl-ink2:#9db6b8;
+  --bl-ink3:#8aa4a6; --bl-rule:#224347; --bl-rule2:#2d585d; --bl-acc:#8fd6dc;
+  --bl-acc2:#5fc2ca; --bl-pale:#5fc2ca; --bl-tint:#173338; --bl-warn:#ff8f80;
+  --bl-warn-bg:#2b1c1b; --bl-hold:#e0a24a; --bl-shadow:0 18px 50px rgba(0,0,0,.5);
+}
+
+/* ── Лист окна ── */
+.pp{
+  background:var(--bl-sheet); color:var(--bl-ink); border-radius:14px;
+  box-shadow:var(--bl-shadow); overflow:hidden;
+  font-family:'Geologica',sans-serif;
+}
+
+/* ── Шапка: никакой заливки, только шапка документа ── */
+.pp-head{padding:20px 22px 0}
+.pp-eyebrow{display:inline-block;font-size:.62rem;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--bl-ink3);font-weight:500}
+.pp-headrow{display:flex;align-items:flex-end;gap:16px;margin-top:6px;padding-right:52px}
+.pp-title{font-family:'Unbounded',sans-serif;font-size:1.02rem;font-weight:600;
+  line-height:1.25;flex:1;min-width:0;letter-spacing:-.01em}
+.pp-grand{font-family:'Unbounded',sans-serif;font-size:1.02rem;font-weight:700;
+  white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--bl-ink)}
+.pp-x{position:absolute;top:12px;right:12px;width:42px;height:42px;border-radius:10px;
+  border:1px solid var(--bl-rule);background:var(--bl-sheet);color:var(--bl-ink2);
+  display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pp-x:hover{color:var(--bl-ink);border-color:var(--bl-rule2)}
+.pp-shell{position:relative}
+.pp-rule{height:2px;background:var(--bl-acc);margin:14px 22px 0;opacity:.85}
+
+/* ── Вкладки ── */
+.pp-tabs{display:flex;gap:22px;padding:0 22px;border-bottom:1px solid var(--bl-rule)}
+.pp-tab{background:none;border:none;padding:15px 0 13px;margin-bottom:-1px;cursor:pointer;
+  font-family:'Geologica',sans-serif;font-size:.8rem;font-weight:500;color:var(--bl-ink3);
+  border-bottom:2px solid transparent}
+.pp-tab.on{color:var(--bl-ink);font-weight:600;border-bottom-color:var(--bl-acc)}
+
+/* ── Договор ── */
+.pp-contract{padding:0 22px}
+.pp-chead{display:flex;align-items:baseline;gap:12px;padding:20px 0 2px}
+.pp-cnum{font-family:'Unbounded',sans-serif;font-size:1.32rem;font-weight:600;
+  color:var(--bl-pale);line-height:1;flex-shrink:0;font-variant-numeric:tabular-nums}
+.pp-ctitle{font-family:'Unbounded',sans-serif;font-size:.84rem;font-weight:600;
+  flex:1;min-width:0;line-height:1.3}
+.pp-ctotal{font-family:'Unbounded',sans-serif;font-size:.84rem;font-weight:700;
+  white-space:nowrap;font-variant-numeric:tabular-nums}
+.pp-csections{font-size:.68rem;color:var(--bl-ink3);padding:0 0 10px 40px;line-height:1.45}
+.pp-cline{height:1.5px;background:var(--bl-rule2)}
+
+/* ── Строка этапа ── */
+.pp-row{display:grid;grid-template-columns:26px 1fr 66px 128px 26px;align-items:center;
+  gap:10px;padding:11px 0;border-bottom:1px solid var(--bl-rule)}
+.pp-row:hover{background:var(--bl-zebra)}
+.pp-num{font-family:'Unbounded',sans-serif;font-size:.68rem;font-weight:600;
+  color:var(--bl-pale);font-variant-numeric:tabular-nums}
+.pp-label{font-size:.83rem;line-height:1.35;min-width:0}
+.pp-label small{display:block;font-size:.68rem;color:var(--bl-ink3);margin-top:2px}
+.pp-field{display:flex;align-items:center;gap:5px;justify-content:flex-end}
+.pp-inp{width:100%;min-width:0;background:none;border:none;border-bottom:1px solid var(--bl-rule2);
+  color:var(--bl-ink);font-family:'Geologica',sans-serif;font-size:.83rem;font-weight:500;
+  text-align:right;padding:6px 2px;outline:none;font-variant-numeric:tabular-nums;
+  min-height:42px;transition:border-color .15s}
+.pp-inp:focus{border-bottom-color:var(--bl-acc2);border-bottom-width:2px;padding-bottom:5px}
+.pp-unit{font-size:.68rem;color:var(--bl-ink3);flex-shrink:0}
+.pp-del{background:none;border:none;color:var(--bl-ink3);cursor:pointer;padding:6px;
+  border-radius:7px;opacity:0;transition:opacity .15s,color .15s;
+  display:flex;align-items:center;justify-content:center;min-width:42px;min-height:42px}
+.pp-row:hover .pp-del,.pp-del:focus{opacity:1}
+.pp-del:hover{color:var(--bl-warn)}
+
+/* ── Финальный платёж ── */
+.pp-row.final{background:var(--bl-tint)}
+.pp-row.final .pp-label{font-weight:600}
+.pp-row.final .pp-inp{font-weight:700}
+
+/* ── Итого распределено: строка с отточием, как в спецификации ── */
+.pp-sum{display:flex;align-items:baseline;gap:8px;padding:11px 0;font-size:.75rem;
+  color:var(--bl-ink3)}
+.pp-sum .lead{flex:1;border-bottom:1px dotted var(--bl-rule2);transform:translateY(-3px)}
+.pp-sum .val{font-family:'Unbounded',sans-serif;font-weight:600;color:var(--bl-acc);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.pp-sum.warn .val{color:var(--bl-warn)}
+.pp-sum.hold .val{color:var(--bl-hold)}
+.pp-sum .delta{font-size:.68rem;font-family:'Geologica',sans-serif;font-weight:500}
+
+/* ── Остаток / превышение ── */
+.pp-rest{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 12px;margin:2px 0 0;border-radius:9px;font-size:.76rem;
+  background:var(--bl-tint);color:var(--bl-ink2)}
+.pp-rest b{font-family:'Unbounded',sans-serif;font-weight:700;color:var(--bl-acc);
+  font-variant-numeric:tabular-nums}
+.pp-rest.over{background:var(--bl-warn-bg);color:var(--bl-warn)}
+.pp-rest.over b{color:var(--bl-warn)}
+.pp-rest .ic{flex-shrink:0;vertical-align:-2px;margin-right:6px}
+
+/* ── Добавить этап ── */
+.pp-add{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;
+  margin:12px 0 4px;padding:10px;min-height:42px;border-radius:9px;cursor:pointer;
+  background:none;border:1px dashed var(--bl-rule2);color:var(--bl-ink2);
+  font-family:'Geologica',sans-serif;font-size:.76rem;font-weight:500}
+.pp-add:hover{border-color:var(--bl-acc2);color:var(--bl-acc)}
+
+/* ── Подвал ── */
+.pp-foot{display:flex;align-items:center;gap:10px;padding:14px 22px 20px;
+  border-top:1px solid var(--bl-rule);margin-top:18px}
+.pp-total-foot{flex:1;min-width:0;font-size:.72rem;color:var(--bl-ink3)}
+.pp-total-foot b{display:block;font-family:'Unbounded',sans-serif;font-size:.92rem;
+  font-weight:700;color:var(--bl-ink);margin-top:2px;font-variant-numeric:tabular-nums}
+.pp-act{display:flex;align-items:center;gap:7px;padding:10px 16px;min-height:42px;
+  border-radius:9px;cursor:pointer;font-family:'Geologica',sans-serif;font-size:.78rem;
+  font-weight:500;background:none;border:1px solid var(--bl-rule2);color:var(--bl-ink)}
+.pp-act:hover{border-color:var(--bl-acc2);color:var(--bl-acc)}
+.pp-act.primary{background:var(--bl-acc);border-color:var(--bl-acc);color:#fff;font-weight:600}
+body.night .pp-act.primary{color:#08181a}
+.pp-act.primary:hover{opacity:.9;color:#fff}
+body.night .pp-act.primary:hover{color:#08181a}
+
+/* ═══ Узкий экран: строка складывается в две ═══ */
+.mk-frame[data-w="390"] .pp-head{padding:18px 16px 0}
+.mk-frame[data-w="390"] .pp-rule,
+.mk-frame[data-w="390"] .pp-tabs,
+.mk-frame[data-w="390"] .pp-contract{margin-left:0;padding-left:16px;padding-right:16px}
+.mk-frame[data-w="390"] .pp-rule{margin:12px 16px 0}
+.mk-frame[data-w="390"] .pp-foot{padding:14px 16px 18px;flex-wrap:wrap}
+.mk-frame[data-w="390"] .pp-headrow{flex-direction:column;align-items:flex-start;gap:4px}
+.mk-frame[data-w="390"] .pp-title{font-size:.94rem}
+.mk-frame[data-w="390"] .pp-row{
+  grid-template-columns:26px 1fr 26px;
+  grid-template-areas:"num label del" ". fields fields";
+  row-gap:4px;padding:12px 0}
+.mk-frame[data-w="390"] .pp-num{grid-area:num}
+.mk-frame[data-w="390"] .pp-label{grid-area:label}
+.mk-frame[data-w="390"] .pp-del{grid-area:del;opacity:1}
+.mk-frame[data-w="390"] .pp-fields{grid-area:fields;display:flex;gap:14px;justify-content:flex-end}
+.mk-frame[data-w="390"] .pp-fields .pp-field{flex:0 0 auto;width:92px}
+.mk-frame[data-w="390"] .pp-fields .pp-field.wide{width:140px}
+.mk-frame[data-w="390"] .pp-csections{padding-left:38px}
+.mk-frame[data-w="390"] .pp-total-foot{flex:1 0 100%;margin-bottom:4px}
+
+/* На широком экране поля лежат прямо в сетке строки */
+.mk-frame:not([data-w="390"]) .pp-fields{display:contents}
+</style>
+</head>
+<body>
+<div class="mk-wrap">
+  <div class="mk-eyebrow">макет · калькулятор спецификаций</div>
+  <h1 class="mk-h1">Платёжный план в теме «Бланк»</h1>
+  <p class="mk-lead">Окно перенесено на язык «Бланка»: вместо тёмной заливки шапки —
+  шапка документа, вместо коробок вокруг полей — линейки, суммы выстроены по разряду.
+  Переключай тему и ширину — макет живой, поля нажимаются и редактируются.</p>
+
+  <div class="mk-bar">
+    <div class="mk-group" role="group" aria-label="Тема">
+      <button class="mk-btn on" data-theme="day">День</button>
+      <button class="mk-btn" data-theme="night">Ночь</button>
+    </div>
+    <div class="mk-group" role="group" aria-label="Ширина">
+      <button class="mk-btn" data-w="390">390 — телефон</button>
+      <button class="mk-btn on" data-w="640">640 — как сейчас</button>
+      <button class="mk-btn" data-w="820">820 — планшет</button>
+    </div>
+  </div>
+  <p class="mk-hint">640 — нынешняя предельная ширина окна на большом мониторе:
+  окно и в «Модерне» не растягивается на весь экран.</p>
+
+  <div class="mk-stage">
+    <div class="mk-frame bl" id="frame" data-w="640" style="--w:640px">
+      <div class="pp pp-shell">
+
+        <button class="pp-x" title="Закрыть" aria-label="Закрыть">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+
+        <div class="pp-head">
+          <div class="pp-eyebrow">Платёжный план</div>
+          <div class="pp-headrow">
+            <div class="pp-title">Хай-тек баня «Брюгге» 6х8</div>
+            <div class="pp-grand">2 142 194 ₽</div>
+          </div>
+        </div>
+        <div class="pp-rule"></div>
+
+        <div class="pp-tabs">
+          <button class="pp-tab on">Платежи</button>
+          <button class="pp-tab">Договоры</button>
+        </div>
+
+        <!-- ── Договор 1 ── -->
+        <div class="pp-contract">
+          <div class="pp-chead">
+            <div class="pp-cnum">01</div>
+            <div class="pp-ctitle">Договор на комплект дома</div>
+            <div class="pp-ctotal">1 617 000 ₽</div>
+          </div>
+          <div class="pp-csections">Фундамент · Каркас · Утепление · Внешняя отделка · Окна и двери · Кровля · Покраска</div>
+          <div class="pp-cline"></div>
+
+          <div class="pp-row">
+            <div class="pp-num">1</div>
+            <div class="pp-label">Аванс при подписании<small>в течение 3 рабочих дней</small></div>
+            <div class="pp-fields">
+              <div class="pp-field"><input class="pp-inp" value="15" inputmode="decimal"><span class="pp-unit">%</span></div>
+              <div class="pp-field wide"><input class="pp-inp" value="242 550" inputmode="numeric"><span class="pp-unit">₽</span></div>
+            </div>
+            <button class="pp-del" title="Удалить этап" aria-label="Удалить этап">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
+
+          <div class="pp-row">
+            <div class="pp-num">2</div>
+            <div class="pp-label">Закупка материалов<small>за 10 дней до начала работ</small></div>
+            <div class="pp-fields">
+              <div class="pp-field"><input class="pp-inp" value="35" inputmode="decimal"><span class="pp-unit">%</span></div>
+              <div class="pp-field wide"><input class="pp-inp" value="565 950" inputmode="numeric"><span class="pp-unit">₽</span></div>
+            </div>
+            <button class="pp-del" title="Удалить этап" aria-label="Удалить этап">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
+
+          <div class="pp-row">
+            <div class="pp-num">3</div>
+            <div class="pp-label">Начало монтажа</div>
+            <div class="pp-fields">
+              <div class="pp-field"><input class="pp-inp" value="30" inputmode="decimal"><span class="pp-unit">%</span></div>
+              <div class="pp-field wide"><input class="pp-inp" value="485 100" inputmode="numeric"><span class="pp-unit">₽</span></div>
+            </div>
+            <button class="pp-del" title="Удалить этап" aria-label="Удалить этап">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
+
+          <div class="pp-row final">
+            <div class="pp-num">4</div>
+            <div class="pp-label">Финальный платёж<small>по факту сдачи работ</small></div>
+            <div class="pp-fields">
+              <div class="pp-field"><input class="pp-inp" value="20" inputmode="decimal"><span class="pp-unit">%</span></div>
+              <div class="pp-field wide"><input class="pp-inp" value="323 400" inputmode="numeric"><span class="pp-unit">₽</span></div>
+            </div>
+            <button class="pp-del" title="Удалить этап" aria-label="Удалить этап">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
+
+          <div class="pp-sum">
+            <span>Итого распределено</span>
+            <span class="lead"></span>
+            <span class="val">100,0 %</span>
+          </div>
+
+          <button class="pp-add">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Добавить этап
+          </button>
+        </div>
+
+        <!-- ── Договор 2 ── -->
+        <div class="pp-contract">
+          <div class="pp-chead">
+            <div class="pp-cnum">02</div>
+            <div class="pp-ctitle">Договор на отделку и оборудование</div>
+            <div class="pp-ctotal">525 194 ₽</div>
+          </div>
+          <div class="pp-csections">Внутренняя отделка · Парное · Печь · Дополнительные · Инженерные коммуникации</div>
+          <div class="pp-cline"></div>
+
+          <div class="pp-row">
+            <div class="pp-num">1</div>
+            <div class="pp-label">Аванс на материалы отделки</div>
+            <div class="pp-fields">
+              <div class="pp-field"><input class="pp-inp" value="45" inputmode="decimal"><span class="pp-unit">%</span></div>
+              <div class="pp-field wide"><input class="pp-inp" value="236 337" inputmode="numeric"><span class="pp-unit">₽</span></div>
+            </div>
+            <button class="pp-del" title="Удалить этап" aria-label="Удалить этап">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
+
+          <div class="pp-row final">
+            <div class="pp-num">2</div>
+            <div class="pp-label">Финальный платёж<small>по факту сдачи работ</small></div>
+            <div class="pp-fields">
+              <div class="pp-field"><input class="pp-inp" value="50" inputmode="decimal"><span class="pp-unit">%</span></div>
+              <div class="pp-field wide"><input class="pp-inp" value="262 597" inputmode="numeric"><span class="pp-unit">₽</span></div>
+            </div>
+            <button class="pp-del" title="Удалить этап" aria-label="Удалить этап">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
+
+          <div class="pp-sum hold">
+            <span>Итого распределено</span>
+            <span class="lead"></span>
+            <span class="val">95,0 % <span class="delta">(−5,0 %)</span></span>
+          </div>
+
+          <div class="pp-rest">
+            <span>Нераспределённый остаток</span>
+            <b>26 260 ₽</b>
+          </div>
+
+          <button class="pp-add">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Добавить этап
+          </button>
+        </div>
+
+        <div class="pp-foot">
+          <div class="pp-total-foot">К оплате по двум договорам<b>2 142 194 ₽</b></div>
+          <button class="pp-act">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Печать
+          </button>
+          <button class="pp-act primary">Готово</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <p class="mk-caption" id="cap">640 px · день</p>
+
+  <div class="mk-note">
+    <h2>Что изменилось против «Модерна»</h2>
+    <ul>
+      <li><b>Шапка стала шапкой документа.</b> Тёмно-зелёная заливка с белым текстом — язык «Модерна». Здесь надпись «Платёжный план» мелкими разрядными прописными, под ней название проекта и общая сумма, снизу линейка акцентом. Так же начинается сама спецификация.</li>
+      <li><b>Поля без коробок.</b> Процент и сумма стоят на линейке, как в остальных полях «Бланка». Ввод виден по утолщённой линейке акцентом, а не по рамке.</li>
+      <li><b>Суммы выстроены по разряду.</b> Цифры моноширинные по ширине знака, поэтому столбец рублей читается сверху вниз без прыжков. Проценты — тоже.</li>
+      <li><b>Номер договора — крупной бледной цифрой</b>, как номер раздела в спецификации. Под заголовком — перечень разделов, которые в него входят.</li>
+      <li><b>«Итого распределено» — строка с отточием</b>, как строки характеристик проекта. Недобор помечен охрой, перебор — красным.</li>
+      <li><b>Корзина проявляется при наведении</b>, а не висит в каждой строке. На телефоне она видна всегда — наводить там нечем.</li>
+      <li><b>Подвал вместо кнопок в шапке.</b> Слева итог по двум договорам, справа «Печать» и «Готово». Крестик остался в углу.</li>
+    </ul>
+    <h2 style="margin-top:18px">На узком экране</h2>
+    <ul>
+      <li>Строка складывается в две: сверху номер, название и корзина, снизу процент и сумма, прижатые вправо.</li>
+      <li>Название проекта и сумма в шапке встают друг под другом, заголовок оставляет место крестику.</li>
+      <li>Все нажимаемые места — не меньше 42 px по высоте: поля, кнопки, корзина.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const frame = document.getElementById('frame');
+const cap = document.getElementById('cap');
+let ширина = '640', тема = 'день';
+
+function подпись() { cap.textContent = ширина + ' px · ' + тема; }
+
+document.querySelectorAll('.mk-btn[data-theme]').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.mk-btn[data-theme]').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    const ночь = b.dataset.theme === 'night';
+    document.body.classList.toggle('night', ночь);
+    тема = ночь ? 'ночь' : 'день';
+    подпись();
+  };
+});
+
+document.querySelectorAll('.mk-btn[data-w]').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.mk-btn[data-w]').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    ширина = b.dataset.w;
+    frame.dataset.w = ширина;
+    frame.style.setProperty('--w', ширина + 'px');
+    подпись();
+  };
+});
+
+// Поля живые: проценты и суммы пересчитываются друг из друга, чтобы макет
+// вёл себя как окно, а не как картинка.
+const формат = n => Math.round(n).toLocaleString('ru-RU').replace(/\u00A0/g, ' ');
+document.querySelectorAll('.pp-contract').forEach(договор => {
+  const итого = разбор(договор.querySelector('.pp-ctotal').textContent);
+  договор.querySelectorAll('.pp-row').forEach(строка => {
+    const [проц, сумма] = строка.querySelectorAll('.pp-inp');
+    проц.addEventListener('input', () => {
+      const п = разбор(проц.value);
+      сумма.value = формат(итого * п / 100);
+      пересчёт(договор, итого);
+    });
+    сумма.addEventListener('input', () => {
+      const с = разбор(сумма.value);
+      проц.value = (итого ? с / итого * 100 : 0).toFixed(1).replace('.', ',');
+      пересчёт(договор, итого);
+    });
+  });
+});
+
+function разбор(т) {
+  return parseFloat(String(t_(т)).replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+}
+function t_(т) { return т; }
+
+function пересчёт(договор, итого) {
+  let сумма = 0, проценты = 0;
+  договор.querySelectorAll('.pp-row').forEach(строка => {
+    const [п, с] = строка.querySelectorAll('.pp-inp');
+    проценты += разбор(п.value);
+    сумма += разбор(с.value);
+  });
+  const строкаИтога = договор.querySelector('.pp-sum');
+  const дельта = проценты - 100;
+  строкаИтога.classList.toggle('warn', дельта > 0.05);
+  строкаИтога.classList.toggle('hold', дельта < -0.05);
+  строкаИтога.querySelector('.val').innerHTML =
+    проценты.toFixed(1).replace('.', ',') + ' %' +
+    (Math.abs(дельта) >= 0.05
+      ? ' <span class="delta">(' + (дельта > 0 ? '+' : '−') +
+        Math.abs(дельта).toFixed(1).replace('.', ',') + ' %)</span>'
+      : '');
+  const остаток = договор.querySelector('.pp-rest');
+  if (!остаток) return;
+  const разница = итого - сумма;
+  остаток.classList.toggle('over', разница < -0.5);
+  остаток.querySelector('span').textContent =
+    разница < -0.5 ? 'Превышение' : 'Нераспределённый остаток';
+  остаток.querySelector('b').textContent = формат(Math.abs(разница)) + ' ₽';
+  остаток.style.display = Math.abs(разница) < 0.5 ? 'none' : '';
+}
+</script>
+</body>
+</html>
