@@ -181,7 +181,7 @@ body.night .w-act.primary{color:#08181a}
   font-variant-numeric:tabular-nums}
 
 /* ═════ 3. Печать ═════ */
-.pt-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:14px 0 12px}
+.pt-tools{position:relative;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:14px 0 12px}
 .pt-drop{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--bl-rule2);
   background:none;color:var(--bl-ink);border-radius:9px;padding:9px 13px;min-height:42px;
   font-family:'Geologica',sans-serif;font-size:.76rem;cursor:pointer;white-space:nowrap}
@@ -268,6 +268,87 @@ body.night .w-act.primary{color:#08181a}
 .st-sw.on i{background:var(--bl-acc)}
 .st-sw.on i::before{transform:translateX(18px)}
 
+/* ═════ Под-экраны вкладок ═════ */
+.pane{display:none}
+.pane.on{display:block}
+
+/* Всплывающее меню кнопки: в «Бланке» это лист на листе, без заливки */
+.pop-wrap{position:relative}
+.pop{display:none;position:absolute;left:0;top:calc(100% + 6px);z-index:20;min-width:216px;
+  background:var(--bl-sheet);border:1px solid var(--bl-rule2);border-radius:11px;padding:6px;
+  box-shadow:0 14px 34px rgba(18,38,42,.18)}
+body.night .pop{box-shadow:0 14px 34px rgba(0,0,0,.55)}
+.pop.on{display:block}
+.pop button{display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;
+  padding:10px 12px;min-height:42px;border-radius:8px;cursor:pointer;text-align:left;
+  font-family:'Geologica',sans-serif;font-size:.77rem;color:var(--bl-ink)}
+.pop button:hover{background:var(--bl-zebra)}
+.pop button .tick{margin-left:auto;color:var(--bl-acc);font-weight:700}
+.pop button .tick.off{opacity:0}
+.pop .pop-sect{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-ink3);
+  font-weight:600;padding:8px 12px 4px}
+
+/* Договоры: разделы перетаскиваются по договорам */
+.cm-hint{font-size:.72rem;color:var(--bl-ink3);padding:16px 0 4px;line-height:1.55}
+.cm-box{border-top:1.5px solid var(--bl-rule2);padding:14px 0 12px}
+.cm-box.dim{opacity:.85}
+.cm-top{display:flex;align-items:baseline;gap:10px}
+.cm-color{width:10px;height:10px;border-radius:2px;background:var(--bl-acc);flex-shrink:0;
+  transform:translateY(-1px)}
+.cm-name{font-family:'Unbounded',sans-serif;font-size:.8rem;font-weight:600;flex:1;min-width:0}
+.cm-sum{font-family:'Unbounded',sans-serif;font-size:.78rem;font-weight:700;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.cm-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.cm-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--bl-rule2);
+  background:none;color:var(--bl-ink);border-radius:9px;padding:8px 11px;min-height:42px;
+  font-family:'Geologica',sans-serif;font-size:.73rem;cursor:grab}
+.cm-chip .grip{display:flex;flex-direction:column;gap:2px;opacity:.45}
+.cm-chip .grip i{display:block;width:9px;height:1.5px;background:currentColor;border-radius:1px}
+.cm-empty{border:1px dashed var(--bl-rule2);border-radius:9px;padding:14px;text-align:center;
+  color:var(--bl-ink3);font-size:.73rem;margin-top:10px}
+.cm-ok{display:flex;align-items:center;gap:8px;padding:12px 0 0;font-size:.75rem;color:var(--bl-acc)}
+
+/* Поиск по пресетам */
+.gs-filters{display:flex;gap:8px;padding:10px 0 4px}
+.gs-empty{text-align:center;color:var(--bl-ink3);font-size:.76rem;padding:30px 10px}
+
+/* Аккаунт */
+.ac-top{display:flex;align-items:center;gap:14px;padding:18px 0 14px;
+  border-bottom:1px solid var(--bl-rule)}
+.ac-ava{width:56px;height:56px;border-radius:50%;background:var(--bl-tint);color:var(--bl-acc);
+  display:flex;align-items:center;justify-content:center;font-family:'Unbounded',sans-serif;
+  font-size:1rem;font-weight:700;flex-shrink:0}
+.ac-who{flex:1;min-width:0}
+.ac-who .n{font-family:'Unbounded',sans-serif;font-size:.86rem;font-weight:600}
+.ac-who .m{font-size:.72rem;color:var(--bl-ink3);margin-top:3px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.ac-role{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--bl-acc);
+  font-weight:600;flex-shrink:0}
+
+/* Горячие клавиши */
+.kb-row{display:flex;align-items:baseline;gap:8px;padding:10px 0;font-size:.78rem;
+  border-bottom:1px solid var(--bl-rule)}
+.kb-row .lead{flex:1;border-bottom:1px dotted var(--bl-rule2);transform:translateY(-3px)}
+.kb-keys{display:flex;gap:5px;flex-shrink:0}
+.kb-key{border:1px solid var(--bl-rule2);border-radius:6px;padding:3px 8px;font-size:.68rem;
+  font-family:'Unbounded',sans-serif;font-weight:500;color:var(--bl-ink2);min-width:26px;
+  text-align:center}
+
+/* Редактор комплектаций */
+.ed-sub{display:flex;gap:20px;padding:14px 0 0;border-bottom:1px solid var(--bl-rule)}
+.ed-sub button{background:none;border:none;padding:8px 0 10px;margin-bottom:-1px;cursor:pointer;
+  font-family:'Geologica',sans-serif;font-size:.76rem;color:var(--bl-ink3);
+  border-bottom:2px solid transparent;min-height:42px}
+.ed-sub button.on{color:var(--bl-ink);font-weight:600;border-bottom-color:var(--bl-acc)}
+.ed-row{display:flex;align-items:center;gap:12px;padding:11px 0;
+  border-bottom:1px solid var(--bl-rule)}
+.ed-row .nm{flex:1;min-width:0;font-size:.79rem}
+.ed-row .nm small{display:block;font-size:.67rem;color:var(--bl-ink3);margin-top:2px}
+.ed-marks{display:flex;gap:14px;flex-shrink:0}
+.ed-mark{width:42px;height:42px;border:none;background:none;cursor:pointer;color:var(--bl-ink3);
+  font-family:'Unbounded',sans-serif;font-size:.8rem}
+.ed-mark.on{color:var(--bl-acc)}
+
 /* ═════ Узкий экран ═════ */
 .mk-frame[data-w="390"] .w-head{padding:18px 16px 0}
 .mk-frame[data-w="390"] .w-rule{margin:12px 16px 0}
@@ -293,6 +374,18 @@ body.night .w-act.primary{color:#08181a}
 .mk-frame[data-w="390"] .st-row{flex-direction:column;align-items:stretch;gap:10px}
 .mk-frame[data-w="390"] .st-row .st-seg{align-self:flex-start}
 .mk-frame[data-w="390"] .st-row .st-sw{align-self:flex-start}
+/* На телефоне название пресета переносится, а не обрезается: в нём дата,
+   по которой менеджер и опознаёт расчёт. */
+.mk-frame[data-w="390"] .pr-name{white-space:normal;overflow:visible;text-overflow:clip;
+  line-height:1.35}
+.mk-frame[data-w="390"] .pr-top{align-items:flex-start}
+.mk-frame[data-w="390"] .ac-top{flex-wrap:wrap}
+.mk-frame[data-w="390"] .kb-row{font-size:.75rem}
+/* На телефоне меню кнопки шире самой кнопки: иначе пункт «Базовую
+   комплектацию» ужимается до двух строк в 90 пикселях. Меню раскрывается
+   на всю ширину строки кнопок, а не по своей кнопке. */
+.mk-frame[data-w="390"] .pop-wrap{position:static}
+.mk-frame[data-w="390"] .pop{left:0;right:0;min-width:0;top:calc(100% - 4px)}
 .mk-frame:not([data-w="390"]) .pp-fields{display:contents}
 </style>
 </head>
@@ -345,8 +438,9 @@ body.night .w-act.primary{color:#08181a}
               </div>
             </div>
             <div class="w-rule"></div>
-            <div class="w-tabs"><button class="w-tab on">Платежи</button><button class="w-tab">Договоры</button></div>
+            <div class="w-tabs"><button class="w-tab on" data-tab="pay-plan">Платежи</button><button class="w-tab" data-tab="pay-contr">Договоры</button></div>
             <div class="w-body">
+              <div class="pane on" data-pane="pay-plan">
 
               <div class="pp-chead">
                 <div class="pp-cnum">01</div>
@@ -440,6 +534,63 @@ body.night .w-act.primary{color:#08181a}
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 Добавить этап
               </button>
+              </div><!-- /pane pay-plan -->
+
+              <div class="pane" data-pane="pay-contr">
+                <div class="cm-hint">Перетащите разделы в нужный договор. Настройка используется
+                  в платёжном плане и в версии для печати.</div>
+
+                <div class="cm-box">
+                  <div class="cm-top">
+                    <span class="cm-color"></span>
+                    <span class="cm-name">Договор на комплект дома</span>
+                    <span class="cm-sum">1 617 000 ₽</span>
+                  </div>
+                  <div class="cm-chips">
+                    <button class="cm-chip"><span class="grip"><i></i><i></i><i></i></span>01 · Фундамент и цоколь</button>
+                    <button class="cm-chip"><span class="grip"><i></i><i></i><i></i></span>02 · Каркас</button>
+                    <button class="cm-chip"><span class="grip"><i></i><i></i><i></i></span>03 · Утепление</button>
+                    <button class="cm-chip"><span class="grip"><i></i><i></i><i></i></span>04 · Внешняя отделка</button>
+                    <button class="cm-chip"><span class="grip"><i></i><i></i><i></i></span>05 · Окна и двери</button>
+                    <button class="cm-chip"><span class="grip"><i></i><i></i><i></i></span>06 · Кровля</button>
+                    <button class="cm-chip"><span class="grip"><i></i><i></i><i></i></span>07 · Покраска</button>
+                  </div>
+                </div>
+
+                <div class="cm-box">
+                  <div class="cm-top">
+                    <span class="cm-color" style="background:var(--bl-hold)"></span>
+                    <span class="cm-name">Договор на отделку и оборудование</span>
+                    <span class="cm-sum">525 194 ₽</span>
+                  </div>
+                  <div class="cm-chips">
+                    <button class="cm-chip"><span class="grip"><i></i><i></i><i></i></span>08 · Внутренняя отделка</button>
+                    <button class="cm-chip"><span class="grip"><i></i><i></i><i></i></span>09 · Парное</button>
+                    <button class="cm-chip"><span class="grip"><i></i><i></i><i></i></span>10 · Печь</button>
+                    <button class="cm-chip"><span class="grip"><i></i><i></i><i></i></span>11 · Дополнительные</button>
+                    <button class="cm-chip"><span class="grip"><i></i><i></i><i></i></span>12 · Инженерные коммуникации</button>
+                  </div>
+                </div>
+
+                <div class="cm-box dim">
+                  <div class="cm-top">
+                    <span class="cm-color" style="background:var(--bl-rule2)"></span>
+                    <span class="cm-name" style="font-weight:500;color:var(--bl-ink3)">Не назначено</span>
+                    <span class="cm-sum" style="color:var(--bl-ink3)">0 ₽</span>
+                  </div>
+                  <div class="cm-empty">Перетащите сюда раздел, чтобы вынести его из договоров</div>
+                </div>
+
+                <div class="cm-ok">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Все разделы распределены
+                </div>
+
+                <button class="w-dash">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Добавить договор
+                </button>
+              </div><!-- /pane pay-contr -->
             </div>
             <div class="w-foot">
               <div class="w-foot-info">К оплате по двум договорам<b>2 142 194 ₽</b></div>
@@ -462,9 +613,10 @@ body.night .w-act.primary{color:#08181a}
             </div>
             <div class="w-rule"></div>
             <div class="w-tabs">
-              <button class="w-tab on">Мои</button><button class="w-tab">Общие</button><button class="w-tab">Поиск</button>
+              <button class="w-tab on" data-tab="pre-my">Мои</button><button class="w-tab" data-tab="pre-all">Общие</button><button class="w-tab" data-tab="pre-find">Поиск</button>
             </div>
             <div class="w-body">
+              <div class="pane on" data-pane="pre-my">
               <div class="pr-tools">
                 <button class="w-act primary"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>Сохранить как новый</button>
                 <button class="w-act">Импорт файла</button>
@@ -511,6 +663,67 @@ body.night .w-act.primary{color:#08181a}
                 </div>
                 <div class="pr-code"><span>Код</span><span class="lead"></span><b>277 070</b></div>
               </div>
+              </div><!-- /pane pre-my -->
+
+              <div class="pane" data-pane="pre-all">
+                <div class="pr-tools">
+                  <button class="w-act primary">Опубликовать текущий</button>
+                  <button class="w-act">Скачать все</button>
+                </div>
+                <div class="pr-search">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input class="w-inp" style="border:none" placeholder="Поиск в общих…">
+                </div>
+                <div class="gs-filters">
+                  <button class="w-chip on">Все</button><button class="w-chip">Мои</button>
+                </div>
+
+                <div class="w-sect">Для всех — 42</div>
+                <div class="pr-card mine">
+                  <div class="pr-top"><div class="pr-name">Санторини хай-тек 11 · 20.08.26</div><div class="pr-badge">для всех</div></div>
+                  <div class="pr-meta"><span>Санторини хай-тек · 150 мм</span><span class="lead"></span><span class="pr-sum">12 733 389 ₽</span></div>
+                  <div class="pr-by"><span class="who">Анатолий Шевалдов</span><span class="when">20 авг., 11:08</span></div>
+                  <div class="pr-acts">
+                    <button class="w-act primary" style="flex:1">Открыть</button>
+                    <button class="w-act" title="Чек-лист проверки" aria-label="Чек-лист проверки"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 20 6"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></button>
+                    <button class="w-act" title="Скачать" aria-label="Скачать"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+                  </div>
+                  <div class="pr-code"><span>Код</span><span class="lead"></span><b>499 833</b>
+                    <button class="w-act" style="padding:6px 12px">Скопировать</button></div>
+                </div>
+                <div class="pr-card">
+                  <div class="pr-top"><div class="pr-name">Фахверковая баня «Берлин» 9х5 · 14.08.26</div><div class="pr-badge">только админ</div></div>
+                  <div class="pr-meta"><span>Фахверковая баня «Берлин» 9х5 · 200 мм</span><span class="lead"></span><span class="pr-sum">4 812 640 ₽</span></div>
+                  <div class="pr-by"><span class="who">Мария Егорова</span><span class="when">14 авг., 09:52</span></div>
+                  <div class="pr-acts">
+                    <button class="w-act primary" style="flex:1">Открыть</button>
+                    <button class="w-act" title="Чек-лист проверки" aria-label="Чек-лист проверки"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 20 6"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></button>
+                    <button class="w-act" title="Снять с публикации" aria-label="Снять с публикации"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
+                  </div>
+                  <div class="pr-code"><span>Код</span><span class="lead"></span><b>928 911</b>
+                    <button class="w-act" style="padding:6px 12px">Скопировать</button></div>
+                </div>
+              </div><!-- /pane pre-all -->
+
+              <div class="pane" data-pane="pre-find">
+                <div class="pr-search" style="margin-top:16px">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input class="w-inp" style="border:none" value="499">
+                </div>
+                <div class="gs-filters">
+                  <button class="w-chip on">Все</button><button class="w-chip">Мои</button><button class="w-chip">Общие</button>
+                </div>
+                <div class="w-sect">По коду — 1</div>
+                <div class="pr-card mine">
+                  <div class="pr-top"><div class="pr-name">Санторини хай-тек 11 · 20.08.26</div><div class="pr-badge">для всех</div></div>
+                  <div class="pr-meta"><span>Санторини хай-тек · 150 мм</span><span class="lead"></span><span class="pr-sum">12 733 389 ₽</span></div>
+                  <div class="pr-by"><span class="who">Анатолий Шевалдов</span><span class="when">20 авг., 11:08</span></div>
+                  <div class="pr-acts"><button class="w-act primary" style="flex:1">Открыть</button></div>
+                  <div class="pr-code"><span>Код</span><span class="lead"></span><b>499 833</b></div>
+                </div>
+                <div class="gs-empty">Ищите по названию, автору или коду из шести цифр.<br>
+                  Код можно продиктовать по телефону — он набран разрядкой.</div>
+              </div><!-- /pane pre-find -->
             </div>
             <div class="w-foot">
               <div class="w-foot-info">Всего сохранено<b>43 расчёта</b></div>
@@ -533,18 +746,40 @@ body.night .w-act.primary{color:#08181a}
             <div class="w-rule"></div>
             <div class="w-body">
               <div class="pt-tools">
-                <button class="pt-drop key">Спецификация
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
-                <button class="pt-drop">Классик
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
-                <button class="pt-drop">Параметры
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+                <div class="st-seg" data-panes="1">
+                  <button class="on" data-tab="prt-spec">Спецификация</button>
+                  <button data-tab="prt-contr">Договор</button>
+                </div>
+                <div class="pop-wrap">
+                  <button class="pt-drop" data-pop="pop-style">Классик
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+                  <div class="pop" id="pop-style">
+                    <div class="pop-sect">Стиль документа</div>
+                    <button>Классик<span class="tick">✓</span></button>
+                    <button>Модерн<span class="tick off">✓</span></button>
+                    <button>Архитект<span class="tick off">✓</span></button>
+                    <button>Карточки<span class="tick off">✓</span></button>
+                    <button>Люкс<span class="tick off">✓</span></button>
+                  </div>
+                </div>
+                <div class="pop-wrap">
+                  <button class="pt-drop" data-pop="pop-params">Параметры
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+                  <div class="pop" id="pop-params">
+                    <div class="pop-sect">Что показывать в документе</div>
+                    <button>Параметры проекта<span class="tick">✓</span></button>
+                    <button>Суммы разделов<span class="tick">✓</span></button>
+                    <button>Цены опций<span class="tick">✓</span></button>
+                    <button>Базовую комплектацию<span class="tick off">✓</span></button>
+                  </div>
+                </div>
                 <button class="pt-drop">Изображения</button>
                 <span style="flex:1"></span>
                 <button class="w-act"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Печать</button>
                 <button class="w-act primary">PDF</button>
               </div>
 
+              <div class="pane on" data-pane="prt-spec">
               <div class="pt-sheet">
                 <div class="pt-doc">
                   <h3>Спецификация комплектации</h3>
@@ -570,6 +805,48 @@ body.night .w-act.primary{color:#08181a}
                   </div>
                 </div>
               </div>
+              </div><!-- /pane prt-spec -->
+
+              <div class="pane" data-pane="prt-contr">
+                <div class="pt-sheet">
+                  <div class="pt-doc">
+                    <h3>Договор подряда № 41</h3>
+                    <div class="sub">г. Москва · 19 августа 2026 г.</div>
+
+                    <div class="pt-secline"><span class="n">1</span><span class="t">Предмет договора</span></div>
+                    <div style="font-size:.76rem;line-height:1.65;color:var(--bl-ink2);padding:8px 0">
+                      Подрядчик обязуется выполнить работы по изготовлению и монтажу комплекта
+                      <b style="color:var(--bl-ink)">«Хай-тек баня «Брюгге» 6х8»</b> на участке Заказчика,
+                      а Заказчик — принять результат работ и оплатить его.
+                    </div>
+
+                    <div class="pt-secline"><span class="n">2</span><span class="t">Стороны</span></div>
+                    <div class="w-lead-row"><span>Заказчик</span><span class="lead"></span><span class="v">Иванов И. И.</span></div>
+                    <div class="w-lead-row"><span>Телефон</span><span class="lead"></span><span class="v">+7 916 000-00-00</span></div>
+                    <div class="w-lead-row"><span>Адрес участка</span><span class="lead"></span><span class="v">МО, Истра</span></div>
+
+                    <div class="pt-secline"><span class="n">3</span><span class="t">Цена и порядок оплаты</span><span class="s">2 142 194 ₽</span></div>
+                    <div class="w-lead-row"><span>Аванс при подписании — 15 %</span><span class="lead"></span><span class="v">242 550 ₽</span></div>
+                    <div class="w-lead-row"><span>Закупка материалов — 35 %</span><span class="lead"></span><span class="v">565 950 ₽</span></div>
+                    <div class="w-lead-row"><span>Начало монтажа — 30 %</span><span class="lead"></span><span class="v">485 100 ₽</span></div>
+                    <div class="w-lead-row"><span>Финальный платёж — 20 %</span><span class="lead"></span><span class="v">323 400 ₽</span></div>
+
+                    <div class="pt-secline"><span class="n">4</span><span class="t">Сроки</span></div>
+                    <div class="w-lead-row"><span>Срок изготовления и монтажа</span><span class="lead"></span><span class="v">90 дней</span></div>
+
+                    <div style="display:flex;gap:40px;margin-top:26px;padding-top:14px;border-top:2px solid var(--bl-acc)">
+                      <div style="flex:1"><div style="height:34px;border-bottom:1px solid var(--bl-rule2)"></div>
+                        <div style="font-size:.68rem;color:var(--bl-ink3);margin-top:6px">Подрядчик</div></div>
+                      <div style="flex:1"><div style="height:34px;border-bottom:1px solid var(--bl-rule2)"></div>
+                        <div style="font-size:.68rem;color:var(--bl-ink3);margin-top:6px">Заказчик</div></div>
+                    </div>
+                  </div>
+                </div>
+                <div style="font-size:.72rem;color:var(--bl-ink3);padding:0 0 10px;line-height:1.55">
+                  Пустые поля договора подсвечены на экране и не подсвечиваются в печати —
+                  переключатель «Скрыть поля» в строке кнопок.
+                </div>
+              </div><!-- /pane prt-contr -->
             </div>
             <div class="w-foot">
               <div class="w-foot-info">Стиль «Классик» · 4 страницы<b>2 142 194 ₽</b></div>
@@ -590,8 +867,16 @@ body.night .w-act.primary{color:#08181a}
               </div>
             </div>
             <div class="w-rule"></div>
-            <div class="w-tabs"><button class="w-tab on">Год</button><button class="w-tab">Квартал</button><button class="w-tab">Месяц</button><button class="w-tab">Неделя</button></div>
+            <div class="w-tabs">
+              <button class="w-tab" data-tab="ana-day">День</button>
+              <button class="w-tab" data-tab="ana-week">Неделя</button>
+              <button class="w-tab" data-tab="ana-month">Месяц</button>
+              <button class="w-tab" data-tab="ana-quart">Квартал</button>
+              <button class="w-tab on" data-tab="ana-year">Год</button>
+              <button class="w-tab" data-tab="ana-mgr">Менеджеры</button>
+            </div>
             <div class="w-body">
+              <div class="pane on" data-pane="ana-year">
               <div class="an-kpis">
                 <div class="an-kpi"><div class="l">Расчётов</div><div class="v">412</div><div class="n">за период</div></div>
                 <div class="an-kpi"><div class="l">Средний чек</div><div class="v">2,74 млн</div><div class="n">по расчётам</div></div>
@@ -627,6 +912,125 @@ body.night .w-act.primary{color:#08181a}
                 <div class="an-top"><span>Односкатная</span><span class="lead"></span><span class="v">28 %</span></div>
                 <div class="an-top"><span>Плоская</span><span class="lead"></span><span class="v">11 %</span></div>
               </div>
+              </div><!-- /pane ana-year -->
+
+              <div class="pane" data-pane="ana-day">
+                <div class="an-kpis">
+                  <div class="an-kpi"><div class="l">Расчётов</div><div class="v">6</div><div class="n">сегодня</div></div>
+                  <div class="an-kpi"><div class="l">Средний чек</div><div class="v">2,31 млн</div><div class="n">по расчётам</div></div>
+                  <div class="an-kpi"><div class="l">Средняя скидка</div><div class="v">2,4 %</div><div class="n">по расчётам</div></div>
+                  <div class="an-kpi"><div class="l">Ср. площадь</div><div class="v">38 м²</div><div class="n">тёплый контур</div></div>
+                </div>
+                <div class="an-card">
+                  <h4>Активность по часам</h4><div class="sub">Расчётов сохранено</div>
+                  <div class="an-bars">
+                    <div class="an-bar" style="height:12%"></div><div class="an-bar" style="height:34%"></div>
+                    <div class="an-bar" style="height:58%"></div><div class="an-bar" style="height:82%"></div>
+                    <div class="an-bar" style="height:46%"></div><div class="an-bar" style="height:70%"></div>
+                    <div class="an-bar" style="height:28%"></div><div class="an-bar" style="height:16%"></div>
+                  </div>
+                  <div class="an-xrow"><span>9</span><span>11</span><span>13</span><span>15</span><span>17</span><span>19</span><span>21</span><span>23</span></div>
+                </div>
+                <div class="an-card">
+                  <h4>Расчёты за день</h4><div class="sub">По времени сохранения</div>
+                  <div class="an-top"><span>Хай-тек баня «Брюгге» 6х8 · 14:12</span><span class="lead"></span><span class="v">2 142 194 ₽</span></div>
+                  <div class="an-top"><span>Санторини хай-тек · 12:40</span><span class="lead"></span><span class="v">12 733 389 ₽</span></div>
+                  <div class="an-top"><span>Финская баня «Альц Big» 6х7 · 10:05</span><span class="lead"></span><span class="v">3 063 742 ₽</span></div>
+                </div>
+              </div>
+
+              <div class="pane" data-pane="ana-week">
+                <div class="an-kpis">
+                  <div class="an-kpi"><div class="l">Расчётов</div><div class="v">31</div><div class="n">за неделю</div></div>
+                  <div class="an-kpi"><div class="l">Средний чек</div><div class="v">2,58 млн</div><div class="n">по расчётам</div></div>
+                  <div class="an-kpi"><div class="l">Средняя скидка</div><div class="v">2,9 %</div><div class="n">по расчётам</div></div>
+                  <div class="an-kpi"><div class="l">Ср. площадь</div><div class="v">40 м²</div><div class="n">тёплый контур</div></div>
+                </div>
+                <div class="an-card">
+                  <h4>Активность по дням</h4><div class="sub">Расчётов сохранено</div>
+                  <div class="an-bars">
+                    <div class="an-bar" style="height:64%"></div><div class="an-bar" style="height:78%"></div>
+                    <div class="an-bar" style="height:52%"></div><div class="an-bar" style="height:88%"></div>
+                    <div class="an-bar" style="height:96%"></div><div class="an-bar" style="height:30%"></div>
+                    <div class="an-bar" style="height:14%"></div>
+                  </div>
+                  <div class="an-xrow"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
+                </div>
+                <div class="an-card">
+                  <h4>Топ проектов недели</h4><div class="sub">По количеству расчётов</div>
+                  <div class="an-top"><span>Хай-тек баня «Брюгге» 6х8</span><span class="lead"></span><span class="v">7</span></div>
+                  <div class="an-top"><span>Санторини хай-тек</span><span class="lead"></span><span class="v">5</span></div>
+                  <div class="an-top"><span>Финская баня «Альц Big» 6х7</span><span class="lead"></span><span class="v">4</span></div>
+                </div>
+              </div>
+
+              <div class="pane" data-pane="ana-month">
+                <div class="an-kpis">
+                  <div class="an-kpi"><div class="l">Расчётов</div><div class="v">118</div><div class="n">за месяц</div></div>
+                  <div class="an-kpi"><div class="l">Средний чек</div><div class="v">2,69 млн</div><div class="n">по расчётам</div></div>
+                  <div class="an-kpi"><div class="l">Средняя скидка</div><div class="v">3,0 %</div><div class="n">по расчётам</div></div>
+                  <div class="an-kpi"><div class="l">Ср. площадь</div><div class="v">41 м²</div><div class="n">тёплый контур</div></div>
+                </div>
+                <div class="an-card">
+                  <h4>Активность по неделям</h4><div class="sub">Расчётов сохранено</div>
+                  <div class="an-bars">
+                    <div class="an-bar" style="height:58%"></div><div class="an-bar" style="height:74%"></div>
+                    <div class="an-bar" style="height:92%"></div><div class="an-bar" style="height:66%"></div>
+                  </div>
+                  <div class="an-xrow"><span>1-я</span><span>2-я</span><span>3-я</span><span>4-я</span></div>
+                </div>
+                <div class="an-card">
+                  <h4>Топ опций месяца</h4><div class="sub">Как часто добавляют</div>
+                  <div class="an-top"><span>Печь дровяная с закрытой каменкой</span><span class="lead"></span><span class="v">64 %</span></div>
+                  <div class="an-top"><span>Заводская покраска снаружи маслом</span><span class="lead"></span><span class="v">51 %</span></div>
+                  <div class="an-top"><span>Утепление стен — 200 мм</span><span class="lead"></span><span class="v">37 %</span></div>
+                </div>
+              </div>
+
+              <div class="pane" data-pane="ana-quart">
+                <div class="an-kpis">
+                  <div class="an-kpi"><div class="l">Расчётов</div><div class="v">164</div><div class="n">за квартал</div></div>
+                  <div class="an-kpi"><div class="l">Средний чек</div><div class="v">2,72 млн</div><div class="n">по расчётам</div></div>
+                  <div class="an-kpi"><div class="l">Средняя скидка</div><div class="v">3,1 %</div><div class="n">по расчётам</div></div>
+                  <div class="an-kpi"><div class="l">Ср. площадь</div><div class="v">42 м²</div><div class="n">тёплый контур</div></div>
+                </div>
+                <div class="an-card">
+                  <h4>Активность по месяцам</h4><div class="sub">Расчётов сохранено</div>
+                  <div class="an-bars">
+                    <div class="an-bar" style="height:73%"></div><div class="an-bar" style="height:96%"></div>
+                    <div class="an-bar" style="height:59%"></div>
+                  </div>
+                  <div class="an-xrow"><span>июн</span><span>июл</span><span>авг</span></div>
+                </div>
+                <div class="an-card">
+                  <h4>Тип кровли</h4><div class="sub">% выбора по расчётам</div>
+                  <div class="an-top"><span>Двускатная</span><span class="lead"></span><span class="v">59 %</span></div>
+                  <div class="an-top"><span>Односкатная</span><span class="lead"></span><span class="v">30 %</span></div>
+                  <div class="an-top"><span>Плоская</span><span class="lead"></span><span class="v">11 %</span></div>
+                </div>
+              </div>
+
+              <div class="pane" data-pane="ana-mgr">
+                <div style="font-size:.72rem;color:var(--bl-ink3);padding:16px 0 4px;line-height:1.55">
+                  Вкладка видна администратору. Показатели считаются по каждому менеджеру
+                  за выбранный период.
+                </div>
+                <div class="an-kpis">
+                  <div class="an-kpi"><div class="l">Менеджеров</div><div class="v">6</div><div class="n">с расчётами</div></div>
+                  <div class="an-kpi"><div class="l">Расчётов</div><div class="v">412</div><div class="n">за год</div></div>
+                  <div class="an-kpi"><div class="l">Лидер</div><div class="v" style="font-size:.95rem">Шевалдов</div><div class="n">128 расчётов</div></div>
+                  <div class="an-kpi"><div class="l">Сумма</div><div class="v">1,13 млрд</div><div class="n">по расчётам</div></div>
+                </div>
+                <div class="an-card">
+                  <h4>По менеджерам</h4><div class="sub">Расчётов · сумма · средний чек</div>
+                  <div class="an-top"><span>Анатолий Шевалдов</span><span class="lead"></span><span class="v">128 · 351 млн · 2,74 млн</span></div>
+                  <div class="an-top"><span>Мария Егорова</span><span class="lead"></span><span class="v">96 · 268 млн · 2,79 млн</span></div>
+                  <div class="an-top"><span>Константин Кислицын</span><span class="lead"></span><span class="v">74 · 196 млн · 2,65 млн</span></div>
+                  <div class="an-top"><span>Игорь Панов</span><span class="lead"></span><span class="v">58 · 151 млн · 2,60 млн</span></div>
+                  <div class="an-top"><span>Ольга Ким</span><span class="lead"></span><span class="v">33 · 92 млн · 2,79 млн</span></div>
+                  <div class="an-top"><span>Дмитрий Русак</span><span class="lead"></span><span class="v">23 · 62 млн · 2,70 млн</span></div>
+                </div>
+              </div>
             </div>
             <div class="w-foot">
               <div class="w-foot-info">Всего за год<b>412 расчётов · 1,13 млрд ₽</b></div>
@@ -648,8 +1052,9 @@ body.night .w-act.primary{color:#08181a}
               </div>
             </div>
             <div class="w-rule"></div>
-            <div class="w-tabs"><button class="w-tab on">Таблица</button><button class="w-tab">Редактор</button></div>
+            <div class="w-tabs"><button class="w-tab on" data-tab="kit-tbl">Таблица</button><button class="w-tab" data-tab="kit-ed">Редактор</button></div>
             <div class="w-body">
+              <div class="pane on" data-pane="kit-tbl">
               <div class="kt-pills">
                 <button class="w-chip on">Базовая</button>
                 <button class="w-chip">Стандарт</button>
@@ -694,6 +1099,46 @@ body.night .w-act.primary{color:#08181a}
                   </tfoot>
                 </table>
               </div>
+              </div><!-- /pane kit-tbl -->
+
+              <div class="pane" data-pane="kit-ed">
+                <div class="ed-sub">
+                  <button class="on">Опции</button><button>Группы выбора</button>
+                </div>
+                <div class="pr-search" style="margin-top:12px">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input class="w-inp" style="border:none" placeholder="Поиск по опциям…">
+                </div>
+                <div class="kt-pills" style="padding-top:10px">
+                  <button class="w-chip on">Базовая</button><button class="w-chip">Стандарт</button>
+                  <button class="w-chip">Комфорт</button><button class="w-chip">Премиум</button>
+                </div>
+                <div style="font-size:.72rem;color:var(--bl-ink3);padding:6px 0 4px;line-height:1.55">
+                  Отмечайте, что входит в выбранный вариант. Изменения применяются к комплектации
+                  проекта, а не к текущему расчёту.
+                </div>
+
+                <div class="w-sect">01 · Фундамент и цоколь</div>
+                <div class="ed-row"><div class="nm">Свайно-винтовой фундамент<small>D108 / L2500</small></div>
+                  <div class="ed-marks"><button class="ed-mark on" title="Входит">✓</button><button class="ed-mark" title="Не входит">—</button></div></div>
+                <div class="ed-row"><div class="nm">Закрытие цоколя профлистом<small>цвет на выбор</small></div>
+                  <div class="ed-marks"><button class="ed-mark" title="Входит">✓</button><button class="ed-mark on" title="Не входит">—</button></div></div>
+
+                <div class="w-sect">07 · Покраска</div>
+                <div class="ed-row"><div class="nm">Заводская покраска снаружи маслом</div>
+                  <div class="ed-marks"><button class="ed-mark" title="Входит">✓</button><button class="ed-mark on" title="Не входит">—</button></div></div>
+                <div class="ed-row"><div class="nm">Обработка террасной доски маслом</div>
+                  <div class="ed-marks"><button class="ed-mark" title="Входит">✓</button><button class="ed-mark on" title="Не входит">—</button></div></div>
+
+                <div class="w-sect">10 · Печь</div>
+                <div class="ed-row"><div class="nm">Печь дровяная с закрытой каменкой</div>
+                  <div class="ed-marks"><button class="ed-mark" title="Входит">✓</button><button class="ed-mark on" title="Не входит">—</button></div></div>
+
+                <button class="w-dash">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Добавить вариант комплектации
+                </button>
+              </div><!-- /pane kit-ed -->
             </div>
             <div class="w-foot">
               <div class="w-foot-info">Выбран вариант<b>Базовая · 2 142 194 ₽</b></div>
@@ -713,8 +1158,13 @@ body.night .w-act.primary{color:#08181a}
               </div>
             </div>
             <div class="w-rule"></div>
-            <div class="w-tabs"><button class="w-tab on">Основные</button><button class="w-tab">Горячие клавиши</button></div>
+            <div class="w-tabs">
+              <button class="w-tab on" data-tab="set-main">Основные</button>
+              <button class="w-tab" data-tab="set-acc">Аккаунт</button>
+              <button class="w-tab" data-tab="set-keys">Горячие клавиши</button>
+            </div>
             <div class="w-body">
+              <div class="pane on" data-pane="set-main">
 
               <div class="w-sect">Внешний вид</div>
               <div class="st-row">
@@ -765,6 +1215,79 @@ body.night .w-act.primary{color:#08181a}
                   <input class="w-inp" style="text-align:right" value="2,4"><span style="font-size:.68rem;color:var(--bl-ink3)">%</span>
                 </div>
               </div>
+              </div><!-- /pane set-main -->
+
+              <div class="pane" data-pane="set-acc">
+                <div class="ac-top">
+                  <div class="ac-ava">КК</div>
+                  <div class="ac-who">
+                    <div class="n">Константин Кислицын</div>
+                    <div class="m">kislitsynkos@gmail.com</div>
+                  </div>
+                  <div class="ac-role">админ</div>
+                </div>
+
+                <div class="w-sect">Профиль</div>
+                <div class="st-row">
+                  <div class="st-txt"><div class="st-label">Фото профиля</div><div class="st-sub">JPEG, PNG, WebP · до 5 МБ · используется в КП</div></div>
+                  <button class="w-act">Заменить</button>
+                </div>
+                <div class="st-row">
+                  <div class="st-txt"><div class="st-label">Имя</div></div>
+                  <div style="width:170px"><input class="w-inp" value="Константин"></div>
+                </div>
+                <div class="st-row">
+                  <div class="st-txt"><div class="st-label">Фамилия</div></div>
+                  <div style="width:170px"><input class="w-inp" value="Кислицын"></div>
+                </div>
+
+                <div class="w-sect">Синхронизация пресетов</div>
+                <div class="st-row">
+                  <div class="st-txt"><div class="st-label">Облачное хранилище</div><div class="st-sub">Пресеты синхронизируются при входе</div></div>
+                  <button class="st-sw on" aria-pressed="true"><i></i></button>
+                </div>
+                <div class="w-lead-row"><span style="color:var(--bl-ink3)">Последняя синхронизация</span><span class="lead"></span><span class="v">21 авг., 00:14</span></div>
+                <div class="st-row">
+                  <div class="st-txt"><div class="st-label">Авто-синхронизация</div><div class="st-sub">Интервал фоновой синхронизации</div></div>
+                  <div class="st-seg"><button>5 мин</button><button class="on">15 мин</button><button>Час</button></div>
+                </div>
+
+                <div class="w-sect">Безопасность</div>
+                <div class="st-row" style="border-bottom:none">
+                  <div class="st-txt"><div class="st-label">Пароль</div><div class="st-sub">Управление паролем аккаунта</div></div>
+                  <button class="w-act">Сменить</button>
+                </div>
+                <button class="w-dash" style="border-color:var(--bl-warn);color:var(--bl-warn)">Выйти из аккаунта</button>
+              </div><!-- /pane set-acc -->
+
+              <div class="pane" data-pane="set-keys">
+                <div class="w-sect">Действия</div>
+                <div class="kb-row"><span>Открыть поиск по опциям</span><span class="lead"></span>
+                  <span class="kb-keys"><span class="kb-key">F</span></span></div>
+                <div class="kb-row"><span>Боковая панель разделов</span><span class="lead"></span>
+                  <span class="kb-keys"><span class="kb-key">←</span><span class="kb-key">→</span></span></div>
+                <div class="kb-row"><span>В меню разделов: вкл/откл всё</span><span class="lead"></span>
+                  <span class="kb-keys"><span class="kb-key">←</span><span class="kb-key">→</span></span></div>
+                <div class="kb-row"><span>В меню разделов: галочка</span><span class="lead"></span>
+                  <span class="kb-keys"><span class="kb-key">Enter</span></span></div>
+                <div class="kb-row"><span>Закрыть окно / выйти из печати</span><span class="lead"></span>
+                  <span class="kb-keys"><span class="kb-key">Esc</span></span></div>
+
+                <div class="w-sect">Навигация по разделам</div>
+                <div class="kb-row"><span>Начало страницы</span><span class="lead"></span>
+                  <span class="kb-keys"><span class="kb-key">0</span></span></div>
+                <div class="kb-row"><span>1. Фундамент</span><span class="lead"></span>
+                  <span class="kb-keys"><span class="kb-key">1</span></span></div>
+                <div class="kb-row"><span>2. Каркас</span><span class="lead"></span>
+                  <span class="kb-keys"><span class="kb-key">2</span></span></div>
+                <div class="kb-row"><span>7. Покраска</span><span class="lead"></span>
+                  <span class="kb-keys"><span class="kb-key">7</span></span></div>
+                <div class="kb-row"><span>10. Печь</span><span class="lead"></span>
+                  <span class="kb-keys"><span class="kb-key">1</span><span class="kb-key">0</span></span></div>
+                <div style="font-size:.72rem;color:var(--bl-ink3);padding:12px 0 4px;line-height:1.55">
+                  Двузначный раздел — быстрое двойное нажатие: 1 → 0.
+                </div>
+              </div><!-- /pane set-keys -->
             </div>
             <div class="w-foot">
               <div class="w-foot-info">Настройки сохраняются сразу<b>Версия v2.5.1</b></div>
@@ -786,6 +1309,7 @@ body.night .w-act.primary{color:#08181a}
       <li><b>Номер договора — крупной бледной цифрой</b>, как номер раздела. Под ним перечень входящих разделов.</li>
       <li><b>«Итого распределено» — строка с отточием.</b> Недобор охрой, перебор красным.</li>
       <li><b>Кнопки ушли в подвал</b>, крестик остался в углу. Корзина проявляется при наведении, на телефоне видна всегда.</li>
+          <li><b>Вкладка «Договоры».</b> Разделы разложены по договорам овалами с ручкой для перетаскивания, у каждого договора свой цвет-метка и сумма. Внизу зона «Не назначено» и строка «Все разделы распределены» — она же предупредит, если раздел выпал.</li>
     </ul>
   </div>
   <div class="mk-note" data-note="pre" hidden>
@@ -796,6 +1320,8 @@ body.night .w-act.primary{color:#08181a}
       <li><b>Полоска слева вместо цветной рамки:</b> охра — избранное, бирюза — свой пресет.</li>
       <li><b>Код внизу карточки — тоже строка с отточием</b>, набран разрядкой, чтобы диктовать по телефону.</li>
       <li><b>Метка «мой» / «для всех»</b> — мелкими прописными без плашки: в «Бланке» плашка выглядит наклейкой на бланке.</li>
+          <li><b>Вкладка «Общие».</b> То же, но с фильтром «Все / Мои», отметкой «для всех» или «только админ», кнопкой чек-листа и строкой кода с «Скопировать».</li>
+      <li><b>Вкладка «Поиск».</b> Одно поле на все пресеты, фильтр из трёх овалов и подсказка, по чему искать. Пустое состояние объясняет про код из шести цифр, а не молчит.</li>
     </ul>
   </div>
   <div class="mk-note" data-note="prt" hidden>
@@ -806,6 +1332,9 @@ body.night .w-act.primary{color:#08181a}
       <li><b>Разделы документа</b> набраны так же, как на экране: крупная бледная цифра, название, сумма справа.</li>
       <li><b>Строки позиций — на отточии</b>, включённые в базу помечены словом «включено» вместо цены.</li>
       <li><b>Подвал говорит, что печатается:</b> стиль и число страниц слева, «Печать» и «PDF» справа.</li>
+          <li><b>Выбор документа — сегментом, а не выпадающим списком.</b> Значений всего два, «Спецификация» и «Договор»; список из двух пунктов прячет половину выбора без причины.</li>
+      <li><b>Вкладка «Договор»</b> показывает сам договор: предмет, стороны, цена с разбивкой по этапам, сроки и подписи на линейках.</li>
+      <li><b>Меню «Классик» и «Параметры» раскрываются.</b> Пять стилей и четыре галочки — что показывать в документе. На телефоне меню раскрывается на всю ширину строки кнопок, иначе пункт вроде «Базовую комплектацию» ужимается в две строки.</li>
     </ul>
   </div>
   <div class="mk-note" data-note="ana" hidden>
@@ -815,6 +1344,8 @@ body.night .w-act.primary{color:#08181a}
       <li><b>Столбики — заливка с линией сверху</b>, без скруглений и теней: диаграмма читается как чертёж, а не как виджет.</li>
       <li><b>Списки «Топ проектов» и «Тип кровли» — строки с отточием</b>, те же, что в спецификации.</li>
       <li><b>Период — вкладками</b>, а не выпадающим списком: четыре значения проще показать целиком.</li>
+          <li><b>Пять периодов вкладками:</b> день, неделя, месяц, квартал, год. У каждого своя разбивка по времени — часы, дни недели, недели, месяцы — и свой набор списков.</li>
+      <li><b>Вкладка «Менеджеры»</b> видна администратору: расчёты, сумма и средний чек по каждому, строкой с отточием.</li>
     </ul>
   </div>
   <div class="mk-note" data-note="kit" hidden>
@@ -825,6 +1356,7 @@ body.night .w-act.primary{color:#08181a}
       <li><b>Различия подсвечены заливкой строки</b>, а не цветом текста: видно, где варианты расходятся, не вчитываясь.</li>
       <li><b>Варианты — овалами</b>, выбранный обведён акцентом. Это единственное скруглённое место в окне.</li>
       <li><b>На узком экране таблица прокручивается вбок</b> внутри своей рамки, страница при этом не едет.</li>
+          <li><b>Вкладка «Редактор».</b> Под-вкладки «Опции» и «Группы выбора», поиск, овалы вариантов и строки с двумя отметками — входит или нет. Отмечается вариант комплектации, а не текущий расчёт, и это сказано прямо в окне.</li>
     </ul>
   </div>
   <div class="mk-note" data-note="set" hidden>
@@ -835,6 +1367,8 @@ body.night .w-act.primary{color:#08181a}
       <li><b>Переключатели остались тумблерами</b> — это единственный способ показать «включено / выключено» без слов; выбор из трёх и более значений — сегментами.</li>
       <li><b>Числовое поле — на линейке</b>, выровнено вправо, как суммы в других окнах.</li>
       <li><b>На телефоне подпись и управление встают друг под другом</b>, а не сжимаются в одну строку.</li>
+          <li><b>Вкладка «Аккаунт».</b> Шапка с инициалами, именем, почтой и ролью; профиль, синхронизация с интервалом сегментом, безопасность. Выход из аккаунта — отдельной пунктирной кнопкой красным, чтобы не нажать случайно.</li>
+      <li><b>Вкладка «Горячие клавиши».</b> Строки с отточием, клавиши в рамках справа — читается как таблица, а не как список подсказок.</li>
     </ul>
   </div>
 </div>
@@ -891,16 +1425,56 @@ document.querySelectorAll('.st-sw').forEach(t => t.onclick = () => {
   const вкл = t.classList.toggle('on');
   t.setAttribute('aria-pressed', вкл ? 'true' : 'false');
 });
+// Переключение под-экрана: вкладка или сегмент указывает на пласт data-pane
+// внутри того же окна. Так вкладки в макете работают по-настоящему, а не
+// перекрашиваются — иначе половину экранов было бы негде посмотреть.
+function показатьПласт(кнопка){
+  const id = кнопка.dataset.tab;
+  if (!id) return;
+  const окно = кнопка.closest('.win');
+  if (!окно) return;
+  окно.querySelectorAll(':scope .pane').forEach(п =>
+    п.classList.toggle('on', п.dataset.pane === id));
+  requestAnimationFrame(масштаб);
+}
 document.querySelectorAll('.st-seg').forEach(g =>
   g.querySelectorAll('button').forEach(b => b.onclick = () => {
     g.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on'); показатьПласт(b);
+  }));
+document.querySelectorAll('.ed-sub').forEach(g =>
+  g.querySelectorAll('button').forEach(b => b.onclick = () => {
+    g.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+  }));
+document.querySelectorAll('.ed-marks').forEach(g =>
+  g.querySelectorAll('.ed-mark').forEach(b => b.onclick = () => {
+    g.querySelectorAll('.ed-mark').forEach(x => x.classList.remove('on'));
     b.classList.add('on');
   }));
 document.querySelectorAll('.w-tabs').forEach(g =>
   g.querySelectorAll('.w-tab').forEach(b => b.onclick = () => {
     g.querySelectorAll('.w-tab').forEach(x => x.classList.remove('on'));
-    b.classList.add('on');
+    b.classList.add('on'); показатьПласт(b);
   }));
+
+// Всплывающие меню кнопок печати
+document.querySelectorAll('[data-pop]').forEach(b => b.onclick = e => {
+  e.stopPropagation();
+  const цель = document.getElementById(b.dataset.pop);
+  const былоОткрыто = цель.classList.contains('on');
+  document.querySelectorAll('.pop').forEach(m => m.classList.remove('on'));
+  if (!былоОткрыто) цель.classList.add('on');
+});
+document.querySelectorAll('.pop').forEach(m => {
+  m.addEventListener('click', e => e.stopPropagation());
+  m.querySelectorAll('button').forEach(b => b.onclick = () => {
+    m.querySelectorAll('.tick').forEach(t => t.classList.add('off'));
+    const t = b.querySelector('.tick'); if (t) t.classList.remove('off');
+  });
+});
+document.addEventListener('click', () =>
+  document.querySelectorAll('.pop').forEach(m => m.classList.remove('on')));
 document.querySelectorAll('.kt-pills, .kt-ctrls').forEach(g =>
   g.querySelectorAll('.w-chip').forEach(b => b.onclick = () => {
     g.querySelectorAll('.w-chip').forEach(x => x.classList.remove('on'));
