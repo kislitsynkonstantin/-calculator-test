@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Разделы по договорам — три варианта</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&family=Unbounded:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────────────────────────────────
+   Страница макета. Своё оформление — нейтральное, чтобы не спорить с
+   вариантами: они внутри рамок живут в токенах калькулятора.
+   ───────────────────────────────────────────────────────────────────────── */
+:root{
+  --page:#f0fafa; --card:#fff; --ink:#0f1c1d; --ink2:#4a5f61; --ink3:#82999b;
+  --accent:#1e6c72; --accent2:#2a8f97; --line:#cfe9eb; --tint:#e4f5f6;
+}
+@media(prefers-color-scheme:dark){:root{
+  --page:#0b1618; --card:#122528; --ink:#e6f3f3; --ink2:#9db6b8; --ink3:#6d8688;
+  --accent:#4cbcc5; --accent2:#6fd3da; --line:#20444a; --tint:#15343a;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);line-height:1.6;
+  font-family:'Geologica',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px}
+.eyebrow{font-size:.68rem;text-transform:uppercase;letter-spacing:.14em;
+  color:var(--accent2);font-weight:600}
+h1{font-family:'Unbounded',sans-serif;font-size:1.5rem;font-weight:600;
+  letter-spacing:-.02em;margin:.25em 0 .4em;line-height:1.25}
+h2{font-family:'Unbounded',sans-serif;font-size:1.06rem;font-weight:600;
+  letter-spacing:-.015em;margin:0 0 .25em}
+p{color:var(--ink2);margin:0 0 16px;max-width:66ch}
+.lead{font-size:1.02rem}
+.note{font-size:.86rem}
+
+/* ── Панель управления ── */
+.bar{position:sticky;top:0;z-index:20;background:var(--page);
+  border-bottom:1px solid var(--line);margin:0 -20px 26px;padding:12px 20px;
+  display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.bar .grp{display:flex;align-items:center;gap:8px}
+.bar .lbl{font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--ink3);font-weight:600}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;
+  background:var(--card)}
+.seg button{appearance:none;border:none;background:none;cursor:pointer;
+  font-family:inherit;font-size:.78rem;color:var(--ink2);padding:8px 13px;
+  min-height:38px;transition:background .15s,color .15s}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff;font-weight:500}
+
+/* ── Карточка варианта ── */
+.variant{margin:0 0 44px}
+.variant > header{margin:0 0 16px}
+.badge{display:inline-block;font-size:.66rem;letter-spacing:.12em;font-weight:700;
+  text-transform:uppercase;color:var(--accent2);margin-bottom:4px}
+.fixes{list-style:none;padding:0;margin:0 0 18px;display:flex;flex-direction:column;gap:5px;max-width:66ch}
+.fixes li{position:relative;padding-left:19px;color:var(--ink2);font-size:.88rem}
+.fixes li::before{content:'';position:absolute;left:2px;top:.62em;width:7px;height:7px;
+  border-radius:2px;background:var(--accent2)}
+.pick{display:inline-flex;align-items:center;gap:7px;font-size:.8rem;color:var(--accent);
+  font-weight:500;border:1px solid var(--line);border-radius:999px;padding:4px 12px;
+  background:var(--tint);margin-bottom:14px}
+
+/* ── Рамка устройства ── */
+.frame{margin:0 auto;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  box-shadow:0 10px 34px rgba(18,38,42,.09);background:var(--card);
+  transition:max-width .2s}
+
+
+/* ═════════════════════════════════════════════════════════════════════════
+   ТОКЕНЫ КАЛЬКУЛЯТОРА. Четыре набора: две темы × день/ночь. Значения взяты
+   из index.html один в один, ничего не придумано.
+   ═══════════════════════════════════════════════════════════════════════ */
+.stage{font-family:'Geologica',sans-serif;padding:16px;background:var(--s-page);
+  color:var(--s-ink)}
+.stage[data-ui="modern"][data-mode="day"]{
+  --s-page:#f0fafa; --s-card:#fff; --s-field:#f7fefe;
+  --s-ink:#111; --s-ink2:#555; --s-ink3:#888;
+  --s-line:#3db0ba; --s-line2:#a8dde0; --s-acc:#1e6c72; --s-acc2:#2a8f97;
+  --s-tint:#e4f5f6; --s-pale:#a8dde0;
+}
+.stage[data-ui="modern"][data-mode="night"]{
+  --s-page:#111e20; --s-card:#1a2a2c; --s-field:#1e3538;
+  --s-ink:#e8f4f5; --s-ink2:#9ab8bc; --s-ink3:#6a9098;
+  --s-line:#2a8f97; --s-line2:#2a4a4e; --s-acc:#3db0ba; --s-acc2:#2a8f97;
+  --s-tint:#1e3538; --s-pale:#3db0ba;
+}
+.stage[data-ui="blank"][data-mode="day"]{
+  --s-page:#f7fbfb; --s-card:#fff; --s-field:#fff;
+  --s-ink:#12262a; --s-ink2:#5b7376; --s-ink3:#8da3a5;
+  --s-line:#dceaeb; --s-line2:#bcd9db; --s-acc:#1e6c72; --s-acc2:#2a8f97;
+  --s-tint:#e4f5f6; --s-pale:#a8dde0;
+}
+.stage[data-ui="blank"][data-mode="night"]{
+  --s-page:#0e1a1c; --s-card:#132528; --s-field:#132528;
+  --s-ink:#e6f3f3; --s-ink2:#9db6b8; --s-ink3:#8aa4a6;
+  --s-line:#224347; --s-line2:#2d585d; --s-acc:#8fd6dc; --s-acc2:#5fc2ca;
+  --s-tint:#173338; --s-pale:#5fc2ca;
+}
+.stage{background:var(--s-card)}
+
+/* Общее для всех вариантов */
+.hint{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding-top:2px;margin-bottom:14px}
+.hint > span{font-size:.72rem;color:var(--s-ink3);line-height:1.45}
+.hint > button{appearance:none;background:none;font-family:inherit;cursor:pointer;
+  position:relative;font-size:.7rem;line-height:1.2;color:var(--s-ink);
+  border:1px solid var(--s-line2);border-radius:8px;padding:6px 12px;min-height:30px;
+  white-space:nowrap;flex-shrink:0;transition:border-color .15s,color .15s}
+.hint > button::before{content:'';position:absolute;inset:-7px}
+.hint > button:hover{border-color:var(--s-acc2);color:var(--s-acc)}
+.stage[data-ui="modern"] .hint > button{background:var(--s-field);border-radius:7px}
+
+.gnum{font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
+.dot{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+.ghandle{width:13px;flex-shrink:0;display:flex;flex-direction:column;gap:2.5px;
+  opacity:.45;cursor:grab}
+.ghandle span{display:block;height:1.5px;border-radius:2px;background:var(--s-ink3)}
+
+.drag-ghost{position:fixed;z-index:9999;pointer-events:none;opacity:.94;
+  border-radius:9px;padding:9px 12px;font-size:.76rem;font-family:'Geologica',sans-serif;
+  box-shadow:0 10px 26px rgba(18,38,42,.28)}
+
+/* ═══ ВАРИАНТ 1 — ВЕДОМОСТЬ ═══════════════════════════════════════════════ */
+.v1 .grp-head{display:flex;align-items:center;gap:10px;padding:14px 0 8px;
+  border-top:1.5px solid var(--s-line2)}
+.v1 .grp-head:first-of-type{border-top:none;padding-top:2px}
+.v1 .grp-name{font-family:'Unbounded',sans-serif;font-size:.82rem;font-weight:600;
+  letter-spacing:-.01em;color:var(--s-ink);flex:1;min-width:0}
+.v1 .grp-count{font-size:.68rem;color:var(--s-ink3);letter-spacing:.04em;white-space:nowrap}
+.v1 .list{display:flex;flex-direction:column;padding:2px 0 8px;border-radius:8px;
+  transition:background .12s,box-shadow .12s}
+.v1 .list.over{background:var(--s-tint);box-shadow:0 0 0 6px var(--s-tint)}
+.v1 .row{display:grid;grid-template-columns:26px minmax(0,1fr) 13px;align-items:center;
+  gap:10px;padding:9px 6px;min-height:42px;border-bottom:1px solid var(--s-line);
+  touch-action:none;cursor:grab;transition:background .12s}
+.v1 .row:last-child{border-bottom:none}
+.v1 .row:hover{background:var(--s-tint)}
+.v1 .rnum{font-size:.72rem;color:var(--s-pale);text-align:right;font-weight:600}
+.v1 .rname{font-size:.79rem;color:var(--s-ink);min-width:0}
+.v1 .empty{padding:16px 6px;font-size:.72rem;color:var(--s-ink3);text-align:center;
+  border:1px dashed var(--s-line2);border-radius:9px;margin:4px 0 8px}
+/* «Модерн» — тот же скелет, но карточками: это его язык */
+.stage[data-ui="modern"] .v1 .list{background:var(--s-field);border:1px solid var(--s-line2);
+  border-radius:10px;padding:2px 8px 2px}
+.stage[data-ui="modern"] .v1 .grp-head{border-top:none;padding:16px 2px 8px}
+.stage[data-ui="modern"] .v1 .row{border-bottom:1px solid var(--s-line2)}
+.stage[data-ui="modern"] .v1 .row:hover{background:var(--s-tint)}
+.stage[data-ui="modern"] .v1 .empty{border:none;margin:0;padding:20px 6px}
+
+/* ═══ ВАРИАНТ 2 — ДВЕ КОЛОНКИ ════════════════════════════════════════════ */
+.v2 .cols{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.v2.wide .cols{grid-template-columns:minmax(0,220px) minmax(0,1fr);align-items:start}
+.v2 .pool{border:1px dashed var(--s-line2);border-radius:10px;padding:10px 11px 12px}
+.v2 .pool.over,.v2 .box.over{background:var(--s-tint)}
+.v2 .cap{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+  color:var(--s-ink3);font-family:'Unbounded',sans-serif;margin-bottom:8px}
+.v2 .box{border-top:1.5px solid var(--s-line2);padding:12px 0 10px;
+  transition:background .12s}
+.v2 .box + .box{margin-top:6px}
+.stage[data-ui="modern"] .v2 .box{border:1px solid var(--s-line2);border-radius:10px;
+  padding:12px;background:var(--s-field)}
+.v2 .bhead{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.v2 .bname{font-family:'Unbounded',sans-serif;font-size:.8rem;font-weight:600;
+  color:var(--s-ink);flex:1;min-width:0}
+.v2 .bsum{font-size:.7rem;color:var(--s-ink3);white-space:nowrap}
+.v2 .items{display:flex;flex-wrap:wrap;gap:6px}
+.v2 .pool .items{flex-direction:column;flex-wrap:nowrap}
+.v2 .pill{position:relative;display:inline-flex;align-items:center;gap:8px;padding:8px 11px;
+  border:1px solid var(--s-line2);border-radius:9px;background:var(--s-card);
+  font-size:.75rem;color:var(--s-ink);min-height:38px;cursor:grab;touch-action:none;
+  transition:border-color .12s}
+/* На глаз 38 px, для пальца 44: поле нажатия берёт ровно половину зазора
+   в 6 px с каждой стороны, поэтому соседние поля не перекрывают друг друга
+   и не крадут нажатия. */
+.v2 .pill::before{content:'';position:absolute;inset:-3px}
+.v2 .pill:hover{border-color:var(--s-acc2)}
+.v2 .pill b{font-weight:600;color:var(--s-pale);font-size:.7rem}
+.v2 .none{font-size:.72rem;color:var(--s-ink3);padding:6px 2px}
+
+/* ═══ ВАРИАНТ 3 — БЕЗ ПЕРЕТАСКИВАНИЯ ═════════════════════════════════════ */
+.v3 .row{display:grid;grid-template-columns:3px 24px minmax(0,1fr) auto;align-items:center;
+  gap:11px;padding:8px 0;border-bottom:1px solid var(--s-line)}
+.v3 .row:last-of-type{border-bottom:none}
+.v3 .stripe{align-self:stretch;border-radius:2px;min-height:26px}
+.v3 .rnum{font-size:.72rem;color:var(--s-pale);text-align:right;font-weight:600}
+.v3 .rname{font-size:.79rem;color:var(--s-ink);min-width:0}
+.v3 .switch{display:flex;gap:6px;flex-shrink:0}
+.v3 .switch button{appearance:none;font-family:'Unbounded',sans-serif;cursor:pointer;
+  position:relative;font-size:.6rem;font-weight:700;letter-spacing:.04em;
+  border:1px solid var(--s-line2);background:none;color:var(--s-ink3);
+  border-radius:8px;padding:0 8px;height:38px;min-width:38px;
+  transition:background .13s,color .13s,border-color .13s}
+/* Поле нажатия — половина зазора, не больше: при -7 px поля соседних кнопок
+   перекрывались, и соседняя кнопка перехватывала угол этой. */
+.v3 .switch button::before{content:'';position:absolute;inset:-3px}
+.v3 .switch button:hover{border-color:var(--s-acc2);color:var(--s-acc)}
+.v3 .switch button[aria-pressed="true"]{color:var(--s-ink);border-width:1.5px;font-weight:700}
+.stage[data-ui="modern"] .v3 .switch button{background:var(--s-field)}
+.v3 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:12px 0 4px;
+  border-top:1.5px solid var(--s-line2);margin-top:10px}
+.v3 .lg{display:flex;align-items:center;gap:8px;font-size:.73rem;color:var(--s-ink2)}
+.v3 .lg b{font-weight:500;color:var(--s-ink)}
+.v3 .lg i{font-style:normal;color:var(--s-ink3);font-size:.68rem}
+
+footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--line);
+  color:var(--ink3);font-size:.82rem}
+code{background:var(--tint);color:var(--accent);padding:1px 5px;border-radius:4px;
+  font-family:ui-monospace,Menlo,monospace;font-size:.86em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">Платёжный план · вкладка «Договоры»</div>
+  <h1>Разделы по договорам — три варианта</h1>
+  <p class="lead">Сейчас каждый раздел — коробка во всю ширину, а справа на ней метка договора,
+    в котором он и так лежит. Двенадцать коробок весят больше, чем список из двенадцати строк,
+    метка повторяет заголовок над собой, а «Не назначено» стоит внизу — далеко от того места,
+    куда раздел надо перенести.</p>
+  <p class="note">Переключатели ниже меняют тему, время суток и ширину экрана сразу во всех трёх
+    вариантах. Разделы живые: в первых двух перетаскиваются, в третьем переключаются нажатием.
+    Состояние общее — переставил в одном, увидел в остальных.</p>
+
+  <div class="bar">
+    <div class="grp"><span class="lbl">Тема</span>
+      <div class="seg" id="segUi">
+        <button data-v="modern" aria-pressed="true">Модерн</button>
+        <button data-v="blank" aria-pressed="false">Бланк</button>
+      </div>
+    </div>
+    <div class="grp"><span class="lbl">Время</span>
+      <div class="seg" id="segMode">
+        <button data-v="day" aria-pressed="true">День</button>
+        <button data-v="night" aria-pressed="false">Ночь</button>
+      </div>
+    </div>
+    <div class="grp"><span class="lbl">Ширина</span>
+      <div class="seg" id="segW">
+        <button data-v="390" aria-pressed="true">390</button>
+        <button data-v="768" aria-pressed="false">768</button>
+        <button data-v="1100" aria-pressed="false">1100</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Вариант 1 ── -->
+  <section class="variant">
+    <header>
+      <div class="badge">Вариант 1</div>
+      <h2>Ведомость</h2>
+      <p>Договор — заголовок с линейкой, разделы под ним — строки, а не коробки. Номер раздела
+        вынесен в свою колонку, поэтому номера стоят столбиком и список читается сверху вниз
+        одним движением. Метка договора убрана: строка и так стоит под его заголовком.</p>
+    </header>
+    <ul class="fixes">
+      <li>Двенадцать рамок заменены двенадцатью строками — вес блока падает вчетверо.</li>
+      <li>Ушло повторение: «ОД» на каждой строке внутри «Основного договора».</li>
+      <li>Номера разделов выровнены в колонку — видно пропуски в нумерации.</li>
+      <li>Зона сброса — вся группа целиком, промахнуться труднее, чем по узкой рамке.</li>
+    </ul>
+    <div class="frame" data-frame>
+      <div class="stage" data-stage>
+        <div class="hint"><span>Перетащите разделы в нужный договор.</span><button type="button" data-reset>↺ Разбить</button></div>
+        <div class="v1" data-v1></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Вариант 2 ── -->
+  <section class="variant">
+    <header>
+      <div class="badge">Вариант 2</div>
+      <h2>Две колонки: слева нераспределённое</h2>
+      <p>«Не назначено» переезжает наверх и остаётся на виду: на широком экране — отдельной
+        колонкой слева, на телефоне — полосой над договорами. Разделы внутри договора становятся
+        компактными строками по содержимому, а не полосами во всю ширину.</p>
+    </header>
+    <ul class="fixes">
+      <li>Источник и приёмник рядом — не нужно листать вниз за нераспределённым разделом.</li>
+      <li>Видно сразу, что осталось раздать: счётчик стоит в шапке колонки.</li>
+      <li>Ширина строки — по названию, пустое место в середине исчезает.</li>
+      <li>На телефоне колонки складываются в одну, порядок сохраняется.</li>
+    </ul>
+    <div class="frame" data-frame>
+      <div class="stage" data-stage>
+        <div class="hint"><span>Перетащите разделы в нужный договор.</span><button type="button" data-reset>↺ Разбить</button></div>
+        <div class="v2" data-v2></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Вариант 3 ── -->
+  <section class="variant">
+    <header>
+      <div class="badge">Вариант 3</div>
+      <h2>Без перетаскивания: переключатель в строке</h2>
+      <p>Один список из двенадцати разделов по порядку номеров. Договор выбирается нажатием на
+        его букву справа, цветная полоска слева показывает текущий. Перетаскивания нет вовсе —
+        на телефоне это самое ненадёжное действие, а тут любое назначение — одно касание.</p>
+      <p class="note">Оговорка: строка кнопок растёт вместе с числом договоров. До четырёх
+        помещается на телефоне, дальше кнопки придётся заменить одним выпадающим списком —
+        логика остаётся та же, меняется только орган управления.</p>
+    </header>
+    <ul class="fixes">
+      <li>Ни одного перетаскивания: назначение — одно нажатие, отмена — нажатие в другую букву.</li>
+      <li>Все двенадцать разделов на одном экране, по порядку — видно всю раскладку целиком.</li>
+      <li>Ошибиться нельзя: раздел всегда ровно в одном договоре, «нигде» — тоже кнопка.</li>
+      <li>Цветная полоска слева даёт раскладку одним взглядом, без чтения букв.</li>
+    </ul>
+    <div class="frame" data-frame>
+      <div class="stage" data-stage>
+        <div class="hint"><span>Выберите договор для каждого раздела.</span><button type="button" data-reset>↺ Разбить</button></div>
+        <div class="v3" data-v3></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Макет к вкладке «Договоры» платёжного плана. Значения цвета, шрифты и радиусы взяты
+    из <code>index.html</code> без изменений. Тестовый контур калькулятора · Баня МСК</footer>
+</div>
+
+<script>
+'use strict';
+
+const РАЗДЕЛЫ = [
+  { n:1,  key:'foundation',  имя:'Фундамент и цоколь' },
+  { n:2,  key:'frame',       имя:'Каркас' },
+  { n:3,  key:'insulation',  имя:'Утепление, плёнки' },
+  { n:4,  key:'exterior',    имя:'Внешняя отделка' },
+  { n:5,  key:'windows',     имя:'Окна и двери' },
+  { n:6,  key:'roof',        имя:'Кровля' },
+  { n:7,  key:'paint',       имя:'Покраска' },
+  { n:8,  key:'interior',    имя:'Внутренняя отделка' },
+  { n:9,  key:'steam',       имя:'Парное отделение' },
+  { n:10, key:'stove',       имя:'Печь и комплектующие' },
+  { n:11, key:'extra',       имя:'Дополнительные опции' },
+  { n:12, key:'engineering', имя:'Инженерные коммуникации' }
+];
+
+// Цвета договоров — из index.html (contractsConfig)
+const ДОГОВОРЫ = [
+  { id:1, имя:'Основной договор', цвет:'#16a34a', буквы:'ОД' },
+  { id:2, имя:'Отделка',          цвет:'#eab308', буквы:'ОТ' }
+];
+
+const ПОУМОЛЧАНИЮ = {
+  foundation:1, frame:1, insulation:1, exterior:1, windows:1, roof:1, paint:1,
+  extra:1, engineering:1, interior:2, steam:2, stove:2
+};
+let назначение = Object.assign({}, ПОУМОЛЧАНИЮ);
+
+const разделПо = k => РАЗДЕЛЫ.find(р => р.key === k);
+const договорПо = id => ДОГОВОРЫ.find(д => д.id === id) || null;
+const вДоговоре = id => РАЗДЕЛЫ.filter(р => назначение[р.key] === id);
+const нераспределённые = () => РАЗДЕЛЫ.filter(р => !назначение[р.key]);
+
+// Цвет договора с прозрачностью: подложка активной кнопки. Считаем из hex,
+// а не через color-mix — тот доехал не во все версии Safari.
+function прозр(hex, a) {
+  const c = hex.replace('#','');
+  const [r,g,b] = [0,2,4].map(i => parseInt(c.slice(i,i+2),16));
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
+function скл(n, одна, две, много) {
+  const о = n % 10, с = n % 100;
+  if (о === 1 && с !== 11) return одна;
+  if (о >= 2 && о <= 4 && (с < 10 || с >= 20)) return две;
+  return много;
+}
+
+/* ── Вариант 1 ─────────────────────────────────────────────────────────── */
+function рисоватьV1(корень) {
+  let h = '';
+  ДОГОВОРЫ.forEach(д => {
+    const свои = вДоговоре(д.id);
+    h += `<div class="grp-head">
+            <span class="dot" style="background:${д.цвет}"></span>
+            <span class="grp-name">${д.имя}</span>
+            <span class="grp-count gnum">${свои.length} ${скл(свои.length,'раздел','раздела','разделов')}</span>
+          </div>
+          <div class="list" data-drop="${д.id}">`;
+    h += свои.length
+      ? свои.map(р => строкаV1(р)).join('')
+      : `<div class="empty">Перетащите сюда раздел</div>`;
+    h += `</div>`;
+  });
+  const нет = нераспределённые();
+  h += `<div class="grp-head">
+          <span class="dot" style="background:transparent;box-shadow:inset 0 0 0 1.5px var(--s-line2)"></span>
+          <span class="grp-name">Не назначено</span>
+          <span class="grp-count gnum">${нет.length}</span>
+        </div>
+        <div class="list" data-drop="0">`;
+  h += нет.length
+    ? нет.map(р => строкаV1(р)).join('')
+    : `<div class="empty">Все разделы распределены</div>`;
+  h += `</div>`;
+  корень.innerHTML = h;
+}
+const строкаV1 = р => `<div class="row" data-key="${р.key}">
+    <span class="rnum gnum">${р.n}</span>
+    <span class="rname">${р.имя}</span>
+    <span class="ghandle"><span></span><span></span><span></span></span>
+  </div>`;
+
+/* ── Вариант 2 ─────────────────────────────────────────────────────────── */
+function рисоватьV2(корень, широко) {
+  корень.classList.toggle('wide', широко);
+  const нет = нераспределённые();
+  let h = `<div class="cols">
+    <div class="pool" data-drop="0">
+      <div class="cap">Не назначено · ${нет.length}</div>
+      <div class="items">`;
+  h += нет.length
+    ? нет.map(р => пилюля(р)).join('')
+    : `<div class="none">Все разделы распределены</div>`;
+  h += `</div></div><div>`;
+  ДОГОВОРЫ.forEach(д => {
+    const свои = вДоговоре(д.id);
+    h += `<div class="box" data-drop="${д.id}">
+            <div class="bhead">
+              <span class="dot" style="background:${д.цвет}"></span>
+              <span class="bname">${д.имя}</span>
+              <span class="bsum gnum">${свои.length} ${скл(свои.length,'раздел','раздела','разделов')}</span>
+            </div>
+            <div class="items">`;
+    h += свои.length ? свои.map(р => пилюля(р)).join('')
+                     : `<div class="none">Перетащите сюда раздел</div>`;
+    h += `</div></div>`;
+  });
+  h += `</div></div>`;
+  корень.innerHTML = h;
+}
+const пилюля = р => `<span class="pill" data-key="${р.key}">
+    <span class="ghandle"><span></span><span></span><span></span></span>
+    <b class="gnum">${р.n}</b>${р.имя}
+  </span>`;
+
+/* ── Вариант 3 ─────────────────────────────────────────────────────────── */
+function рисоватьV3(корень) {
+  let h = '';
+  РАЗДЕЛЫ.forEach(р => {
+    const тек = назначение[р.key] || 0;
+    const д = договорПо(тек);
+    h += `<div class="row">
+      <span class="stripe" style="background:${д ? д.цвет : 'var(--s-line)'}"></span>
+      <span class="rnum gnum">${р.n}</span>
+      <span class="rname">${р.имя}</span>
+      <span class="switch">`;
+    ДОГОВОРЫ.forEach(x => {
+      const вкл = тек === x.id;
+      h += `<button type="button" data-set="${р.key}:${x.id}" aria-pressed="${вкл}"
+              title="${x.имя}" style="${вкл ? `background:${прозр(x.цвет,.16)};border-color:${x.цвет};` : ''}">${x.буквы}</button>`;
+    });
+    h += `<button type="button" data-set="${р.key}:0" aria-pressed="${!тек}"
+            title="Не назначено" style="${!тек ? 'background:var(--s-tint);border-color:var(--s-ink3);' : ''}">—</button>`;
+    h += `</span></div>`;
+  });
+  h += `<div class="legend">`;
+  ДОГОВОРЫ.forEach(д => {
+    h += `<span class="lg"><span class="dot" style="background:${д.цвет}"></span>
+            <b>${д.буквы}</b> — ${д.имя} <i class="gnum">· ${вДоговоре(д.id).length}</i></span>`;
+  });
+  const нет = нераспределённые().length;
+  h += `<span class="lg"><span class="dot" style="background:var(--s-ink3)"></span>
+          <b>—</b> не назначено <i class="gnum">· ${нет}</i></span>`;
+  h += `</div>`;
+  корень.innerHTML = h;
+}
+
+/* ── Перерисовка всего ─────────────────────────────────────────────────── */
+let ширина = 390;
+function рисовать() {
+  рисоватьV1(document.querySelector('[data-v1]'));
+  рисоватьV2(document.querySelector('[data-v2]'), ширина >= 768);
+  рисоватьV3(document.querySelector('[data-v3]'));
+  включитьПеретаскивание();
+}
+
+/* ── Перетаскивание (варианты 1 и 2) ───────────────────────────────────── */
+let тащим = null, призрак = null, было = false;
+function включитьПеретаскивание() {
+  document.querySelectorAll('[data-key]').forEach(эл => {
+    эл.addEventListener('pointerdown', начать);
+  });
+}
+function начать(e) {
+  if (e.button !== undefined && e.button !== 0) return;
+  const эл = e.currentTarget;
+  тащим = { ключ: эл.dataset.key, эл };
+  было = false;
+  эл.setPointerCapture(e.pointerId);
+  эл.addEventListener('pointermove', вести);
+  эл.addEventListener('pointerup', бросить);
+  эл.addEventListener('pointercancel', бросить);
+  тащим.x0 = e.clientX; тащим.y0 = e.clientY;
+  e.preventDefault();
+}
+function вести(e) {
+  if (!тащим) return;
+  const путь = Math.hypot(e.clientX - тащим.x0, e.clientY - тащим.y0);
+  if (!было && путь < 6) return;
+  if (!было) {
+    было = true;
+    const р = разделПо(тащим.ключ);
+    const сцена = тащим.эл.closest('.stage');
+    const ст = getComputedStyle(сцена);
+    призрак = document.createElement('div');
+    призрак.className = 'drag-ghost';
+    призрак.textContent = р.n + '. ' + р.имя;
+    призрак.style.background = ст.getPropertyValue('--s-card');
+    призрак.style.color = ст.getPropertyValue('--s-ink');
+    призрак.style.border = '1.5px solid ' + ст.getPropertyValue('--s-acc2');
+    document.body.appendChild(призрак);
+    тащим.эл.style.opacity = '.35';
+  }
+  призрак.style.left = (e.clientX + 12) + 'px';
+  призрак.style.top = (e.clientY - 14) + 'px';
+  document.querySelectorAll('.over').forEach(z => z.classList.remove('over'));
+  const цель = целевая(e.clientX, e.clientY);
+  if (цель) цель.classList.add('over');
+}
+function целевая(x, y) {
+  if (призрак) призрак.style.display = 'none';
+  const эл = document.elementFromPoint(x, y);
+  if (призрак) призрак.style.display = '';
+  return эл && эл.closest('[data-drop]');
+}
+function бросить(e) {
+  if (!тащим) return;
+  const эл = тащим.эл, ключ = тащим.ключ;
+  эл.removeEventListener('pointermove', вести);
+  эл.removeEventListener('pointerup', бросить);
+  эл.removeEventListener('pointercancel', бросить);
+  эл.style.opacity = '';
+  if (было) {
+    const цель = целевая(e.clientX, e.clientY);
+    if (цель) назначение[ключ] = +цель.dataset.drop;
+  }
+  if (призрак) { призрак.remove(); призрак = null; }
+  document.querySelectorAll('.over').forEach(z => z.classList.remove('over'));
+  тащим = null;
+  рисовать();
+}
+
+/* ── Нажатия ───────────────────────────────────────────────────────────── */
+document.addEventListener('click', e => {
+  const кн = e.target.closest('[data-set]');
+  if (кн) {
+    const [ключ, id] = кн.dataset.set.split(':');
+    назначение[ключ] = +id;
+    рисовать();
+    return;
+  }
+  if (e.target.closest('[data-reset]')) {
+    назначение = Object.assign({}, ПОУМОЛЧАНИЮ);
+    рисовать();
+  }
+});
+
+/* ── Панель управления ─────────────────────────────────────────────────── */
+function сегмент(id, приме) {
+  const б = document.getElementById(id);
+  б.addEventListener('click', e => {
+    const к = e.target.closest('button');
+    if (!к) return;
+    [...б.querySelectorAll('button')].forEach(x => x.setAttribute('aria-pressed', String(x === к)));
+    приме(к.dataset.v);
+  });
+}
+const сцены = () => document.querySelectorAll('[data-stage]');
+сегмент('segUi',   v => сцены().forEach(s => s.dataset.ui = v));
+сегмент('segMode', v => сцены().forEach(s => s.dataset.mode = v));
+сегмент('segW',    v => {
+  ширина = +v;
+  document.querySelectorAll('[data-frame]').forEach(f => f.style.maxWidth = v + 'px');
+  рисовать();
+});
+
+сцены().forEach(s => { s.dataset.ui = 'modern'; s.dataset.mode = 'day'; });
+document.querySelectorAll('[data-frame]').forEach(f => f.style.maxWidth = '390px');
+рисовать();
+</script>
+</body>
+</html>
