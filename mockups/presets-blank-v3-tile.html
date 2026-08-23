@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Окно «Пресеты» — плитка в одну колонку</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&family=Unbounded:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page:#f0fafa; --card:#fff; --ink:#0f1c1d; --ink2:#4a5f61; --ink3:#82999b;
+  --accent:#1e6c72; --accent2:#2a8f97; --line:#cfe9eb; --tint:#e4f5f6;
+}
+@media(prefers-color-scheme:dark){:root{
+  --page:#0b1618; --card:#122528; --ink:#e6f3f3; --ink2:#9db6b8; --ink3:#6d8688;
+  --accent:#4cbcc5; --accent2:#6fd3da; --line:#20444a; --tint:#15343a;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);line-height:1.6;
+  font-family:'Geologica',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 18px 90px}
+.eyebrow{font-size:.68rem;text-transform:uppercase;letter-spacing:.14em;color:var(--accent2);font-weight:600}
+h1{font-family:'Unbounded',sans-serif;font-size:1.45rem;font-weight:600;letter-spacing:-.02em;margin:.25em 0 .4em;line-height:1.25}
+p{color:var(--ink2);margin:0 0 14px;max-width:70ch}
+.note{font-size:.86rem}
+.bar{position:sticky;top:0;z-index:20;background:var(--page);border-bottom:1px solid var(--line);
+  margin:0 -18px 24px;padding:11px 18px;display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center}
+.bar .lbl{font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);font-weight:600}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--card)}
+.seg button{appearance:none;border:none;background:none;cursor:pointer;font-family:inherit;
+  font-size:.78rem;color:var(--ink2);padding:8px 13px;min-height:38px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff;font-weight:500}
+.fixes{list-style:none;padding:0;margin:6px 0 18px;display:flex;flex-direction:column;gap:5px;max-width:70ch}
+.fixes li{position:relative;padding-left:19px;color:var(--ink2);font-size:.87rem}
+.fixes li::before{content:'';position:absolute;left:2px;top:.62em;width:7px;height:7px;border-radius:2px;background:var(--accent2)}
+.frame{margin:0 auto;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  box-shadow:0 10px 34px rgba(18,38,42,.09);background:var(--card);transition:max-width .2s}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   ТОКЕНЫ «БЛАНКА» — из index.html один в один.
+   ═══════════════════════════════════════════════════════════════════════ */
+/* Ширину окна в макете переключает рамка, а не окно браузера, поэтому
+   раскладка отзывается на ширину контейнера, а не экрана. */
+.stage{font-family:'Geologica',sans-serif;background:var(--s-sheet);color:var(--s-ink);padding:0;
+  container-type:inline-size;container-name:win}
+.stage[data-mode="day"]{
+  --s-page:#f7fbfb; --s-sheet:#fff; --s-zebra:#fbfdfd;
+  --s-ink:#12262a; --s-ink2:#5b7376; --s-ink3:#8da3a5;
+  --s-rule:#dceaeb; --s-rule2:#bcd9db; --s-acc:#1e6c72; --s-acc2:#2a8f97;
+  --s-pale:#a8dde0; --s-tint:#e4f5f6; --s-fill:#f2f9f9;
+  --s-warn:#b06000; --s-danger:#c0392b; --s-star:#e0a02c;
+}
+.stage[data-mode="night"]{
+  --s-page:#0e1a1c; --s-sheet:#132528; --s-zebra:#15292c;
+  --s-ink:#e6f3f3; --s-ink2:#9db6b8; --s-ink3:#8aa4a6;
+  --s-rule:#224347; --s-rule2:#2d585d; --s-acc:#8fd6dc; --s-acc2:#5fc2ca;
+  --s-pale:#5fc2ca; --s-tint:#173338; --s-fill:#172f33;
+  --s-warn:#e0a44d; --s-danger:#e8867c; --s-star:#e8bd63;
+}
+
+/* ── Общий каркас окна ── */
+.win{display:flex;flex-direction:column;min-height:520px}
+.win-head{padding:18px 24px 0;position:relative}
+.win-title{font-family:'Unbounded',sans-serif;font-size:1rem;font-weight:600;letter-spacing:-.01em;color:var(--s-ink)}
+.win-head::after{content:'';display:block;height:2px;background:var(--s-acc);margin-top:14px}
+.win-x{position:absolute;top:12px;right:18px;width:28px;height:28px;border-radius:8px;
+  border:1px solid var(--s-rule);background:none;color:var(--s-ink2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+.win-x::before{content:'';position:absolute;inset:-8px}
+.tabs{display:flex;gap:24px;padding:0 24px;border-bottom:1px solid var(--s-rule)}
+.tab{appearance:none;background:none;border:none;border-bottom:2px solid transparent;
+  font-family:inherit;font-size:.8rem;color:var(--s-ink3);padding:11px 0;min-height:42px;cursor:pointer;position:relative}
+.tab::before{content:'';position:absolute;inset:-2px -8px}
+.tab[aria-selected="true"]{color:var(--s-ink);border-bottom-color:var(--s-acc);font-weight:500}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:12px 24px;border-bottom:1px solid var(--s-rule)}
+.tbtn{appearance:none;background:none;border:none;font-family:inherit;font-size:.76rem;
+  color:var(--s-ink2);cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+  padding:6px 0;min-height:36px;position:relative;white-space:nowrap}
+.tbtn::before{content:'';position:absolute;inset:-4px -8px}
+.tbtn:hover{color:var(--s-acc)}
+.tbtn.primary{color:var(--s-ink);font-weight:600}
+.tbtn.primary svg{color:var(--s-acc)}
+.srch{display:flex;align-items:center;gap:12px;padding:4px 24px 0;border-bottom:1px solid var(--s-rule)}
+.srch .fld{flex:1;display:flex;align-items:center;gap:9px;border-bottom:1px solid transparent}
+.srch input{flex:1;border:none;outline:none;background:none;font-family:inherit;font-size:.84rem;
+  color:var(--s-ink);padding:10px 0;min-height:42px}
+.srch input::placeholder{color:var(--s-ink3)}
+.chip{appearance:none;background:none;border:none;border-bottom:2px solid transparent;
+  font-family:inherit;font-size:.74rem;color:var(--s-ink3);padding:9px 0;min-height:40px;cursor:pointer;position:relative}
+.chip::before{content:'';position:absolute;inset:-4px -10px}
+.chip[aria-pressed="true"]{color:var(--s-ink);border-bottom-color:var(--s-acc)}
+.body{flex:1;min-height:0;overflow:auto}
+.gh{display:flex;align-items:baseline;gap:10px;padding:16px 24px 6px}
+.gh b{font-size:.64rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--s-ink3)}
+.gh i{font-style:normal;font-size:.64rem;color:var(--s-ink3);letter-spacing:.06em}
+.star{appearance:none;background:none;border:none;cursor:pointer;color:var(--s-ink3);padding:0;
+  display:flex;align-items:center;justify-content:center;width:20px;height:20px;position:relative;flex-shrink:0}
+.star::before{content:'';position:absolute;inset:-12px}
+.star.on{color:var(--s-star)}
+.star.on svg{fill:currentColor}
+.tag{font-size:.62rem;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;
+  border:1px solid color-mix(in srgb,currentColor 35%,transparent);
+  background:color-mix(in srgb,currentColor 10%,transparent)}
+.tag.pub{color:var(--s-acc)}
+.tag.mine{color:var(--s-ink3)}
+.tag.all{color:#4a7c3f}
+.stage[data-mode="night"] .tag.all{color:#9dc78f}
+.price{font-variant-numeric:tabular-nums;white-space:nowrap}
+.ib{appearance:none;background:none;border:1px solid var(--s-rule2);border-radius:7px;
+  width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;
+  color:var(--s-ink2);cursor:pointer;position:relative;flex-shrink:0}
+.ib::before{content:'';position:absolute;inset:-8px}
+.ib:hover{border-color:var(--s-acc2);color:var(--s-acc)}
+.ib.danger:hover{border-color:#e3b3ad;color:var(--s-danger)}
+.ib[disabled]{opacity:.35;cursor:default}
+.tx{appearance:none;background:none;border:none;font-family:inherit;font-size:.74rem;
+  color:var(--s-acc);cursor:pointer;padding:6px 0;min-height:34px;position:relative;white-space:nowrap}
+.tx::before{content:'';position:absolute;inset:-6px -8px}
+.tx.danger{color:var(--s-danger)}
+.tx.warn{color:var(--s-warn)}
+.code{display:inline-flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums}
+.code b{font-weight:600;letter-spacing:.08em;color:var(--s-ink)}
+.code span{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--s-ink3)}
+.dotact{width:6px;height:6px;border-radius:50%;background:var(--s-acc);flex-shrink:0}
+
+
+
+/* ═══ ПЛИТКА В ОДНУ КОЛОНКУ ═══════════════════════════════════════════════
+   Одна колонка на любой ширине. На широком экране плитка не множится в
+   столбцы, а растягивается: сумма уходит вправо, действия становятся в
+   строку с кодом. На телефоне та же плитка складывается в столбик — ровно
+   привычная карточка, только с языком «Бланка».
+   ═══════════════════════════════════════════════════════════════════════ */
+.tiles{display:flex;flex-direction:column;gap:12px;padding:6px 24px 22px}
+.tile{border:1px solid var(--s-rule);border-radius:12px;overflow:hidden;transition:border-color .15s}
+.tile:hover{border-color:var(--s-rule2)}
+.tile.active{border-color:var(--s-acc);box-shadow:inset 3px 0 0 var(--s-acc)}
+
+/* Верх плитки: имя слева, сумма справа. */
+.t-top{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:4px 10px;
+  align-items:center;padding:13px 16px 11px}
+.t-star{grid-column:1;grid-row:1}
+.t-name{grid-column:2;grid-row:1;display:flex;align-items:center;gap:8px;min-width:0}
+.t-name>span{font-size:.86rem;color:var(--s-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-sum{grid-column:3;grid-row:1;font-family:'Unbounded',sans-serif;font-size:1.12rem;font-weight:600;
+  letter-spacing:-.02em;color:var(--s-ink);text-align:right}
+.t-sub{grid-column:2;grid-row:2;font-size:.74rem;color:var(--s-ink2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-sub i{font-style:normal;color:var(--s-ink3)}
+.t-date{grid-column:3;grid-row:2;font-size:.72rem;color:var(--s-ink3);white-space:nowrap;text-align:right}
+
+/* Низ плитки: код слева, действия справа, на подложке. */
+.t-bot{display:flex;align-items:center;gap:12px;padding:9px 16px;
+  background:var(--s-zebra);border-top:1px solid var(--s-rule)}
+.t-code{display:flex;align-items:center;gap:10px;min-width:0}
+.t-nocode{font-size:.7rem;color:var(--s-ink3)}
+/* Зазор между значками — 18 px: поле нажатия каждого берёт по 8 px в
+   стороны, и при меньшем зазоре соседи отбирают друг у друга углы. */
+.t-acts{display:flex;align-items:center;gap:18px;margin-left:auto}
+.t-load{appearance:none;border:1px solid var(--s-acc2);background:none;color:var(--s-acc);
+  border-radius:8px;font-family:inherit;font-size:.76rem;font-weight:600;padding:0 16px;
+  min-height:36px;cursor:pointer;position:relative;white-space:nowrap}
+.t-load::before{content:'';position:absolute;inset:-4px}
+.t-load:hover{border-color:var(--s-acc);background:var(--s-tint)}
+/* Разделитель между «Загрузить» и мелкими значками: у них разный вес,
+   и без паузы кнопка сливается с рядом иконок. */
+.t-acts .sp{width:1px;height:22px;background:var(--s-rule2);flex-shrink:0}
+
+/* ── Телефон: та же плитка столбиком ── */
+@container win (max-width:640px){
+  .win-head{padding:16px 16px 0}
+  .tabs,.toolbar,.srch{padding-left:16px;padding-right:16px}
+  .toolbar{gap:6px 14px}
+  .gh{padding-left:16px;padding-right:16px}
+  .tiles{padding:6px 16px 18px;gap:10px}
+  .t-top{grid-template-columns:20px minmax(0,1fr);padding:12px 14px 10px;gap:3px 9px}
+  .t-name{grid-column:2;grid-row:1}
+  .t-sub{grid-column:2;grid-row:2}
+  .t-date{grid-column:2;grid-row:3;text-align:left}
+  /* Сумма — главное в карточке, поэтому на телефоне она уходит на свою
+     строку и набирается крупнее, а не жмётся в угол над проектом. */
+  .t-sum{grid-column:1/3;grid-row:4;text-align:left;font-size:1.3rem;padding-top:8px}
+  .t-bot{flex-wrap:wrap;gap:10px;padding:10px 14px}
+  .t-code{order:2;flex-basis:100%}
+  .t-acts{order:1;flex-basis:100%;margin-left:0}
+  .t-load{flex:1}
+}
+/* Совсем узкие экраны: шесть значков в строку с кнопкой не помещаются,
+   поэтому кнопка забирает строку, а значки встают под ней. */
+@container win (max-width:400px){
+  .t-acts{flex-wrap:wrap;row-gap:14px}
+  .t-load{flex-basis:100%}
+  .t-acts .sp{display:none}
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Макет · окно «Пресеты» · тема «Бланк»</div>
+  <h1>Плитка в одну колонку</h1>
+  <ul class="fixes">
+    <li>Одна колонка на любой ширине: на большом экране плитки не дробятся на столбцы, а растягиваются во всю ширину окна.</li>
+    <li>Окно шире нынешнего — 1060 px вместо 560, поэтому имя, проект и дата помещаются целиком, без обрыва многоточием.</li>
+    <li>На широком экране сумма стоит справа, на одной вертикали у всех плиток — суммы сравниваются взглядом сверху вниз.</li>
+    <li>На телефоне плитка складывается в столбик: имя, проект, дата, крупная сумма, «Загрузить» во всю ширину, значки под ней, код внизу.</li>
+    <li>Код и «Скопировать» — на своей подложке снизу, там же все действия: в верхней части только то, что читают.</li>
+    <li>Все кнопки нынешнего окна на месте: вкладки «Мои / Общие / Поиск», «Сохранить как новый», «Импорт файла», «Скачать все», «Активный», поиск, фильтр «Все / Мои», избранное, метки, «Загрузить» и «Открыть», сохранение в пресет, переименование, скачивание, «Поделиться», «Публ.» и «Отозвать», удаление, чек-лист и автор в общих.</li>
+  </ul>
+
+  <div class="bar">
+    <span class="lbl">Тема</span>
+    <div class="seg" id="segMode">
+      <button aria-pressed="true" data-mode="day">День</button>
+      <button aria-pressed="false" data-mode="night">Ночь</button>
+    </div>
+    <span class="lbl">Ширина</span>
+    <div class="seg" id="segWidth">
+      <button aria-pressed="true" data-w="1060">Широкий экран</button>
+      <button aria-pressed="false" data-w="390">Телефон</button>
+    </div>
+  </div>
+
+  <div class="frame" data-frame><div class="stage" data-mode="day"><div class="win" data-win="tile"></div></div></div>
+</div>
+
+<script>
+/* ── Данные: те же пресеты, что в рабочем окне ────────────────────────── */
+const МОИ = [
+  {id:'p1', имя:'"Берлин" 9х5 Тёплый контур К1', проект:'"Берлин" 9х5 Тёплый контур', толщ:'150 мм',
+   дата:'20.05.26 14:32', цена:'3 493 283 ₽', код:'818436', метка:'pub', звезда:false, активный:true},
+  {id:'p2', имя:'"Берлин" 9х5 Бизнес К4', проект:'"Берлин" 9х5 Тёплый контур', толщ:'150 мм',
+   дата:'20.05.26 11:07', цена:'7 830 546 ₽', код:'355945', метка:'mine', звезда:true},
+  {id:'p3', имя:'D1_Иванов Иван Иванович', проект:'Фахверковая баня «Лейпциг» 8х12', толщ:'200 мм',
+   дата:'12.05.26 09:41', цена:'6 409 016 ₽', код:'', метка:'mine'},
+  {id:'p4', имя:'Санторини хай-тек 11', проект:'Санторини хай-тек 8х10', толщ:'150 мм',
+   дата:'08.05.26 16:20', цена:'12 751 389 ₽', код:'574573', метка:'pub'},
+  {id:'p5', имя:'Мюнхен 6х4 · базовый', проект:'Фахверковая баня «Мюнхен» 6х4', толщ:'150 мм',
+   дата:'02.05.26 10:12', цена:'1 997 685 ₽', код:'', метка:'mine'},
+  {id:'p6', имя:'Брюгге 6х8 · с террасой', проект:'Хай-тек баня «Брюгге» 6х8', толщ:'200 мм',
+   дата:'28.04.26 18:03', цена:'4 118 900 ₽', код:'240118', метка:'pub'},
+];
+const ОБЩИЕ = [
+  {id:'s1', имя:'Санторини хай-тек 8', проект:'Санторини хай-тек', толщ:'150 мм', автор:'Анатолий Шевалдов',
+   дата:'20 авг., 11:06', цена:'12 733 389 ₽', код:'277070', метка:'all', звезда:true},
+  {id:'s2', имя:'Санторини хай-тек Колупаев', проект:'Санторини хай-тек', толщ:'150 мм', автор:'Анатолий Шевалдов',
+   дата:'20 авг., 11:48', цена:'12 751 389 ₽', код:'574573', метка:'all'},
+  {id:'s3', имя:'Лейпциг 8х12 · Петров', проект:'Фахверковая баня «Лейпциг» 8х12', толщ:'200 мм', автор:'Мария Жугалёва',
+   дата:'19 авг., 09:15', цена:'6 409 016 ₽', код:'118902', метка:'all'},
+  {id:'s4', имя:'Мюнхен 6х4 · типовой', проект:'Фахверковая баня «Мюнхен» 6х4', толщ:'150 мм', автор:'Дмитрий К.',
+   дата:'18 авг., 17:40', цена:'1 997 685 ₽', код:'443112', метка:'all'},
+];
+
+const И = {
+  звезда:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  сохранить:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v14a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>',
+  правка:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+  скачать:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  импорт:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+  удалить:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>',
+  поделиться:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
+  публ:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>',
+  копия:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  поиск:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  цель:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>',
+  крест:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  чек:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg>',
+};
+const метка = м => м==='pub' ? '<span class="tag pub">Опубл.</span>'
+                  : м==='all' ? '<span class="tag all">Для всех</span>'
+                  : '<span class="tag mine">Мой</span>';
+
+/* ── Каркас: шапка, вкладки, панель, поиск ───────────────────────────── */
+function каркас(с, тело){
+  const общие = с.вкладка === 'shared', поиск = с.вкладка === 'search';
+  return `
+  <div class="win-head">
+    <div class="win-title">Пресеты</div>
+    <button class="win-x" title="Закрыть">${И.крест}</button>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="${с.вкладка==='my'}"     data-tab="my">Мои</button>
+    <button class="tab" role="tab" aria-selected="${общие}"                data-tab="shared">Общие</button>
+    <button class="tab" role="tab" aria-selected="${поиск}"                data-tab="search">Поиск</button>
+  </div>
+  <div class="toolbar">
+    <button class="tbtn primary">${И.сохранить} Сохранить как новый</button>
+    <button class="tbtn">${И.импорт} Импорт файла</button>
+    <button class="tbtn">${И.скачать} Скачать все</button>
+    <button class="tbtn">${И.цель} Активный</button>
+  </div>
+  <div class="srch">
+    <div class="fld">${И.поиск}<input placeholder="${общие?'Поиск в общих…':поиск?'Поиск по всем пресетам…':'Поиск пресетов…'}"></div>
+    ${(общие||поиск) ? `<button class="chip" aria-pressed="true" data-f="all">Все</button>
+       <button class="chip" aria-pressed="false" data-f="mine">Мои</button>` : ''}
+  </div>
+  <div class="body">${тело}</div>`;
+}
+const заголовок = (имя, сколько) => `<div class="gh"><b>${имя}</b><i>${сколько}</i></div>`;
+
+
+
+/* ── Плитка в одну колонку ────────────────────────────────────────────── */
+function окно(с){
+  const общие = с.вкладка !== 'my';
+  const данные = общие ? ОБЩИЕ : МОИ;
+  const изб = данные.filter(п => п.звезда), ост = данные.filter(п => !п.звезда);
+  const плитка = п => `
+    <div class="tile${п.активный?' active':''}">
+      <div class="t-top">
+        <button class="star t-star${п.звезда?' on':''}" title="${п.звезда?'Убрать из избранного':'В избранное'}">${И.звезда}</button>
+        <div class="t-name">${п.активный?'<span class="dotact"></span>':''}<span title="${п.имя}">${п.имя}</span>${метка(п.метка)}</div>
+        <div class="t-sum price">${п.цена}</div>
+        <div class="t-sub">${п.проект} · ${п.толщ}${общие?` <i>· ${п.автор}</i>`:''}</div>
+        <div class="t-date">${п.дата}</div>
+      </div>
+      <div class="t-bot">
+        <div class="t-code">${п.код
+          ? `<span class="code"><span>Код</span><b>${п.код.slice(0,3)} ${п.код.slice(3)}</b></span>
+             <button class="tx">${И.копия} Скопировать</button>`
+          : `<span class="t-nocode">Код появится после публикации</span>`}</div>
+        <div class="t-acts">
+          <button class="t-load">${общие?'Открыть':'Загрузить'}</button>
+          <span class="sp"></span>
+          ${общие
+            ? `<button class="ib" title="Чек-лист проверки">${И.чек}</button>
+               <button class="ib" title="Скачать JSON">${И.скачать}</button>
+               <button class="ib danger" title="Удалить">${И.удалить}</button>`
+            : `<button class="ib" title="Сохранить изменения в пресет"${п.активный?'':' disabled'}>${И.сохранить}</button>
+               <button class="ib" title="Переименовать">${И.правка}</button>
+               <button class="ib" title="Скачать JSON">${И.скачать}</button>
+               <button class="ib" title="Поделиться">${И.поделиться}</button>
+               <button class="ib" title="${п.метка==='pub'?'Отозвать':'Опубликовать'}">${И.публ}</button>
+               <button class="ib danger" title="Удалить">${И.удалить}</button>`}
+        </div>
+      </div>
+    </div>`;
+  return каркас(с, `
+    ${изб.length?заголовок('Избранные', изб.length):''}
+    ${изб.length?`<div class="tiles">${изб.map(плитка).join('')}</div>`:''}
+    ${заголовок(общие?'Для всех':'Мои пресеты', ост.length)}
+    <div class="tiles">${ост.map(плитка).join('')}</div>`);
+}
+
+const состояние = {вкладка:'my'};
+function отрисовать(){
+  const узел = document.querySelector('[data-win]');
+  узел.innerHTML = окно(состояние);
+  узел.querySelectorAll('.tab').forEach(б => б.onclick = () => {
+    состояние.вкладка = б.dataset.tab; отрисовать();
+  });
+  узел.querySelectorAll('.chip').forEach(б => б.onclick = () => {
+    узел.querySelectorAll('.chip').forEach(д => д.setAttribute('aria-pressed', String(д === б)));
+  });
+  узел.querySelectorAll('.star').forEach(б => б.onclick = e => { e.stopPropagation(); б.classList.toggle('on'); });
+}
+отрисовать();
+
+document.getElementById('segMode').onclick = e => {
+  const б = e.target.closest('button'); if (!б) return;
+  document.querySelectorAll('#segMode button').forEach(д => д.setAttribute('aria-pressed', String(д === б)));
+  document.querySelectorAll('.stage').forEach(с => с.dataset.mode = б.dataset.mode);
+};
+document.getElementById('segWidth').onclick = e => {
+  const б = e.target.closest('button'); if (!б) return;
+  document.querySelectorAll('#segWidth button').forEach(д => д.setAttribute('aria-pressed', String(д === б)));
+  document.querySelectorAll('[data-frame]').forEach(ф => ф.style.maxWidth = б.dataset.w + 'px');
+};
+document.querySelectorAll('[data-frame]').forEach(ф => ф.style.maxWidth = '1060px');
+
+</script>
+</body>
+</html>
