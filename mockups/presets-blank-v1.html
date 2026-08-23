@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Окно «Пресеты» — три варианта под «Бланк»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&family=Unbounded:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────────────────────────────────
+   Страница макета — нейтральная рамка, чтобы не спорить с вариантами.
+   ───────────────────────────────────────────────────────────────────────── */
+:root{
+  --page:#f0fafa; --card:#fff; --ink:#0f1c1d; --ink2:#4a5f61; --ink3:#82999b;
+  --accent:#1e6c72; --accent2:#2a8f97; --line:#cfe9eb; --tint:#e4f5f6;
+}
+@media(prefers-color-scheme:dark){:root{
+  --page:#0b1618; --card:#122528; --ink:#e6f3f3; --ink2:#9db6b8; --ink3:#6d8688;
+  --accent:#4cbcc5; --accent2:#6fd3da; --line:#20444a; --tint:#15343a;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);line-height:1.6;
+  font-family:'Geologica',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1240px;margin:0 auto;padding:26px 18px 90px}
+.eyebrow{font-size:.68rem;text-transform:uppercase;letter-spacing:.14em;color:var(--accent2);font-weight:600}
+h1{font-family:'Unbounded',sans-serif;font-size:1.45rem;font-weight:600;letter-spacing:-.02em;margin:.25em 0 .4em;line-height:1.25}
+h2{font-family:'Unbounded',sans-serif;font-size:1.04rem;font-weight:600;letter-spacing:-.015em;margin:0 0 .25em}
+p{color:var(--ink2);margin:0 0 14px;max-width:70ch}
+.note{font-size:.86rem}
+.bar{position:sticky;top:0;z-index:20;background:var(--page);border-bottom:1px solid var(--line);
+  margin:0 -18px 24px;padding:11px 18px;display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center}
+.bar .lbl{font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);font-weight:600}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--card)}
+.seg button{appearance:none;border:none;background:none;cursor:pointer;font-family:inherit;
+  font-size:.78rem;color:var(--ink2);padding:8px 13px;min-height:38px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff;font-weight:500}
+.variant{margin:0 0 46px}
+.badge{display:inline-block;font-size:.66rem;letter-spacing:.12em;font-weight:700;text-transform:uppercase;color:var(--accent2)}
+.fixes{list-style:none;padding:0;margin:6px 0 16px;display:flex;flex-direction:column;gap:5px;max-width:70ch}
+.fixes li{position:relative;padding-left:19px;color:var(--ink2);font-size:.87rem}
+.fixes li::before{content:'';position:absolute;left:2px;top:.62em;width:7px;height:7px;border-radius:2px;background:var(--accent2)}
+.frame{margin:0 auto;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  box-shadow:0 10px 34px rgba(18,38,42,.09);background:var(--card);transition:max-width .2s}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   ТОКЕНЫ «БЛАНКА» — из index.html один в один.
+   ═══════════════════════════════════════════════════════════════════════ */
+/* Ширину окна в макете переключает рамка, а не окно браузера, поэтому
+   раскладка отзывается на ширину контейнера, а не экрана. */
+.stage{font-family:'Geologica',sans-serif;background:var(--s-sheet);color:var(--s-ink);padding:0;
+  container-type:inline-size;container-name:win}
+.stage[data-mode="day"]{
+  --s-page:#f7fbfb; --s-sheet:#fff; --s-zebra:#fbfdfd;
+  --s-ink:#12262a; --s-ink2:#5b7376; --s-ink3:#8da3a5;
+  --s-rule:#dceaeb; --s-rule2:#bcd9db; --s-acc:#1e6c72; --s-acc2:#2a8f97;
+  --s-pale:#a8dde0; --s-tint:#e4f5f6; --s-fill:#f2f9f9;
+  --s-warn:#b06000; --s-danger:#c0392b; --s-star:#e0a02c;
+}
+.stage[data-mode="night"]{
+  --s-page:#0e1a1c; --s-sheet:#132528; --s-zebra:#15292c;
+  --s-ink:#e6f3f3; --s-ink2:#9db6b8; --s-ink3:#8aa4a6;
+  --s-rule:#224347; --s-rule2:#2d585d; --s-acc:#8fd6dc; --s-acc2:#5fc2ca;
+  --s-pale:#5fc2ca; --s-tint:#173338; --s-fill:#172f33;
+  --s-warn:#e0a44d; --s-danger:#e8867c; --s-star:#e8bd63;
+}
+
+/* ── Общий каркас окна ── */
+.win{display:flex;flex-direction:column;min-height:520px}
+.win-head{padding:18px 24px 0;position:relative}
+.win-title{font-family:'Unbounded',sans-serif;font-size:1rem;font-weight:600;letter-spacing:-.01em;color:var(--s-ink)}
+.win-head::after{content:'';display:block;height:2px;background:var(--s-acc);margin-top:14px}
+.win-x{position:absolute;top:12px;right:18px;width:28px;height:28px;border-radius:8px;
+  border:1px solid var(--s-rule);background:none;color:var(--s-ink2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+.win-x::before{content:'';position:absolute;inset:-8px}
+.tabs{display:flex;gap:24px;padding:0 24px;border-bottom:1px solid var(--s-rule)}
+.tab{appearance:none;background:none;border:none;border-bottom:2px solid transparent;
+  font-family:inherit;font-size:.8rem;color:var(--s-ink3);padding:11px 0;min-height:42px;cursor:pointer;position:relative}
+.tab::before{content:'';position:absolute;inset:-2px -8px}
+.tab[aria-selected="true"]{color:var(--s-ink);border-bottom-color:var(--s-acc);font-weight:500}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:12px 24px;border-bottom:1px solid var(--s-rule)}
+.tbtn{appearance:none;background:none;border:none;font-family:inherit;font-size:.76rem;
+  color:var(--s-ink2);cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+  padding:6px 0;min-height:36px;position:relative;white-space:nowrap}
+.tbtn::before{content:'';position:absolute;inset:-4px -8px}
+.tbtn:hover{color:var(--s-acc)}
+.tbtn.primary{color:var(--s-ink);font-weight:600}
+.tbtn.primary svg{color:var(--s-acc)}
+.srch{display:flex;align-items:center;gap:12px;padding:4px 24px 0;border-bottom:1px solid var(--s-rule)}
+.srch .fld{flex:1;display:flex;align-items:center;gap:9px;border-bottom:1px solid transparent}
+.srch input{flex:1;border:none;outline:none;background:none;font-family:inherit;font-size:.84rem;
+  color:var(--s-ink);padding:10px 0;min-height:42px}
+.srch input::placeholder{color:var(--s-ink3)}
+.chip{appearance:none;background:none;border:none;border-bottom:2px solid transparent;
+  font-family:inherit;font-size:.74rem;color:var(--s-ink3);padding:9px 0;min-height:40px;cursor:pointer;position:relative}
+.chip::before{content:'';position:absolute;inset:-4px -10px}
+.chip[aria-pressed="true"]{color:var(--s-ink);border-bottom-color:var(--s-acc)}
+.body{flex:1;min-height:0;overflow:auto}
+.gh{display:flex;align-items:baseline;gap:10px;padding:16px 24px 6px}
+.gh b{font-size:.64rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--s-ink3)}
+.gh i{font-style:normal;font-size:.64rem;color:var(--s-ink3);letter-spacing:.06em}
+.star{appearance:none;background:none;border:none;cursor:pointer;color:var(--s-ink3);padding:0;
+  display:flex;align-items:center;justify-content:center;width:20px;height:20px;position:relative;flex-shrink:0}
+.star::before{content:'';position:absolute;inset:-12px}
+.star.on{color:var(--s-star)}
+.star.on svg{fill:currentColor}
+.tag{font-size:.62rem;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;
+  border:1px solid color-mix(in srgb,currentColor 35%,transparent);
+  background:color-mix(in srgb,currentColor 10%,transparent)}
+.tag.pub{color:var(--s-acc)}
+.tag.mine{color:var(--s-ink3)}
+.tag.all{color:#4a7c3f}
+.stage[data-mode="night"] .tag.all{color:#9dc78f}
+.price{font-variant-numeric:tabular-nums;white-space:nowrap}
+.ib{appearance:none;background:none;border:1px solid var(--s-rule2);border-radius:7px;
+  width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;
+  color:var(--s-ink2);cursor:pointer;position:relative;flex-shrink:0}
+.ib::before{content:'';position:absolute;inset:-8px}
+.ib:hover{border-color:var(--s-acc2);color:var(--s-acc)}
+.ib.danger:hover{border-color:#e3b3ad;color:var(--s-danger)}
+.ib[disabled]{opacity:.35;cursor:default}
+.tx{appearance:none;background:none;border:none;font-family:inherit;font-size:.74rem;
+  color:var(--s-acc);cursor:pointer;padding:6px 0;min-height:34px;position:relative;white-space:nowrap}
+.tx::before{content:'';position:absolute;inset:-6px -8px}
+.tx.danger{color:var(--s-danger)}
+.tx.warn{color:var(--s-warn)}
+.code{display:inline-flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums}
+.code b{font-weight:600;letter-spacing:.08em;color:var(--s-ink)}
+.code span{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--s-ink3)}
+.dotact{width:6px;height:6px;border-radius:50%;background:var(--s-acc);flex-shrink:0}
+
+/* ═══ ВАРИАНТ 1 — ВЕДОМОСТЬ ═══════════════════════════════════════════════ */
+.v1 .row{display:grid;grid-template-columns:20px minmax(150px,1.1fr) minmax(0,210px) 104px 124px 130px auto;
+  align-items:center;gap:14px;padding:9px 24px;min-height:46px;border-bottom:1px solid var(--s-rule);cursor:pointer}
+.v1 .row:hover{background:var(--s-tint)}
+.v1 .row.active{box-shadow:inset 3px 0 0 var(--s-acc)}
+.v1 .nm{display:flex;align-items:center;gap:8px;min-width:0}
+.v1 .nm span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.82rem;color:var(--s-ink)}
+.v1 .meta{font-size:.73rem;color:var(--s-ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v1 .meta i{font-style:normal;color:var(--s-ink3)}
+.v1 .pr{font-size:.79rem;color:var(--s-ink);text-align:right}
+.v1 .cd{font-size:.74rem;color:var(--s-ink2);display:flex;align-items:center;gap:6px}
+.v1 .acts{display:flex;gap:6px;justify-content:flex-end}
+.v1 .colhead{display:grid;grid-template-columns:20px minmax(150px,1.1fr) minmax(0,210px) 104px 124px 130px auto;
+  gap:14px;padding:10px 24px 6px;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--s-ink3)}
+.v1 .colhead .pr{text-align:right}
+@container win (max-width:820px){
+  .win-head{padding:16px 16px 0}
+  .tabs,.toolbar,.srch{padding-left:16px;padding-right:16px}
+  .toolbar{gap:6px 14px}
+  .gh{padding-left:16px;padding-right:16px}
+  .v1 .colhead{display:none}
+  .v1 .row{grid-template-columns:20px minmax(0,1fr) auto;grid-auto-rows:auto;gap:4px 10px;padding:11px 16px}
+  .v1 .nm{grid-column:2;grid-row:1}
+  .v1 .pr{grid-column:3;grid-row:1}
+  .v1 .meta.m1{grid-column:2/4;grid-row:2}
+  .v1 .meta.m2{grid-column:2/4;grid-row:3}
+  .v1 .cd{grid-column:2/4;grid-row:4}
+  .v1 .acts{grid-column:2/4;grid-row:5;justify-content:flex-start;padding-top:4px}
+}
+
+/* ═══ ВАРИАНТ 2 — СПИСОК И КАРТОЧКА ═══════════════════════════════════════ */
+.v2 .split{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:440px}
+.v2 .left{border-right:1px solid var(--s-rule);overflow:auto}
+.v2 .li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:10px;align-items:start;
+  padding:10px 18px;border-bottom:1px solid var(--s-rule);cursor:pointer;min-height:56px}
+.v2 .li:hover{background:var(--s-tint)}
+.v2 .li.on{background:var(--s-tint);box-shadow:inset 3px 0 0 var(--s-acc)}
+.v2 .li .t{font-size:.79rem;color:var(--s-ink);display:flex;align-items:center;gap:7px}
+.v2 .li .t span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v2 .li .m{font-size:.7rem;color:var(--s-ink3);display:flex;justify-content:space-between;gap:8px;margin-top:2px}
+.v2 .li .m span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.v2 .li .m span:last-child{white-space:nowrap;flex-shrink:0}
+.v2 .right{padding:22px 26px;display:flex;flex-direction:column;gap:0}
+.v2 .dtitle{font-family:'Unbounded',sans-serif;font-size:1.04rem;font-weight:600;letter-spacing:-.01em;
+  color:var(--s-ink);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.v2 .dsum{font-family:'Unbounded',sans-serif;font-size:1.5rem;font-weight:600;color:var(--s-ink);
+  letter-spacing:-.02em;margin:14px 0 2px}
+.v2 .dsub{font-size:.74rem;color:var(--s-ink3)}
+.v2 dl{display:grid;grid-template-columns:auto 1fr;gap:0;margin:18px 0 0}
+.v2 dt,.v2 dd{margin:0;padding:8px 0;border-bottom:1px solid var(--s-rule);font-size:.78rem}
+.v2 dt{color:var(--s-ink3);padding-right:18px;white-space:nowrap}
+.v2 dd{color:var(--s-ink);text-align:right}
+.v2 .acts{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;margin-top:18px}
+.v2 .acts .sep{flex:1}
+.v2 .load{appearance:none;border:1px solid var(--s-acc);background:var(--s-acc);color:var(--s-sheet);
+  border-radius:9px;font-family:inherit;font-size:.8rem;font-weight:600;padding:0 20px;min-height:42px;cursor:pointer}
+.stage[data-mode="night"] .v2 .load{color:#08181a}
+.v2 .coderow{display:flex;align-items:center;gap:12px;margin-top:18px;padding:11px 14px;
+  background:var(--s-tint);border-radius:10px}
+@container win (max-width:820px){
+  .v2 .split{grid-template-columns:minmax(0,1fr)}
+  .v2 .left{border-right:none;border-bottom:1px solid var(--s-rule);max-height:230px}
+  .v2 .right{padding:18px 16px}
+}
+
+/* ═══ ВАРИАНТ 3 — ПЛИТКА ══════════════════════════════════════════════════ */
+.v3 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;padding:6px 24px 20px}
+.v3 .tile{border:1px solid var(--s-rule);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;
+  transition:border-color .15s}
+.v3 .tile:hover{border-color:var(--s-rule2)}
+.v3 .tile.active{border-color:var(--s-acc)}
+.v3 .th{display:flex;align-items:center;gap:9px;padding:12px 14px 0}
+.v3 .th .t{flex:1;min-width:0;font-size:.82rem;color:var(--s-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v3 .tm{padding:4px 14px 0;font-size:.73rem;color:var(--s-ink2);display:flex;justify-content:space-between;gap:10px}
+.v3 .tm span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.v3 .tm i{white-space:nowrap;flex-shrink:0}
+.v3 .tm i{font-style:normal;color:var(--s-ink3);font-size:.68rem}
+.v3 .tp{padding:10px 14px 12px;font-family:'Unbounded',sans-serif;font-size:1.06rem;font-weight:600;
+  letter-spacing:-.015em;color:var(--s-ink)}
+.v3 .ta{display:flex;align-items:center;gap:6px;padding:0 14px 12px;border-bottom:1px solid var(--s-rule)}
+.v3 .ta .load{appearance:none;border:1px solid var(--s-acc2);background:none;color:var(--s-acc);
+  border-radius:8px;font-family:inherit;font-size:.75rem;font-weight:600;padding:0 14px;min-height:36px;
+  cursor:pointer;position:relative;flex:1}
+.v3 .ta .load::before{content:'';position:absolute;inset:-4px}
+.v3 .tc{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 14px;background:var(--s-zebra)}
+@container win (max-width:520px){ .v3 .grid{grid-template-columns:minmax(0,1fr);padding:6px 16px 18px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Макет · окно «Пресеты» · тема «Бланк»</div>
+  <h1>Три варианта окна пресетов</h1>
+  <p class="note">Окно шире нынешнего: 1060–1120 px вместо 560. Во всех трёх вариантах сохранены
+  все кнопки и вся работа нынешнего окна — вкладки «Мои / Общие / Поиск», «Сохранить как новый»,
+  «Импорт файла», «Скачать все», «Активный», поиск, фильтр «Все / Мои», избранное, метки
+  «Опубл. / Мой / Для всех», «Загрузить» и «Открыть», сохранение в пресет, переименование,
+  скачивание, удаление, «Поделиться», «Публ.» и «Отозвать», строка кода с кнопкой «Скопировать»,
+  кружок чек-листа и автор в общих. Отличается раскладка.</p>
+
+  <div class="bar">
+    <span class="lbl">Тема</span>
+    <div class="seg" id="segMode">
+      <button aria-pressed="true" data-mode="day">День</button>
+      <button aria-pressed="false" data-mode="night">Ночь</button>
+    </div>
+    <span class="lbl">Ширина</span>
+    <div class="seg" id="segWidth">
+      <button aria-pressed="true" data-w="1120">Широкий экран</button>
+      <button aria-pressed="false" data-w="390">Телефон</button>
+    </div>
+  </div>
+
+  <!-- ═══ ВАРИАНТ 1 ═══ -->
+  <section class="variant">
+    <header>
+      <span class="badge">Вариант 1</span>
+      <h2>Ведомость</h2>
+      <ul class="fixes">
+        <li>Строка на пресет: имя, проект, дата, цена, код и действия — всё в колонках, ничего не повторяется.</li>
+        <li>Сорок пресетов видно без прокрутки-простыни: строка 46 px вместо карточки в 150.</li>
+        <li>Действия — значками в одном столбце, порядок одинаковый во всех строках, палец попадает по 44 px.</li>
+        <li>Нажатие по строке загружает пресет, как сейчас нажатие по карточке.</li>
+      </ul>
+    </header>
+    <div class="frame" data-frame><div class="stage" data-mode="day"><div class="win v1" data-win="1"></div></div></div>
+  </section>
+
+  <!-- ═══ ВАРИАНТ 2 ═══ -->
+  <section class="variant">
+    <header>
+      <span class="badge">Вариант 2</span>
+      <h2>Список и карточка</h2>
+      <ul class="fixes">
+        <li>Слева — узкий список всех пресетов, справа — выбранный целиком: реквизиты, сумма, код, все действия.</li>
+        <li>Кнопки не повторяются в каждой строке: они одни, у выбранного пресета, и подписаны словами.</li>
+        <li>Видно, что именно загружаешь, до нажатия — проект, толщина, автор, дата, сумма.</li>
+        <li>На телефоне список сверху, карточка под ним.</li>
+      </ul>
+    </header>
+    <div class="frame" data-frame><div class="stage" data-mode="day"><div class="win v2" data-win="2"></div></div></div>
+  </section>
+
+  <!-- ═══ ВАРИАНТ 3 ═══ -->
+  <section class="variant">
+    <header>
+      <span class="badge">Вариант 3</span>
+      <h2>Плитка</h2>
+      <ul class="fixes">
+        <li>Нынешняя карточка, но в две-три колонки: на широком экране помещается втрое больше.</li>
+        <li>Сумма — главное в плитке, набрана крупно; код на своей полосе внизу, как сейчас.</li>
+        <li>Привычный вид: ничего заново учить не нужно, меняется только раскладка и язык оформления.</li>
+        <li>На телефоне — одна колонка, то есть ровно нынешний список.</li>
+      </ul>
+    </header>
+    <div class="frame" data-frame><div class="stage" data-mode="day"><div class="win v3" data-win="3"></div></div></div>
+  </section>
+</div>
+
+<script>
+/* ── Данные: те же пресеты, что в рабочем окне ────────────────────────── */
+const МОИ = [
+  {id:'p1', имя:'"Берлин" 9х5 Тёплый контур К1', проект:'"Берлин" 9х5 Тёплый контур', толщ:'150 мм',
+   дата:'20.05.26 14:32', цена:'3 493 283 ₽', код:'818436', метка:'pub', звезда:false, активный:true},
+  {id:'p2', имя:'"Берлин" 9х5 Бизнес К4', проект:'"Берлин" 9х5 Тёплый контур', толщ:'150 мм',
+   дата:'20.05.26 11:07', цена:'7 830 546 ₽', код:'355945', метка:'mine', звезда:true},
+  {id:'p3', имя:'D1_Иванов Иван Иванович', проект:'Фахверковая баня «Лейпциг» 8х12', толщ:'200 мм',
+   дата:'12.05.26 09:41', цена:'6 409 016 ₽', код:'', метка:'mine'},
+  {id:'p4', имя:'Санторини хай-тек 11', проект:'Санторини хай-тек 8х10', толщ:'150 мм',
+   дата:'08.05.26 16:20', цена:'12 751 389 ₽', код:'574573', метка:'pub'},
+  {id:'p5', имя:'Мюнхен 6х4 · базовый', проект:'Фахверковая баня «Мюнхен» 6х4', толщ:'150 мм',
+   дата:'02.05.26 10:12', цена:'1 997 685 ₽', код:'', метка:'mine'},
+  {id:'p6', имя:'Брюгге 6х8 · с террасой', проект:'Хай-тек баня «Брюгге» 6х8', толщ:'200 мм',
+   дата:'28.04.26 18:03', цена:'4 118 900 ₽', код:'240118', метка:'pub'},
+];
+const ОБЩИЕ = [
+  {id:'s1', имя:'Санторини хай-тек 8', проект:'Санторини хай-тек', толщ:'150 мм', автор:'Анатолий Шевалдов',
+   дата:'20 авг., 11:06', цена:'12 733 389 ₽', код:'277070', метка:'all', звезда:true},
+  {id:'s2', имя:'Санторини хай-тек Колупаев', проект:'Санторини хай-тек', толщ:'150 мм', автор:'Анатолий Шевалдов',
+   дата:'20 авг., 11:48', цена:'12 751 389 ₽', код:'574573', метка:'all'},
+  {id:'s3', имя:'Лейпциг 8х12 · Петров', проект:'Фахверковая баня «Лейпциг» 8х12', толщ:'200 мм', автор:'Мария Жугалёва',
+   дата:'19 авг., 09:15', цена:'6 409 016 ₽', код:'118902', метка:'all'},
+  {id:'s4', имя:'Мюнхен 6х4 · типовой', проект:'Фахверковая баня «Мюнхен» 6х4', толщ:'150 мм', автор:'Дмитрий К.',
+   дата:'18 авг., 17:40', цена:'1 997 685 ₽', код:'443112', метка:'all'},
+];
+
+const И = {
+  звезда:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  сохранить:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v14a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>',
+  правка:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+  скачать:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  импорт:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+  удалить:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>',
+  поделиться:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
+  публ:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>',
+  копия:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  поиск:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  цель:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>',
+  крест:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  чек:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg>',
+};
+const метка = м => м==='pub' ? '<span class="tag pub">Опубл.</span>'
+                  : м==='all' ? '<span class="tag all">Для всех</span>'
+                  : '<span class="tag mine">Мой</span>';
+
+/* ── Каркас: шапка, вкладки, панель, поиск ───────────────────────────── */
+function каркас(с, тело){
+  const общие = с.вкладка === 'shared', поиск = с.вкладка === 'search';
+  return `
+  <div class="win-head">
+    <div class="win-title">Пресеты</div>
+    <button class="win-x" title="Закрыть">${И.крест}</button>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="${с.вкладка==='my'}"     data-tab="my">Мои</button>
+    <button class="tab" role="tab" aria-selected="${общие}"                data-tab="shared">Общие</button>
+    <button class="tab" role="tab" aria-selected="${поиск}"                data-tab="search">Поиск</button>
+  </div>
+  <div class="toolbar">
+    <button class="tbtn primary">${И.сохранить} Сохранить как новый</button>
+    <button class="tbtn">${И.импорт} Импорт файла</button>
+    <button class="tbtn">${И.скачать} Скачать все</button>
+    <button class="tbtn">${И.цель} Активный</button>
+  </div>
+  <div class="srch">
+    <div class="fld">${И.поиск}<input placeholder="${общие?'Поиск в общих…':поиск?'Поиск по всем пресетам…':'Поиск пресетов…'}"></div>
+    ${(общие||поиск) ? `<button class="chip" aria-pressed="true" data-f="all">Все</button>
+       <button class="chip" aria-pressed="false" data-f="mine">Мои</button>` : ''}
+  </div>
+  <div class="body">${тело}</div>`;
+}
+const заголовок = (имя, сколько) => `<div class="gh"><b>${имя}</b><i>${сколько}</i></div>`;
+
+/* ── Вариант 1 ───────────────────────────────────────────────────────── */
+function вар1(с){
+  const общие = с.вкладка !== 'my';
+  const данные = общие ? ОБЩИЕ : МОИ;
+  const изб = данные.filter(п => п.звезда), ост = данные.filter(п => !п.звезда);
+  const строка = п => `
+    <div class="row${п.активный?' active':''}">
+      <button class="star${п.звезда?' on':''}" title="${п.звезда?'Убрать из избранного':'В избранное'}">${И.звезда}</button>
+      <div class="nm">${п.активный?'<span class="dotact"></span>':''}<span title="${п.имя}">${п.имя}</span>${метка(п.метка)}</div>
+      <div class="meta m1">${п.проект} · ${п.толщ}${общие?` <i>· ${п.автор}</i>`:''}</div>
+      <div class="meta m2"><i>${п.дата}</i></div>
+      <div class="pr price">${п.цена}</div>
+      <div class="cd">${п.код?`<span class="code"><b>${п.код.slice(0,3)} ${п.код.slice(3)}</b></span>
+        <button class="ib" title="Скопировать код и ссылку">${И.копия}</button>`:'<i style="color:var(--s-ink3);font-style:normal;font-size:.72rem">—</i>'}</div>
+      <div class="acts">
+        ${общие
+          ? `<button class="tx">Открыть</button>
+             <button class="ib" title="Чек-лист проверки">${И.чек}</button>
+             <button class="ib" title="Скачать JSON">${И.скачать}</button>
+             <button class="ib danger" title="Удалить">${И.удалить}</button>`
+          : `<button class="ib" title="Сохранить изменения в пресет"${п.активный?'':' disabled'}>${И.сохранить}</button>
+             <button class="ib" title="Переименовать">${И.правка}</button>
+             <button class="ib" title="Скачать JSON">${И.скачать}</button>
+             <button class="ib" title="Поделиться">${И.поделиться}</button>
+             <button class="ib" title="${п.метка==='pub'?'Отозвать':'Опубликовать'}">${И.публ}</button>
+             <button class="ib danger" title="Удалить">${И.удалить}</button>`}
+      </div>
+    </div>`;
+  const шапкаКолонок = `<div class="colhead"><div></div><div>Название</div><div>Проект</div>
+      <div>Сохранён</div><div class="pr">Сумма</div><div>Код</div><div style="text-align:right">Действия</div></div>`;
+  return каркас(с, `
+    ${изб.length?заголовок('Избранные', изб.length):''}
+    ${изб.length?шапкаКолонок:''}
+    ${изб.map(строка).join('')}
+    ${заголовок(общие?'Для всех':'Мои пресеты', ост.length)}
+    ${шапкаКолонок}
+    ${ост.map(строка).join('')}`);
+}
+
+/* ── Вариант 2 ───────────────────────────────────────────────────────── */
+function вар2(с){
+  const общие = с.вкладка !== 'my';
+  const данные = общие ? ОБЩИЕ : МОИ;
+  const тек = данные.find(п => п.id === с.выбран) || данные[0];
+  const пункт = п => `
+    <div class="li${п.id===тек.id?' on':''}" data-id="${п.id}">
+      <button class="star${п.звезда?' on':''}">${И.звезда}</button>
+      <div>
+        <div class="t">${п.активный?'<span class="dotact"></span>':''}<span>${п.имя}</span></div>
+        <div class="m"><span>${п.проект}</span><span class="price">${п.цена}</span></div>
+      </div>
+    </div>`;
+  const карточка = `
+    <div class="right">
+      <div class="dtitle">${тек.активный?'<span class="dotact"></span>':''}${тек.имя} ${метка(тек.метка)}</div>
+      <div class="dsum price">${тек.цена}</div>
+      <div class="dsub">${тек.проект} · ${тек.толщ}</div>
+      <dl>
+        <dt>Сохранён</dt><dd>${тек.дата}</dd>
+        ${общие?`<dt>Автор</dt><dd>${тек.автор}</dd>`:''}
+        <dt>Толщина утепления</dt><dd>${тек.толщ}</dd>
+        <dt>Состояние</dt><dd>${тек.метка==='pub'?'Опубликован':тек.метка==='all'?'Общий':'Только мой'}</dd>
+      </dl>
+      <div class="acts">
+        <button class="load">${общие?'Открыть':'Загрузить'}</button>
+        ${общие
+          ? `<button class="tx">Чек-лист</button>
+             <button class="tx">Скачать</button>
+             <span class="sep"></span>
+             <button class="tx danger">Удалить</button>`
+          : `<button class="tx"${тек.активный?'':' disabled style="opacity:.4"'}>Сохранить в пресет</button>
+             <button class="tx">Переименовать</button>
+             <button class="tx">Скачать</button>
+             <button class="tx">Поделиться</button>
+             <button class="tx ${тек.метка==='pub'?'warn':''}">${тек.метка==='pub'?'Отозвать':'Опубликовать'}</button>
+             <span class="sep"></span>
+             <button class="tx danger">Удалить</button>`}
+      </div>
+      ${тек.код?`<div class="coderow">
+        <span class="code"><span>Код</span><b>${тек.код.slice(0,3)} ${тек.код.slice(3)}</b></span>
+        <button class="tx" style="margin-left:auto">${И.копия} Скопировать</button>
+      </div>`:''}
+    </div>`;
+  return каркас(с, `<div class="split">
+      <div class="left">
+        ${заголовок(общие?'Общие':'Мои пресеты', данные.length)}
+        ${данные.map(пункт).join('')}
+      </div>
+      ${карточка}
+    </div>`);
+}
+
+/* ── Вариант 3 ───────────────────────────────────────────────────────── */
+function вар3(с){
+  const общие = с.вкладка !== 'my';
+  const данные = общие ? ОБЩИЕ : МОИ;
+  const изб = данные.filter(п => п.звезда), ост = данные.filter(п => !п.звезда);
+  const плитка = п => `
+    <div class="tile${п.активный?' active':''}">
+      <div class="th">
+        <button class="star${п.звезда?' on':''}">${И.звезда}</button>
+        <div class="t">${п.активный?'<span class="dotact"></span> ':''}${п.имя}</div>
+        ${метка(п.метка)}
+      </div>
+      <div class="tm"><span>${п.проект} · ${п.толщ}</span><i>${п.дата}</i></div>
+      <div class="tp price">${п.цена}</div>
+      <div class="ta">
+        <button class="load">${общие?'Открыть':'Загрузить'}</button>
+        ${общие
+          ? `<button class="ib" title="Чек-лист проверки">${И.чек}</button>
+             <button class="ib" title="Скачать JSON">${И.скачать}</button>
+             <button class="ib danger" title="Удалить">${И.удалить}</button>`
+          : `<button class="ib" title="Сохранить изменения в пресет"${п.активный?'':' disabled'}>${И.сохранить}</button>
+             <button class="ib" title="Переименовать">${И.правка}</button>
+             <button class="ib" title="Скачать JSON">${И.скачать}</button>
+             <button class="ib" title="Поделиться">${И.поделиться}</button>
+             <button class="ib" title="${п.метка==='pub'?'Отозвать':'Опубликовать'}">${И.публ}</button>
+             <button class="ib danger" title="Удалить">${И.удалить}</button>`}
+      </div>
+      ${п.код?`<div class="tc">
+        <span class="code"><span>Код</span><b>${п.код.slice(0,3)} ${п.код.slice(3)}</b></span>
+        <button class="tx">${И.копия} Скопировать</button>
+      </div>`:`<div class="tc"><span style="font-size:.7rem;color:var(--s-ink3)">Код появится после публикации</span></div>`}
+    </div>`;
+  return каркас(с, `
+    ${изб.length?заголовок('Избранные', изб.length):''}
+    ${изб.length?`<div class="grid">${изб.map(плитка).join('')}</div>`:''}
+    ${заголовок(общие?'Для всех':'Мои пресеты', ост.length)}
+    <div class="grid">${ост.map(плитка).join('')}</div>`);
+}
+
+/* ── Отрисовка и переключатели ───────────────────────────────────────── */
+const состояния = {1:{вкладка:'my',выбран:'p1'},2:{вкладка:'my',выбран:'p1'},3:{вкладка:'my',выбран:'p1'}};
+const рисуют = {1:вар1, 2:вар2, 3:вар3};
+function отрисовать(n){
+  const узел = document.querySelector(`[data-win="${n}"]`);
+  узел.innerHTML = рисуют[n](состояния[n]);
+  узел.querySelectorAll('.tab').forEach(б => б.onclick = () => {
+    состояния[n].вкладка = б.dataset.tab;
+    состояния[n].выбран = б.dataset.tab === 'my' ? 'p1' : 's1';
+    отрисовать(n);
+  });
+  узел.querySelectorAll('.chip').forEach(б => б.onclick = () => {
+    узел.querySelectorAll('.chip').forEach(д => д.setAttribute('aria-pressed', String(д === б)));
+  });
+  узел.querySelectorAll('.star').forEach(б => б.onclick = e => {
+    e.stopPropagation(); б.classList.toggle('on');
+  });
+  узел.querySelectorAll('.li').forEach(э => э.onclick = () => {
+    состояния[n].выбран = э.dataset.id; отрисовать(n);
+  });
+}
+[1,2,3].forEach(отрисовать);
+
+document.getElementById('segMode').onclick = e => {
+  const б = e.target.closest('button'); if (!б) return;
+  document.querySelectorAll('#segMode button').forEach(д => д.setAttribute('aria-pressed', String(д === б)));
+  document.querySelectorAll('.stage').forEach(с => с.dataset.mode = б.dataset.mode);
+};
+document.getElementById('segWidth').onclick = e => {
+  const б = e.target.closest('button'); if (!б) return;
+  document.querySelectorAll('#segWidth button').forEach(д => д.setAttribute('aria-pressed', String(д === б)));
+  document.querySelectorAll('[data-frame]').forEach(ф => ф.style.maxWidth = б.dataset.w + 'px');
+};
+document.querySelectorAll('[data-frame]').forEach(ф => ф.style.maxWidth = '1120px');
+</script>
+</body>
+</html>
