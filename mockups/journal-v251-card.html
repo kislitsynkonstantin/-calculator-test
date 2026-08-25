@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Журнал v2.5.1 — макет карточки</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Оформление взято из самой справки один в один: те же токены, те же классы
+   .upd / .upd-head / .upd-list / .upd-item. Одобренный макет переносится в
+   справку как есть, без пересборки стилей. */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#1e6c72;--gm:#2a8f97;--gl:#3db0ba;--gb:#e4f5f6;
+  --bk:#111;--gr:#555;--grl:#888;--bd:#d4e4e5;--w:#fff;
+}
+body{font-family:'Geologica',sans-serif;background:#f0f6f6;color:var(--bk);}
+body.dark{--g:#1e6c72;--gm:#3db0ba;--gl:#4ecad4;--gb:rgba(30,108,114,0.2);--bk:#e8f0f1;--gr:#9ab;--grl:#678;--bd:#2a3f42;--w:#1a2a2c;background:#111e20;}
+body.dark .tag{background:rgba(30,108,114,0.25);color:var(--gl);}
+body.dark .sec{border-bottom-color:#2a3f42;}
+
+.main{max-width:800px;padding:44px 52px 80px;}
+@media(max-width:720px){.main{padding:24px 20px 80px;}}
+.tag{display:inline-block;font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gm);background:var(--gb);border-radius:20px;padding:3px 12px;margin-bottom:12px;}
+h2{font-family:'Unbounded',sans-serif;font-size:1.2rem;font-weight:800;color:var(--bk);margin-bottom:8px;line-height:1.25;letter-spacing:-0.02em;}
+.lead{font-size:0.88rem;color:var(--gr);line-height:1.72;margin-bottom:32px;max-width:560px;}
+
+.upd{border:1px solid var(--bd);border-radius:10px;background:var(--w);margin:0 0 12px;overflow:hidden;}
+.upd-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 14px;
+  background:var(--gb);border-bottom:1px solid var(--bd);}
+.upd-ver{font-weight:700;font-size:0.92rem;color:var(--gl);letter-spacing:0.01em;}
+.upd-date{font-size:0.7rem;color:var(--grl);}
+.upd-state{margin-left:auto;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;
+  font-weight:700;padding:3px 9px;border-radius:20px;background:var(--w);
+  border:1px solid var(--bd);color:var(--grl);white-space:nowrap;}
+.upd-state.now{color:var(--gl);border-color:var(--gl);}
+.upd-list{padding:4px 14px 10px;}
+.upd-link{color:var(--g);border-bottom:1px solid rgba(30,108,114,0.35);cursor:pointer;}
+.upd-link:hover{border-bottom-color:var(--g);}
+.upd-item{position:relative;padding:8px 0 8px 15px;border-top:1px solid var(--bd);
+  font-size:0.79rem;line-height:1.5;color:var(--gr);}
+.upd-item strong{color:var(--bk,#1a2b2d);font-weight:700;}
+.upd-list .upd-item:first-child{border-top:none;}
+.upd-item::before{content:'';position:absolute;left:0;top:15px;width:5px;height:5px;
+  border-radius:50%;background:var(--gl);}
+
+/* ── ПРЕДЛАГАЕТСЯ ДОБАВИТЬ В СПРАВКУ ──────────────────────────────────────
+   Подзаголовок внутри карточки. В прежних выпусках правок было по одной-две
+   и список шёл сплошным; здесь их тринадцать, и сплошной список читается
+   стеной. Подзаголовок разбивает его на «что нового», «стало удобнее» и
+   «исправлено» — менеджер находит своё место глазом, а не перечитывает всё.
+   Если не понравится — убирается одной строкой, пункты останутся как есть. */
+.upd-group{font-family:'Unbounded',sans-serif;font-size:0.55rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.1em;color:var(--grl);
+  padding:14px 0 4px;border-top:1px solid var(--bd);}
+.upd-list > .upd-group:first-child{border-top:none;padding-top:6px;}
+.upd-group + .upd-item{border-top:none;}
+@media(max-width:640px){
+  .upd-state{margin-left:0;}
+  .upd-item{font-size:0.76rem;}
+}
+
+/* Служебное — только в макете, в справку не переносится. */
+.mk-bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:10px 52px;background:var(--w);border-bottom:1px solid var(--bd);font-size:0.72rem;color:var(--grl);}
+@media(max-width:720px){.mk-bar{padding:10px 20px;}}
+.mk-bar b{color:var(--bk);font-weight:600;}
+.mk-btn{appearance:none;border:1px solid var(--bd);background:none;color:var(--gr);
+  font-family:inherit;font-size:0.72rem;border-radius:7px;padding:6px 12px;cursor:pointer;min-height:32px;}
+.mk-btn:hover{border-color:var(--gl);color:var(--gl);}
+.mk-note{max-width:640px;margin:26px 0 0;padding:14px 16px;border:1px dashed var(--bd);
+  border-radius:10px;font-size:0.75rem;line-height:1.6;color:var(--grl);}
+.mk-note b{color:var(--gr);}
+</style>
+</head>
+<body>
+
+<div class="mk-bar">
+  <b>Макет</b> карточки журнала v2.5.1 — как она будет выглядеть в справке
+  <button class="mk-btn" onclick="document.body.classList.toggle('dark')">День / ночь</button>
+</div>
+
+<div class="main">
+  <div class="tag">Прочее</div>
+  <h2>Журнал обновлений</h2>
+  <p class="lead">Что менялось от версии к версии. Здесь только то,
+     что видно в работе.</p>
+
+  <div class="upd">
+    <div class="upd-head">
+      <span class="upd-ver">v2.5.1</span>
+      <span class="upd-date">25.08.2026</span>
+      <span class="upd-state now">текущая</span>
+    </div>
+    <div class="upd-list">
+
+      <div class="upd-group">Что нового</div>
+
+      <div class="upd-item"><strong>Клеёный брус — вторая технология в том же калькуляторе.</strong>
+        Переключатель «Технология» в реквизитах больше не подпись: он перестраивает
+        расчёт целиком. По брусу заведены 48 проектов с ценами по трём сечениям
+        (125×185 / 160×185 / 205×185), свой список платных опций, своя базовая
+        комплектация и свои примечания разделов.
+        <br><br>
+        Что меняется на экране при переключении: заголовок листа, переключатель
+        толщины — вместо утепления сечение бруса, — название второго раздела
+        («Стеновой комплект и перекрытия» вместо «Каркаса»), состав опций.
+        Появляются два поля площади: фасада со свесами и кровли.
+        <br><br>
+        Технология и введённые площади сохраняются вместе с расчётом и уходят в
+        ссылку для клиента: расчёт по брусу открывается как брус, а не считается
+        каркасными ценами молча. Каркас при этом не изменился ни на рубль.
+        <br><br>
+        <strong>Пока брус открыт только администратору и редактору.</strong>
+        У менеджера пункта «Клеёный брус» в списке технологий нет, и открыть его
+        в обход списка — по сохранённому расчёту или по ссылке — тоже нельзя:
+        калькулятор остаётся на каркасе и говорит об этом.</div>
+
+      <div class="upd-item"><strong>Поиск по опциям: частые запросы можно закрепить.</strong>
+        Окно поиска переработано. Закреплённые запросы живут на отдельной вкладке —
+        набирать заново не надо. Хранятся они в аккаунте, а не в браузере: зашли с
+        другого компьютера или телефона — список тот же.</div>
+
+      <div class="upd-item"><strong>Тема «Бланк» дошла до всех окон.</strong>
+        Раньше «Бланк» был темой главного экрана: сам лист выглядел документом, а
+        окна поверх него открывались прежними. Теперь на язык темы переведены
+        платёжный план, пресеты, аналитика, настройки со всеми тремя вкладками,
+        поиск по опциям и меню «Сбросить», окно печати вместе с панелью и
+        выпадающими меню, комплектации и вкладка договоров.
+        «Модерн» при этом остался прежним — переключатель тем там же,
+        <span class="upd-link">«Настройки» → «Стиль интерфейса»</span>.</div>
+
+      <div class="upd-group">Стало удобнее</div>
+
+      <div class="upd-item"><strong>Пресеты: карточка стала плиткой, вкладок стало две.</strong>
+        Название и сумма набраны крупно, автор и дата идут строкой, код и действия
+        собраны единой полосой внизу. Вкладка «Поиск» убрана: и «Мои», и «Общие»
+        и так ищут по названию, автору и коду, а шестизначный код доищется в базе
+        из любой из них.</div>
+
+      <div class="upd-item"><strong>Меню «Сбросить» показывает числа.</strong>
+        Раньше пункты предлагали сбросить неизвестно что. Теперь рядом с каждым
+        стоит число: сколько опций снимется, сколько полей очистится. Видно, что
+        именно потеряете, до нажатия.</div>
+
+      <div class="upd-item"><strong>Крестик очистки — во всех строках поиска.</strong>
+        Строки поиска по проектам, по опциям и в пресетах очищаются крестиком,
+        а не стиранием по букве.</div>
+
+      <div class="upd-item"><strong>На карточке общего пресета видно время последней правки.</strong>
+        Раньше карточка показывала день публикации, и правку после выкладки по ней
+        было не видно. Теперь там дата и время последней правки: «20 авг., 11:06».</div>
+
+      <div class="upd-item"><strong>Автоматика примечаний говорит вслух.</strong>
+        Когда примечание скрылось или вернулось само, всплывает короткое сообщение —
+        какое именно. Отключается там же, в настройках, тумблером подсказок.</div>
+
+      <div class="upd-group">Исправлено</div>
+
+      <div class="upd-item"><strong>Примечание про покраску террасы снимается само.</strong>
+        Отметили «Обработка террасной доски специальным маслом» — примечание
+        «Покраска террасы не входит в базовую комплектацию» скрывается, как по
+        нажатию на глаз рядом с ним. Сняли опцию — примечание вернулось.
+        Нажатый вручную глаз автоматика не перебивает.</div>
+
+      <div class="upd-item"><strong>Примечание про отделку цоколя — так же.</strong>
+        Отметили любую опцию закрытия цоколя — панелями заказчика или
+        профилированным листом — и примечание «Отделка цоколя в базовую стоимость
+        не входит» скрывается. Пока отмечена хотя бы одна из них, примечание
+        остаётся скрытым.</div>
+
+      <div class="upd-item"><strong>Утеплитель назван правильно.</strong>
+        В базовой комплектации Knauf Aquastatik значился базальтовой ватой. Это
+        минеральная вата: у базальтовой другое сырьё. Позиция называется
+        «Утеплитель — минеральная вата KNAUF Aquastatik» — на экране, в печати и
+        в выгрузке базы. В сохранённых расчётах переименуется сама, пересчитывать
+        ничего не нужно.</div>
+
+      <div class="upd-item"><strong>Переключатель «Новые / Старые» цены доводит дело до конца.</strong>
+        Переключение режима обрывалось на полпути: список опций перестраивался, а
+        итог, пометки «в подарок» и «выделено» — нет. И форма ручного проекта
+        оставалась под прежний набор опций, из-за чего «Взять из выбранного»
+        писало цены в поля, которых на экране уже нет.</div>
+
+      <div class="upd-item"><strong>«Взять из выбранного» больше не молчит.</strong>
+        После копирования калькулятор говорит, сколько цен легло в форму. Если ноль —
+        говорит, почему: у проекта нет цен опций в базе или цены не подошли ни к
+        одной позиции. Раньше пустая форма выглядела одинаково в обоих случаях.</div>
+
+      <div class="upd-item"><strong>Карта активности больше не пустая.</strong>
+        В аналитике карта показывала пустоту у тех, у кого события были.
+        Теперь показывает работу за год.</div>
+
+    </div>
+  </div>
+
+  <div class="mk-note">
+    <b>Что здесь на согласование.</b> Тринадцать пунктов вместо привычных двух —
+    правок за версию накопилось много, поэтому список разбит подзаголовками
+    «Что нового», «Стало удобнее», «Исправлено». Подзаголовок — единственное, чего
+    в справке сейчас нет; всё остальное — те же классы и то же оформление.
+    Убрать его — одна строка, пункты останутся на месте.
+    <br><br>
+    <b>Дата.</b> Стоит 25.08.2026 — ставится по дню выпуска на боевой домен.
+    <br><br>
+    <b>Чего в карточке нет.</b> Всё, что ломалось и чинилось внутри теста и до
+    боевого не доходило — зазоры между кнопками, доводка окон, макеты. Журнал
+    отвечает на вопрос «что у меня изменилось на экране», а не отчитывается о работе.
+  </div>
+</div>
+
+</body>
+</html>
