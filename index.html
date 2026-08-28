@@ -15114,6 +15114,10 @@ const appSettings = {
   defaultThickness: 1,
   noteHighlightColor: '#eef4f4',
   uiStyle: 'blank',
+  // Отметка однократного перевода на «Бланк». Лежит здесь, а не отдельным
+  // ключом в браузере, потому что настройки уезжают в профиль: переезд должен
+  // случиться один раз на человека, а не на каждом его устройстве.
+  uiStyleMigratedToBlank: false,
   // Закреплённые запросы поиска по опциям. Живут здесь, а не отдельным
   // ключом в браузере, потому что настройки уезжают в профиль: закрепив
   // запрос на телефоне, менеджер видит его и на компьютере.
@@ -15155,6 +15159,10 @@ function loadSettings() {
   } catch(e) {}
   applyThemeMode(appSettings.themeMode, false);
   applyUiStyle(appSettings.uiStyle || 'light', false);
+  // Профиль приезжает позже и настройки перезапишет — там переезд повторится
+  // и сохранится уже в аккаунт. Здесь он нужен на случай, когда профиля не
+  // будет вовсе: иначе человек так и остался бы в «Модерне».
+  try { migrateUiStyleToBlank(); } catch (e) {}
   document.getElementById('discountPctInput').value = appSettings.defaultDiscount;
   syncNoteColor();
   // Restore eye button state from localStorage
@@ -15341,6 +15349,29 @@ function applyUiStyle(style, save = true) {
   if (ов && ов.style.display !== 'none' && ppActiveTab === 'contracts'
       && typeof renderPPContracts === 'function') renderPPContracts();
   if (save) saveSettings();
+}
+
+// ── Однократный перевод на «Бланк» ─────────────────────────────────────────
+// У части менеджеров на компьютерах остался «Модерн» с прежних версий: они
+// просто не заметили, что появилась новая тема, и продолжали работать в старой.
+// Поэтому при первой загрузке после этой правки тема переключается на «Бланк»
+// один раз — и больше никогда. Отметка о переезде хранится в настройках, а
+// значит уезжает в профиль: на другом компьютере того же человека переезд не
+// повторится. Переключил обратно на «Модерн» руками — так и останется: сюда
+// мы больше не заходим.
+// Аргумент нужен из-за порядка загрузки: местные настройки читаются раньше
+// профиля, переезд там уже успевает поставить отметку в памяти, и когда
+// профиль перезаписывает тему обратно на «Модерн», отметка остаётся стоять —
+// второй переезд не срабатывает, и человек так и остаётся в старой теме.
+// Поэтому на пути профиля отметку берём из самого профиля, а не из памяти.
+function migrateUiStyleToBlank(ужеПереехал) {
+  const переехал = (ужеПереехал === undefined) ? appSettings.uiStyleMigratedToBlank : ужеПереехал;
+  if (переехал) { appSettings.uiStyleMigratedToBlank = true; return false; }
+  appSettings.uiStyleMigratedToBlank = true;
+  // applyUiStyle с save=false: сохраняем один раз, вместе с отметкой.
+  if (appSettings.uiStyle !== 'blank') applyUiStyle('blank', false);
+  saveSettings();
+  return true;
 }
 
 // Sync header dark mode button → settings
@@ -28614,6 +28645,9 @@ async function loadSbProfile() {
       // «Светлая», хотя пользователь этого не выбирал. 16.08.2026.
       applyThemeMode(appSettings.themeMode || 'auto', false);
       applyUiStyle(appSettings.uiStyle || 'light', false);
+      // Основной путь переезда: настройки из профиля только что перезаписали
+      // местные, поэтому отметку смотрим по аккаунту, а не по памяти.
+      try { migrateUiStyleToBlank(!!data.app_settings.uiStyleMigratedToBlank); } catch (e) {}
       syncNoteColor();
       // Настройки из профиля надо не только положить в объект, но и применить
       // к странице — ровно так же, как это делает loadSettings() для местных.
