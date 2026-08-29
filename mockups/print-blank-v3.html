@@ -59,6 +59,14 @@ body{background:#eef3f4;font-family:'Geologica',system-ui,sans-serif;color:var(-
 .d-disc-v{font-size:15pt;font-weight:600;letter-spacing:-.02em;line-height:1;color:var(--bl-acc);}
 .d-disc-v small{font-size:10pt;font-weight:400;color:var(--bl-acc2);margin-left:3px;}
 .d-disc-sub{margin-top:5px;font-size:7.5pt;color:var(--bl-ink3);text-align:right;}
+/* Отдельная вкладка на сравнение: та же тема, спец. цена красным. Основной
+   «Бланк» не трогаем — Константин хотел сравнить, а не заменить.
+   Красный взят тот же, каким спец. цена набрана в разбивке итога в самом
+   калькуляторе (#cc0000): на белом он читается, светлый фирменный #e05555
+   на бумаге бледнеет. */
+.sheet.disc-red .d-disc-k{color:#cc0000;}
+.sheet.disc-red .d-disc-v{color:#cc0000;}
+.sheet.disc-red .d-disc-v small{color:#d46060;}
 
 /* ── Основная часть: как в «Ведомости», без подстрочника ────────────────── */
 .d-tbl{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:14px;}
@@ -142,6 +150,7 @@ body{background:#eef3f4;font-family:'Geologica',system-ui,sans-serif;color:var(-
   <b>Макет</b> шаблона печати «Бланк» — сведённая тема
   <div class="mk-sw">
     <button aria-pressed="true" data-v="blank">Бланк</button>
+    <button aria-pressed="false" data-v="red">Бланк · спец. цена красным</button>
     <button aria-pressed="false" data-v="classic" class="ref">Классик (сейчас)</button>
   </div>
 </div>
@@ -156,6 +165,12 @@ body{background:#eef3f4;font-family:'Geologica',system-ui,sans-serif;color:var(-
   <b>Что изменено.</b> «Включено в базу» стало «Входит». Цена и «Входит» стоят в
   одной колонке: у позиции либо одно, либо другое, поэтому пустых колонок на листе
   больше нет.
+  <br><br>
+  <b>Вкладка «спец. цена красным».</b> Та же тема, отличается только цвет
+  спец. цены в шапке — на сравнение. Основной «Бланк» не тронут: разметка у
+  обоих одна, меняется один класс на листе. Красный взят тот же, каким спец.
+  цена набрана в разбивке итога в самом калькуляторе (#cc0000): светлый
+  фирменный #e05555 на белой бумаге бледнеет.
   <br><br>
   <b>Спец. цена в шапке.</b> Второй строкой под общей стоимостью, до линии
   акцента: процент, условие «за наличные», сумма со скидкой и мелкой строкой
@@ -268,7 +283,10 @@ function классик(){
 
 function показать(в){
   const л = document.getElementById('лист');
-  л.className = 'sheet' + (в === 'classic' ? ' classic' : '');
+  // Разметка у «Бланка» и у «Бланка с красной спец. ценой» одна и та же:
+  // отличается только класс на листе, иначе варианты разъехались бы по
+  // содержимому и сравнивать было бы нечего.
+  л.className = 'sheet' + (в === 'classic' ? ' classic' : в === 'red' ? ' disc-red' : '');
   л.innerHTML = в === 'classic' ? классик() : бланк();
   document.querySelectorAll('.mk-sw button').forEach(б =>
     б.setAttribute('aria-pressed', String(б.dataset.v === в)));
