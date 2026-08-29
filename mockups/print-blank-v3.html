@@ -70,21 +70,21 @@ body{background:#eef3f4;font-family:'Geologica',system-ui,sans-serif;color:var(-
 
 /* ── Основная часть: как в «Ведомости», без подстрочника ────────────────── */
 .d-tbl{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:14px;}
-.d-tbl col.n{width:40px}.d-tbl col.v{width:132px}
+.d-tbl col.n{width:47px}.d-tbl col.v{width:139px}
 .d-sec td{padding:22px 0 7px;border-bottom:2px solid var(--bl-acc);vertical-align:baseline;}
-.s-n{font-size:19pt;font-weight:600;color:var(--bl-pale);letter-spacing:-.03em;line-height:1;}
+.d-sec td.s-n{font-size:19pt;font-weight:600;color:var(--bl-pale);letter-spacing:-.03em;line-height:1;padding-left:7px;}
 .s-name{font-size:11pt;font-weight:600;color:var(--bl-ink);letter-spacing:-.01em;}
-.s-sum{font-size:11pt;font-weight:600;text-align:right;color:var(--bl-acc);white-space:nowrap;}
+.d-sec td.s-sum{font-size:11pt;font-weight:600;text-align:right;color:var(--bl-acc);white-space:nowrap;padding-right:7px;}
 .d-row td{padding:5px 0;border-bottom:1px solid var(--bl-rule);vertical-align:baseline;line-height:1.4;}
-.d-row td.r-n{font-size:7.5pt;color:var(--bl-ink3);padding-left:2px;}
+.d-row td.r-n{font-size:7.5pt;color:var(--bl-ink3);padding-left:7px;}
 .r-name{font-size:9.5pt;color:var(--bl-ink);padding-right:14px;}
 /* «Входит» и цена стоят в одной колонке: у позиции либо одно, либо другое. */
-.r-v{text-align:right;white-space:nowrap;}
+.d-row td.r-v{text-align:right;white-space:nowrap;padding-right:7px;}
 .r-v.inc{font-size:8pt;color:var(--bl-acc);letter-spacing:.02em;}
 .r-v.sum{font-size:9.5pt;color:var(--bl-ink);font-weight:500;}
 .d-note td{background:var(--bl-tint);border-bottom:1px solid var(--bl-rule);
-  padding:6px 0;font-size:8.5pt;color:var(--bl-ink2);line-height:1.4;}
-.d-note td:first-child{padding-left:2px;}
+  padding:6px 0;font-size:8.5pt;color:var(--bl-ink2);line-height:1.4;vertical-align:baseline;}
+.d-note td:first-child{padding-left:7px;}
 
 /* ── Полоска итога — как под экраном калькулятора ───────────────────────── */
 .strip{margin-top:22px;background:var(--bl-acc);color:#fff;border-radius:10px;padding:14px 20px;}
