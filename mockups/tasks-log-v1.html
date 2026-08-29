@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Лог задач калькулятора — фичи и улучшения</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600&family=Unbounded:wght@600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;}
+:root{
+  --page:#f7fbfb; --sheet:#fff; --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5;
+  --rule:#dceaeb; --rule2:#bcd9db; --acc:#1e6c72; --acc2:#2a8f97; --pale:#a8dde0; --tint:#e4f5f6;
+  --warn-bg:#fff8ec; --warn-ink:#8a6320;
+}
+body.night{
+  --page:#0e1a1c; --sheet:#132528; --ink:#e6f3f3; --ink2:#9db6b8; --ink3:#8aa4a6;
+  --rule:#224347; --rule2:#2d585d; --acc:#8fd6dc; --acc2:#5fc2ca; --pale:#5fc2ca; --tint:#173338;
+  --warn-bg:#2a2418; --warn-ink:#e0c58a;
+}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:'Geologica',system-ui,sans-serif;font-variant-numeric:tabular-nums;}
+
+.wrap{max-width:940px;margin:0 auto;padding:34px 22px 70px;}
+@media(max-width:640px){.wrap{padding:24px 14px 50px;}}
+
+/* ── Шапка ─────────────────────────────────────────────────────────────── */
+.top{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;}
+.eyebrow{font-size:.6rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--acc2);margin-bottom:8px;}
+h1{font-family:'Unbounded',sans-serif;font-size:1.35rem;font-weight:600;letter-spacing:-.01em;
+  line-height:1.2;margin:0;}
+@media(max-width:640px){h1{font-size:1.08rem;}}
+.lead{margin:10px 0 0;font-size:.82rem;line-height:1.6;color:var(--ink2);max-width:62ch;}
+.night-btn{margin-left:auto;flex:none;display:flex;align-items:center;justify-content:center;
+  padding:8px 9px;border:0;border-radius:8px;background:none;color:var(--ink2);cursor:pointer;position:relative;}
+.night-btn::before{content:'';position:absolute;inset:-6px;}
+.night-btn:hover{background:var(--tint);color:var(--acc);}
+
+.counts{display:flex;gap:0 28px;flex-wrap:wrap;margin:22px 0 0;padding:16px 0 0;border-top:1px solid var(--rule);}
+.count{display:flex;align-items:baseline;gap:8px;}
+.count b{font-size:1.5rem;font-weight:600;letter-spacing:-.02em;color:var(--acc);line-height:1;}
+.count span{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);}
+
+/* ── Группа ────────────────────────────────────────────────────────────── */
+.grp{margin-top:38px;}
+.grp-h{display:flex;align-items:baseline;gap:12px;padding-bottom:8px;border-bottom:2px solid var(--acc);}
+.grp-n{font-size:1.15rem;font-weight:600;color:var(--pale);letter-spacing:-.03em;line-height:1;}
+.grp-t{font-family:'Unbounded',sans-serif;font-size:.9rem;font-weight:600;letter-spacing:-.01em;}
+.grp-c{margin-left:auto;font-size:.68rem;color:var(--ink3);white-space:nowrap;}
+.grp-note{margin:12px 0 0;font-size:.76rem;line-height:1.6;color:var(--ink2);}
+
+/* ── Карточка задачи ───────────────────────────────────────────────────── */
+.task{border-top:1px solid var(--rule);padding:20px 0 18px;}
+.task:first-of-type{border-top:0;}
+.t-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+.t-num{font-size:.72rem;color:var(--ink3);flex:none;min-width:20px;}
+.t-name{font-size:1rem;font-weight:600;letter-spacing:-.01em;flex:1 1 240px;}
+.chip{flex:none;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;font-weight:500;
+  padding:3px 10px;border-radius:20px;border:1px solid var(--rule2);color:var(--ink3);white-space:nowrap;}
+.chip.wait{color:var(--acc2);border-color:var(--rule2);}
+.chip.talk{color:var(--warn-ink);background:var(--warn-bg);border-color:transparent;}
+.t-thesis{margin:9px 0 0;font-size:.85rem;line-height:1.55;color:var(--ink);}
+.t-sub{margin:12px 0 0;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);}
+.t-list{margin:5px 0 0;padding:0;list-style:none;}
+.t-list li{position:relative;padding:5px 0 5px 15px;font-size:.79rem;line-height:1.5;color:var(--ink2);}
+.t-list li::before{content:'';position:absolute;left:0;top:13px;width:4px;height:4px;border-radius:50%;background:var(--pale);}
+.t-list b{color:var(--ink);font-weight:600;}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.74rem;
+  background:var(--tint);border-radius:4px;padding:1px 5px;color:var(--acc);}
+body.night code{color:var(--acc2);}
+.t-q{margin-top:12px;padding:10px 12px;background:var(--tint);}
+.t-q .t-sub{margin-top:0;}
+.t-q ul{margin:4px 0 0;padding-left:16px;}
+.t-q li{font-size:.78rem;line-height:1.5;color:var(--ink2);padding:3px 0;}
+
+.foot{margin-top:40px;padding-top:14px;border-top:1px solid var(--rule);
+  font-size:.72rem;line-height:1.6;color:var(--ink3);}
+</style></head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div>
+      <div class="eyebrow">Калькулятор спецификаций · Баня МСК</div>
+      <h1>Лог задач: фичи и улучшения</h1>
+    </div>
+    <button class="night-btn" id="nb" onclick="ночь()" title="Тёмный / светлый режим" aria-label="Тёмный / светлый режим">
+      <svg id="ni" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+
+  <p class="lead">Тезисы по каждой задаче и комментарий: что под неё уже есть в коде и что придётся
+    решить до начала работы. Это не план работ и не сроки — список, из которого берут следующую задачу.
+    Живой источник — <code>docs/feature-notes.md</code>, на 29.08.2026.</p>
+
+  <div class="counts">
+    <div class="count"><b>15</b><span>задач всего</span></div>
+    <div class="count"><b>9</b><span>от Константина</span></div>
+    <div class="count"><b>6</b><span>предложений</span></div>
+    <div class="count"><b>1</b><span>ждёт уточнений</span></div>
+  </div>
+
+  <!-- ───────────────────────────────────────────────────────────────────── -->
+  <div class="grp">
+    <div class="grp-h">
+      <div class="grp-n">01</div>
+      <div class="grp-t">От Константина</div>
+      <div class="grp-c">9 задач</div>
+    </div>
+    <p class="grp-note">Записано с его слов. К работе не приступали ни по одной — начинаю только по слову.</p>
+
+    <div class="task">
+      <div class="t-head"><span class="t-num">1</span>
+        <span class="t-name">Индикатор выбранного пресета в шапке</span>
+        <span class="chip wait">ждёт</span></div>
+      <p class="t-thesis">Точка на фасаде шапки в цвет выбранного пресета: видно, что расчёт открыт
+        из пресета и какого именно, не открывая окно пресетов.</p>
+      <div class="t-sub">Что есть в коде</div>
+      <ul class="t-list">
+        <li>Активный пресет известен — <code>activePresetId</code>, карточка помечена
+          <code>pcard-active</code>, несохранённые правки — <code>_presetDirty</code>.</li>
+        <li><b>Цвета у пресета нет вовсе.</b> Есть звёздочка избранного и метка публикации.
+          Цвета в калькуляторе только у договоров.</li>
+      </ul>
+      <div class="t-q"><div class="t-sub">Решить до работы</div>
+        <ul><li>Откуда берётся цвет: заводим поле и даём выбирать при сохранении — или точка берёт
+          цвет от договора, избранного, автора?</li></ul></div>
+    </div>
+
+    <div class="task">
+      <div class="t-head"><span class="t-num">2</span>
+        <span class="t-name">Покраска: марки, аналоги, терраса и пергола</span>
+        <span class="chip wait">ждёт</span></div>
+      <p class="t-thesis">Две правки в разделе «7. Покраска», обе по чек-листу: прописать тип краски
+        с допустимой заменой и закрыть покраску террасы, перголы и ограждений.</p>
+      <div class="t-sub">Что есть в коде</div>
+      <ul class="t-list">
+        <li>Марки названы: Tikkurila, Osmo, G-Nature, Sikkens, Zobel. <b>Оговорки «или аналоги»
+          нет ни в одной.</b></li>
+        <li>Терраса покрывается двумя опциями. <b>Перголы и ограждений террасы нет вовсе</b> —
+          из «ограждений» только «Ограждение для печи из липы», это другое.</li>
+        <li>Примечание раздела «Дополнительные» прямо говорит, что ограждения, пергола и ступени
+          в базу не входят: их красят, а посчитать нечем. Дыра в наборе опций, а не в формулировке.</li>
+      </ul>
+    </div>
+
+    <div class="task">
+      <div class="t-head"><span class="t-num">3</span>
+        <span class="t-name">База знаний для менеджеров — заполнить</span>
+        <span class="chip wait">ждёт</span></div>
+      <p class="t-thesis">Дописать содержимое базы знаний — кнопка в шапке, клавиша «Б».</p>
+      <div class="t-sub">Комментарий</div>
+      <ul class="t-list">
+        <li>Это <b>отдельный сайт</b> <code>knowledge.baniamsk.ru</code>, открываемый окном внутри
+          калькулятора. Работа в наполнении сайта, а не в коде: правки в <code>index.html</code>
+          не понадобятся.</li>
+        <li>Содержимое базы знаний из моего окружения не видно — домен закрыт исходящим прокси.
+          Что именно не дописано, пойму по твоему списку разделов.</li>
+      </ul>
+    </div>
+
+    <div class="task">
+      <div class="t-head"><span class="t-num">4</span>
+        <span class="t-name">Справка: дописать последние разделы</span>
+        <span class="chip wait">ждёт</span></div>
+      <p class="t-thesis">Справка отстала от калькулятора: часть правок живёт только в журнале
+        обновлений, а в самих главах их нет. Журнал читают один раз, за подробностями идут в главы.</p>
+      <div class="t-sub">Проверено по тексту справки</div>
+      <ul class="t-list">
+        <li><b>Ручные проекты у клеёного бруса.</b> «Взять из выбранного» встречается только в
+          карточке журнала v2.5.2. В главе «Выбор проекта» ручных проектов нет ни для одной
+          технологии — дыра старше бруса.</li>
+        <li><b>Экран входа.</b> Слов «экран входа» и «Забыли пароль» в справке нет ни разу.
+          «Аккаунт и синхронизация» описывает только вход через шестерёнку.</li>
+        <li>Переписывать не надо: глава «Технология» есть с v2.5.1, шаблон печати «Бланк»
+          в «Версии для печати» описан, счёт стилей уже шесть.</li>
+      </ul>
+    </div>
+
+    <div class="task">
+      <div class="t-head"><span class="t-num">5</span>
+        <span class="t-name">Штукатурка фасада: ЦСП вместо ОСБ</span>
+        <span class="chip talk">обсуждаем</span></div>
+      <p class="t-thesis">Основание под штукатурку меняется с ОСБ на ЦСП — опция «Обшивка стен —
+        штукатурка фасада (на ОСБ)» в разделе «4. Внешняя отделка». <b>Ждём уточнений, ничего не трогаем.</b></p>
+      <div class="t-sub">Что придётся тронуть</div>
+      <ul class="t-list">
+        <li><b>Название</b> лежит в двух местах: в файле (<code>ex34</code>) и в базе
+          <code>pricing_options</code>. Менять согласованно, иначе название разойдётся с ценой.</li>
+        <li><b>Цена — формула, не фиксированная:</b> площадь фасада × 2950 ₽ × 1,1 + 15 000 ₽,
+          маржа 0,3. ЦСП дороже ОСБ, значит ставка почти наверняка меняется — это и есть главное,
+          чего ждём.</li>
+        <li>У клеёного бруса такой опции нет вовсе.</li>
+      </ul>
+      <div class="t-q"><div class="t-sub">Решить до работы</div>
+        <ul><li>Новая ставка ₽/м² — что меняется из 2950 / 1,1 / 15 000?</li>
+          <li>Точная формулировка названия.</li>
+          <li>ЦСП вместо ОСБ или наравне со старой строкой?</li>
+          <li>Что со старыми расчётами на ОСБ — пересчитывать или оставить?</li>
+          <li>Нужна ли такая опция у клеёного бруса?</li></ul></div>
+    </div>
+
+    <div class="task">
+      <div class="t-head"><span class="t-num">6</span>
+        <span class="t-name">Автоматизация раздела «Фундамент»</span>
+        <span class="chip wait">ждёт</span></div>
+      <p class="t-thesis">Формулировка общая — что именно автоматизировать, уточняем перед работой.</p>
+      <div class="t-sub">Что есть в коде</div>
+      <ul class="t-list">
+        <li>В разделе двенадцать опций, из них четыре — разные типы фундамента. <b>Между собой не
+          связаны:</b> менеджер сам следит, чтобы не отметить два сразу.</li>
+        <li><b>Автоматика на этом разделе уже работает.</b> <code>NOTE_AUTOHIDE</code> прячет
+          примечание про отделку цоколя, когда отмечено закрытие цоколя, и возвращает при снятии.
+          Готовый образец для связки «отметил одно — изменилось другое».</li>
+        <li>Движок расчёта от площади готов: <code>status:'formula'</code> считает площадь × ставку.
+          Нужны только ставка и источник площади.</li>
+      </ul>
+      <div class="t-q"><div class="t-sub">Решить до работы</div>
+        <ul><li>Что автоматизировать: взаимное исключение типов, цену по площади, примечания?</li>
+          <li>Какие связки обязательны — например свайный требует обвязки, плитный её исключает?</li>
+          <li>Считать ли фундамент от площади и от какой именно?</li>
+          <li>Что делать со старыми расчётами, где отмечены два типа сразу?</li></ul></div>
+    </div>
+
+    <div class="task">
+      <div class="t-head"><span class="t-num">7</span>
+        <span class="t-name">Раздел «Визуализация и планировка» — переработать</span>
+        <span class="chip wait">ждёт</span></div>
+      <p class="t-thesis">Три задачи в одном разделе: переработать сам раздел, добавить вывод на
+        печать отдельным файлом, разделить поля под визуализацию и под планировку.</p>
+      <div class="t-sub">Что есть в коде</div>
+      <ul class="t-list">
+        <li>Раздел — карточка <code>#imageCanvasCard</code> с одним холстом: перетаскивание,
+          «Добавить», «Очистить всё», «Авто-расстановка».</li>
+        <li><b>Разделение упрётся в <code>canvasItems</code>:</b> это один список без признака вида.</li>
+        <li>Переключатель «В печати: вкл/выкл» уже умеет убирать картинки — для отдельного файла
+          станет выбором из трёх состояний.</li>
+        <li>Готовый блок картинок <code>imgHtml</code> уже вставляется в пять стилей печати из шести —
+          отдельный документ возьмёт его, а не соберёт заново.</li>
+        <li>Снимок расчёта хранит <code>canvasImages</code>: при разделении править согласованно,
+          иначе сохранённые расчёты потеряют раскладку.</li>
+      </ul>
+      <div class="t-q"><div class="t-sub">Решить до работы</div>
+        <ul><li>Что печатать отдельным файлом — только картинки или с шапкой проекта и заказчика?</li>
+          <li>Откуда запускать: кнопка в разделе или пункт в окне печати?</li>
+          <li>Два поля — две области на одном холсте или две карточки?</li>
+          <li>Что со старыми расчётами, где картинки одним списком?</li></ul></div>
+    </div>
+
+    <div class="task">
+      <div class="t-head"><span class="t-num">8</span>
+        <span class="t-name">Автосохранение пресета</span>
+        <span class="chip wait">ждёт</span></div>
+      <p class="t-thesis">Менеджер открыл пресет, поменял опции — изменения не сохраняются сами.
+        Нужно нажать кнопку на карточке, иначе правки живут только на экране.</p>
+      <div class="t-sub">Что есть в коде</div>
+      <ul class="t-list">
+        <li>Открытый пресет известен — <code>activePresetId</code>; признак правок
+          <code>_presetDirty</code> уже поднимается при любом изменении и гасится после сохранения.</li>
+        <li>Кнопка на карточке уже показывает это точкой и подписью «Сохранить изменения».</li>
+        <li>Сохранение разделено на устройство и облако со своей обработкой ошибок у каждого —
+          автосохранение пойдёт тем же путём, но без диалога имени.</li>
+        <li><b>Ловушка:</b> событие <code>preset_saved</code> пишется при каждом сохранении.
+          На каждую правку писать нельзя — журнал действий и аналитика заполнятся шумом.</li>
+      </ul>
+      <div class="t-q"><div class="t-sub">Решить до работы</div>
+        <ul><li>Когда сохранять: сразу, через паузу или при уходе с расчёта?</li>
+          <li>Что с чужим общим пресетом — не сохранять, спросить или предложить свою копию?</li>
+          <li>Нужна ли отмена, то есть хранение прежней версии?</li>
+          <li>Что писать в <code>events</code> вместо события на каждое сохранение?</li></ul></div>
+    </div>
+
+    <div class="task">
+      <div class="t-head"><span class="t-num">9</span>
+        <span class="t-name">Журнал действий менеджеров</span>
+        <span class="chip wait">ждёт</span></div>
+      <p class="t-thesis">Отдельная иконка в шапке, отдельное окно: лента того, что делали менеджеры
+        в калькуляторе.</p>
+      <div class="t-sub">Что есть в коде и базе</div>
+      <ul class="t-list">
+        <li>Таблица <code>events</code> уже пишет: кто, когда, какой проект, итог, число опций,
+          толщина, скидка, состав опций.</li>
+        <li><b>Видов событий пока два</b> — сохранение пресета и печать. Для журнала мало,
+          придётся добавлять.</li>
+        <li>Окно «Аналитика» уже читает эти события: чтение и права работают, журналу нужен свой
+          вид показа — лентой, а не цифрами.</li>
+      </ul>
+      <div class="t-q"><div class="t-sub">Решить до работы</div>
+        <ul><li>Кто видит журнал — только администратор и редактор или менеджер тоже свои действия?</li>
+          <li>Какие действия записываем сверх нынешних двух?</li>
+          <li>Насколько назад хранить — всё время или, скажем, полгода?</li>
+          <li>Что видно в строке журнала и нужна ли там сумма расчёта?</li></ul></div>
+    </div>
+  </div>
+
+  <!-- ───────────────────────────────────────────────────────────────────── -->
+  <div class="grp">
+    <div class="grp-h">
+      <div class="grp-n">02</div>
+      <div class="grp-t">Мои предложения — на рассмотрение</div>
+      <div class="grp-c">6 задач</div>
+    </div>
+    <p class="grp-note">Не начинаю ни одно без твоего слова. Порядок — по тому, насколько близко лежит:
+      сверху то, под что в базе уже есть данные.</p>
+
+    <div class="task">
+      <div class="t-head"><span class="t-num">10</span>
+        <span class="t-name">История цен: кто и когда менял цифры</span>
+        <span class="chip wait">ждёт</span></div>
+      <p class="t-thesis">Окно «когда и на сколько менялась цена этого проекта» — собирается из
+        готовых данных, без единой новой записи в базу.</p>
+      <div class="t-sub">Комментарий</div>
+      <ul class="t-list">
+        <li>В базе уже лежит <code>pricing_history</code> — <b>6504 записи:</b> каждая правка цены
+          со старым значением, новым, временем и автором. В калькуляторе её не показывает ничто.</li>
+        <li>Полезно, когда клиент спрашивает, почему цена не та, что месяц назад.</li>
+      </ul>
+    </div>
+
+    <div class="task">
+      <div class="t-head"><span class="t-num">11</span>
+        <span class="t-name">Сравнение двух расчётов рядом</span>
+        <span class="chip wait">ждёт</span></div>
+      <p class="t-thesis">Два пресета в одном окне: разница по разделам и по итогу, что есть в одном
+        и нет в другом. Печать сравнения клиенту отдельным листом.</p>
+      <div class="t-sub">Комментарий</div>
+      <ul class="t-list">
+        <li>Менеджер часто считает два варианта — с террасой и без, две толщины, две комплектации.
+          Сейчас их можно только открывать по очереди.</li>
+      </ul>
+    </div>
+
+    <div class="task">
+      <div class="t-head"><span class="t-num">12</span>
+        <span class="t-name">Статус расчёта: черновик → отправлен → согласован</span>
+        <span class="chip wait">ждёт</span></div>
+      <p class="t-thesis">Менеджеру — список «что висит без ответа», руководителю — воронка в аналитике.</p>
+      <div class="t-sub">Комментарий</div>
+      <ul class="t-list">
+        <li>Событие смены статуса ложится в ту же таблицу <code>events</code>, что и журнал действий, —
+          <b>эти две задачи выгодно делать рядом.</b></li>
+      </ul>
+    </div>
+
+    <div class="task">
+      <div class="t-head"><span class="t-num">13</span>
+        <span class="t-name">Шаблоны примечаний</span>
+        <span class="chip wait">ждёт</span></div>
+      <p class="t-thesis">Сохранённые формулировки с быстрой вставкой.</p>
+      <div class="t-sub">Комментарий</div>
+      <ul class="t-list">
+        <li>Примечания к разделам менеджеры пишут руками и повторяют из расчёта в расчёт.
+          Небольшая правка, экономит время на каждом расчёте.</li>
+      </ul>
+    </div>
+
+    <div class="task">
+      <div class="t-head"><span class="t-num">14</span>
+        <span class="t-name">Поиск по клиенту и договору</span>
+        <span class="chip wait">ждёт</span></div>
+      <p class="t-thesis">Найти расчёт по ФИО заказчика и номеру договора.</p>
+      <div class="t-sub">Комментарий</div>
+      <ul class="t-list">
+        <li>Поиск в пресетах идёт по названию, автору и коду. По заказчику и договору найти нельзя,
+          хотя эти поля в расчёте есть. Менеджеру чаще нужен именно клиент.</li>
+      </ul>
+    </div>
+
+    <div class="task">
+      <div class="t-head"><span class="t-num">15</span>
+        <span class="t-name">Напоминание о сроке действия спец. цены</span>
+        <span class="chip wait">ждёт</span></div>
+      <p class="t-thesis">Отметка в списке пресетов «истекает через 3 дня» и строка в журнале
+        обновлений — без всякой почты, внутри калькулятора.</p>
+      <div class="t-sub">Комментарий</div>
+      <ul class="t-list">
+        <li>В расчёте уже есть поле «действительна до». Никто о нём не напоминает: срок проходит молча.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="foot">
+    Метки состояния: <b>ждёт</b> — записано, к работе не приступали · <b>обсуждаем</b> — вопросы
+    заданы, ждём решения. Сделанного и отклонённого в списке пока нет.<br>
+    Источник — <code>docs/feature-notes.md</code> в тестовом репозитории; эта страница собрана из него 29.08.2026.
+  </div>
+
+</div>
+<script>
+function ночь(){
+  const b = document.body.classList.toggle('night');
+  document.getElementById('ni').innerHTML = b
+    ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+    : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+}
+</script>
+</body></html>
