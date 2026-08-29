@@ -1,0 +1,104 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Журнал обновлений v2.5.2 — карточка</title>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&family=Unbounded:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--w:#fff;--bd:#dceaeb;--gb:#eef7f8;--g:#1e6c72;--gl:#1e6c72;--gr:#3f5b5e;--grl:#8da3a5;--bk:#12262a;}
+body{margin:0;padding:26px 16px 40px;background:#f2f7f8;font-family:'Geologica',system-ui,sans-serif;color:var(--gr);}
+.wrap{max-width:820px;margin:0 auto;}
+h1{font-family:'Unbounded',sans-serif;font-size:0.9rem;font-weight:700;letter-spacing:0.02em;
+  color:var(--bk);margin:0 0 4px;}
+.sub{font-size:0.76rem;color:var(--grl);margin:0 0 20px;}
+.upd{border:1px solid var(--bd);border-radius:10px;background:var(--w);margin:0 0 12px;overflow:hidden;}
+.upd-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 14px;
+  background:var(--gb);border-bottom:1px solid var(--bd);}
+.upd-ver{font-weight:700;font-size:0.92rem;color:var(--gl);letter-spacing:0.01em;}
+.upd-date{font-size:0.7rem;color:var(--grl);}
+.upd-state{margin-left:auto;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;
+  font-weight:700;padding:3px 9px;border-radius:20px;background:var(--w);
+  border:1px solid var(--bd);color:var(--grl);white-space:nowrap;}
+.upd-state.now{color:var(--gl);border-color:var(--gl);}
+.upd-list{padding:4px 14px 10px;}
+/* Не flex: жирный зачин внутри пункта становился отдельной колонкой и текст
+   ломался на две узкие. Точка выведена абсолютно, текст течёт как обычный абзац. */
+.upd-link{color:var(--g);border-bottom:1px solid rgba(30,108,114,0.35);cursor:pointer;}.upd-link:hover{border-bottom-color:var(--g);}.upd-item{position:relative;padding:8px 0 8px 15px;border-top:1px solid var(--bd);
+  font-size:0.79rem;line-height:1.5;color:var(--gr);}
+.upd-item strong{color:var(--bk,#1a2b2d);font-weight:700;}
+.upd-list .upd-item:first-child{border-top:none;}
+.upd-item::before{content:'';position:absolute;left:0;top:15px;width:5px;height:5px;
+  border-radius:50%;background:var(--gl);}
+/* Подзаголовок внутри карточки. Пока правок за выпуск было по одной-две,
+   список шёл сплошным; в v2.5.1 их двенадцать, и сплошной читается стеной.
+   Одобрено Константином 25.08.2026 по макету mockups/journal-v251-card.html. */
+.upd-group{font-family:'Unbounded',sans-serif;font-size:0.55rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.1em;color:var(--grl);
+  padding:14px 0 4px;border-top:1px solid var(--bd);}
+.upd-list > .upd-group:first-child{border-top:none;padding-top:6px;}
+</style></head><body><div class="wrap">
+<h1>Журнал обновлений · карточка v2.5.2</h1>
+<p class="sub">Так она выглядит в справке калькулятора: «Журнал обновлений» — верхний пункт бокового меню. Вид один в один, стили взяты из самой справки.</p>
+<div class="upd">
+      <div class="upd-head">
+        <span class="upd-ver">v2.5.2</span>
+        <span class="upd-date">29.08.2026</span>
+        <span class="upd-state now">текущая</span>
+      </div>
+      <div class="upd-list">
+
+      <div class="upd-group">Что нового</div>
+
+      <div class="upd-item"><strong>Новый шаблон печати «Бланк» — теперь он стоит по умолчанию.</strong>
+        Речь про окно печати спецификации и переключатель шаблонов в его верхней
+        панели. В нём появился новый пункт — «Бланк», он первый в списке, и
+        предпросмотр открывается сразу в нём. Документ сделан в оформлении темы
+        «Бланк»: тот же шрифт и та же бирюза, что на главном экране.
+        <br><br>
+        Сверху логотип, название проекта и реквизиты — менеджер, заказчик, номер
+        договора, технология, толщина, дата; под ними общая стоимость и, если она
+        задана, спец. цена за наличные с выгодой.
+        <br><br>
+        Дальше разделы: крупный бледный номер, название, сумма раздела справа. У
+        каждой позиции в правой колонке стоит «Входит», а если по ней включён
+        показ цены — вместо «Входит» встаёт цена. Внизу бирюзовая полоска с
+        итогом и подписями как под экраном калькулятора: база, опции, число
+        позиций, скидка. Под ней — подписи сторон.</div>
+
+      <div class="upd-item"><strong>Шаблон печати запоминается по проекту.</strong>
+        Если в окне печати поменять шаблон на другой — «Классик», «Люкс», любой, —
+        он останется за этим проектом: закрыли предпросмотр, открыли заново —
+        шаблон тот же. Выбрали другой проект — снова «Бланк». Вернулись к первому —
+        снова тот шаблон, который выбрали для него. Держится до перезагрузки
+        страницы.</div>
+
+      <div class="upd-item"><strong>Печать «Бланка» с телефона.</strong>
+        На узком экране лист перестраивается под него: реквизиты идут в один
+        столбец, колонки номера и суммы уже. Раньше лист держал ширину A4, и
+        правая колонка со «Входит» и ценой уезжала за край экрана — строку
+        приходилось листать вбок по каждой позиции. На бумагу это не влияет:
+        печатается тот же лист A4 с полями 16 мм.</div>
+
+      <div class="upd-item"><strong>Ручные проекты появились и у клеёного бруса.</strong>
+        Кнопка «Добавить проект вручную» под списком проектов теперь работает и в
+        технологии «Клеёный брус» — так же, как в каркасе: название, площади, три
+        цены, цены опций, кнопка «Взять из выбранного».
+        <br><br>
+        Списки ручных проектов у технологий разные. Проект, заведённый в брусе,
+        виден только в брусе; каркасный — только в каркасе. Перепутать нельзя.
+        <br><br>
+        Одно отличие от каркаса: у бруса базовая цена не считается сама. В каркасе
+        она выводится из площади и типа этажности по ставкам ₽/м², а для бруса
+        таких ставок пока нет. Поэтому цены по трём сечениям берутся кнопкой
+        «Взять из выбранного» у похожего проекта и правятся руками. Всё
+        остальное — цены опций, карандаш своей цены у каждой опции, звёздочка в
+        списке, сохранение в аккаунт — работает как в каркасе.</div>
+
+      <div class="upd-group">Исправлено</div>
+
+      <div class="upd-item"><strong>Ручной проект больше не теряет площади.</strong>
+        Площади фасада, покраски и кровли, введённые в форме ручного проекта,
+        сохранялись только до перезагрузки страницы: в базе под них не было места.
+        Теперь сохраняются вместе с проектом. Касается и каркаса, и бруса.</div>
+
+      </div>
+    </div>
+</div></body></html>
