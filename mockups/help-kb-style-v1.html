@@ -569,16 +569,20 @@ body.dark{--num:#3a7d84;}
 .tip{background:linear-gradient(90deg,var(--tip-bg) 0%,transparent 100%);}
 .warn{background:linear-gradient(90deg,var(--warn-bg) 0%,transparent 100%);}
 .next-lesson{background:linear-gradient(90deg,var(--gb) 0%,var(--w) 55%);}
+/* Подсветка строки под нажатием — тоже градиентом, а не плоской заливкой:
+   заливка кладётся на саму строку, поэтому уходит в прозрачность через всю
+   таблицу, а не начинается заново в каждой ячейке. */
+.tbl tbody tr:hover td,.kt tr:hover td{background:transparent;}
+.tbl tbody tr,.kt tr{transition:background-image .18s ease;}
+.tbl tbody tr:hover,.kt tr:hover{
+  background-image:linear-gradient(90deg,var(--gb) 0%,var(--gb) 42%,transparent 100%);}
+.cmp-c:hover{background:linear-gradient(90deg,var(--gb) 0%,transparent 130%);}
+.cmp-c.alt:hover{background:linear-gradient(90deg,var(--gl) 0%,var(--gm) 100%);color:#fff;}
 
 /* Только оболочка макета: боковой панели тут нет, страница по центру. */
 body{margin:0;}
 .layout{display:block;}
 .main{margin:0 auto!important;}
-.mock-tog{display:inline-flex;align-items:center;gap:7px;vertical-align:middle;margin-left:10px;
-  padding:7px 13px;border:1.5px solid var(--bd);border-radius:20px;background:var(--w);color:var(--gm);
-  font-family:'Geologica',sans-serif;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all .15s;}
-.mock-tog:hover{border-color:var(--gm);box-shadow:0 2px 10px rgba(42,143,151,0.12);}
-body.dark .mock-tog{background:#0e1416;border-color:#2a4044;}
 /* Широкая таблица на телефоне прокручивается, а не сминается: в базе знаний
    так же — .tbl-wrap для того и заведён. Без минимальной ширины «2 205 230 ₽»
    разваливалось на четыре строки по одному числу. */
@@ -593,10 +597,7 @@ body.dark .mock-tog{background:#0e1416;border-color:#2a4044;}
 <div class="mock-note">Макет. Глава справки калькулятора, набранная ритмом урока базы знаний:
   нумерованные разделы, полужирный зачин вместо подзаголовков, короткие списки, плашки
   «частая ошибка» и выводы. Стили взяты дословно из <code>knowledge-baniamsk/index.html</code>.
-  <button class="mock-tog" onclick="ночь()">
-    <svg id="ni" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-    <span id="nt">Ночь</span>
-  </button></div>
+  Тему страница берёт у системы — своего переключателя внутри статьи нет, её задаёт калькулятор.</div>
 
 <div class="layout">
 <div class="main">
@@ -770,13 +771,4 @@ body.dark .mock-tog{background:#0e1416;border-color:#2a4044;}
 </div>
 </div>
 
-<script>
-function ночь(){
-  const t = document.body.classList.toggle('dark');
-  document.getElementById('nt').textContent = t ? 'День' : 'Ночь';
-  document.getElementById('ni').innerHTML = t
-    ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
-    : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
-}
-</script>
 </body></html>
