@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="ru" translate="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Справка в оформлении базы знаний — «Опции и разделы»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow-x:hidden;max-width:100%;background:#eef7f7;}
+html{min-height:100%;}
+body{background:#eef7f7;}
+html.dark,body.dark{background:#0a1012!important;}
+:root{
+  --g:#1e6c72;--gm:#2a8f97;--gl:#3db0ba;--gb:#e4f5f6;
+  --bk:#111;--gr:#555;--grl:#888;--bd:#d4e4e5;--w:#fff;
+  --warn-bg:#f5f3f0;--warn-border:#8a7060;--warn-text:#4a3828;
+  --tip-bg:#e4f5f6;--tip-border:#3db0ba;
+  color-scheme:light dark;
+}
+body.dark{
+  --g:#3db0ba;--gm:#5fc8d2;--gl:#7dd8dc;--gb:#1a3034;
+  --bk:#e8f0f1;--gr:#a8b8ba;--grl:#7a8a8c;--bd:#2a4044;--w:#0e1416;
+  --warn-bg:#1e1a16;--warn-border:#7a6050;--warn-text:#c8b8a8;
+  --tip-bg:#1a3034;--tip-border:#5fc8d2;
+  }
+@media(prefers-color-scheme:dark){body:not(.light){
+  --g:#3db0ba;--gm:#5fc8d2;--gl:#7dd8dc;--gb:#1a3034;
+  --bk:#e8f0f1;--gr:#a8b8ba;--grl:#7a8a8c;--bd:#2a4044;--w:#0e1416;
+  --warn-bg:#1e1a16;--warn-border:#7a6050;--warn-text:#c8b8a8;
+  --tip-bg:#1a3034;--tip-border:#5fc8d2;
+  }}
+
+
+html{background:#f0f6f6;}
+body{font-family:'Geologica',sans-serif;background:#f0f6f6;color:var(--bk);line-height:1.6;-webkit-text-size-adjust:100%;}
+@media(prefers-color-scheme:dark){html:not(.light),body:not(.light){background:#0a1012;color:var(--bk);}}
+html.dark,body.dark{background:#0a1012;}
+.layout{display:flex;min-height:100vh;position:relative;}
+:root{--sb-w:290px;}
+
+/* ── Sidebar — collapsible ── */
+.sb{width:var(--sb-w);flex-shrink:0;background:#1e6c72;position:fixed;left:0;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;z-index:80;transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);box-shadow:0 0 24px rgba(0,0,0,0.15);}
+
+/* Resizer handle — desktop only (hidden on mobile via media query below) */
+.sb-resizer{position:fixed;top:0;left:calc(var(--sb-w) - 3px);width:6px;height:100vh;cursor:col-resize;z-index:90;background:transparent;transition:background 0.15s;}
+.sb-resizer:hover,.sb-resizer.dragging{background:var(--gm);opacity:0.55;}
+body[data-sb="unpinned"] .sb-resizer{display:none;}
+body.sb-resizing{user-select:none;cursor:col-resize;}
+body.sb-resizing *{cursor:col-resize!important;}
+body.sb-resizing .sb,body.sb-resizing .main{transition:none!important;}
+
+/* unpinned: hidden off-screen, slides in on hover over the pin button */
+body[data-sb="unpinned"] .sb{transform:translateX(-100%);}
+body[data-sb="unpinned"] .sb.peek{transform:translateX(0);}
+
+/* pinned: stays open, layout shifts */
+body[data-sb="pinned"] .sb{transform:translateX(0);box-shadow:none;}
+body[data-sb="pinned"] .main{margin-left:var(--sb-w);}
+body[data-sb="unpinned"] .main{margin-left:0!important;}
+
+/* Pin/unpin button inside sidebar (top-right corner) */
+.sb-pin{position:absolute;top:14px;right:14px;width:26px;height:26px;border:none;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;z-index:5;}
+.sb-pin:hover{background:rgba(255,255,255,0.18);color:#fff;}
+
+/* Floating pin button (only when sidebar unpinned) */
+.sb-floating{position:fixed;top:14px;left:14px;width:38px;height:38px;background:var(--g);border:none;border-radius:9px;cursor:pointer;display:none;align-items:center;justify-content:center;color:#fff;z-index:90;box-shadow:0 3px 14px rgba(30,108,114,0.35);transition:all 0.15s;}
+.sb-floating:hover{background:var(--gm);transform:translateY(-1px);}
+body[data-sb="unpinned"] .sb-floating{display:flex;}
+.sb-top{padding:22px 22px 16px;border-bottom:1px solid rgba(255,255,255,0.1);}
+.sb-logo{display:inline-flex;align-items:center;gap:7px;margin-bottom:10px;}
+.sb-logo-badge{font-family:'Unbounded',sans-serif;font-size:0.58rem;font-weight:800;background:rgba(255,255,255,0.15);border-radius:5px;padding:4px 9px;color:#fff;letter-spacing:0.04em;}
+.sb-top h1{font-family:'Unbounded',sans-serif;font-size:0.78rem;font-weight:700;color:#fff;line-height:1.3;}
+.sb-top p{font-size:0.66rem;color:rgba(255,255,255,0.55);margin-top:4px;}
+.sb-controls{margin-top:14px;display:flex;gap:7px;align-items:center;}
+.sb-ctrl-btn{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:30px;padding:0 9px;border-radius:9px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.22);color:rgba(255,255,255,0.85);font-family:'Geologica',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:0.04em;cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.sb-ctrl-btn:hover{background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.36);color:#fff;}
+#sbThemeBtn{padding:0;width:32px;height:30px;}
+#sbThemeBtn svg{width:13px;height:13px;}
+
+/* lang switch */
+.lang-switch{display:flex;gap:0;background:rgba(255,255,255,0.08);border-radius:8px;padding:3px;margin-top:14px;}
+.lang-btn{flex:1;padding:7px 8px;border:none;background:transparent;color:rgba(255,255,255,0.55);font-family:'Geologica',sans-serif;font-size:0.7rem;font-weight:600;letter-spacing:0.05em;cursor:pointer;border-radius:5px;transition:all 0.15s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.lang-btn.on{background:rgba(255,255,255,0.18);color:#fff;}
+.lang-btn:active{background:rgba(255,255,255,0.25);}
+
+/* user */
+.sb-user{padding:14px 22px;border-bottom:1px solid rgba(255,255,255,0.1);font-size:0.7rem;color:rgba(255,255,255,0.7);}
+.sb-user-name{color:#fff;font-weight:600;font-size:0.75rem;margin-bottom:2px;}
+.sb-user-prog{margin-top:8px;height:5px;background:rgba(255,255,255,0.15);border-radius:3px;overflow:hidden;}
+.sb-user-prog-fill{height:100%;background:var(--gl);border-radius:3px;transition:width 0.4s;}
+.sb-user-prog-label{font-size:0.6rem;color:rgba(255,255,255,0.5);margin-top:5px;letter-spacing:0.04em;text-transform:uppercase;}
+
+.sb-nav{padding:8px 0 24px;flex:1;}
+
+/* ── Search (calculator manual style) ── */
+.sb-home-btn{display:flex;align-items:center;gap:9px;padding:10px 14px 10px 22px;font-size:0.72rem;font-weight:600;color:rgba(255,255,255,0.85);cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.08);transition:all .15s;letter-spacing:0.01em;}
+.sb-home-btn:hover{color:#fff;background:rgba(255,255,255,0.06);}
+.sb-home-btn>svg{opacity:0.7;flex-shrink:0;}
+.sb-home-btn:hover>svg{opacity:1;}
+.sb-home-btn>span{flex:1;}
+.sb-toggle-btn{margin-left:auto;flex-shrink:0;background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.7);padding:4px 7px;border-radius:5px;display:flex;align-items:center;gap:4px;transition:all .15s;font-family:'Geologica',sans-serif;}
+.sb-toggle-btn:hover{color:#fff;background:rgba(255,255,255,0.1);}
+.sb-toggle-label{font-size:0.6rem;font-weight:600;letter-spacing:0.02em;}
+
+.srch-wrap{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.1);position:relative;}
+.srch-inp{width:100%;padding:7px 11px;border-radius:7px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.92);font-family:'Geologica',sans-serif;font-size:0.74rem;outline:none;box-sizing:border-box;-webkit-appearance:none;}
+.srch-inp::placeholder{color:rgba(255,255,255,0.45);}
+.srch-inp:focus{border-color:var(--gl);background:rgba(255,255,255,0.14);}
+.srch-results{position:absolute;left:0;right:0;top:100%;background:var(--w);border-radius:0 0 10px 10px;box-shadow:0 8px 24px rgba(0,0,0,0.18);z-index:100;max-height:340px;overflow-y:auto;display:none;}
+.srch-results.open{display:block;}
+.srch-item{padding:9px 14px;font-size:0.75rem;color:var(--bk);cursor:pointer;border-bottom:1px solid var(--bd);line-height:1.45;}
+.srch-item:last-child{border-bottom:none;}
+.srch-item:hover{background:var(--gb);}
+.srch-item strong{color:var(--g);font-weight:600;}
+.srch-item small{display:block;font-size:0.65rem;color:var(--grl);margin-top:2px;}
+.srch-empty{padding:14px;font-size:0.75rem;color:var(--grl);text-align:center;}
+
+/* Search target highlight pulse */
+@keyframes searchFlash{
+  0%{background:transparent;box-shadow:0 0 0 0 rgba(61,176,186,0);}
+  20%{background:rgba(61,176,186,0.18);box-shadow:0 0 0 4px rgba(61,176,186,0.18);}
+  100%{background:transparent;box-shadow:0 0 0 0 rgba(61,176,186,0);}
+}
+.search-flash{animation:searchFlash 1.8s ease-out;border-radius:8px;}
+.sb-group{padding:14px 22px 5px;font-size:0.55rem;font-weight:700;color:rgba(255,255,255,0.88);text-transform:uppercase;letter-spacing:0.12em;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;transition:color 0.15s;}
+.sb-group:hover{color:rgba(255,255,255,0.7);}
+.sb-group-chevron{opacity:0.45;transition:transform 0.22s ease,opacity 0.15s;flex-shrink:0;}
+.sb-group:hover .sb-group-chevron{opacity:0.8;}
+.sb-group.collapsed .sb-group-chevron{transform:rotate(-90deg);}
+.sb-group-items{overflow:hidden;transition:max-height 0.28s ease;}
+.sb-group-items.collapsed{max-height:0!important;}
+.sb-a{display:flex;align-items:center;gap:8px;padding:8px 22px;font-size:0.74rem;color:rgba(255,255,255,0.88);cursor:pointer;transition:all 0.12s;border-left:2px solid transparent;user-select:none;line-height:1.35;}
+.sb-a:hover{background:rgba(255,255,255,0.06);color:#fff;}
+.sb-a.on{background:rgba(255,255,255,0.12);color:#fff;border-left-color:var(--gl);font-weight:600;}
+.sb-a-num{font-family:'Unbounded',sans-serif;font-size:0.6rem;font-weight:700;background:rgba(255,255,255,0.1);border-radius:4px;padding:2px 5px;flex-shrink:0;letter-spacing:0.03em;}
+.sb-a.on .sb-a-num{background:rgba(255,255,255,0.22);}
+.sb-a-check{margin-left:auto;width:13px;height:13px;flex-shrink:0;color:var(--gl);}
+.sb-a.disabled{opacity:0.35;cursor:not-allowed;}
+.sb-a.disabled:hover{background:transparent;}
+
+/* ── Side-nav (right-side TOC) — copied from calculator ── */
+.side-nav {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 999;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  pointer-events: none;
+}
+.side-nav.open { pointer-events: auto; }
+.side-nav-strip { display: none; }
+.side-nav-panel {
+  width: 0;
+  overflow: hidden;
+  transition: width 0.25s cubic-bezier(0.4,0,0.2,1);
+  background: var(--w);
+  box-shadow: -4px 0 28px rgba(30,108,114,0.18);
+  border-radius: 10px 0 0 10px;
+  border: 1px solid transparent;
+}
+.side-nav.open .side-nav-panel { width: 270px; border-color: var(--bd); }
+.side-nav-inner {
+  width: 270px;
+  padding: 10px 0;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.side-nav-inner::-webkit-scrollbar { width: 3px; }
+.side-nav-inner::-webkit-scrollbar-thumb { background: var(--gl); border-radius: 2px; }
+.side-nav-item {
+  display: block;
+  padding: 6px 16px;
+  font-family: 'Geologica', sans-serif;
+  font-size: 0.72rem;
+  color: var(--gr);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+  border-left: 2px solid transparent;
+}
+.side-nav-item:hover { background: var(--gb); color: var(--g); border-left-color: var(--gm); }
+.side-nav-item:focus { outline: none; background: var(--gb); color: var(--g); border-left-color: var(--g); font-weight: 600; }
+.side-nav-item.nav-section {
+  font-weight: 600;
+  font-size: 0.65rem;
+  font-family: 'Unbounded', sans-serif;
+  letter-spacing: 0.02em;
+  color: var(--g);
+  padding-top: 9px;
+}
+.side-nav-divider { height: 1px; background: var(--bd); opacity: 0.5; margin: 3px 10px; }
+@media print { .side-nav { display: none !important; } }
+.sb-bottom{padding:12px 22px;border-top:1px solid rgba(255,255,255,0.1);}
+.sb-action{display:flex;align-items:center;gap:8px;padding:7px 0;font-size:0.7rem;color:rgba(255,255,255,0.55);cursor:pointer;transition:color 0.12s;}
+.sb-action:hover{color:#fff;}
+
+/* ── Main ── */
+.main{flex:1;padding:48px 64px 100px;max-width:920px;margin:0 auto;transition:margin-left 0.25s cubic-bezier(0.4,0,0.2,1);}
+/* Constrain content widths — lessons, home, section all capped at 920px */
+
+/* ── Embed mode (loaded in calculator iframe) ── */
+
+/* Backdrop for mobile drawer */
+.sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:79;animation:fadeIn 0.2s;}
+.sb-backdrop.on{display:block;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── Mobile floating menu button (bottom-right, like calculator manual) ── */
+.mob-btn{display:none;align-items:center;justify-content:center;position:fixed;bottom:20px;right:20px;z-index:198;width:48px;height:48px;border-radius:50%;background:var(--g);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(30,108,114,0.4);transition:transform 0.15s;}
+.mob-btn:active{transform:scale(0.94);}
+.mob-backdrop{display:none;position:fixed;inset:0;z-index:197;background:rgba(0,0,0,0.45);}
+.mob-backdrop.on{display:block;}
+
+/* ── Mobile (≤880px) — drawer style like calculator manual ── */
+@media(max-width:880px){
+  /* Hide desktop floating pin button on mobile */
+  .sb-floating{display:none!important;}
+  /* Home screen: 2 columns on all screen sizes */
+  .hs-blocks{grid-template-columns:1fr 1fr!important;}
+  /* Sidebar becomes off-canvas drawer — z-index ABOVE backdrop */
+  .sb{
+    width:min(280px,86vw);
+    transform:translateX(-100%);
+    box-shadow:0 0 32px rgba(0,0,0,0.25);
+    transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);
+    z-index:199;
+  }
+  body[data-sb="pinned"] .sb,
+  body[data-sb="unpinned"] .sb{transform:translateX(-100%);}
+  /* mob-open class opens the drawer */
+  .sb.mob-open{transform:translateX(0)!important;}
+  /* Mobile: only unpinned has margin-left:0; pinned keeps sidebar width */
+  .main{padding:24px 18px 100px;margin:0!important;max-width:100%!important;}
+  /* Show mobile button */
+  .mob-btn{display:flex;}
+  /* mob-btn visible on all screens including home/section */
+  /* Theme button hidden on mobile — follows system theme */
+  .theme-tog{display:none!important;}
+  /* Hide desktop pin/collapse button — drawer pattern doesn't pin */
+  .sb-pin{display:none;}
+  /* Hide resizer on mobile — drawer pattern uses fixed width */
+  .sb-resizer{display:none!important;}
+  /* Tighter typography */
+  h2{font-size:1.2rem;}
+  .lead{font-size:0.86rem;}
+  h3{font-size:0.92rem;margin:24px 0 10px;}
+  p{font-size:0.82rem;}
+  ul li{font-size:0.8rem;}
+  .pr-card,.mark-complete{padding:16px 18px;}
+  .quote{padding:14px 16px;font-size:0.84rem;}
+  .tbl,.cmp{font-size:0.78rem;}
+  .tbl th,.tbl td{padding:8px 10px;}
+  .cmp-h,.cmp-c{padding:8px 10px;font-size:0.76rem;}
+}
+@media(min-width:881px){
+  .mob-btn{display:none;}
+  .mob-backdrop{display:none;}
+}
+
+h2{font-family:'Unbounded',sans-serif;font-size:1.4rem;font-weight:800;color:var(--bk);margin-bottom:10px;line-height:1.22;letter-spacing:-0.02em;}
+.tag{display:inline-block;font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--gm);background:var(--gb);border-radius:20px;padding:4px 13px;margin-bottom:14px;}
+.lead{font-size:0.95rem;color:var(--gr);line-height:1.7;margin-bottom:34px;max-width:660px;}
+h3{font-family:'Unbounded',sans-serif;font-size:1rem;font-weight:700;color:var(--bk);margin:32px 0 12px;letter-spacing:-0.01em;}
+h3 .num{color:var(--gm);font-weight:800;margin-right:8px;}
+p{font-size:0.86rem;color:var(--bk);line-height:1.7;margin-bottom:11px;}
+ul{margin:10px 0 14px 20px;}
+ul li{font-size:0.84rem;color:var(--bk);line-height:1.65;margin-bottom:4px;}
+
+.kbd{display:inline-block;font-family:'Geologica',sans-serif;font-size:0.72rem;font-weight:600;color:var(--g);background:var(--gb);border:1px solid var(--bd);border-radius:4px;padding:1px 6px;letter-spacing:0.02em;}
+
+/* Tip / Warn / Quote */
+.tip,.warn,.quote{border-radius:0 10px 10px 0;padding:13px 17px;margin:14px 0;font-size:0.84rem;line-height:1.65;}
+.tip{background:var(--tip-bg);border-left:3px solid var(--tip-border);color:var(--bk);}
+.warn{background:var(--warn-bg);border-left:3px solid var(--warn-border);color:var(--warn-text);}
+.warn strong{color:#c06010;}
+body.dark .warn strong{color:#e0b070;}
+.quote{background:linear-gradient(90deg,var(--gb) 0%,transparent 100%);border-left:3px solid var(--g);font-style:italic;color:var(--bk);font-size:0.92rem;padding:18px 22px;}
+body.dark .quote{background:linear-gradient(90deg,var(--gb) 0%,transparent 100%);}
+
+/* Comparison table */
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin:16px 0;background:var(--w);}
+.cmp-h{padding:11px 14px;font-family:'Unbounded',sans-serif;font-size:0.66rem;font-weight:700;background:var(--gb);color:var(--g);text-transform:uppercase;letter-spacing:0.05em;}
+.cmp-c{padding:10px 14px;font-size:0.82rem;border-top:1px solid var(--bd);transition:background 0.15s ease;}
+.cmp-c.alt{background:var(--gb);color:var(--g);font-weight:600;}
+.cmp-c:hover{background:var(--gb);}
+.cmp-c.alt:hover{background:var(--gl);color:var(--w);}
+
+/* Element/Rationale 2-col */
+.tbl{width:100%;border-collapse:collapse;margin:14px 0;background:var(--w);border-radius:10px;overflow:hidden;border:1px solid var(--bd);}
+/* Узкий экран: у html,body стоит overflow-x:hidden, поэтому таблица шире экрана
+   не прокручивается, а обрезается. Обёртка даёт таблице собственную прокрутку. */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:14px 0;}
+.tbl-wrap>.tbl{margin:0;}
+.tbl th{font-family:'Unbounded',sans-serif;font-size:0.62rem;font-weight:700;background:var(--gb);color:var(--g);text-transform:uppercase;letter-spacing:0.06em;text-align:left;padding:11px 14px;}
+.tbl td{padding:9px 14px;font-size:0.82rem;border-top:1px solid var(--bd);vertical-align:top;}
+.tbl td:first-child{font-weight:600;color:var(--g);width:36%;}
+.tbl tbody tr,.tbl tr{transition:background 0.15s ease;}
+.tbl tr:hover td{background:var(--gb);}
+.tbl tr:hover td:first-child{color:var(--gm);}
+
+/* Practice card */
+.pr-card{background:var(--w);border:1.5px solid var(--bd);border-radius:14px;padding:20px 24px;margin:20px 0;}
+body.dark .pr-card{background:var(--w);}
+.pr-tag{display:inline-block;font-size:0.56rem;font-weight:800;letter-spacing:0.14em;color:var(--gl);text-transform:uppercase;margin-bottom:8px;}
+.pr-card h4{font-family:'Unbounded',sans-serif;font-size:0.82rem;font-weight:700;color:var(--bk);margin-bottom:6px;}
+.pr-card p.pr-task{font-size:0.82rem;color:var(--gr);margin-bottom:14px;}
+.pr-q{font-weight:600;color:var(--bk);font-size:0.82rem;margin:14px 0 6px;}
+.pr-q .pr-num{color:var(--gm);margin-right:6px;}
+.pr-input{width:100%;padding:10px 13px;border:1.5px solid var(--bd);border-radius:8px;background:var(--w);color:var(--bk);font-family:'Geologica',sans-serif;font-size:0.83rem;line-height:1.5;resize:vertical;min-height:60px;transition:border-color 0.15s;}
+.pr-input:focus{outline:none;border-color:var(--gm);}
+.pr-actions{display:flex;gap:9px;margin-top:14px;}
+.pr-btn{padding:9px 18px;border:none;border-radius:8px;font-family:'Geologica',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.12s;}
+.pr-btn-pri{background:var(--g);color:#fff;}
+.pr-btn-pri:hover{background:var(--gm);}
+.pr-btn-sec{background:transparent;color:var(--gr);border:1.5px solid var(--bd);}
+.pr-btn-sec:hover{border-color:var(--gm);color:var(--gm);}
+.pr-saved{display:none;font-size:0.74rem;color:var(--gm);font-weight:600;align-self:center;margin-left:auto;}
+.pr-saved.on{display:flex;align-items:center;gap:5px;}
+
+/* Self-check (questions list with click-to-expand-answer not needed yet, just numbered) */
+.sc-list{counter-reset:scn;list-style:none;margin:0;padding:0;}
+.sc-item{counter-increment:scn;padding:10px 0 10px 36px;position:relative;font-size:0.85rem;line-height:1.55;border-bottom:1px solid var(--bd);}
+.sc-item:last-child{border-bottom:none;}
+.sc-item::before{content:counter(scn);position:absolute;left:0;top:9px;font-family:'Unbounded',sans-serif;font-size:0.7rem;font-weight:700;color:#fff;background:var(--g);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+
+/* Mark complete */
+.mark-complete{display:flex;align-items:center;gap:14px;background:var(--w);border:1.5px solid var(--bd);border-radius:14px;padding:20px 24px;margin:36px 0 12px;}
+.next-lesson{display:flex;align-items:center;gap:14px;padding:16px 22px;background:var(--w);border:1.5px solid var(--bd);border-radius:14px;cursor:pointer;text-decoration:none;color:inherit;transition:all .15s;margin:0 0 40px;}
+.next-lesson:hover{border-color:var(--gm);box-shadow:0 3px 14px rgba(42,143,151,0.15);transform:translateX(3px);}
+body.dark .next-lesson{background:#0e1416;border-color:#2a4044;}
+body.dark .next-lesson .nl-title{color:#e8f0f1;}
+@media(prefers-color-scheme:dark){body:not(.light) .next-lesson{background:#0e1416;border-color:#2a4044;}body:not(.light) .next-lesson .nl-title{color:#e8f0f1;}}
+.nl-tag{font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gm);margin-bottom:3px;}
+.nl-title{font-size:0.92rem;font-weight:700;color:var(--bk);}
+.nl-info{flex:1;}
+.nl-arrow{flex-shrink:0;color:var(--gm);}
+/* Возврат к списку уроков. Кнопка «домой» есть только в боковом меню, а на
+   телефоне оно спрятано за гамбургером — изнутри урока выхода было не видно. */
+.lesson-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 18px;}
+.back-top{display:inline-flex;align-items:center;gap:7px;margin:0;padding:7px 13px;
+  border:1.5px solid var(--bd);border-radius:20px;background:var(--w);color:var(--gm);
+  font-size:0.74rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .15s;}
+.back-top:hover{border-color:var(--gm);box-shadow:0 2px 10px rgba(42,143,151,0.12);}
+/* Оглавление урока открывалось только жестом: свайпом влево на телефоне и
+   наведением на правый край на компьютере. Жест не виден — нужна кнопка. */
+.toc-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;flex:none;
+  border:1.5px solid var(--bd);border-radius:20px;background:var(--w);color:var(--gm);
+  font-size:0.74rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .15s;}
+.toc-btn:hover{border-color:var(--gm);box-shadow:0 2px 10px rgba(42,143,151,0.12);}
+.toc-btn svg{flex:none;}
+body.dark .toc-btn{background:#0e1416;border-color:#2a4044;}
+@media(prefers-color-scheme:dark){body:not(.light) .toc-btn{background:#0e1416;border-color:#2a4044;}}
+@media(max-width:400px){
+  .back-top,.toc-btn{padding:7px 11px;font-size:0.71rem;}
+}
+.back-top svg{flex:none;}
+.back-bottom{display:inline-flex;align-items:center;gap:7px;margin:-24px 0 40px;
+  color:var(--gm);font-size:0.8rem;font-weight:600;cursor:pointer;text-decoration:none;}
+.back-bottom:hover{text-decoration:underline;}
+body.dark .back-top{background:#0e1416;border-color:#2a4044;}
+@media(prefers-color-scheme:dark){body:not(.light) .back-top{background:#0e1416;border-color:#2a4044;}}
+@media(max-width:640px){
+  .back-bottom{margin-top:-28px;}
+}
+.mark-complete.done{border-color:var(--gm);background:linear-gradient(90deg,var(--gb) 0%,var(--w) 100%);}
+body.dark .mark-complete.done{background:linear-gradient(90deg,var(--gb) 0%,transparent 100%);}
+.mc-icon{width:42px;height:42px;border-radius:50%;background:var(--gb);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--gm);}
+.mark-complete.done .mc-icon{background:var(--gm);color:#fff;}
+.mc-text{flex:1;}
+.mc-text h4{font-family:'Unbounded',sans-serif;font-size:0.82rem;font-weight:700;margin-bottom:3px;color:var(--bk);}
+.mc-text p{font-size:0.76rem;color:var(--gr);margin:0;}
+.mc-btn{padding:10px 22px;border:none;border-radius:9px;background:var(--g);color:#fff;font-family:'Geologica',sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.15s;flex-shrink:0;}
+.mc-btn:hover{background:var(--gm);}
+.mark-complete.done .mc-btn{background:transparent;color:var(--gm);border:1.5px solid var(--gm);}
+
+/* Auth modal */
+.auth-overlay{display:none;position:fixed;inset:0;background:#f0f6f6;z-index:1000;align-items:center;justify-content:center;padding:20px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+@media(prefers-color-scheme:dark){body:not(.light) .auth-overlay{background:#0a1012;}}
+body.dark .auth-overlay{background:#0a1012;}
+.auth-overlay.on{display:flex;}
+/* Test mode link */
+.test-mode-lnk{color:rgba(0,0,0,0.35);text-decoration:none;transition:color 0.2s;display:inline-flex;line-height:0;}
+.test-mode-lnk:hover{color:rgba(0,0,0,0.6);}
+body.dark .test-mode-lnk{color:rgba(255,255,255,0.55);}
+body.dark .test-mode-lnk:hover{color:rgba(255,255,255,0.85);}
+@media(prefers-color-scheme:dark){body:not(.light) .test-mode-lnk{color:rgba(255,255,255,0.55);}
+body:not(.light) .test-mode-lnk:hover{color:rgba(255,255,255,0.85);}}
+/* Auth dark toggle */
+.auth-dark-tog{position:fixed;top:14px;right:14px;width:32px;height:32px;border-radius:9px;border:1.5px solid var(--bd);background:var(--w);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--gr);transition:all 0.15s;z-index:1010;box-shadow:0 2px 8px rgba(0,0,0,0.08);font-size:0.62rem;font-weight:700;letter-spacing:0.04em;font-family:"Geologica",sans-serif;}
+.auth-lang-tog{right:auto!important;left:14px!important;}
+.auth-dark-tog--overlay{right:auto!important;left:54px!important;}
+@media(max-width:880px){.auth-dark-tog{display:none!important;}.auth-lang-tog{display:none!important;}}
+.auth-dark-tog:hover{background:rgba(42,143,151,0.12);color:var(--g);}
+body.dark .auth-dark-tog{background:#1a2a2c;border-color:#2a4a4e;color:var(--grl);}
+body.dark .auth-dark-tog:hover{background:rgba(255,255,255,0.12);color:#fff;}
+body.dark .auth-overlay{background:#0a1012;}
+/* Hide sidebar, right side-nav, mobile and floating buttons while auth overlay is showing */
+body.auth-active .sb,
+body.auth-active .sb-floating,
+body.auth-active .mob-btn,
+body.auth-active .side-nav,
+body.auth-active .main{display:none!important;}
+.auth-modal{background:var(--w);border-radius:16px;padding:32px 36px;max-width:380px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,0.2);}
+.auth-modal h3{font-family:'Unbounded',sans-serif;font-size:1.05rem;margin:0 0 7px;color:var(--bk);}
+.auth-modal p{font-size:0.78rem;color:var(--gr);margin-bottom:20px;}
+.auth-modal label{display:block;font-size:0.72rem;font-weight:600;color:var(--bk);margin-bottom:5px;}
+.auth-modal input{width:100%;padding:11px 13px;border:1.5px solid var(--bd);border-radius:8px;background:var(--w);color:var(--bk);font-family:'Geologica',sans-serif;font-size:0.85rem;margin-bottom:14px;}
+.auth-modal input:focus{outline:none;border-color:var(--gm);}
+.auth-err{font-size:0.74rem;color:#c0392b;margin-bottom:14px;display:none;}
+.auth-err.on{display:block;}
+
+/* Theme toggle — matches calculator header button style */
+.theme-tog{
+  display:none!important; align-items:center; justify-content:center;
+  border-radius:8px; padding:6px 10px;
+  cursor:pointer; transition:background 0.15s, color 0.15s, border-color 0.15s;
+  position:fixed; top:14px; right:18px; z-index:50;
+  /* Light theme: subtle on white background */
+  background:rgba(42,143,151,0.1);
+  border:1px solid rgba(42,143,151,0.25);
+  color:var(--gm);
+}
+.theme-tog:hover{background:rgba(42,143,151,0.18);border-color:var(--gm);}
+/* Крестик — вариант «Стекло» из макета калькулятора, выбран 16.08.2026.
+   Он лежит поверх урока, который под ним прокручивается: размытие даёт знаку
+   читаться и над абзацем, и над таблицей, не превращая крестик в наклейку.
+   Кружок 28 px — как в калькуляторе; сам знак 16 px. */
+.embed-close-btn{
+  display:none; align-items:center; justify-content:center;
+  position:fixed; top:14px; right:18px; z-index:50;
+  /* Скруглённый квадрат 8 px — как у кнопок панели калькулятора: у них та же
+     высота 28 и тот же радиус, крестик с ними одной формы */
+  width:28px; height:28px; padding:0; border:none; border-radius:8px;
+  cursor:pointer;
+  background:rgba(255,255,255,0.72);
+  -webkit-backdrop-filter:blur(10px) saturate(1.4);
+  backdrop-filter:blur(10px) saturate(1.4);
+  color:var(--g);
+  box-shadow:0 1px 3px rgba(20,60,64,0.14), inset 0 0 0 1px rgba(255,255,255,0.6);
+  transition:background .15s,color .15s;
+}
+.embed-close-btn:hover{background:rgba(255,255,255,0.9);}
+body.dark .embed-close-btn{
+  background:rgba(18,32,35,0.6); color:#cfe9eb;
+  box-shadow:0 1px 3px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.12);
+}
+body.dark .embed-close-btn:hover{background:rgba(18,32,35,0.82);color:#fff;}
+
+/* Крестик стоит в правом верхнем углу, а там же — кнопка «Оглавление»
+   внутри урока. В режиме встраивания резервируем ей место. */
+.embed-mode .lesson-bar{padding-right:46px;}
+.embed-mode .embed-close-btn{display:inline-flex;}
+.embed-mode .auth-dark-tog--overlay{right:auto;left:54px;}
+/* Dark theme: exact calculator style */
+body.dark .theme-tog{
+  background:rgba(255,255,255,0.13);
+  border:1px solid rgba(255,255,255,0.22);
+  color:rgba(255,255,255,0.8);
+}
+body.dark .theme-tog:hover{background:rgba(255,255,255,0.22);color:#fff;}
+
+/* Hidden by lang */
+[data-lang="ru"] .lang-en{display:none;}
+[data-lang="en"] .lang-ru{display:none;}
+
+/* Loading */
+.loading{display:flex;align-items:center;justify-content:center;min-height:50vh;color:var(--grl);font-size:0.85rem;}
+
+/* ── Home screen ── */
+.hs-wrap{padding:0 0 80px;}
+/* Section drill-down */
+.sec-back{display:inline-flex;align-items:center;gap:7px;font-size:0.72rem;font-weight:600;color:var(--gm);cursor:pointer;margin-bottom:28px;padding:6px 0;border:none;background:none;font-family:'Geologica',sans-serif;letter-spacing:0.01em;transition:color .12s;}
+.sec-back:hover{color:var(--g);}
+.sec-tag{font-family:'Unbounded',sans-serif;font-size:0.58rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gm);margin-bottom:10px;}
+.sec-title{font-family:'Unbounded',sans-serif;font-size:1.3rem;font-weight:800;color:var(--bk);margin-bottom:5px;}
+.sec-sub{font-size:0.82rem;color:var(--gr);margin-bottom:30px;line-height:1.55;}
+.sec-lesson-list{display:flex;flex-direction:column;gap:8px;}
+.sec-lesson-row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:12px;background:var(--w);border:1.5px solid var(--bd);cursor:pointer;transition:all .15s;}
+.sec-lesson-row:hover{border-color:var(--gm);box-shadow:0 3px 12px rgba(42,143,151,0.12);transform:translateX(3px);}
+.sec-lesson-row.done{background:var(--gb);border-color:transparent;}
+.sec-lesson-row.done:hover{border-color:transparent;}
+.slr-num{font-family:'Unbounded',sans-serif;font-size:0.62rem;font-weight:700;color:var(--gm);width:34px;flex-shrink:0;}
+.sec-lesson-row.done .slr-num{color:var(--g);}
+.slr-info{flex:1;}
+.slr-title{font-size:0.8rem;font-weight:600;color:var(--bk);margin-bottom:2px;}
+.slr-sub{font-size:0.67rem;color:var(--gr);}
+.slr-check{width:20px;height:20px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hs-greeting{margin-bottom:28px;}
+.hs-greeting-name{font-family:'Unbounded',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gm);margin-bottom:10px;}
+.hs-title{font-family:'Unbounded',sans-serif;font-size:1.5rem;font-weight:700;color:var(--bk);line-height:1.25;margin-bottom:6px;}
+.hs-subtitle{font-size:0.84rem;color:var(--gr);}
+.hs-progress-row{display:flex;align-items:center;gap:14px;margin-bottom:36px;}
+.hs-prog-bar{flex:1;height:5px;background:var(--gb);border-radius:3px;overflow:hidden;}
+.hs-prog-fill{height:100%;background:var(--g);border-radius:3px;transition:width 0.5s ease;}
+.hs-prog-label{font-size:0.72rem;font-weight:600;color:var(--gm);white-space:nowrap;min-width:80px;text-align:right;}
+
+/* Block grid */
+.hs-blocks{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.hs-block{background:var(--g);border-radius:16px;padding:22px 20px 18px;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;color:#fff;position:relative;overflow:hidden;}
+.hs-block::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.12) 0%,transparent 60%);pointer-events:none;}
+.hs-block:hover{transform:translateY(-3px);box-shadow:0 10px 32px rgba(30,108,114,0.35);}
+.hs-block:active{transform:translateY(0);}
+.hs-block--dim{background:var(--g);cursor:default;}
+.hs-block--dim:hover{transform:none;box-shadow:none;}
+body.dark .hs-block{background:#1a4448;}
+body.dark .hs-block--dim{background:#1a4448;}
+body.dark .hs-block-num{color:rgba(255,255,255,0.5);}
+.hs-block-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+.hs-block-num{font-family:'Unbounded',sans-serif;font-size:1.6rem;font-weight:800;color:rgba(255,255,255,0.55);line-height:1;}
+.hs-wip-tag{display:inline-block;font-size:0.52rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:8px;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.65);margin-top:6px;}
+.hs-block-name{font-family:'Unbounded',sans-serif;font-size:0.72rem;font-weight:700;color:#fff;letter-spacing:0.02em;margin-bottom:4px;line-height:1.3;}
+.hs-block-count{font-size:0.65rem;color:rgba(255,255,255,0.55);margin-bottom:14px;}
+.hs-block--dim .hs-block-name{color:rgba(255,255,255,0.6);}
+
+/* Lesson pills in block tile */
+.hs-block-lessons{display:flex;flex-wrap:wrap;gap:5px;}
+.hs-pill{font-size:0.6rem;font-weight:600;padding:3px 8px;border-radius:10px;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.85);cursor:pointer;transition:background 0.12s;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
+.hs-pill:hover{background:rgba(255,255,255,0.28);}
+.hs-pill.done{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.45);text-decoration:line-through;}
+
+/* Progress ring */
+.hs-block-prog-ring{position:relative;width:36px;height:36px;flex-shrink:0;}
+.hs-block-prog-ring svg{width:36px;height:36px;}
+.hs-ring-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:0.52rem;font-weight:700;color:rgba(255,255,255,0.8);}
+
+</style>
+<style>
+/* ── Только оболочка макета: боковой панели тут нет, страница по центру. ── */
+body{margin:0;}
+.layout{display:block;}
+.main{margin:0 auto!important;}
+.mock-tog{position:fixed;top:14px;right:16px;z-index:60;display:inline-flex;align-items:center;gap:7px;
+  padding:7px 13px;border:1.5px solid var(--bd);border-radius:20px;background:var(--w);color:var(--gm);
+  font-family:'Geologica',sans-serif;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all .15s;}
+.mock-tog:hover{border-color:var(--gm);box-shadow:0 2px 10px rgba(42,143,151,0.12);}
+body.dark .mock-tog{background:#0e1416;border-color:#2a4044;}
+.mock-note{max-width:920px;margin:0 auto;padding:26px 64px 0;font-size:0.72rem;color:var(--grl);line-height:1.6;}
+@media(max-width:880px){.mock-note{padding:20px 18px 0;}}
+</style>
+</head>
+<body data-sb="unpinned" data-lang="ru">
+
+<button class="mock-tog" onclick="ночь()">
+  <svg id="ni" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <span id="nt">Ночь</span>
+</button>
+
+<div class="mock-note">Макет. Одна глава справки калькулятора, собранная строением урока базы знаний:
+  стили взяты дословно из <code>knowledge-baniamsk/index.html</code>.</div>
+
+<div class="layout">
+<div class="main">
+
+  <div class="lesson-bar">
+    <a class="back-top">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      К списку глав
+    </a>
+    <a class="toc-btn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Оглавление
+    </a>
+  </div>
+
+  <div class="tag">Начало работы · Глава 4</div>
+  <h2>Опции и разделы:<br>из чего собирается спецификация</h2>
+  <p class="lead">Двенадцать разделов под блоком с проектом — это и есть будущая спецификация.
+    Часть строк в них уже оплачена базовой ценой, часть добавляется кликом, а целый раздел можно
+    из расчёта убрать. Разница между этими тремя состояниями и есть всё, что нужно понять про список.</p>
+
+  <div class="quote"><strong>Главная мысль.</strong> Серая строка «Включено в базу» — не отметка
+    «выбрано», а состав того, за что уже заплачено базовой ценой проекта. Поэтому включать её не нужно,
+    а снять — можно: снятая целиком базовая часть раздела выводит раздел из цены и из документа.</div>
+
+  <h3><span class="num">1.</span>Двенадцать разделов и три договора</h3>
+  <p>Порядок разделов повторяет порядок стройки, а не удобство списка: сначала то, что делается
+    на площадке первым. Договор у раздела свой — по нему считается платёжный план и делится
+    итоговая сумма.</p>
+
+  <div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr><th>Раздел</th><th>Договор</th><th>Что внутри</th></tr></thead>
+    <tbody>
+      <tr><td>1. Фундамент и цоколь</td><td>Основной</td><td>Типы фундамента, обвязка, отделка цоколя, отливы</td></tr>
+      <tr><td>2. Каркас</td><td>Основной</td><td>Стеновой комплект и перекрытия; у бруса — «Стеновой комплект»</td></tr>
+      <tr><td>3. Утепление, плёнки</td><td>Основной</td><td>Пироги стен, пола и потолка по выбранной толщине</td></tr>
+      <tr><td>4. Внешняя отделка</td><td>Основной</td><td>Фасад, планкен, штукатурка — часть считается по формуле от площади</td></tr>
+      <tr><td>5. Окна и двери</td><td>Основной</td><td>Остекление, входные и межкомнатные двери</td></tr>
+      <tr><td>6. Кровля</td><td>Основной</td><td>Покрытие, водосток, снегозадержатели</td></tr>
+      <tr><td>7. Покраска</td><td>Основной</td><td>Фасад, терраса, внутренние поверхности</td></tr>
+      <tr><td>8. Внутренняя отделка</td><td>Отделка</td><td>Полы, стены, потолки жилой зоны</td></tr>
+      <tr><td>9. Парное отделение</td><td>Отделка</td><td>Парная целиком: обшивка, полки, дверь, вентиляция</td></tr>
+      <tr><td>10. Печь и комплектующие</td><td>Отделка</td><td>Печь, дымоход, защита, бак</td></tr>
+      <tr><td>11. Дополнительные опции</td><td>Основной</td><td>Терраса, пергола, ограждения, логистика</td></tr>
+      <tr><td>12. Инженерные коммуникации</td><td>Инженерка</td><td>Считаются по факту, отдельным договором</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3><span class="num">2.</span>Три состояния строки</h3>
+  <p>Всё, что происходит в списке, сводится к трём состояниям строки. Их и надо различать
+    на экране: цвет и галочка говорят разное.</p>
+
+  <div class="cmp">
+    <div class="cmp-h">Базовая позиция</div>
+    <div class="cmp-h">Дополнительная опция</div>
+    <div class="cmp-c">Серая, с подписью «Включено в базу»</div>
+    <div class="cmp-c alt">Обычная, с ценой справа</div>
+    <div class="cmp-c">Галочка стоит с самого начала</div>
+    <div class="cmp-c alt">Галочки нет, ставится кликом</div>
+    <div class="cmp-c">В цене уже учтена — итог не меняет</div>
+    <div class="cmp-c alt">Прибавляется к итогу сразу при клике</div>
+    <div class="cmp-c">Снять можно — раздел уйдёт из цены</div>
+    <div class="cmp-c alt">Снять можно — уйдёт только эта строка</div>
+  </div>
+
+  <p>Третье состояние — <strong>произвольная позиция</strong>: строка, которой в списке нет,
+    добавляется кнопкой «+ Добавить опцию» в нужном разделе. Название и цена вводятся руками,
+    в спецификацию она попадает наравне с остальными.</p>
+
+  <h3><span class="num">3.</span>Как работать со списком</h3>
+  <ol class="sc-list">
+    <li class="sc-item"><strong>Включить опцию.</strong> Нажмите на строку или на чекбокс слева —
+      итог пересчитывается мгновенно. Повторное нажатие снимает галочку.</li>
+    <li class="sc-item"><strong>Найти нужное.</strong> Кнопка лупы в шапке или клавиша
+      <span class="kbd">Л</span> / <span class="kbd">K</span>. Результаты подсвечиваются сразу
+      по всем разделам; крестик в поле очищает запрос.</li>
+    <li class="sc-item"><strong>Перейти к разделу.</strong> Стрелка <span class="kbd">←</span>
+      у правого края экрана открывает боковое меню с разделами и суммами.</li>
+    <li class="sc-item"><strong>Сбросить выборочно.</strong> Кнопка «Сбросить» в шапке открывает
+      меню: всё целиком, только избранные, только выделение цветом, только свои опции.
+      Рядом с каждым пунктом — число позиций, которые он снимет.</li>
+    <li class="sc-item"><strong>Добавить примечание.</strong> Текст встанет под таблицей раздела
+      в печатной форме — там, где нужны оговорки по материалам или срокам.</li>
+  </ol>
+
+  <div class="tip"><strong>Закреплённые запросы.</strong> Частый запрос закрепляется значком рядом
+    с полем поиска и уезжает на отдельную вкладку окна — набирать заново не нужно. Закреплённое
+    хранится в аккаунте, а не в браузере: с другого компьютера и с телефона список тот же.</div>
+
+  <h3><span class="num">4.</span>Когда раздел не входит в расчёт</h3>
+  <p>Бывает, что раздел в этот объект не идёт вовсе: внутреннюю отделку заказчик делает сам,
+    печь ставит свою. Тогда снимите галочки со <strong>всех</strong> базовых позиций раздела.</p>
+
+  <div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr><th>Что сделали</th><th>Итог</th><th>Раздел в боковой панели</th><th>В окне печати</th></tr></thead>
+    <tbody>
+      <tr><td>Все галочки на месте</td><td>2 205 230 ₽</td><td>266 833 ₽</td><td>выбирается</td></tr>
+      <tr><td>Сняли одну из трёх</td><td>2 205 230 ₽</td><td>266 833 ₽</td><td>выбирается</td></tr>
+      <tr><td>Сняли все три</td><td>1 938 397 ₽</td><td>прочерк</td><td>нельзя выбрать</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="warn"><strong>Снимать надо все до одной.</strong> Стоимость раздела держится на любой
+    оставшейся галочке: пока отмечена хотя бы одна базовая позиция, доля раздела считается целиком.
+    Снятая одна из трёх не меняет итог ни на рубль.</div>
+
+  <p>Это не то же самое, что «Скрыть пустые» (<span class="kbd">З</span> / <span class="kbd">P</span>):
+    та клавиша убирает лишнее только с экрана и на цену не влияет.</p>
+
+  <a class="next-lesson">
+    <div class="nl-info">
+      <div class="nl-tag">Дальше</div>
+      <div class="nl-title">Полоска итога внизу экрана</div>
+    </div>
+    <svg class="nl-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </a>
+
+</div>
+</div>
+
+<script>
+function ночь(){
+  const t = document.body.classList.toggle('dark');
+  document.getElementById('nt').textContent = t ? 'День' : 'Ночь';
+  document.getElementById('ni').innerHTML = t
+    ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+    : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+}
+</script>
+</body></html>
