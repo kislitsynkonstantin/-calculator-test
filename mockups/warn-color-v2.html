@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Цвет плашки предупреждения — второй заход</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;}
+body{margin:0;background:#eef5f5;color:#12262a;font-family:'Geologica',system-ui,sans-serif;line-height:1.6;}
+.лист{max-width:980px;margin:0 auto;padding:40px 24px 80px;}
+@media(max-width:640px){.лист{padding:26px 16px 60px;}}
+.над{font-size:.58rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:#2a8f97;margin-bottom:12px;}
+h1{font-size:1.4rem;font-weight:600;letter-spacing:-.022em;line-height:1.18;margin:0 0 10px;}
+.лид{font-size:.95rem;font-weight:300;color:#5b7376;max-width:680px;margin:0 0 8px;}
+.лид b{font-weight:500;color:#12262a;}
+.вар{margin-top:42px;}
+.вар-шапка{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;padding-bottom:9px;border-bottom:1px solid #dceaeb;}
+.вар-н{font-size:1.5rem;font-weight:600;letter-spacing:-.03em;color:#a8dde0;line-height:1;min-width:1.1em;}
+.вар-имя{font-size:1.02rem;font-weight:600;letter-spacing:-.012em;}
+.вар-приём{font-size:.56rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#2a8f97;}
+.мазки{margin-left:auto;display:flex;gap:5px;align-self:center;}
+.мазок{width:17px;height:17px;border-radius:5px;border:1px solid rgba(0,0,0,.18);}
+.вар-зачем{font-size:.84rem;color:#5b7376;margin:12px 0 16px;max-width:720px;}
+.панели{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:760px){.панели{grid-template-columns:1fr;}}
+.панель{border-radius:14px;padding:16px 16px 18px;border:1px solid #dceaeb;}
+.панель-к{font-size:.56rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px;}
+.день{background:#f7fbfb;} .день .панель-к{color:#8da3a5;}
+.ночь{background:#111e20;border-color:#2a3f42;} .ночь .панель-к{color:#678;}
+.плашки>*+*{margin-top:12px;}
+.tip,.warn{border-radius:0 10px 10px 0;padding:13px 17px;font-size:.84rem;line-height:1.65;border-left:3px solid;}
+.день .tip{background:linear-gradient(90deg,#e4f5f6 0%,transparent 100%);border-left-color:#3db0ba;color:#12262a;}
+.день .tip strong{color:#1e6c72;}
+.ночь .tip{background:linear-gradient(90deg,#173035 0%,transparent 100%);border-left-color:#3db0ba;color:#e8f0f1;}
+.ночь .tip strong{color:#4ecad4;}
+.warn strong{font-weight:600;}
+.день .warn.v1{background:#123a3e;border-radius:10px;border-left-color:#3db0ba;color:#cfe6e7;}
+.день .warn.v1 strong{color:#8fdde3;}
+.ночь .warn.v1{background:#1d4348;border-radius:10px;border-left-color:#4ecad4;color:#e6f4f5;}
+.ночь .warn.v1 strong{color:#a8dde0;}
+.день .warn.v2{background:none;border-left-color:#c05f38;color:#12262a;}
+.день .warn.v2 strong{color:#b1552f;}
+.ночь .warn.v2{background:none;border-left-color:#c17a55;color:#e8f0f1;}
+.ночь .warn.v2 strong{color:#e08a5f;}
+.день .warn.v3{background:linear-gradient(90deg,#eef2f2 0%,transparent 100%);border-left-color:#12262a;color:#2b3b3d;}
+.день .warn.v3 strong{color:#12262a;}
+.ночь .warn.v3{background:linear-gradient(90deg,#182224 0%,transparent 100%);border-left-color:#8da3a5;color:#cdd9da;}
+.ночь .warn.v3 strong{color:#e8f0f1;}
+.день .warn.v4{background:linear-gradient(90deg,#f3f5e8 0%,transparent 100%);border-left-color:#7d8f3c;color:#4a5320;}
+.день .warn.v4 strong{color:#6c7c30;}
+.ночь .warn.v4{background:linear-gradient(90deg,#1c2015 0%,transparent 100%);border-left-color:#5f6d2c;color:#c6cf9a;}
+.ночь .warn.v4 strong{color:#a8b862;}
+.день .warn.v5{background:linear-gradient(90deg,#faf5e8 0%,transparent 100%);border-left-color:#b08d3c;color:#6a5518;}
+.день .warn.v5 strong{color:#96762a;}
+.ночь .warn.v5{background:linear-gradient(90deg,#221d13 0%,transparent 100%);border-left-color:#7d6631;color:#d5c496;}
+.ночь .warn.v5 strong{color:#c8a95c;}
+.день .warn.v6{background:linear-gradient(90deg,#fbeff1 0%,transparent 100%);border-left-color:#9c3b4e;color:#6b2331;}
+.день .warn.v6 strong{color:#93374a;}
+.ночь .warn.v6{background:linear-gradient(90deg,#231318 0%,transparent 100%);border-left-color:#733040;color:#dda8b3;}
+.ночь .warn.v6 strong{color:#cf7a8c;}
+.сноска{margin-top:52px;padding-top:16px;border-top:1px solid #dceaeb;font-size:.76rem;color:#8da3a5;}
+</style>
+</head>
+<body>
+<div class="лист">
+  <div class="над">Справка · плашки · второй заход</div>
+  <h1>Цвет плашки предупреждения</h1>
+  <p class="лид">В первом заходе все пять вариантов были сделаны одним приёмом — цветная бумага плюс
+    цветная кайма, — и менялся только оттенок. Поэтому и выбирать было не из чего: пять раз одно
+    и то же. Здесь <b>меняется сам приём</b>: тон вместо цвета, кайма без бумаги, отсутствие цвета
+    как приём. Бирюзовая подсказка везде одна и та же.</p>
+
+  <section class="вар">
+    <div class="вар-шапка">
+      <span class="вар-н">А</span>
+      <span class="вар-имя">Тёмная бирюза</span>
+      <span class="вар-приём">отличие тоном, а не цветом</span>
+      <span class="мазки"><span class="мазок" style="background:#123a3e;"></span><span class="мазок" style="background:#3db0ba;"></span><span class="мазок" style="background:#8fdde3;"></span><span class="мазок" style="background:#1d4348;"></span><span class="мазок" style="background:#4ecad4;"></span></span>
+    </div>
+    <p class="вар-зачем">Тот же цвет, что у подсказки, но вывернутый: тёмный лист, светлый текст. Ни одного нового оттенка в палитре не появляется, а спутать плашки невозможно — они различаются не хуже, чем чёрное и белое. Самый строгий вариант и самый «бланковый».</p>
+    <div class="панели">
+      <div class="панель день"><div class="панель-к">День</div><div class="плашки"><div class="tip"><strong>Закреплённые запросы.</strong> Частый запрос закрепляется значком рядом с полем поиска и уезжает на отдельную вкладку окна — набирать заново не нужно.</div><div class="warn v1"><strong>Цены доп. опций</strong> в спецификации по умолчанию скрыты для клиента — показывается только итоговая сумма раздела. Нужна цена конкретной опции — нажмите иконку глаза рядом с ней.</div></div></div>
+      <div class="панель ночь"><div class="панель-к">Ночь</div><div class="плашки"><div class="tip"><strong>Закреплённые запросы.</strong> Частый запрос закрепляется значком рядом с полем поиска и уезжает на отдельную вкладку окна — набирать заново не нужно.</div><div class="warn v1"><strong>Цены доп. опций</strong> в спецификации по умолчанию скрыты для клиента — показывается только итоговая сумма раздела. Нужна цена конкретной опции — нажмите иконку глаза рядом с ней.</div></div></div>
+    </div>
+  </section>
+  <section class="вар">
+    <div class="вар-шапка">
+      <span class="вар-н">Б</span>
+      <span class="вар-имя">Только кайма</span>
+      <span class="вар-приём">отличие весом, бумаги нет</span>
+      <span class="мазки"><span class="мазок" style="background:transparent;border-style:dashed;"></span><span class="мазок" style="background:#c05f38;"></span><span class="мазок" style="background:#b1552f;"></span><span class="мазок" style="background:transparent;border-style:dashed;"></span><span class="мазок" style="background:#c17a55;"></span></span>
+    </div>
+    <p class="вар-зачем">Заливки нет вовсе — плашка стоит прямо на листе, её держит одна кайма и цветной зачин. Подсказка остаётся единственным цветным пятном на странице, а предупреждение читается как выделенный абзац, а не как вторая наклейка.</p>
+    <div class="панели">
+      <div class="панель день"><div class="панель-к">День</div><div class="плашки"><div class="tip"><strong>Закреплённые запросы.</strong> Частый запрос закрепляется значком рядом с полем поиска и уезжает на отдельную вкладку окна — набирать заново не нужно.</div><div class="warn v2"><strong>Цены доп. опций</strong> в спецификации по умолчанию скрыты для клиента — показывается только итоговая сумма раздела. Нужна цена конкретной опции — нажмите иконку глаза рядом с ней.</div></div></div>
+      <div class="панель ночь"><div class="панель-к">Ночь</div><div class="плашки"><div class="tip"><strong>Закреплённые запросы.</strong> Частый запрос закрепляется значком рядом с полем поиска и уезжает на отдельную вкладку окна — набирать заново не нужно.</div><div class="warn v2"><strong>Цены доп. опций</strong> в спецификации по умолчанию скрыты для клиента — показывается только итоговая сумма раздела. Нужна цена конкретной опции — нажмите иконку глаза рядом с ней.</div></div></div>
+    </div>
+  </section>
+  <section class="вар">
+    <div class="вар-шапка">
+      <span class="вар-н">В</span>
+      <span class="вар-имя">Чернила</span>
+      <span class="вар-приём">нового цвета нет вовсе</span>
+      <span class="мазки"><span class="мазок" style="background:#eef2f2;"></span><span class="мазок" style="background:#12262a;"></span><span class="мазок" style="background:#12262a;"></span><span class="мазок" style="background:#182224;"></span><span class="мазок" style="background:#8da3a5;"></span></span>
+    </div>
+    <p class="вар-зачем">Нейтральная бумага и кайма цветом основных чернил. Ни одного нового тона: предупреждение отличается от подсказки тем, что оно бесцветное и оттого весомое. Тише всех, но и спокойнее всех живёт на длинной странице.</p>
+    <div class="панели">
+      <div class="панель день"><div class="панель-к">День</div><div class="плашки"><div class="tip"><strong>Закреплённые запросы.</strong> Частый запрос закрепляется значком рядом с полем поиска и уезжает на отдельную вкладку окна — набирать заново не нужно.</div><div class="warn v3"><strong>Цены доп. опций</strong> в спецификации по умолчанию скрыты для клиента — показывается только итоговая сумма раздела. Нужна цена конкретной опции — нажмите иконку глаза рядом с ней.</div></div></div>
+      <div class="панель ночь"><div class="панель-к">Ночь</div><div class="плашки"><div class="tip"><strong>Закреплённые запросы.</strong> Частый запрос закрепляется значком рядом с полем поиска и уезжает на отдельную вкладку окна — набирать заново не нужно.</div><div class="warn v3"><strong>Цены доп. опций</strong> в спецификации по умолчанию скрыты для клиента — показывается только итоговая сумма раздела. Нужна цена конкретной опции — нажмите иконку глаза рядом с ней.</div></div></div>
+    </div>
+  </section>
+  <section class="вар">
+    <div class="вар-шапка">
+      <span class="вар-н">Г</span>
+      <span class="вар-имя">Олива</span>
+      <span class="вар-приём">та же семья, но теплее</span>
+      <span class="мазки"><span class="мазок" style="background:#f3f5e8;"></span><span class="мазок" style="background:#7d8f3c;"></span><span class="мазок" style="background:#6c7c30;"></span><span class="мазок" style="background:#1c2015;"></span><span class="мазок" style="background:#5f6d2c;"></span></span>
+    </div>
+    <p class="вар-зачем">Зелёный, но жёлто-зелёный, а не сине-зелёный. Родственник бирюзы, поэтому не спорит с ней, но по теплоте виден сразу. Приглушён так же, как вся палитра «Бланка».</p>
+    <div class="панели">
+      <div class="панель день"><div class="панель-к">День</div><div class="плашки"><div class="tip"><strong>Закреплённые запросы.</strong> Частый запрос закрепляется значком рядом с полем поиска и уезжает на отдельную вкладку окна — набирать заново не нужно.</div><div class="warn v4"><strong>Цены доп. опций</strong> в спецификации по умолчанию скрыты для клиента — показывается только итоговая сумма раздела. Нужна цена конкретной опции — нажмите иконку глаза рядом с ней.</div></div></div>
+      <div class="панель ночь"><div class="панель-к">Ночь</div><div class="плашки"><div class="tip"><strong>Закреплённые запросы.</strong> Частый запрос закрепляется значком рядом с полем поиска и уезжает на отдельную вкладку окна — набирать заново не нужно.</div><div class="warn v4"><strong>Цены доп. опций</strong> в спецификации по умолчанию скрыты для клиента — показывается только итоговая сумма раздела. Нужна цена конкретной опции — нажмите иконку глаза рядом с ней.</div></div></div>
+    </div>
+  </section>
+  <section class="вар">
+    <div class="вар-шапка">
+      <span class="вар-н">Д</span>
+      <span class="вар-имя">Латунь</span>
+      <span class="вар-приём">тёплый, но приглушённый до бумаги</span>
+      <span class="мазки"><span class="мазок" style="background:#faf5e8;"></span><span class="мазок" style="background:#b08d3c;"></span><span class="мазок" style="background:#96762a;"></span><span class="мазок" style="background:#221d13;"></span><span class="мазок" style="background:#7d6631;"></span></span>
+    </div>
+    <p class="вар-зачем">Мягкое золото вместо янтаря: тот же тёплый угол, но выцветший до документа. Похоже на подпись на бланке, а не на дорожный знак. Из тёплых — самый тихий.</p>
+    <div class="панели">
+      <div class="панель день"><div class="панель-к">День</div><div class="плашки"><div class="tip"><strong>Закреплённые запросы.</strong> Частый запрос закрепляется значком рядом с полем поиска и уезжает на отдельную вкладку окна — набирать заново не нужно.</div><div class="warn v5"><strong>Цены доп. опций</strong> в спецификации по умолчанию скрыты для клиента — показывается только итоговая сумма раздела. Нужна цена конкретной опции — нажмите иконку глаза рядом с ней.</div></div></div>
+      <div class="панель ночь"><div class="панель-к">Ночь</div><div class="плашки"><div class="tip"><strong>Закреплённые запросы.</strong> Частый запрос закрепляется значком рядом с полем поиска и уезжает на отдельную вкладку окна — набирать заново не нужно.</div><div class="warn v5"><strong>Цены доп. опций</strong> в спецификации по умолчанию скрыты для клиента — показывается только итоговая сумма раздела. Нужна цена конкретной опции — нажмите иконку глаза рядом с ней.</div></div></div>
+    </div>
+  </section>
+  <section class="вар">
+    <div class="вар-шапка">
+      <span class="вар-н">Е</span>
+      <span class="вар-имя">Бордо</span>
+      <span class="вар-приём">глубокий, издательский</span>
+      <span class="мазки"><span class="мазок" style="background:#fbeff1;"></span><span class="мазок" style="background:#9c3b4e;"></span><span class="мазок" style="background:#93374a;"></span><span class="мазок" style="background:#231318;"></span><span class="мазок" style="background:#733040;"></span></span>
+    </div>
+    <p class="вар-зачем">Винный красный, без сигнальной яркости. Читается серьёзно и дорого, с бирюзой сочетается по глубине: оба цвета тёмные и приглушённые, ни один не выцветает рядом с другим.</p>
+    <div class="панели">
+      <div class="панель день"><div class="панель-к">День</div><div class="плашки"><div class="tip"><strong>Закреплённые запросы.</strong> Частый запрос закрепляется значком рядом с полем поиска и уезжает на отдельную вкладку окна — набирать заново не нужно.</div><div class="warn v6"><strong>Цены доп. опций</strong> в спецификации по умолчанию скрыты для клиента — показывается только итоговая сумма раздела. Нужна цена конкретной опции — нажмите иконку глаза рядом с ней.</div></div></div>
+      <div class="панель ночь"><div class="панель-к">Ночь</div><div class="плашки"><div class="tip"><strong>Закреплённые запросы.</strong> Частый запрос закрепляется значком рядом с полем поиска и уезжает на отдельную вкладку окна — набирать заново не нужно.</div><div class="warn v6"><strong>Цены доп. опций</strong> в спецификации по умолчанию скрыты для клиента — показывается только итоговая сумма раздела. Нужна цена конкретной опции — нажмите иконку глаза рядом с ней.</div></div></div>
+    </div>
+  </section>
+  <div class="сноска">Мазки справа от названия: бумага, кайма и зачин в дневной теме, затем бумага
+    и кайма в ночной; пунктирный мазок — заливки нет. У варианта «А» заливка не уходит в прозрачность:
+    тёмное пятно, тающее в белый лист, читалось бы грязью, поэтому лист сплошной и скруглён с обеих сторон.</div>
+</div>
+</body></html>
