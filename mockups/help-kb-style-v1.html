@@ -6,7 +6,7 @@
 <title>Справка в оформлении базы знаний — «Опции и разделы»</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -535,6 +535,41 @@ body.dark .hs-block-num{color:rgba(255,255,255,0.5);}
 
 </style>
 <style>
+/* ── Шрифты темы «Бланк» ───────────────────────────────────────────────────
+   В «Бланке» одна гарнитура — Geologica, второй нет вовсе. Иерархию держат
+   вес и трекинг: заголовок 600 с отрицательным трекингом, надзаголовок 500
+   в разрядку, текст 400. Поэтому Unbounded здесь снят везде, включая номера
+   разделов и шапки таблиц. */
+h2,h3,.sec,.sb2 h3,.tag,.tbl th,.cmp-h,.upd-ver,.nl-title,.nl-tag,.pr-tag,
+.sc-item::before,.mc-text h4,.pr-card h4{
+  font-family:'Geologica',system-ui,sans-serif;}
+h2{font-weight:600;letter-spacing:-.022em;line-height:1.18;}
+/* Номер висит отдельной колонкой, как в печатном листе «Бланка»: название
+   разделa при переносе не заезжает под цифру. */
+h3{font-weight:600;letter-spacing:-.012em;font-size:1.02rem;display:flex;align-items:baseline;gap:11px;}
+/* Крупный бледный номер раздела — подпись «Бланка»: в печатном листе номера
+   разделов набраны так же, светлой бирюзой поверх белого. */
+h3 .num{font-weight:600;letter-spacing:-.03em;font-size:1.5em;line-height:1;
+  color:var(--num);flex:none;margin:0;min-width:1.1em;}
+.tag{font-weight:500;letter-spacing:.2em;}
+.tbl th,.cmp-h{font-weight:500;letter-spacing:.16em;}
+.sc-item::before{font-weight:600;}
+.nl-title{font-weight:600;letter-spacing:-.012em;}
+.nl-tag{font-weight:500;letter-spacing:.16em;}
+.lead{font-weight:300;}
+strong{font-weight:600;}
+:root{--num:#a8dde0;}
+body.dark{--num:#3a7d84;}
+@media(prefers-color-scheme:dark){body:not(.light){--num:#3a7d84;}}
+
+/* ── Градиенты ────────────────────────────────────────────────────────────
+   В базе знаний заливка врезки уходит слева направо в прозрачность — тот же
+   приём даём подсказке и карточке перехода, чтобы плашки не читались
+   наклейками, а таяли в поле листа. */
+.tip{background:linear-gradient(90deg,var(--tip-bg) 0%,transparent 100%);}
+.warn{background:linear-gradient(90deg,var(--warn-bg) 0%,transparent 100%);}
+.next-lesson{background:linear-gradient(90deg,var(--gb) 0%,var(--w) 55%);}
+
 /* Только оболочка макета: боковой панели тут нет, страница по центру. */
 body{margin:0;}
 .layout{display:block;}
