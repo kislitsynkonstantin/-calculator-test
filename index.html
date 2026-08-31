@@ -2238,7 +2238,24 @@ body.dark.ui-light .opt-item.highlighted { background: #2e2200 !important; }
    правый край панели, и нажать её было нечем. Ряд переносится. */
 .pp-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--border); }
 .pp-btn { flex: 1 1 140px; min-width: 0; padding: 7px 10px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--field-bg); color: var(--green-dark); font-family: 'Geologica',sans-serif; font-size: 0.7rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: background 0.12s; }
+/* Коробка 24 px, палец бьёт по 40: поле берёт по 8 вверх-вниз и по 4 в
+   стороны — половину зазора в 8 px. */
+.pp-btn { position: relative; }
+.pp-btn::before { content: ''; position: absolute; inset: -8px -4px; }
 .pp-btn:hover { background: var(--green-bg); border-color: var(--green-mid); }
+/* Корзина этапа — 17×13 нарисованных пикселей. Раздувать её нельзя: это
+   второстепенное действие в плотной строке, и по весу оно не должно спорить
+   с долями и суммами. Поле нажатия расширяем невидимым полем. */
+.pp-trash { position: relative; }
+.pp-trash::before { content: ''; position: absolute; inset: -10px -12px; }
+/* Комплектации: замок в шапке и три вкладки вида — все ниже минимума.
+   Поля отсчитаны от зазоров: у замка соседей в шапке нет ближе 12 px,
+   у вкладок зазор 3 px, поэтому вбок по 1,5. */
+#kitLockBtn { position: relative; }
+#kitLockBtn::before { content: ''; position: absolute; inset: -7px -3px; }
+#kvtab_all, #kvtab_diff, #kvtab_extra { position: relative; }
+#kvtab_all::before, #kvtab_diff::before, #kvtab_extra::before {
+  content: ''; position: absolute; inset: -8px -1px; }
 body.dark #ppTab_plan, body.dark #ppTab_contracts { color: var(--gray) !important; }
 body.dark #ppTab_plan[data-active="1"],
 body.dark #ppTab_contracts[data-active="1"] { color: #fff !important; border-bottom-color: #fff !important; }
@@ -2795,7 +2812,9 @@ body.dark .ovl-x.floating:hover { background: rgba(18,32,35,0.82); color: #fff; 
 /* Вкладок стало четыре, и в строку они не встают ни на телефоне, ни на
    широком экране рядом с подсказкой. Ряд переносится: прятать вкладку в
    горизонтальную прокрутку нельзя — её никто не найдёт. */
-.ops-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 8px 16px;
+/* Зазор рядов 16 px — ровно столько, сколько занимают поля нажатия двух
+   соседних рядов чипов: при переносе строки они наезжали друг на друга. */
+.ops-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 16px 6px; padding: 8px 16px;
   border-bottom: 1px solid var(--border); flex-shrink: 0; }
 .ops-chip { border: 1.5px solid var(--border); background: none; color: var(--gray); border-radius: 20px;
   padding: 4px 12px; font-family: 'Geologica', sans-serif; font-size: 0.7rem; font-weight: 600;
@@ -2803,7 +2822,9 @@ body.dark .ovl-x.floating:hover { background: rgba(18,32,35,0.82); color: #fff; 
 /* Отсчёт идёт от внутренней стороны рамки, а не от коробки: при -9 нижняя
    граница поля приходилась ровно на край кнопки, и палец, попавший на 20 px
    ниже середины, уже мимо. */
-.ops-chip::before { content: ''; position: absolute; inset: -12px -4px; }
+/* Вбок поле берёт половину зазора в 6 px, вверх-вниз — половину зазора рядов
+   в 16: соседи встают встык и не крадут друг у друга углы. */
+.ops-chip::before { content: ''; position: absolute; inset: -8px -3px; }
 .ops-chip.on { background: var(--green-dark); border-color: var(--green-dark); color: #fff; }
 .ops-hint { margin-left: auto; font-size: 0.64rem; color: var(--gray-light); white-space: nowrap; }
 @media (max-width: 700px) { .ops-hint { display: none; } }
@@ -2901,9 +2922,11 @@ body.dark .ovl-x.floating:hover { background: rgba(18,32,35,0.82); color: #fff; 
 .ptab-active { color: var(--green-dark); border-bottom-color: var(--green-dark); font-weight: 600; }
 
 /* ── Toolbar ── */
+/* Снизу отступ такой же, как сверху: полоса прокручивается вбок, а прокрутка
+   обрезает всё, что вышло за её границы, — включая невидимое поле нажатия. */
 .ptoolbar {
   display: flex; gap: 6px;
-  padding: 10px 12px 0;
+  padding: 10px 12px 10px;
   align-items: center;
   flex-shrink: 0;
   overflow-x: auto;
@@ -2912,6 +2935,7 @@ body.dark .ovl-x.floating:hover { background: rgba(18,32,35,0.82); color: #fff; 
 }
 .ptoolbar::-webkit-scrollbar { display: none; }
 .ptoolbar-btn {
+  position: relative;
   display: flex; align-items: center; gap: 5px;
   padding: 6px 11px; border-radius: 8px;
   border: 1px solid #c8dfe0; background: #f4f9f9;
@@ -2920,6 +2944,10 @@ body.dark .ovl-x.floating:hover { background: rgba(18,32,35,0.82); color: #fff; 
   transition: background 0.15s, color 0.15s, border-color 0.15s;
   font-family: 'Geologica', sans-serif;
 }
+/* Коробка 26 px, палец бьёт по 38: поле берёт по 6 вверх-вниз (столько же,
+   сколько отступ полосы, чтобы прокрутка его не срезала) и по 3 в стороны —
+   половину зазора в 6 px. */
+.ptoolbar-btn::before { content: ''; position: absolute; inset: -6px -3px; }
 .ptoolbar-btn:hover { background: #e0f0f2; color: var(--green-dark); border-color: var(--green-pale); }
 .ptoolbar-primary { background: var(--green-dark); color: #fff; border-color: var(--green-dark); }
 .ptoolbar-primary:hover { background: var(--green-mid); }
@@ -5689,7 +5717,9 @@ body.ui-blank .st-theme-btn {
 }
 /* Коробка 34 px, палец бьёт по 44: поле берёт половину зазора в 8 px, считая
    от внутренней стороны рамки — отсюда −6 при рамке в 1 px. */
-body.ui-blank .st-theme-btn::before { content: ''; position: absolute; inset: -6px; }
+/* Вбок ровно половина зазора в 8 px, иначе поля соседних кнопок темы
+   перекрывались на 4 px и нажатие у края уходило соседу. */
+body.ui-blank .st-theme-btn::before { content: ''; position: absolute; inset: -6px -4px; }
 body.ui-blank .st-theme-btn:hover { border-color: var(--bl-acc2); color: var(--bl-acc); }
 body.ui-blank .st-theme-btn.active {
   background: var(--bl-acc);
@@ -6140,7 +6170,7 @@ body.ui-blank .ops-count { color: var(--bl-ink3); }
 /* Зазор между вкладками — 28 px по горизонтали (см. ниже), но по вертикали
    он не нужен: четвёртая вкладка на узком экране переносится, и на 28 px
    между рядами получалась пустая полоса в полсотни пикселей. */
-body.ui-blank .ops-filters { padding: 4px 22px 0; border-bottom: 1px solid var(--bl-rule); gap: 0 28px; }
+body.ui-blank .ops-filters { padding: 4px 22px 0; border-bottom: 1px solid var(--bl-rule); gap: 8px 28px; }
 body.ui-blank .ops-chip {
   border: none; border-bottom: 2px solid transparent; border-radius: 0;
   background: none; color: var(--bl-ink3); font-weight: 500; padding: 9px 0; min-height: 40px;
@@ -6257,6 +6287,10 @@ body.ui-blank .ptabs {
   border-bottom: 1px solid var(--bl-rule) !important;
   padding: 0 22px !important;
 }
+/* Короткая подпись даёт узкую цель: «Мои» — 26 px. Поле берёт по 6 px в
+   стороны, это меньше половины зазора в 22 px, поэтому соседи не спорят. */
+body.ui-blank .ptab { position: relative; }
+body.ui-blank .ptab::before { content: ''; position: absolute; inset: 0 -6px; }
 body.ui-blank .ptab {
   color: var(--bl-ink3) !important;
   font-size: .78rem !important;
@@ -6283,7 +6317,9 @@ body.ui-blank .ptab-active {
    затуханием больше нет, ничто не прячется за краем. */
 body.ui-blank .ptoolbar {
   padding: 12px 22px 10px !important;
-  gap: 8px 22px !important;
+  /* Зазор рядов 12 px против поля нажатия в 5 px сверху и снизу: при 8 px
+     кнопки соседних рядов перекрывались. */
+  gap: 12px 22px !important;
   flex-wrap: wrap !important;
   overflow: visible !important;
   -webkit-mask-image: none;
@@ -9802,8 +9838,8 @@ function onProjectChange() {
   }
   updateProjectInfo();
   refreshOptPricesInDOM();
-  // Автоматика по крытой террасе — до расчёта, чтобы итог сразу был верным.
-  try { применитьАвтоСтолбы(); } catch (e) {}
+  // Автоматика по террасе — до расчёта, чтобы итог сразу был верным.
+  try { применитьАвтоПоПроекту(); } catch (e) {}
   calc();
 }
 
@@ -11172,6 +11208,36 @@ function setNoteText(sectionKey, место, текст) {
   if (т) т.textContent = текст;
 }
 
+// Примечания, привязанные к составу опций, но живущие вне SECTION_NOTES.
+// Раньше такое примечание просто исчезало со страницы, и понять, почему его
+// нет, было нельзя. Теперь оно остаётся на месте и гаснет кнопкой «глаз»:
+// видно и само примечание, и то, что в документ оно не пойдёт.
+// Установлено Константином 01.09.2026.
+const _условноеБыло = new Map();
+function автоСкрытьПримечание(ид, надо, подпись) {
+  const было = _условноеБыло.get(ид);
+  _условноеБыло.set(ид, надо);
+  if (было === надо) return;
+  setNoteHidden(ид, надо);
+  // Первый проход после загрузки — не событие, а разбор того, что уже
+  // отмечено: сообщать не о чем.
+  if (было === undefined || !_autoHideОтРуки) return;
+  if (appSettings.showAutoToasts) {
+    showToast((надо ? 'Примечание убрано с печати:\n' : 'Примечание возвращено:\n') + подпись);
+  }
+}
+function автоУсловныеПримечания() {
+  const печь = OPTIONS.filter(o => o.section === 'stove').some(o => checkedOptions[o.id])
+            || getCustomOpts('stove').some(co => co.checked);
+  автоСкрытьПримечание('steam_stove', печь, 'Печь не входит в базовую комплектацию');
+  автоСкрытьПримечание('roof_drain',
+    ['r12','r13','r14','r6','r7'].some(id => checkedOptions[id]),
+    'Водосточная система не входит в стоимость');
+  автоСкрытьПримечание('roof_snow',
+    ['r10','r11','r8'].some(id => checkedOptions[id]),
+    'Снегозадержатели не входят в стоимость');
+}
+
 function applyNoteAdapt() {
   NOTE_ADAPT.forEach((пр, i) => {
     const список = SECTION_NOTES[пр.section] || [];
@@ -11376,29 +11442,24 @@ function renderOptionSections() {
       const fixedId = sec.key + '_' + idx;
       notesArea.appendChild(buildNoteItem(text, true, sec.key, null, fixedId));
     });
-    // Conditional note: steam section — show stove note only if no stove options checked
+    // Примечание про печь стоит всегда: выбрана печь — оно гаснет глазом,
+    // а не пропадает. Состояние ставит автоУсловныеПримечания() из calc().
     if (sec.key === 'steam') {
       const stoveNote = document.createElement('div');
       stoveNote.id = 'stoveConditionalNote';
-      const hasStoveOptions = OPTIONS.filter(o => o.section === 'stove').some(o => checkedOptions[o.id]) || getCustomOpts('stove').some(co => co.checked);
-      stoveNote.style.display = hasStoveOptions ? 'none' : '';
       stoveNote.appendChild(buildNoteItem('Печь не входит в базовую комплектацию', true, sec.key, null, sec.key + '_stove'));
       notesArea.appendChild(stoveNote);
     }
-    // Conditional notes: roof section — drainage + snow guards (hidden when their options are selected)
+    // Примечания про водосточку и снегозадержатели стоят всегда — как и про
+    // печь: выбрана опция, они гаснут глазом, а не пропадают со страницы.
+    // Состояние ставит автоУсловныеПримечания() из calc().
     if (sec.key === 'roof') {
-      // Drainage note — hidden if any drainage option (r12/r13/r14) is checked
       const drainNote = document.createElement('div');
       drainNote.id = 'drainConditionalNote';
-      const hasDrain = ['r12','r13','r14','r6','r7'].some(id => checkedOptions[id]);
-      drainNote.style.display = hasDrain ? 'none' : '';
       drainNote.appendChild(buildNoteItem('Водосточная система не входит в стоимость', true, sec.key, null, sec.key + '_drain'));
       notesArea.appendChild(drainNote);
-      // Snow guards note — hidden if any snow-guard option (r10/r11) is checked
       const snowNote = document.createElement('div');
       snowNote.id = 'snowConditionalNote';
-      const hasSnow = ['r10','r11','r8'].some(id => checkedOptions[id]);
-      snowNote.style.display = hasSnow ? 'none' : '';
       snowNote.appendChild(buildNoteItem('Снегозадержатели не входят в стоимость', true, sec.key, null, sec.key + '_snow'));
       notesArea.appendChild(snowNote);
     }
@@ -12080,36 +12141,38 @@ const AUTO_INCLUDES = [
   }
 ];
 
-// ── Столбы нужны там, где есть крытая терраса ──────────────────────────────
+// ── Что зависит от террасы в проекте ───────────────────────────────────────
 // Правило срабатывает один раз — в момент выбора проекта, а не постоянно:
 // решение здесь за менеджером, автоматика только подставляет обычный случай.
 // Поэтому поле остаётся живым: галочку можно вернуть или снять руками, и
 // следующий пересчёт её не тронет. Из пресета правило тоже не вызывается —
 // сохранённый расчёт восстанавливается как есть.
-const AL_СТОЛБЫ_ТЕРРАСЫ = 'fr7';
-function применитьАвтоСтолбы() {
+// Всплывающих сообщений здесь нет намеренно: при выборе проекта их набегает
+// сразу несколько, и они перекрывают сам список. Снято Константином 01.09.2026.
+const АВТО_ПО_ПРОЕКТУ = [
+  // Клееные столбы держат крышу над террасой — нужны только крытой.
+  { опция: 'fr7', есть: п => (Number(п[PROJ_IDX.TERR_COVERED]) || 0) > 0 },
+  // Террасная доска нужна любой террасе — и открытой, и крытой.
+  { опция: 'ex4', есть: п => ((Number(п[PROJ_IDX.TERR_OPEN]) || 0)
+                            + (Number(п[PROJ_IDX.TERR_COVERED]) || 0)) > 0 },
+];
+function применитьАвтоПоПроекту() {
   if (currentTech !== 'frame') return;
-  const оп = OPTIONS.filter(o => o.id === AL_СТОЛБЫ_ТЕРРАСЫ)[0];
-  if (!оп) return;
-  const chk = document.getElementById('chk_' + AL_СТОЛБЫ_ТЕРРАСЫ);
-  const lbl = document.getElementById('lbl_' + AL_СТОЛБЫ_ТЕРРАСЫ);
-  if (!chk || !lbl) return;
-  const крытая = selectedProject
-    ? Number(selectedProject[PROJ_IDX.TERR_COVERED]) || 0 : 0;
-  // Столбы держат крышу над террасой: есть крытая терраса — оставляем то, что
-  // стоит в базовой комплектации; нет крытой террасы — держать нечего, снимаем.
-  // Возврат к базовой обязателен, иначе снятая галочка тянулась бы за
-  // менеджером с проекта на проект без всякой причины.
-  const надо = крытая > 0 ? !!оп.included : false;
-  if (!!checkedOptions[AL_СТОЛБЫ_ТЕРРАСЫ] === надо) return;
-  chk.checked = надо;
-  checkedOptions[AL_СТОЛБЫ_ТЕРРАСЫ] = надо;
-  lbl.classList.toggle('active', надо);
-  if (appSettings.showAutoToasts) {
-    showToast(надо
-      ? 'Возвращено автоматически:\n' + оп.name + '\nв проекте есть крытая терраса'
-      : 'Снято автоматически:\n' + оп.name + '\nв проекте нет крытой террасы');
-  }
+  АВТО_ПО_ПРОЕКТУ.forEach(пр => {
+    const оп = OPTIONS.filter(o => o.id === пр.опция)[0];
+    if (!оп) return;
+    const chk = document.getElementById('chk_' + пр.опция);
+    const lbl = document.getElementById('lbl_' + пр.опция);
+    if (!chk || !lbl) return;
+    // Есть за что зацепиться — возвращаем то, что стоит в базовой комплектации;
+    // нет — снимаем. Возврат обязателен, иначе снятая галочка тянулась бы за
+    // менеджером с проекта на проект без всякой причины.
+    const надо = (selectedProject && пр.есть(selectedProject)) ? !!оп.included : false;
+    if (!!checkedOptions[пр.опция] === надо) return;
+    chk.checked = надо;
+    checkedOptions[пр.опция] = надо;
+    lbl.classList.toggle('active', надо);
+  });
 }
 
 function applyAutoIncludes() {
@@ -12392,23 +12455,6 @@ function toggleOpt(optId) {
   }
   // Update fr2/fr8 names when 200/250mm floor insulation toggled
   if (optId === 'in6' || optId === 'in7') updateBaseItemNames();
-  // Update conditional stove note in steam section
-  const stoveNoteEl = document.getElementById('stoveConditionalNote');
-  if (stoveNoteEl) {
-    const hasStove = OPTIONS.filter(o => o.section === 'stove').some(o => checkedOptions[o.id]) || getCustomOpts('stove').some(co => co.checked);
-    stoveNoteEl.style.display = hasStove ? 'none' : '';
-  }
-  // Update conditional roof notes (drainage + snow guards)
-  const drainNoteEl = document.getElementById('drainConditionalNote');
-  if (drainNoteEl) {
-    const hasDrain = ['r12','r13','r14','r6','r7'].some(id => checkedOptions[id]);
-    drainNoteEl.style.display = hasDrain ? 'none' : '';
-  }
-  const snowNoteEl = document.getElementById('snowConditionalNote');
-  if (snowNoteEl) {
-    const hasSnow = ['r10','r11','r8'].some(id => checkedOptions[id]);
-    snowNoteEl.style.display = hasSnow ? 'none' : '';
-  }
   // Сообщение об автоматике примечаний показываем только когда галочку нажали
   // руками. При открытии сохранённого расчёта, применении комплектации и смене
   // технологии calc() тоже проходит через это правило — там всплывающее
@@ -12538,6 +12584,7 @@ function calc() {
   // и смене технологии, и всё это проходит через calc().
   try { applyNoteAutoHide(); } catch (e) {}
   try { applyNoteAdapt(); } catch (e) {}
+  try { автоУсловныеПримечания(); } catch (e) {}
   if (!selectedProject) {
     document.getElementById('resultCard').style.display = 'none';
     document.getElementById('breakdownCard').style.display = 'none';
@@ -14255,12 +14302,12 @@ function buildPrintDoc() {
     const allNotes = [
       ...(SECTION_NOTES[sec.key] || []).map((text, idx) => ({ text, fixedId: sec.key + '_' + idx })).filter(n => !hiddenNotes.has(n.fixedId)),
       // Conditional stove note in steam section
-      ...(sec.key === 'steam' && !(OPTIONS.filter(o => o.section === 'stove').some(o => checkedOptions[o.id]) || getCustomOpts('stove').some(co => co.checked)) && !hiddenNotes.has('steam_stove')
+      ...(sec.key === 'steam' && !hiddenNotes.has('steam_stove')
         ? [{ text: 'Печь не входит в базовую комплектацию' }] : []),
       // Conditional roof notes (drainage + snow guards)
-      ...(sec.key === 'roof' && !['r12','r13','r14','r6','r7'].some(id => checkedOptions[id]) && !hiddenNotes.has('roof_drain')
+      ...(sec.key === 'roof' && !hiddenNotes.has('roof_drain')
         ? [{ text: 'Водосточная система не входит в стоимость' }] : []),
-      ...(sec.key === 'roof' && !['r10','r11','r8'].some(id => checkedOptions[id]) && !hiddenNotes.has('roof_snow')
+      ...(sec.key === 'roof' && !hiddenNotes.has('roof_snow')
         ? [{ text: 'Снегозадержатели не входят в стоимость' }] : []),
       ...getCustomNotes(sec.key).map(n => ({ text: n.text })),
     ];
@@ -14515,11 +14562,11 @@ function buildPrintDoc() {
 
       const blNotes = [
         ...(SECTION_NOTES[sec.key] || []).map((text, idx) => ({ text, fixedId: sec.key + '_' + idx })).filter(n => !hiddenNotes.has(n.fixedId)),
-        ...(sec.key === 'steam' && !(OPTIONS.filter(o => o.section === 'stove').some(o => checkedOptions[o.id]) || getCustomOpts('stove').some(co => co.checked)) && !hiddenNotes.has('steam_stove')
+        ...(sec.key === 'steam' && !hiddenNotes.has('steam_stove')
           ? [{ text: 'Печь не входит в базовую комплектацию' }] : []),
-        ...(sec.key === 'roof' && !['r12','r13','r14','r6','r7'].some(id => checkedOptions[id]) && !hiddenNotes.has('roof_drain')
+        ...(sec.key === 'roof' && !hiddenNotes.has('roof_drain')
           ? [{ text: 'Водосточная система не входит в стоимость' }] : []),
-        ...(sec.key === 'roof' && !['r10','r11','r8'].some(id => checkedOptions[id]) && !hiddenNotes.has('roof_snow')
+        ...(sec.key === 'roof' && !hiddenNotes.has('roof_snow')
           ? [{ text: 'Снегозадержатели не входят в стоимость' }] : []),
         ...getCustomNotes(sec.key).map(n => ({ text: n.text })),
       ];
@@ -14791,11 +14838,11 @@ function buildPrintDoc() {
       const noteBg = appSettings.noteHighlightColor || '#f0f4f4';
       const allNotes = [
         ...(SECTION_NOTES[sec.key] || []).map((text, idx) => ({ text, fixedId: sec.key + '_' + idx })).filter(n => !hiddenNotes.has(n.fixedId)),
-        ...(sec.key === 'steam' && !(OPTIONS.filter(o => o.section === 'stove').some(o => checkedOptions[o.id]) || getCustomOpts('stove').some(co => co.checked)) && !hiddenNotes.has('steam_stove')
+        ...(sec.key === 'steam' && !hiddenNotes.has('steam_stove')
           ? [{ text: 'Печь не входит в базовую комплектацию' }] : []),
-        ...(sec.key === 'roof' && !['r12','r13','r14','r6','r7'].some(id => checkedOptions[id]) && !hiddenNotes.has('roof_drain')
+        ...(sec.key === 'roof' && !hiddenNotes.has('roof_drain')
           ? [{ text: 'Водосточная система не входит в стоимость' }] : []),
-        ...(sec.key === 'roof' && !['r10','r11','r8'].some(id => checkedOptions[id]) && !hiddenNotes.has('roof_snow')
+        ...(sec.key === 'roof' && !hiddenNotes.has('roof_snow')
           ? [{ text: 'Снегозадержатели не входят в стоимость' }] : []),
         ...getCustomNotes(sec.key).map(n => ({ text: n.text })),
       ];
@@ -14946,9 +14993,9 @@ function buildPrintDoc() {
       const noteBg = '#f5f4f1';
       const allNotes = [
         ...(SECTION_NOTES[sec.key] || []).map((text, i) => ({ text, fixedId: sec.key + '_' + i })).filter(n => !hiddenNotes.has(n.fixedId)),
-        ...(sec.key === 'steam' && !(OPTIONS.filter(o => o.section === 'stove').some(o => checkedOptions[o.id]) || getCustomOpts('stove').some(co => co.checked)) && !hiddenNotes.has('steam_stove') ? [{ text: 'Печь не входит в базовую комплектацию' }] : []),
-        ...(sec.key === 'roof' && !['r12','r13','r14','r6','r7'].some(id => checkedOptions[id]) && !hiddenNotes.has('roof_drain') ? [{ text: 'Водосточная система не входит в стоимость' }] : []),
-        ...(sec.key === 'roof' && !['r10','r11','r8'].some(id => checkedOptions[id]) && !hiddenNotes.has('roof_snow') ? [{ text: 'Снегозадержатели не входят в стоимость' }] : []),
+        ...(sec.key === 'steam' && !hiddenNotes.has('steam_stove') ? [{ text: 'Печь не входит в базовую комплектацию' }] : []),
+        ...(sec.key === 'roof' && !hiddenNotes.has('roof_drain') ? [{ text: 'Водосточная система не входит в стоимость' }] : []),
+        ...(sec.key === 'roof' && !hiddenNotes.has('roof_snow') ? [{ text: 'Снегозадержатели не входят в стоимость' }] : []),
         ...getCustomNotes(sec.key).map(n => ({ text: n.text })),
       ];
       allNotes.forEach(note => {
@@ -18135,7 +18182,7 @@ function renderPaymentPlan() {
     const isOver = finalP ? grandTotal > total + 1 : false;
     const isUnder = finalP ? grandTotal < total - 1 : (usedSum < total - 1);
 
-    const trashBtn = (onclick) => `<button onclick="${onclick}" title="Удалить этап"
+    const trashBtn = (onclick) => `<button class="pp-trash" onclick="${onclick}" title="Удалить этап"
       style="background:none;border:none;cursor:pointer;color:var(--gray-light);padding:0 2px;flex-shrink:0;display:flex;align-items:center;"
       onmouseover="this.style.color='#c0392b'" onmouseout="this.style.color='var(--gray-light)'">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
@@ -21506,12 +21553,6 @@ function restoreState(state) {
     // items must not override manually-saved selections (e.g. stove as custom option).
     pinIncludedOptsToTop();
     // Refresh conditional notes (stove / roof drainage / snow guards) from restored state
-    const _stoveNote = document.getElementById('stoveConditionalNote');
-    if (_stoveNote) _stoveNote.style.display = OPTIONS.filter(o=>o.section==='stove').some(o=>checkedOptions[o.id]) ? 'none' : '';
-    const _drainNote = document.getElementById('drainConditionalNote');
-    if (_drainNote) _drainNote.style.display = ['r12','r13','r14','r6','r7'].some(id=>checkedOptions[id]) ? 'none' : '';
-    const _snowNote = document.getElementById('snowConditionalNote');
-    if (_snowNote) _snowNote.style.display = ['r10','r11','r8'].some(id=>checkedOptions[id]) ? 'none' : '';
     calc();
   }, 0);
 
@@ -23475,8 +23516,11 @@ function alSelРисовать() {
       '" onclick="alSelЯ()"><span class="al-obox"></span>Только я</button>');
   }
   строки.push('<div class="al-osep"></div>');
+  // Пустой выбор означает «все», и галочки должны стоять у всех: список,
+  // где написано «Все сотрудники», а отметок ни одной, читается как «никто».
   alЛюдиВЛенте().forEach(u => {
-    строки.push('<button class="al-opt' + (_alВыбор.indexOf(u) !== -1 ? ' on' : '') +
+    const отмечен = !_alВыбор.length || _alВыбор.indexOf(u) !== -1;
+    строки.push('<button class="al-opt' + (отмечен ? ' on' : '') +
       '" onclick="alSelОтметить(\'' + u + '\')"><span class="al-obox"></span>' +
       alИмя(u) + (u === я ? ' <span class="al-ome">это вы</span>' : '') + '</button>');
   });
@@ -23502,8 +23546,17 @@ function alSelЗакрыть() {
 // Список остаётся открытым при выборе: отметить нескольких — обычное дело,
 // и закрытие после каждой галочки заставляло бы открывать его заново.
 function alSelОтметить(u) {
-  const i = _alВыбор.indexOf(u);
-  if (i === -1) _alВыбор.push(u); else _alВыбор.splice(i, 1);
+  const все = alЛюдиВЛенте();
+  // Пустой выбор — это «все», и галочки стоят у всех. Снять одну означает
+  // «все, кроме него», а не «никого»: иначе первое же нажатие в списке, где
+  // отмечено всё, оставляло бы одного человека.
+  const выбор = _alВыбор.length ? _alВыбор.slice() : все.slice();
+  const i = выбор.indexOf(u);
+  if (i === -1) выбор.push(u); else выбор.splice(i, 1);
+  // Отмечены все — это и есть «Все сотрудники»; храним пустым списком, чтобы
+  // подпись на поле и состояние не расходились. Снятые все — тоже возврат
+  // к «Всем»: показывать пустую ленту без причины незачем.
+  _alВыбор = (выбор.length === все.length || !выбор.length) ? [] : выбор;
   alРисовать();
 }
 function alSelВсе() { _alВыбор = []; alРисовать(); }
