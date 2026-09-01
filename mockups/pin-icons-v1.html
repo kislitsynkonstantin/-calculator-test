@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Булавка в списке периодов — шесть значков</title>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&family=Unbounded:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green-dark:#1e6c72; --green-mid:#2a8f97; --green-light:#3db0ba;
+  --green-bg:#e4f5f6; --border:#3db0ba; --card:#fff; --page:#f0f9fa;
+  --gray:#3d5457; --gray-light:#8da3a5; --black:#111;
+  --bl-page:#f7fbfb; --bl-sheet:#fff; --bl-zebra:#f7fafb; --bl-ink:#12262a;
+  --bl-ink2:#5b7376; --bl-ink3:#8da3a5; --bl-rule:#dceaeb; --bl-rule2:#bcd9db;
+  --bl-acc:#1e6c72; --bl-acc2:#2a8f97; --bl-tint:#e4f5f6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bl-page);color:var(--bl-ink);
+  font-family:'Geologica',system-ui,sans-serif;font-size:15px;line-height:1.6}
+.wrap{max-width:1180px;margin:0 auto;padding:34px 20px 90px}
+.eyebrow{font-size:.6rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--bl-ink3);margin-bottom:10px}
+h1{font-weight:600;letter-spacing:-.03em;font-size:1.9rem;margin:0 0 12px}
+.lead{color:var(--bl-ink2);max-width:72ch;margin:0 0 10px}
+h2{font-weight:600;letter-spacing:-.02em;font-size:1.15rem;margin:46px 0 4px;
+  display:flex;align-items:baseline;gap:12px}
+h2 .n{font-size:.7rem;font-weight:700;letter-spacing:.1em;color:var(--bl-acc);
+  border:1px solid var(--bl-rule2);border-radius:5px;padding:2px 7px;flex:none}
+h3{font-size:.72rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--bl-ink3);margin:24px 0 10px}
+.note{color:var(--bl-ink2);font-size:.86rem;max-width:74ch;margin:0 0 4px}
+.note b{color:var(--bl-ink)}
+
+/* ── Полоса «в настоящем размере»: главное сравнение ── */
+.truth{margin:26px 0 8px;border:1px solid var(--bl-rule2);border-radius:16px;
+  background:var(--bl-sheet);overflow:hidden}
+.truth .cap{font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  padding:11px 16px;color:var(--bl-ink3);background:var(--bl-zebra);
+  border-bottom:1px solid var(--bl-rule)}
+.truth .strip{display:flex;flex-wrap:wrap}
+.truth .cell{flex:1 1 150px;padding:18px 10px 15px;text-align:center;
+  border-right:1px solid var(--bl-rule)}
+.truth .cell:last-child{border-right:none}
+.truth .duo{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:11px}
+.truth .lbl{font-size:.68rem;color:var(--bl-ink3);letter-spacing:.02em}
+.truth .lbl b{display:block;color:var(--bl-ink);font-weight:600;font-size:.76rem;
+  letter-spacing:0;margin-bottom:2px}
+
+/* ── Значок ── */
+.pin{position:relative;flex:none;width:26px;height:26px;display:inline-flex;
+  align-items:center;justify-content:center;border:none;border-radius:7px;background:none;
+  color:var(--gray-light);cursor:pointer;transition:color .12s,background .12s}
+.pin svg{fill:none}
+.pin:hover{color:var(--green-dark);background:var(--green-bg)}
+.pin.on{color:var(--green-dark)}
+.pin.on svg{fill:currentColor}
+/* Плюс-галочка заливкой не пользуется: у неё разные фигуры в двух состояниях. */
+.pin.nofill.on svg{fill:none}
+
+/* ── Увеличение: показывает форму, а не то, как её увидят ── */
+.zoom{display:flex;gap:26px;flex-wrap:wrap;margin-top:14px}
+.zoom .z{text-align:center}
+.zoom .box{width:96px;height:96px;border-radius:14px;border:1px solid var(--bl-rule);
+  background:var(--bl-sheet);display:flex;align-items:center;justify-content:center;
+  color:var(--bl-ink3)}
+.zoom .box.on{color:var(--bl-acc)}
+.zoom .box svg{fill:none}
+.zoom .box.on svg{fill:currentColor}
+.zoom .box.on.nofill svg{fill:none}
+.zoom .cap{font-size:.68rem;color:var(--bl-ink3);margin-top:7px}
+
+/* ── Настоящий кусок меню периодов ── */
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:18px}
+@media(max-width:860px){.pair{grid-template-columns:1fr}}
+.demo{border-radius:14px;overflow:hidden;border:1px solid var(--bl-rule)}
+.demo>.cap{font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  padding:9px 14px;color:var(--bl-ink3);background:var(--bl-zebra);
+  border-bottom:1px solid var(--bl-rule)}
+.menu{padding:7px 6px}
+.orow{display:flex;align-items:center;gap:2px;border-radius:9px}
+.orow .opt{flex:1;text-align:left;border:none;background:none;cursor:pointer;
+  font-family:'Geologica',sans-serif;font-size:.76rem;padding:9px 6px 9px 4px}
+
+/* «Модерн» */
+.m{background:var(--card)}
+.m .opt{color:var(--gray)}
+.m .orow:hover{background:var(--green-bg)}
+.m .orow.sel .opt{color:var(--green-dark);font-weight:600}
+.m .sep{height:1px;background:var(--border);opacity:.5;margin:5px 8px}
+
+/* «Бланк» */
+.b{background:var(--bl-sheet)}
+.b .opt{color:var(--bl-ink2)}
+.b .orow:hover{background:var(--bl-zebra)}
+.b .orow.sel .opt{color:var(--bl-acc);font-weight:600}
+.b .pin{color:var(--bl-ink3)}
+.b .pin:hover{color:var(--bl-acc);background:var(--bl-tint)}
+.b .pin.on{color:var(--bl-acc)}
+.b .sep{height:1px;background:var(--bl-rule);margin:5px 8px}
+
+/* Ночь «Модерна» — булавку смотрим и на тёмном.
+   Класс назван .night, а не .n: короткое .n уже занято кружком с номером
+   раздела в заголовке, и меню перекрашивало его в почти чёрный. */
+.night{background:#0f2b2d}
+.night .opt{color:#9fb8ba}
+.night .orow:hover{background:rgba(42,143,151,.16)}
+.night .orow.sel .opt{color:#8fd6dc;font-weight:600}
+.night .pin{color:#7f9799}
+.night .pin:hover{color:#c8e8ea;background:rgba(42,143,151,.16)}
+.night .pin.on{color:#8fd6dc}
+.night .sep{height:1px;background:rgba(143,214,220,.25);margin:5px 8px}
+
+.verdict{margin-top:16px;border-left:3px solid var(--bl-acc2);background:var(--bl-tint);
+  border-radius:0 12px 12px 0;padding:14px 18px;font-size:.86rem;color:var(--bl-ink2);
+  max-width:80ch}
+.verdict b{color:var(--bl-ink)}
+.foot{margin-top:56px;padding-top:20px;border-top:1px solid var(--bl-rule);
+  font-size:.78rem;color:var(--bl-ink3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="eyebrow">Журнал действий · список периодов</div>
+<h1>Булавка: шесть значков на выбор</h1>
+<p class="lead">Значок живёт в списке периодов и отвечает на один вопрос: этот период
+вынесен кнопкой в панель или нет. Контур — не вынесен, заливка — вынесен. Разница
+должна читаться <b>без цвета</b>, потому что список бывает и в ночной теме.</p>
+<p class="lead">Рисуется он в <b>13 px</b>. Это и есть вся задача: на увеличении хороши
+все шесть, а решает то, что видно в настоящем размере. Поэтому первой стоит полоса
+именно с ним — увеличения ниже нужны, чтобы понять форму, а не чтобы выбирать по ним.</p>
+
+<div class="truth">
+  <div class="cap">Настоящий размер — 13 px. Слева не закреплено, справа закреплено</div>
+  <div class="strip" id="strip"></div>
+</div>
+
+<div id="варианты"></div>
+
+<div class="foot">
+  Макет собран 01.09.2026. Значки нарисованы в одной сетке 24×24, толщина линии 1.8,
+  скругления на концах — как у остальных значков калькулятора.
+</div>
+
+</div>
+
+<script>
+// Шесть значков. Каждый — путь в сетке 24×24. «Заливка» означает, что у
+// закреплённого состояния фигура заливается цветом; у «плюс → галочка»
+// заливки нет, там разные фигуры.
+const ЗНАЧКИ = [
+  {
+    ключ:'сейчас', имя:'Как сейчас',
+    контур:'<path d="M15 3l6 6-3 1-4 4-.5 5L12 21l-1.5-2-4-4-3.5.5L2 14l5-.5 4-4 1-3z"/>',
+    заливка:true,
+    что:'Булавка, нарисованная по диагонали. В 13 px диагональ съедается, остаётся ' +
+        'клякса с хвостиком — её читают то как листок, то как птицу.',
+  },
+  {
+    ключ:'lucide', имя:'Канцелярская кнопка',
+    контур:'<path d="M12 17v5"/>' +
+           '<path d="M9 10.8a2 2 0 0 1-1.1 1.8l-1.8.9A2 2 0 0 0 5 15.3V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.7a2 2 0 0 0-1.1-1.8l-1.8-.9A2 2 0 0 1 15 10.8V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>',
+    заливка:true,
+    что:'Тот самый значок, который стоит в почте и в мессенджерах: шляпка сверху, ' +
+        'игла вниз. Узнаётся мгновенно, но у него много мелких изгибов — в 13 px они ' +
+        'сливаются в тёмное пятно.',
+  },
+  {
+    ключ:'простая', имя:'Кнопка, упрощённая',
+    контур:'<path d="M9.5 3h5v6l3.5 4.5H6L9.5 9V3z"/><path d="M12 13.5V21"/>',
+    заливка:true,
+    что:'Та же кнопка, но нарисованная под 13 px: прямая шляпка, воронка, прямая игла. ' +
+        'Крупные формы держат размер и в контуре, и в заливке.',
+  },
+  {
+    ключ:'звезда', имя:'Звёздочка',
+    контур:'<path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.2l5.9-.9L12 3z"/>',
+    заливка:true,
+    что:'Не булавка, но отвечает ровно на тот же вопрос — «вынесено или нет». ' +
+        'Пустая и залитая звезда различаются с одного взгляда, это самая ' +
+        'разборчивая пара из шести.',
+  },
+  {
+    ключ:'закладка', имя:'Закладка',
+    контур:'<path d="M18.5 21l-6.5-4.6L5.5 21V5.5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2z"/>',
+    заливка:true,
+    что:'Тоже не булавка. Читается как «отложено наверх» — по смыслу ближе всего ' +
+        'к тому, что кнопка делает: выносит период в панель быстрого доступа.',
+  },
+  {
+    ключ:'плюс', имя:'Плюс, потом галочка',
+    контур:'<path d="M12 5v14M5 12h14"/>',
+    закреп:'<path d="M20 6L9 17l-5-5"/>',
+    заливка:false,
+    что:'Без метафоры вообще: «добавить в панель» и «уже в панели». Понятно без ' +
+        'объяснения и держит любой размер. Слабое место — плюс рядом со строкой ' +
+        'зовёт нажать сильнее, чем нужно второстепенному действию.',
+  },
+];
+
+function svg(п, разм) {
+  return '<svg width="' + разм + '" height="' + разм + '" viewBox="0 0 24 24" ' +
+    'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" ' +
+    'stroke-linejoin="round">' + п + '</svg>';
+}
+function значок(з, состояние, разм) {
+  const п = (состояние && з.закреп) ? з.закреп : з.контур;
+  return svg(п, разм);
+}
+
+// ── Полоса настоящего размера ──
+document.getElementById('strip').innerHTML = ЗНАЧКИ.map(з =>
+  '<div class="cell">' +
+    '<div class="duo">' +
+      '<button class="pin' + (з.заливка ? '' : ' nofill') + '">' + значок(з, false, 13) + '</button>' +
+      '<button class="pin on' + (з.заливка ? '' : ' nofill') + '">' + значок(з, true, 13) + '</button>' +
+    '</div>' +
+    '<div class="lbl"><b>' + з.имя + '</b></div>' +
+  '</div>').join('');
+
+// ── Разделы: увеличение и настоящее меню в трёх видах ──
+const ПЕРИОДЫ = [
+  { имя:'7 дней',        закреплён:true,  выбран:false },
+  { имя:'30 дней',       закреплён:true,  выбран:true  },
+  { имя:'Текущий месяц', закреплён:true,  выбран:false },
+  { имя:'Прошлый месяц', закреплён:false, выбран:false },
+  { имя:'Полгода',       закреплён:false, выбран:false },
+  { имя:'Текущий год',   закреплён:true,  выбран:false },
+  { имя:'Прошлый год',   закреплён:false, выбран:false },
+];
+
+function меню(з, класс) {
+  return '<div class="menu ' + класс + '">' + ПЕРИОДЫ.map(п =>
+    '<div class="orow' + (п.выбран ? ' sel' : '') + '">' +
+      '<button class="pin' + (п.закреплён ? ' on' : '') + (з.заливка ? '' : ' nofill') + '" ' +
+        'title="' + (п.закреплён ? 'Открепить от панели' : 'Закрепить в панели') + '">' +
+        значок(з, п.закреплён, 13) + '</button>' +
+      '<button class="opt">' + п.имя + '</button>' +
+    '</div>').join('') + '</div>';
+}
+
+document.getElementById('варианты').innerHTML = ЗНАЧКИ.map((з, i) =>
+  '<h2><span class="n">' + (i + 1) + '</span>' + з.имя + '</h2>' +
+  '<p class="note">' + з.что + '</p>' +
+  '<h3>Форма крупно — чтобы разглядеть, а не чтобы выбирать</h3>' +
+  '<div class="zoom">' +
+    '<div class="z"><div class="box' + (з.заливка ? '' : ' nofill') + '">' + значок(з, false, 56) + '</div>' +
+      '<div class="cap">не закреплено</div></div>' +
+    '<div class="z"><div class="box on' + (з.заливка ? '' : ' nofill') + '">' + значок(з, true, 56) + '</div>' +
+      '<div class="cap">закреплено</div></div>' +
+  '</div>' +
+  '<h3>В настоящем списке периодов</h3>' +
+  '<div class="pair">' +
+    '<div class="demo"><div class="cap">«Модерн», день</div>' + меню(з, 'm') + '</div>' +
+    '<div class="demo"><div class="cap">«Бланк», день</div>' + меню(з, 'b') + '</div>' +
+  '</div>' +
+  '<div class="pair"><div class="demo"><div class="cap">«Модерн», ночь</div>' +
+    меню(з, 'night') + '</div><div></div></div>'
+).join('');
+</script>
+</body>
+</html>
