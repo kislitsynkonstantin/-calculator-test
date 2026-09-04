@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Полоска итога в «Бланке» — три варианта</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --s:#fff;--ink:#12262a;--ink2:#5b7376;--ink3:#8da3a5;
+    --rule:#dceaeb;--rule2:#bcd9db;--acc:#1e6c72;--acc2:#2a8f97;
+    --pale:#a8dde0;--tint:#e4f5f6;--salmon:#ffa8a8;
+    --page:#eef5f6;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--page);color:var(--ink);
+    font-family:'Geologica',system-ui,sans-serif;font-size:15px;line-height:1.55;
+    font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;}
+
+  .head{max-width:900px;margin:0 auto;padding:40px 20px 8px;}
+  .head .tag{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--acc2);}
+  .head h1{margin:10px 0 8px;font-size:1.5rem;font-weight:600;letter-spacing:-.01em;}
+  .head p{margin:0;color:var(--ink2);font-size:.92rem;max-width:62ch;}
+
+  .wrap{max-width:900px;margin:0 auto;padding:8px 20px 60px;}
+  .case{margin-top:34px;}
+  .case-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px;}
+  .case-n{font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--acc2);}
+  .case-t{font-size:1.06rem;font-weight:600;letter-spacing:-.01em;}
+  .case-d{margin:0 0 14px;color:var(--ink2);font-size:.86rem;max-width:64ch;}
+
+  /* ── лист «Бланка»: те же токены и кегли, что в печати ── */
+  .sheet{background:var(--s);border:1px solid var(--rule);border-radius:12px;
+    padding:26px 26px 22px;box-shadow:0 1px 2px rgba(18,38,42,.04);}
+  .sheet .bl{font-size:9.5pt;line-height:1.5;}
+
+  .bl-sec{font-size:8pt;letter-spacing:.06em;text-transform:uppercase;color:var(--acc);
+    font-weight:600;padding-bottom:5px;border-bottom:1.4px solid var(--acc);}
+  .bl-row{display:flex;gap:12px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--rule);}
+  .bl-row .n{width:26px;color:var(--ink3);font-size:8pt;flex:none;}
+  .bl-row .nm{flex:1;font-size:9pt;}
+  .bl-row .vl{color:var(--acc2);font-size:8.5pt;white-space:nowrap;}
+
+  .bl-strip{margin-top:22px;background:var(--acc);color:#fff;border-radius:10px;padding:14px 20px;}
+  .bl-k{font-size:6.6pt;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.7);}
+  .bl-k i{font-style:normal;text-transform:none;letter-spacing:.02em;}
+  .bl-v{font-size:17pt;font-weight:600;letter-spacing:-.02em;white-space:nowrap;}
+  .bl-disc{font-size:12pt;font-weight:600;letter-spacing:-.02em;color:var(--salmon);white-space:nowrap;}
+  .bl-disc i{font-style:normal;font-weight:600;}
+  .bl-sub{font-size:7pt;color:rgba(255,255,255,.62);}
+
+  /* ── 1. Два столбца ── */
+  .v1-top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px 24px;flex-wrap:wrap;}
+  .v1-r{text-align:right;}
+  .v1-r .bl-k{color:rgba(255,255,255,.62);}
+  .v1-r .bl-disc{margin-top:2px;}
+  .v1-sub{margin-top:11px;padding-top:9px;border-top:1px solid rgba(255,255,255,.18);}
+
+  /* ── 2. Колонки со своей сноской ── */
+  .v2{display:flex;align-items:center;justify-content:space-between;gap:16px 24px;flex-wrap:wrap;}
+  .v2-l .bl-sub{margin-top:6px;}
+  .v2-r{text-align:right;padding-left:22px;border-left:1px solid rgba(255,255,255,.18);}
+  .v2-r .bl-k{color:rgba(255,255,255,.62);}
+  .v2-r .bl-disc{margin-top:3px;}
+
+  /* ── 3. Ведомость ── */
+  .v3-ln{display:flex;align-items:baseline;justify-content:space-between;gap:14px;}
+  .v3-ln + .v3-ln{margin-top:7px;}
+  .v3-dots{flex:1;border-bottom:1px dotted rgba(255,255,255,.28);transform:translateY(-3px);}
+  .v3-sub{margin-top:11px;padding-top:9px;border-top:1px solid rgba(255,255,255,.18);}
+
+  .bl-sign{display:flex;gap:52px;margin-top:26px;}
+  .bl-sign>div{flex:1;}
+  .bl-line{border-bottom:1px solid var(--rule2);height:26px;}
+  .bl-who{margin-top:6px;font-size:6.8pt;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);}
+  .bl-fio{font-size:9.5pt;font-weight:500;}
+
+  .note{margin-top:12px;font-size:.82rem;color:var(--ink2);display:flex;gap:8px;}
+  .note b{color:var(--ink);font-weight:600;}
+  .note-m{flex:none;width:3px;border-radius:2px;background:var(--pale);}
+
+  @media (max-width:560px){
+    .head{padding:26px 16px 4px;} .wrap{padding:4px 16px 44px;}
+    .sheet{padding:18px 16px 16px;}
+    .bl-strip{padding:12px 14px;}
+    .bl-v{font-size:14pt;} .bl-disc{font-size:10pt;}
+    .v2-r{padding-left:0;border-left:0;border-top:1px solid rgba(255,255,255,.18);
+      padding-top:9px;margin-top:9px;width:100%;text-align:left;}
+    .v1-r{text-align:left;}
+    .bl-sign{gap:22px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div class="tag">Баня-МСК · калькулятор спецификаций</div>
+  <h1>Полоска итога в «Бланке» — три варианта</h1>
+  <p>Сейчас все три строки прижаты влево. Ниже — та же полоска, разложенная по левой
+     и правой стороне, как в теме «Карточки». Поля прежние: общая стоимость, спец. цена
+     за наличные с процентом и строка состава. Ничего не добавлено и не убрано.</p>
+</div>
+
+<div class="wrap">
+
+  <!-- 1 -->
+  <div class="case">
+    <div class="case-h"><span class="case-n">Вариант 1</span><span class="case-t">Два столбца</span></div>
+    <p class="case-d">Прямой перенос раскладки «Карточек»: итог слева, спец. цена справа
+      той же строкой. Состав уходит под общую линейку и относится к обеим цифрам сразу.</p>
+    <div class="sheet"><div class="bl">
+      <div class="bl-sec">12 · Инженерные коммуникации</div>
+      <div class="bl-row"><span class="n">12.1</span><span class="nm">Консультация по инженерным коммуникациям</span><span class="vl">Входит</span></div>
+      <div class="bl-strip">
+        <div class="v1-top">
+          <div>
+            <div class="bl-k">Общая стоимость</div>
+            <div class="bl-v">5 134 184 ₽</div>
+          </div>
+          <div class="v1-r">
+            <div class="bl-k">Спец. цена −3% <i>за наличные</i></div>
+            <div class="bl-disc">4 980 158 ₽</div>
+          </div>
+        </div>
+        <div class="bl-sub v1-sub">База 2 943 019 ₽ · опции 2 191 165 ₽ · 69 позиций</div>
+      </div>
+      <div class="bl-sign">
+        <div><div class="bl-line"></div><div class="bl-who">Подрядчик</div><div class="bl-fio">Баранов Г. Н.</div></div>
+        <div><div class="bl-line"></div><div class="bl-who">Заказчик</div><div class="bl-fio">Иванов И. С.</div></div>
+      </div>
+    </div></div>
+    <div class="note"><div class="note-m"></div><div><b>Чем хорош.</b> Две цифры стоят на одной высоте — глаз сравнивает их сразу, а не сверху вниз. <b>Чем плох.</b> Обе набраны крупно и спорят за внимание.</div></div>
+  </div>
+
+  <!-- 2 -->
+  <div class="case">
+    <div class="case-h"><span class="case-n">Вариант 2</span><span class="case-t">Итог с составом, спец. цена — отдельным полем</span></div>
+    <p class="case-d">Состав остаётся при общей стоимости, как её расшифровка, а спец. цена
+      отделена вертикальной линейкой в собственное поле справа.</p>
+    <div class="sheet"><div class="bl">
+      <div class="bl-sec">12 · Инженерные коммуникации</div>
+      <div class="bl-row"><span class="n">12.1</span><span class="nm">Консультация по инженерным коммуникациям</span><span class="vl">Входит</span></div>
+      <div class="bl-strip">
+        <div class="v2">
+          <div class="v2-l">
+            <div class="bl-k">Общая стоимость</div>
+            <div class="bl-v">5 134 184 ₽</div>
+            <div class="bl-sub">База 2 943 019 ₽ · опции 2 191 165 ₽ · 69 позиций</div>
+          </div>
+          <div class="v2-r">
+            <div class="bl-k">Спец. цена −3% <i>за наличные</i></div>
+            <div class="bl-disc">4 980 158 ₽</div>
+          </div>
+        </div>
+      </div>
+      <div class="bl-sign">
+        <div><div class="bl-line"></div><div class="bl-who">Подрядчик</div><div class="bl-fio">Баранов Г. Н.</div></div>
+        <div><div class="bl-line"></div><div class="bl-who">Заказчик</div><div class="bl-fio">Иванов И. С.</div></div>
+      </div>
+    </div></div>
+    <div class="note"><div class="note-m"></div><div><b>Чем хорош.</b> Видно, что состав объясняет именно общую стоимость, а не скидку. Полоска ниже на строку. <b>Чем плох.</b> Правое поле держится на одной линейке — на узком экране она пропадает и заменяется горизонтальной.</div></div>
+  </div>
+
+  <!-- 3 -->
+  <div class="case">
+    <div class="case-h"><span class="case-n">Вариант 3</span><span class="case-t">Ведомость</span></div>
+    <p class="case-d">Подпись слева, число справа — как строка документа. Обе суммы
+      выстроены в один правый столбец и читаются столбиком, разряд под разрядом.</p>
+    <div class="sheet"><div class="bl">
+      <div class="bl-sec">12 · Инженерные коммуникации</div>
+      <div class="bl-row"><span class="n">12.1</span><span class="nm">Консультация по инженерным коммуникациям</span><span class="vl">Входит</span></div>
+      <div class="bl-strip">
+        <div class="v3-ln">
+          <div class="bl-k">Общая стоимость</div>
+          <div class="v3-dots"></div>
+          <div class="bl-v">5 134 184 ₽</div>
+        </div>
+        <div class="v3-ln">
+          <div class="bl-k">Спец. цена −3% <i>за наличные</i></div>
+          <div class="v3-dots"></div>
+          <div class="bl-disc">4 980 158 ₽</div>
+        </div>
+        <div class="bl-sub v3-sub">База 2 943 019 ₽ · опции 2 191 165 ₽ · 69 позиций</div>
+      </div>
+      <div class="bl-sign">
+        <div><div class="bl-line"></div><div class="bl-who">Подрядчик</div><div class="bl-fio">Баранов Г. Н.</div></div>
+        <div><div class="bl-line"></div><div class="bl-who">Заказчик</div><div class="bl-fio">Иванов И. С.</div></div>
+      </div>
+    </div></div>
+    <div class="note"><div class="note-m"></div><div><b>Чем хорош.</b> Правый край цифр общий — это язык бумажного документа, и он согласуется с колонкой цен в таблице выше. <b>Чем плох.</b> Пунктир — приём из сметы; если он лишний, убирается одной строкой.</div></div>
+  </div>
+
+
+  <div class="case">
+    <div class="case-h"><span class="case-n">Общее для трёх</span><span class="case-t">Что стоит знать до выбора</span></div>
+    <div class="sheet" style="padding:20px 24px;">
+      <p style="margin:0 0 12px;font-size:.9rem;"><b>Процент переехал в подпись.</b>
+        Сейчас в «Бланке» строка читается «за наличные 4 980 158 ₽ (−3%)» — процент в скобках
+        после суммы. Во всех трёх вариантах он стоит в подписи: «Спец. цена −3% за наличные»,
+        как в шапке того же листа и как в «Карточках». Сумма остаётся числом без хвоста
+        и встаёт ровно под общей стоимостью. Если хочется оставить скобки — вернём, раскладка
+        от этого не меняется.</p>
+      <p style="margin:0 0 12px;font-size:.9rem;"><b>Без скидки правая половина исчезает.</b>
+        Когда скидки нет, показывать справа нечего: остаётся подпись «Общая стоимость
+        за наличные», сумма и строка состава. В первом и третьем варианте полоска просто
+        становится однорядной, во втором — тоже, вместе с вертикальной линейкой.</p>
+      <p style="margin:0;font-size:.9rem;"><b>На телефоне два столбца складываются в один.</b>
+        Ширины на две колонки не хватает ни в одном варианте, поэтому первый и второй
+        переносят правую часть под левую — и там снова получается лесенка, как сейчас.
+        Третий держит раскладку и на телефоне: подпись слева, число справа.</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
