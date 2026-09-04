@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Вставка позиций списком — макет</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600&family=Unbounded:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green-dark:#1e6c72; --green-mid:#2a8f97; --green-pale:#a8dde0; --green-bg:#e4f5f6;
+    --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5;
+    --card:#fff; --page:#eef5f6; --rule:#dceaeb;
+    --warn:#b8703a; --warn-bg:#fdf6f0;
+    /* Цвет акцентного текста отдельно от цвета линий: в ночной теме бледный
+       зелёный уходит в почти чёрный и текст пропадает. */
+    --acc-txt:#1e6c72;
+  }
+  body.dark{
+    --green-pale:#2a4a4e; --green-bg:#1e3538; --ink:#e8f4f5; --ink2:#9fbcc0; --ink3:#6a9098;
+    --card:#1a2a2c; --page:#111e20; --rule:#2a3f42;
+    --warn:#e0a070; --warn-bg:#241d18;
+    --acc-txt:#4ecad4;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--page);color:var(--ink);
+    font-family:'Geologica',system-ui,sans-serif;font-size:15px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;transition:background .2s,color .2s;}
+
+  .wrap{max-width:820px;margin:0 auto;padding:34px 20px 70px;}
+  .top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .tag{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--acc-txt);}
+  h1{margin:10px 0 8px;font-family:'Unbounded',sans-serif;font-size:1.35rem;font-weight:600;letter-spacing:-.01em;}
+  .lead{margin:0;color:var(--ink2);font-size:.92rem;max-width:62ch;}
+  .theme{border:1.5px solid var(--green-pale);background:transparent;color:var(--ink2);
+    border-radius:8px;padding:7px 13px;font-family:inherit;font-size:.78rem;cursor:pointer;white-space:nowrap;}
+
+  .sec-title{margin:34px 0 10px;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--acc-txt);}
+
+  /* ── карточка раздела, как в калькуляторе ── */
+  .card{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:18px 18px 16px;}
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+    padding-bottom:9px;border-bottom:2px solid var(--green-dark);}
+  .sec-num{font-family:'Unbounded',sans-serif;font-size:1.5rem;font-weight:600;color:var(--acc-txt);opacity:.5;line-height:1;}
+  .sec-name{font-size:1rem;font-weight:600;flex:1;margin-left:10px;}
+  .sec-sum{font-size:.9rem;font-weight:600;color:var(--acc-txt);white-space:nowrap;}
+  .sec-sub{margin-top:5px;font-size:.72rem;color:var(--ink3);}
+
+  .opt{display:flex;align-items:flex-start;gap:10px;padding:9px 2px;border-bottom:1px solid var(--rule);}
+  .opt:last-of-type{border-bottom:0;}
+  .box{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--green-pale);flex:none;margin-top:2px;}
+  .box.on{background:var(--green-dark);border-color:var(--green-dark);position:relative;}
+  .box.on::after{content:'';position:absolute;left:5px;top:1px;width:5px;height:10px;
+    border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);}
+  .opt-n{width:30px;font-size:.72rem;color:var(--ink3);flex:none;margin-top:3px;}
+  .opt-nm{flex:1;font-size:.87rem;}
+  .opt-v{font-size:.78rem;color:var(--acc-txt);white-space:nowrap;margin-top:2px;}
+  .opt.new{background:var(--green-bg);border-radius:8px;padding-left:6px;padding-right:6px;}
+
+  /* ── кнопка добавления, как сейчас ── */
+  .btn-add{display:flex;align-items:center;gap:7px;margin-top:9px;padding:8px 14px;
+    border:1.5px dashed var(--green-pale);border-radius:9px;background:transparent;
+    font-family:inherit;font-size:.8rem;color:var(--acc-txt);cursor:pointer;width:100%;text-align:left;}
+  .btn-add svg{flex:none;}
+
+  /* ── форма ── */
+  .form{margin-top:9px;padding:12px 14px;border:1.5px solid var(--green-pale);border-radius:9px;
+    background:var(--green-bg);}
+  .tabs{display:flex;gap:4px;margin-bottom:12px;background:var(--card);
+    border-radius:9px;padding:3px;width:fit-content;border:1px solid var(--rule);}
+  .tab{border:none;background:transparent;color:var(--ink2);font-family:inherit;font-size:.78rem;
+    padding:6px 14px;border-radius:7px;cursor:pointer;white-space:nowrap;position:relative;}
+  .tab::before{content:'';position:absolute;inset:-9px -2px;}
+  .tab.on{background:var(--green-dark);color:#fff;font-weight:500;}
+
+  label{display:block;font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px;}
+  input[type=text],textarea{width:100%;border:1.5px solid var(--green-pale);border-radius:8px;
+    background:var(--card);color:var(--ink);font-family:inherit;font-size:.85rem;padding:8px 10px;outline:none;}
+  input[type=text]:focus,textarea:focus{border-color:var(--green-mid);}
+  textarea{min-height:132px;resize:vertical;line-height:1.5;font-size:.82rem;}
+  .row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;}
+  .row .f{flex:1;min-width:150px;}
+  .f.price{max-width:190px;}
+
+  .hint{margin-top:7px;font-size:.74rem;color:var(--ink3);line-height:1.5;}
+  .hint b{color:var(--ink2);font-weight:500;}
+  .sw{display:flex;align-items:flex-start;gap:7px;margin-top:9px;font-size:.76rem;color:var(--ink2);cursor:pointer;
+    text-transform:none;letter-spacing:0;}
+  .sw input{width:15px;height:15px;accent-color:var(--green-mid);cursor:pointer;flex:none;margin-top:2px;}
+
+  /* ── предпросмотр ── */
+  .prev{margin-top:12px;border:1px solid var(--rule);border-radius:9px;background:var(--card);overflow:hidden;}
+  .prev-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    padding:9px 12px;border-bottom:1px solid var(--rule);}
+  .prev-c{font-size:.8rem;font-weight:500;}
+  .prev-s{font-size:.74rem;color:var(--ink3);}
+  .prev-list{max-height:260px;overflow-y:auto;}
+  .pr{display:flex;align-items:flex-start;gap:9px;padding:7px 12px;border-bottom:1px solid var(--rule);font-size:.8rem;}
+  .pr:last-child{border-bottom:0;}
+  .pr-n{width:22px;color:var(--ink3);font-size:.72rem;flex:none;margin-top:1px;}
+  .pr-nm{flex:1;}
+  .pr-v{white-space:nowrap;color:var(--acc-txt);font-size:.76rem;margin-top:1px;}
+  .pr-v.inc{color:var(--ink3);}
+  /* Крестик рисуется мелким — он второстепенный, спорить по весу с названием
+     позиции ему незачем. Палец ловится невидимым полем вокруг, а не раздутой
+     кнопкой: правило «44 px» относится к области нажатия, не к коробке. */
+  .pr-x{border:none;background:transparent;color:var(--ink3);cursor:pointer;font-size:1rem;
+    line-height:1;padding:0 2px;flex:none;margin-top:1px;position:relative;}
+  .pr-x::before{content:'';position:absolute;inset:-14px;}
+  .pr-x:hover{color:var(--warn);}
+  .pr.off{opacity:.4;}
+  .pr.off .pr-nm{text-decoration:line-through;}
+  .empty{padding:16px 12px;font-size:.8rem;color:var(--ink3);}
+
+  .warnbox{margin-top:10px;padding:9px 12px;border-radius:8px;background:var(--warn-bg);
+    border-left:3px solid var(--warn);font-size:.78rem;color:var(--ink2);}
+
+  .acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .btn-ok{background:var(--green-dark);color:#fff;border:none;border-radius:7px;padding:9px 18px;
+    font-family:inherit;font-size:.82rem;cursor:pointer;white-space:nowrap;}
+  .btn-ok[disabled]{opacity:.45;cursor:default;}
+  .btn-no{background:transparent;color:var(--ink2);border:1.5px solid var(--green-pale);
+    border-radius:7px;padding:9px 14px;font-family:inherit;font-size:.82rem;cursor:pointer;}
+
+  .note{margin-top:14px;display:flex;gap:9px;font-size:.83rem;color:var(--ink2);}
+  .note-m{flex:none;width:3px;border-radius:2px;background:var(--green-pale);}
+  .note b{color:var(--ink);font-weight:600;}
+
+  @media (max-width:560px){
+    .wrap{padding:22px 14px 50px;}
+    .card{padding:14px 12px 12px;}
+    .f.price{max-width:none;}
+    .tabs{width:100%;} .tab{flex:1;text-align:center;}
+    /* На телефоне список не прокручивается внутри себя: вложенная прокрутка
+       в странице ловится пальцем через раз, и обрезанная снизу строка читается
+       как дефект. Пусть растёт, страница прокрутится сама. */
+    .prev-list{max-height:none;}
+    h1{font-size:1.15rem;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div>
+      <div class="tag">Баня-МСК · калькулятор спецификаций</div>
+      <h1>Вставка позиций списком</h1>
+      <p class="lead">Вариант A из трёх предложенных. У формы «Добавить опцию» появляется вторая
+        вкладка: сюда вставляется сразу весь блок — из PDF, письма или Excel. Макет живой:
+        вставь свой список в поле, разбор идёт на лету.</p>
+    </div>
+    <button class="theme" onclick="document.body.classList.toggle('dark')">День / ночь</button>
+  </div>
+
+  <div class="sec-title">Как это выглядит в разделе</div>
+
+  <div class="card">
+    <div class="sec-head">
+      <span class="sec-num">12</span>
+      <span class="sec-name">Инженерные коммуникации</span>
+      <span class="sec-sum" id="secSum">1 350 000 ₽</span>
+    </div>
+    <div class="sec-sub" id="secSub">1 позиция в договоре · 1 доступна к добавлению</div>
+
+    <div class="opt">
+      <div class="box on"></div>
+      <div class="opt-n">12.1</div>
+      <div class="opt-nm">Консультация по инженерным коммуникациям</div>
+      <div class="opt-v">Входит</div>
+    </div>
+
+    <div id="added"></div>
+
+    <button class="btn-add" onclick="открыть()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Добавить опцию
+    </button>
+
+    <div class="form" id="form">
+      <div class="tabs">
+        <button class="tab" id="tab1" onclick="вкладка(1)">По одной</button>
+        <button class="tab on" id="tab2" onclick="вкладка(2)">Списком</button>
+      </div>
+
+      <!-- вкладка «По одной» — как сейчас -->
+      <div id="one" style="display:none;">
+        <div class="row">
+          <div class="f"><label>Название опции</label><input type="text" placeholder="Название опции"></div>
+          <div class="f price"><label>Стоимость (₽)</label><input type="text" placeholder="0" inputmode="numeric"></div>
+        </div>
+        <div class="acts">
+          <button class="btn-ok">Добавить</button>
+          <button class="btn-no" onclick="закрыть()">Отмена</button>
+        </div>
+      </div>
+
+      <!-- вкладка «Списком» -->
+      <div id="many">
+        <label>Вставьте список — одна позиция в строке</label>
+        <textarea id="src" oninput="разобрать()" spellcheck="false"></textarea>
+
+        <div class="hint">
+          <b>Цена</b> — после табуляции, точки с запятой или последнего « — ». Нет цены — позиция
+          уходит как «Входит». <b>Нумерация</b> вида «4.1», «1)», «—» срезается сама.
+          Хвосты «Входит», «Да» в конце строки отбрасываются.
+        </div>
+
+        <label class="sw"><input type="checkbox" id="glue" checked onchange="разобрать()">
+          <span>Склеивать строки, разорванные переносом — в PDF длинное название ломается пополам</span></label>
+
+        <div class="prev">
+          <div class="prev-h">
+            <span class="prev-c" id="cnt">Ничего не распознано</span>
+            <span class="prev-s" id="sum"></span>
+          </div>
+          <div class="prev-list" id="list"><div class="empty">Вставьте текст в поле выше — здесь появится, что именно будет добавлено.</div></div>
+        </div>
+
+        <div id="warn"></div>
+
+        <div class="acts">
+          <button class="btn-ok" id="ok" disabled onclick="добавить()">Добавить позиции</button>
+          <button class="btn-no" onclick="закрыть()">Отмена</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note"><div class="note-m"></div><div>
+    <b>Что делает кнопка.</b> Каждая строка становится такой же своей опцией, как при добавлении
+    по одной, — модель данных не меняется. Позиции без цены печатаются как «Входит»: раздел
+    остаётся с одной суммой, а строки описывают состав. Порядок сохраняется, добавляются все
+    отмеченными.
+  </div></div>
+
+  <div class="note"><div class="note-m"></div><div>
+    <b>Где вход.</b> В макете это вторая вкладка внутри существующей формы — кнопка в разделе
+    остаётся одна. Второй вариант: отдельная кнопка «Вставить списком» рядом с «Добавить опцию»,
+    видна сразу, но добавляет в раздел ещё одну кнопку. Скажи, какой ближе.
+  </div></div>
+
+  <div class="note"><div class="note-m"></div><div>
+    <b>Дальше.</b> Если этот же список пригодится в других проектах — тем же полем он сохраняется
+    как именованный блок («Инженерка под ключ») и вставляется в один клик. Это вариант B,
+    он надстраивается поверх этого разбора без переделки.
+  </div></div>
+
+</div>
+
+<script>
+const ПРИМЕР = [
+  '4.1\tКонсультация по инженерным коммуникациям\tВходит',
+  '4.2\tЭлектрощит ABB 24M (2×12) в сборе: шкаф UK620P3RU, автоматы SH201L / SH203L,',
+  'дифавтоматы DSH201R 30 мА, гребенчатые шины PSH\tВходит',
+  '4.3\tКабельная продукция: ВВГнг(А)-LS 3×2,5 / 3×1,5 / 3×4 / 5×2,5, провода ПуГВ 1×16, ПуГВ 2,5, РКГМ 1,5\tВходит',
+  '4.4\tМеталлорукав МРПИ НГ d20 в ПВХ-изоляции (350 м), труба ПНД d32, комплект вертикального заземления d16 6 м (4×1,5 м)\tВходит',
+  '4.5\tЭлектроустановочные изделия Legrand Valena: розетки IP21 / IP44, выключатели, рамки, подрозетники, патроны и лампы, клеммы WAGO\tВходит',
+  '4.8\tКоллекторная группа STOUT: шкаф ШРН-6, коллектор с расходомерами 5 вых., регулирующие коллекторы 3/4", фитинги, гильзы, кронштейны, фиксаторы\tВходит',
+  '4.9\tТрубопроводы и тёплый пол: труба PEX-a 16×2 (300 м) и 16×2,2 (80 м), мат с бобышками STOUT SMF 40 м², теплоизоляция Энергофлекс\tВходит',
+  '4.13\tПриточный клапан Ore КИВ-125-05 D125 мм, 0,5 м\t12 400',
+  '4.14\tВентилятор Soler&Palau SILENT-100 CRZ Design\t8 900',
+  '4.18\tСтяжка не входит в стоимость'
+].join('\n');
+
+let разобранные = [];
+
+function открыть(){ document.getElementById('form').style.display='block'; }
+function закрыть(){ document.getElementById('form').style.display='none'; }
+function вкладка(n){
+  document.getElementById('tab1').classList.toggle('on', n===1);
+  document.getElementById('tab2').classList.toggle('on', n===2);
+  document.getElementById('one').style.display = n===1 ? 'block' : 'none';
+  document.getElementById('many').style.display = n===2 ? 'block' : 'none';
+}
+
+// Разбор одной строки: срезаем нумерацию, отделяем цену, чистим хвосты.
+const НУМЕР = /^\s*(?:\d+[.)]\d*[.)]?|\d+[.)]|[-—–•])\s+/;
+const ХВОСТ = /[\s\t;]+(?:входит|да|нет)\s*$/i;
+
+function ценаИз(строка){
+  // Явный разделитель: табуляция или точка с запятой перед числом в конце.
+  let m = строка.match(/^(.*?)[\t;]\s*([\d\s  ]{3,})\s*(?:₽|руб\.?)?\s*$/);
+  // Тире с пробелами по краям: « — 12 400».
+  if (!m) m = строка.match(/^(.*?)\s+[—–-]\s+([\d\s  ]{3,})\s*(?:₽|руб\.?)?\s*$/);
+  // Просто число со знаком рубля в конце.
+  if (!m) m = строка.match(/^(.*?[^\d\s])\s+(\d[\d\s  ]{2,})\s*(?:₽|руб\.?)\s*$/);
+  if (!m) return { имя: строка, цена: null };
+  const цифры = m[2].replace(/\D/g, '');
+  if (!цифры) return { имя: строка, цена: null };
+  return { имя: m[1].trim(), цена: parseInt(цифры, 10) };
+}
+
+function разобрать(){
+  const текст = document.getElementById('src').value;
+  const склеивать = document.getElementById('glue').checked;
+  const сырые = текст.split('\n').map(с => с.replace(/\s+$/,'')).filter(с => с.trim());
+
+  // Склейка перенесённых строк: строка без своей нумерации, начинающаяся
+  // со строчной буквы или скобки, — продолжение предыдущей.
+  const строки = [];
+  сырые.forEach(с => {
+    const своя = НУМЕР.test(с);
+    const продолжение = склеивать && строки.length && !своя && /^[a-zа-яё(«]/.test(с.trim());
+    if (продолжение) строки[строки.length-1] += ' ' + с.trim();
+    else строки.push(с);
+  });
+
+  разобранные = строки.map(с => {
+    let т = с.replace(НУМЕР, '').replace(/\t+/g, '\t').trim();
+    т = т.replace(ХВОСТ, '').trim();
+    const р = ценаИз(т);
+    return { имя: р.имя.replace(/\s{2,}/g,' ').trim(), цена: р.цена, вкл: true };
+  }).filter(п => п.имя.length > 1);
+
+  рисовать();
+}
+
+function рисовать(){
+  const список = document.getElementById('list');
+  const живые = разобранные.filter(п => п.вкл);
+  const сЦеной = живые.filter(п => п.цена != null);
+  const сумма = сЦеной.reduce((s,п) => s + п.цена, 0);
+
+  document.getElementById('cnt').textContent = живые.length
+    ? 'Распознано ' + живые.length + ' ' + склон(живые.length) : 'Ничего не распознано';
+  document.getElementById('sum').textContent = живые.length
+    ? (сЦеной.length ? сЦеной.length + ' с ценой · ' + фмт(сумма) + ' ₽' : 'все как «Входит»')
+    : '';
+  document.getElementById('ok').disabled = !живые.length;
+  document.getElementById('ok').textContent = живые.length
+    ? 'Добавить ' + живые.length : 'Добавить позиции';
+
+  if (!разобранные.length){
+    список.innerHTML = '<div class="empty">Вставьте текст в поле выше — здесь появится, что именно будет добавлено.</div>';
+  } else {
+    список.innerHTML = разобранные.map((п, i) =>
+      '<div class="pr' + (п.вкл?'':' off') + '">' +
+        '<span class="pr-n">' + (i+1) + '</span>' +
+        '<span class="pr-nm">' + экр(п.имя) + '</span>' +
+        '<span class="pr-v' + (п.цена==null?' inc':'') + '">' +
+          (п.цена==null?'Входит':фмт(п.цена)+' ₽') + '</span>' +
+        '<button class="pr-x" title="' + (п.вкл?'Убрать из вставки':'Вернуть') +
+          '" onclick="перекл(' + i + ')">' + (п.вкл?'×':'+') + '</button>' +
+      '</div>').join('');
+  }
+
+  // Предупреждения — то, что стоит увидеть до вставки.
+  const длинные = живые.filter(п => п.имя.length > 160).length;
+  const короткие = живые.filter(п => п.имя.length < 6).length;
+  const w = [];
+  if (длинные) w.push(длинные + ' ' + (длинные===1?'позиция длиннее':'позиций длиннее') + ' 160 знаков — возможно, склеились две строки.');
+  if (короткие) w.push(короткие + ' очень коротких — возможно, обрывки.');
+  document.getElementById('warn').innerHTML = w.length
+    ? '<div class="warnbox">' + w.join(' ') + ' Проверьте список выше, лишнее уберите крестиком.</div>' : '';
+}
+
+function перекл(i){ разобранные[i].вкл = !разобранные[i].вкл; рисовать(); }
+
+function добавить(){
+  const живые = разобранные.filter(п => п.вкл);
+  const узел = document.getElementById('added');
+  узел.innerHTML = живые.map((п, i) =>
+    '<div class="opt new">' +
+      '<div class="box on"></div>' +
+      '<div class="opt-n">12.' + (i+2) + '</div>' +
+      '<div class="opt-nm">' + экр(п.имя) + '</div>' +
+      '<div class="opt-v">' + (п.цена==null?'Входит':фмт(п.цена)+' ₽') + '</div>' +
+    '</div>').join('');
+  const сумма = живые.reduce((s,п) => s + (п.цена||0), 0);
+  document.getElementById('secSum').textContent = фмт(1350000 + сумма) + ' ₽';
+  document.getElementById('secSub').textContent =
+    (живые.length+1) + ' ' + склон(живые.length+1) + ' в договоре · 1 доступна к добавлению';
+  закрыть();
+}
+
+function фмт(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+function экр(s){ return s.replace(/[&<>]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }); }
+function склон(n){
+  const о = n % 10, д = n % 100;
+  if (д >= 11 && д <= 14) return 'позиций';
+  if (о === 1) return 'позиция';
+  if (о >= 2 && о <= 4) return 'позиции';
+  return 'позиций';
+}
+
+document.getElementById('src').value = ПРИМЕР;
+открыть(); вкладка(2); разобрать();
+</script>
+</body>
+</html>
