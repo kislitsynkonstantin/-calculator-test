@@ -113,6 +113,35 @@
   .pr.off .pr-nm{text-decoration:line-through;}
   .empty{padding:16px 12px;font-size:.8rem;color:var(--ink3);}
 
+  /* ── режим цены ── */
+  .mode{margin-top:10px;border:1px solid var(--rule);border-radius:9px;background:var(--card);padding:9px 12px;}
+  .mode-t{font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px;}
+  .mode-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.8rem;color:var(--ink2);
+    cursor:pointer;padding:3px 0;}
+  .mode-r input[type=radio]{width:15px;height:15px;accent-color:var(--green-mid);cursor:pointer;flex:none;}
+  .mode-r .bp{width:130px;border:1.5px solid var(--green-pale);border-radius:7px;background:var(--card);
+    color:var(--ink);font-family:inherit;font-size:.82rem;padding:5px 9px;outline:none;text-align:right;}
+  .mode-r .bp:disabled{opacity:.4;}
+  .mode-h{margin-top:6px;font-size:.73rem;color:var(--ink3);line-height:1.5;}
+
+  /* Строка, несущая цену блока: помечена и в предпросмотре, и в разделе. */
+  .carry{display:inline-block;margin-left:7px;padding:1px 7px;border-radius:20px;
+    background:var(--green-bg);color:var(--acc-txt);font-size:.66rem;white-space:nowrap;vertical-align:1px;}
+  .eye-off{display:inline-flex;align-items:center;gap:4px;color:var(--ink3);font-size:.72rem;white-space:nowrap;}
+
+  /* ── панель «как уйдёт в документ» ── */
+  .doc{background:#fff;color:#12262a;border:1px solid #dceaeb;border-radius:12px;padding:16px 18px;
+    font-variant-numeric:tabular-nums;}
+  .doc-h{display:flex;align-items:baseline;gap:10px;padding-bottom:7px;border-bottom:1.6px solid #1e6c72;}
+  .doc-n{font-family:'Unbounded',sans-serif;font-size:1.2rem;font-weight:600;color:#a8dde0;line-height:1;}
+  .doc-nm{flex:1;font-size:.9rem;font-weight:600;}
+  .doc-sum{font-size:.85rem;font-weight:600;color:#1e6c72;white-space:nowrap;}
+  .doc-r{display:flex;gap:10px;align-items:baseline;padding:5px 0;border-bottom:1px solid #dceaeb;font-size:.78rem;}
+  .doc-r:last-child{border-bottom:0;}
+  .doc-r .n{width:30px;color:#8da3a5;font-size:.7rem;flex:none;}
+  .doc-r .nm{flex:1;}
+  .doc-r .v{color:#2a8f97;white-space:nowrap;}
+
   .warnbox{margin-top:10px;padding:9px 12px;border-radius:8px;background:var(--warn-bg);
     border-left:3px solid var(--warn);font-size:.78rem;color:var(--ink2);}
 
@@ -160,7 +189,7 @@
     <div class="sec-head">
       <span class="sec-num">12</span>
       <span class="sec-name">Инженерные коммуникации</span>
-      <span class="sec-sum" id="secSum">1 350 000 ₽</span>
+      <span class="sec-sum" id="secSum">0 ₽</span>
     </div>
     <div class="sec-sub" id="secSub">1 позиция в договоре · 1 доступна к добавлению</div>
 
@@ -210,6 +239,17 @@
         <label class="sw"><input type="checkbox" id="glue" checked onchange="разобрать()">
           <span>Склеивать строки, разорванные переносом — в PDF длинное название ломается пополам</span></label>
 
+        <div class="mode">
+          <div class="mode-t">Цена</div>
+          <label class="mode-r"><input type="radio" name="pm" value="lines" onchange="режим()">
+            <span>У позиций свои цены — те, что распознались в списке</span></label>
+          <label class="mode-r"><input type="radio" name="pm" value="block" checked onchange="режим()">
+            <span>Одна цена за весь блок</span>
+            <input class="bp" id="blockPrice" type="text" inputmode="numeric" value="1 350 000"
+              oninput="фмтПоле(this);рисовать()"> <span>₽</span></label>
+          <div class="mode-h" id="modeHint"></div>
+        </div>
+
         <div class="prev">
           <div class="prev-h">
             <span class="prev-c" id="cnt">Ничего не распознано</span>
@@ -228,11 +268,30 @@
     </div>
   </div>
 
+  <div class="sec-title">Как этот же раздел уйдёт в документ</div>
+  <div class="doc" id="doc"></div>
+
+  <div class="note"><div class="note-m"></div><div>
+    <b>Откуда берётся цена блока.</b> Отдельной сущности «блок» в расчёте нет и не нужно: цену
+    несёт одна позиция — первая в списке, — а показ её цены в документе сразу выключается
+    глазом. Цена позиции всегда входит в сумму раздела, глаз решает только, печатать её
+    строкой или напечатать «Входит». Поэтому в шапке раздела стоят деньги, а все строки
+    читаются составом — ровно как в твоём PDF. Нажми «Добавить» и сравни две панели выше.
+  </div></div>
+
   <div class="note"><div class="note-m"></div><div>
     <b>Что делает кнопка.</b> Каждая строка становится такой же своей опцией, как при добавлении
-    по одной, — модель данных не меняется. Позиции без цены печатаются как «Входит»: раздел
-    остаётся с одной суммой, а строки описывают состав. Порядок сохраняется, добавляются все
-    отмеченными.
+    по одной, — модель данных не меняется. Порядок сохраняется, добавляются все отмеченными.
+    Цену потом можно поправить у самой позиции или вернуть ей показ цены — глаз в строке
+    работает как обычно.
+  </div></div>
+
+  <div class="note"><div class="note-m"></div><div>
+    <b>Слабое место, честно.</b> Цена висит на конкретной строке. Снимешь галочку именно
+    с неё — из раздела уйдёт вся сумма блока, а остальные строки останутся. На один блок
+    в разделе это не беда: строка помечена и стоит первой. На три-четыре блока в одном
+    разделе — уже беда, и тогда цену должен нести сам блок, а это вариант B с отдельной
+    сущностью.
   </div></div>
 
   <div class="note"><div class="note-m"></div><div>
@@ -251,7 +310,6 @@
 
 <script>
 const ПРИМЕР = [
-  '4.1\tКонсультация по инженерным коммуникациям\tВходит',
   '4.2\tЭлектрощит ABB 24M (2×12) в сборе: шкаф UK620P3RU, автоматы SH201L / SH203L,',
   'дифавтоматы DSH201R 30 мА, гребенчатые шины PSH\tВходит',
   '4.3\tКабельная продукция: ВВГнг(А)-LS 3×2,5 / 3×1,5 / 3×4 / 5×2,5, провода ПуГВ 1×16, ПуГВ 2,5, РКГМ 1,5\tВходит',
@@ -317,16 +375,48 @@ function разобрать(){
   рисовать();
 }
 
+// Режим цены: у каждой позиции своя или одна на весь блок.
+// Во втором случае сумма ложится на первую позицию, а её показ в документе
+// гасится глазом — раздел показывает деньги, строки читаются как «Входит».
+function режимЦены(){
+  const r = document.querySelector('input[name=pm]:checked');
+  return r ? r.value : 'block';
+}
+function ценаБлока(){
+  const п = document.getElementById('blockPrice');
+  const ц = parseInt((п.value||'').replace(/\D/g,''), 10);
+  return isFinite(ц) ? ц : 0;
+}
+function режим(){
+  document.getElementById('blockPrice').disabled = режимЦены() !== 'block';
+  рисовать();
+}
+function фмтПоле(п){
+  const ц = (п.value||'').replace(/\D/g,'');
+  п.value = ц ? фмт(parseInt(ц,10)) : '';
+}
+
 function рисовать(){
   const список = document.getElementById('list');
   const живые = разобранные.filter(п => п.вкл);
-  const сЦеной = живые.filter(п => п.цена != null);
-  const сумма = сЦеной.reduce((s,п) => s + п.цена, 0);
+  const блок = режимЦены() === 'block';
+  const сЦеной = блок ? [] : живые.filter(п => п.цена != null);
+  const сумма = блок ? ценаБлока() : сЦеной.reduce((s,п) => s + п.цена, 0);
+
+  document.getElementById('blockPrice').disabled = !блок;
+  document.getElementById('modeHint').innerHTML = блок
+    ? 'Сумма ляжет на первую позицию блока, и показ её цены в документе сразу выключится глазом: '
+      + 'в шапке раздела будет стоять цена, а все строки напечатаются как «Входит». '
+      + 'Так свёрстан раздел в твоём PDF.'
+    : 'В документ уйдут те цены, что распознались в списке. Строки без цены напечатаются '
+      + 'как «Входит», а в шапке раздела встанет их сумма.';
 
   document.getElementById('cnt').textContent = живые.length
     ? 'Распознано ' + живые.length + ' ' + склон(живые.length) : 'Ничего не распознано';
   document.getElementById('sum').textContent = живые.length
-    ? (сЦеной.length ? сЦеной.length + ' с ценой · ' + фмт(сумма) + ' ₽' : 'все как «Входит»')
+    ? (блок
+        ? (сумма ? 'цена блока · ' + фмт(сумма) + ' ₽' : 'цена блока не указана')
+        : (сЦеной.length ? сЦеной.length + ' с ценой · ' + фмт(сумма) + ' ₽' : 'все как «Входит»'))
     : '';
   document.getElementById('ok').disabled = !живые.length;
   document.getElementById('ok').textContent = живые.length
@@ -335,15 +425,20 @@ function рисовать(){
   if (!разобранные.length){
     список.innerHTML = '<div class="empty">Вставьте текст в поле выше — здесь появится, что именно будет добавлено.</div>';
   } else {
-    список.innerHTML = разобранные.map((п, i) =>
-      '<div class="pr' + (п.вкл?'':' off') + '">' +
+    const перваяЖивая = разобранные.findIndex(п => п.вкл);
+    список.innerHTML = разобранные.map((п, i) => {
+      const несёт = блок && i === перваяЖивая && сумма > 0;
+      const ц = блок ? (несёт ? сумма : null) : п.цена;
+      return '<div class="pr' + (п.вкл?'':' off') + '">' +
         '<span class="pr-n">' + (i+1) + '</span>' +
-        '<span class="pr-nm">' + экр(п.имя) + '</span>' +
-        '<span class="pr-v' + (п.цена==null?' inc':'') + '">' +
-          (п.цена==null?'Входит':фмт(п.цена)+' ₽') + '</span>' +
+        '<span class="pr-nm">' + экр(п.имя) +
+          (несёт ? '<span class="carry">несёт цену блока</span>' : '') + '</span>' +
+        '<span class="pr-v' + (ц==null?' inc':'') + '">' +
+          (ц==null?'Входит':фмт(ц)+' ₽') + '</span>' +
         '<button class="pr-x" title="' + (п.вкл?'Убрать из вставки':'Вернуть') +
           '" onclick="перекл(' + i + ')">' + (п.вкл?'×':'+') + '</button>' +
-      '</div>').join('');
+      '</div>';
+    }).join('');
   }
 
   // Предупреждения — то, что стоит увидеть до вставки.
@@ -358,21 +453,60 @@ function рисовать(){
 
 function перекл(i){ разобранные[i].вкл = !разобранные[i].вкл; рисовать(); }
 
+const ГЛАЗ = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+  'stroke-width="2" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8' +
+  'a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19' +
+  'm-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+let вставлено = [];   // что сейчас стоит в разделе после вставки
+
 function добавить(){
+  const блок = режимЦены() === 'block';
+  const цб = ценаБлока();
   const живые = разобранные.filter(п => п.вкл);
-  const узел = document.getElementById('added');
-  узел.innerHTML = живые.map((п, i) =>
+  // В режиме блока цену несёт первая позиция, и показ её цены выключен.
+  вставлено = живые.map((п, i) => ({
+    имя: п.имя,
+    цена: блок ? (i === 0 ? цб : null) : п.цена,
+    показывать: !блок          // глаз: печатать цену строкой или «Входит»
+  }));
+  рисоватьРаздел();
+  рисоватьДокумент();
+  закрыть();
+}
+
+function рисоватьРаздел(){
+  document.getElementById('added').innerHTML = вставлено.map((п, i) =>
     '<div class="opt new">' +
       '<div class="box on"></div>' +
       '<div class="opt-n">12.' + (i+2) + '</div>' +
-      '<div class="opt-nm">' + экр(п.имя) + '</div>' +
-      '<div class="opt-v">' + (п.цена==null?'Входит':фмт(п.цена)+' ₽') + '</div>' +
+      '<div class="opt-nm">' + экр(п.имя) +
+        (п.цена && !п.показывать ? '<span class="carry">цена блока</span>' : '') + '</div>' +
+      '<div class="opt-v">' + (п.цена == null ? 'Входит'
+        : (п.показывать ? фмт(п.цена) + ' ₽'
+           : '<span class="eye-off">' + ГЛАЗ + фмт(п.цена) + ' ₽</span>')) + '</div>' +
     '</div>').join('');
-  const сумма = живые.reduce((s,п) => s + (п.цена||0), 0);
-  document.getElementById('secSum').textContent = фмт(1350000 + сумма) + ' ₽';
+  const сумма = вставлено.reduce((s,п) => s + (п.цена||0), 0);
+  document.getElementById('secSum').textContent = фмт(сумма) + ' ₽';
   document.getElementById('secSub').textContent =
-    (живые.length+1) + ' ' + склон(живые.length+1) + ' в договоре · 1 доступна к добавлению';
-  закрыть();
+    (вставлено.length+1) + ' ' + склон(вставлено.length+1) + ' в договоре · 1 доступна к добавлению';
+}
+
+// Тот же раздел глазами заказчика: цена, скрытая глазом, печатается как «Входит»,
+// но в сумму раздела входит.
+function рисоватьДокумент(){
+  const строки = [{ имя:'Консультация по инженерным коммуникациям', цена:null, показывать:false }]
+    .concat(вставлено);
+  const сумма = вставлено.reduce((s,п) => s + (п.цена||0), 0);
+  document.getElementById('doc').innerHTML =
+    '<div class="doc-h"><span class="doc-n">12</span>' +
+    '<span class="doc-nm">Инженерные коммуникации</span>' +
+    '<span class="doc-sum">' + фмт(сумма) + ' ₽</span></div>' +
+    строки.map((п, i) =>
+      '<div class="doc-r"><span class="n">12.' + (i+1) + '</span>' +
+      '<span class="nm">' + экр(п.имя) + '</span>' +
+      '<span class="v">' + (п.цена != null && п.показывать ? фмт(п.цена) + ' ₽' : 'Входит') + '</span></div>'
+    ).join('');
 }
 
 function фмт(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
@@ -386,7 +520,7 @@ function склон(n){
 }
 
 document.getElementById('src').value = ПРИМЕР;
-открыть(); вкладка(2); разобрать();
+открыть(); вкладка(2); разобрать(); рисоватьДокумент();
 </script>
 </body>
 </html>
