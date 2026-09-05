@@ -70,7 +70,9 @@ body {
   max-width: 100%;
   min-height: 297mm;
   margin: 24px auto;
-  padding: 14mm 13mm 12mm;
+  /* Боковые поля 7 мм — как в калькуляторе после просьбы прибавить 10 %
+     ширины: строка выходит 196 мм при листе 210. Верх и низ не тронуты. */
+  padding: 14mm 7mm 12mm;
   background: #fff;
   box-shadow: 0 10px 40px rgba(16, 40, 38, .13);
 }
@@ -193,7 +195,9 @@ table.rs-tbl { width: 100%; border-collapse: collapse; }
   vertical-align: top;
 }
 .rs-tbl tbody tr:first-child td { border-top: 0; }
-.rs-num  { width: 22pt; color: var(--rs-ink2); }
+/* 22pt при набивке 14pt с каждой стороны не вмещали двузначный номер —
+   «10» ломался на две строки. */
+.rs-num  { width: 42pt; color: var(--rs-ink2); }
 .rs-sum  { text-align: right; font-weight: 600; white-space: nowrap; }
 /* Подпись числовой колонки стоит над числами, а не у левого края ячейки:
    общее правило шапки выключает текст влево и перебивало выключку вправо. */
@@ -286,7 +290,7 @@ table.rs-tbl { width: 100%; border-collapse: collapse; }
   /* Колонка основания на телефоне съедает половину строки — отдаём ей
      ширину по содержимому и уменьшаем кегль, название остаётся читаемым. */
   .rs-base { width: auto; font-size: 8.4pt; }
-  .rs-num { width: 16pt; }
+  .rs-num { width: 30pt; }
 }
 /* Совсем узкий экран: пятиколоночный платёжный план не помещается по-честному,
    поэтому подписи колонок и сроки уходят на свою строку внутри ячейки. */
@@ -299,7 +303,7 @@ table.rs-tbl { width: 100%; border-collapse: collapse; }
 /* ── Печать ──────────────────────────────────────────────────────────────
    Разделы не рвутся посередине, шапка таблицы повторяется на новой
    странице, подписи не отрываются от документа. */
-@page { size: A4; margin: 12mm 11mm; }
+@page { size: A4; margin: 12mm 7mm; }
 @media print {
   body { background: #fff; }
   .demo { display: none; }
