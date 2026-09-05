@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Иконка «Журнал действий» — варианты</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#eef3f3; --card:#fff; --ink:#16302f; --ink2:#63807f; --rule:#dbe6e5;
+    --acc:#17726f; --acc-soft:#e4f1f0; --warn:#b3251d;
+    --dark-bg:#0c1a1d; --dark-panel:#12262a; --dark-ink:#e6f2f2; --dark-ink2:#8fa9ab; --dark-acc:#5fc8d2;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:'Geologica',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+    font-weight:300;line-height:1.55;}
+  .wrap{max-width:940px;margin:0 auto;padding:34px 20px 64px;}
+  h1{font-size:1.5rem;font-weight:600;margin:0 0 6px;letter-spacing:-.01em;}
+  .sub{color:var(--ink2);font-size:.92rem;margin:0 0 26px;}
+  h2{font-size:1.02rem;font-weight:600;margin:34px 0 12px;letter-spacing:.01em;}
+  p{margin:0 0 12px;font-size:.9rem;}
+  .note{color:var(--ink2);font-size:.84rem;}
+
+  /* ── постановка задачи ── */
+  .problem{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:18px 20px;margin-bottom:8px;}
+  .pair{display:flex;gap:26px;flex-wrap:wrap;align-items:center;margin:14px 0 4px;}
+  .pair-item{display:flex;align-items:center;gap:10px;}
+  .chip{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
+    background:var(--dark-panel);color:var(--dark-ink);}
+  .chip svg{display:block;}
+  .pair-item b{font-weight:500;font-size:.86rem;}
+  .pair-item span{color:var(--ink2);font-size:.8rem;}
+
+  /* ── варианты ── */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(430px,1fr));gap:16px;}
+  @media (max-width:900px){ .grid{grid-template-columns:1fr;} }
+  .card{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:18px 20px 20px;
+    display:flex;flex-direction:column;gap:14px;}
+  .card.pick{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-soft);}
+  .card-top{display:flex;align-items:flex-start;gap:14px;}
+  .big{width:56px;height:56px;flex:0 0 56px;border-radius:14px;display:grid;place-items:center;
+    background:var(--acc-soft);color:var(--acc);}
+  .card h3{margin:0 0 2px;font-size:.98rem;font-weight:600;}
+  .card .why{margin:0;font-size:.84rem;color:var(--ink2);}
+  .tag{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:99px;font-size:.68rem;
+    font-weight:500;letter-spacing:.04em;text-transform:uppercase;background:var(--acc);color:#fff;vertical-align:2px;}
+
+  /* ── панель инструментов, как в калькуляторе ── */
+  .bar{display:flex;align-items:center;gap:2px;border-radius:11px;padding:7px 9px;}
+  .bar.night{background:var(--dark-bg);}
+  .bar.day{background:#fff;border:1px solid var(--rule);}
+  .bar button{width:30px;height:30px;border:0;border-radius:8px;background:none;cursor:pointer;
+    display:grid;place-items:center;transition:background .15s;}
+  .bar.night button{color:#cfe3e4;}
+  .bar.day button{color:#3f5f5e;}
+  .bar button:hover{background:rgba(127,212,216,.16);}
+  .bar .here{position:relative;}
+  .bar .here::after{content:'';position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);
+    width:4px;height:4px;border-radius:50%;background:var(--acc);}
+  .bar.night .here::after{background:var(--dark-acc);}
+  .bars{display:flex;flex-direction:column;gap:8px;}
+  .bar-label{font-size:.72rem;color:var(--ink2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px;}
+
+  .foot{margin-top:30px;padding-top:18px;border-top:1px solid var(--rule);color:var(--ink2);font-size:.84rem;}
+  .foot b{color:var(--ink);font-weight:500;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Иконка «Журнал действий» — шесть вариантов</h1>
+  <p class="sub">Сейчас журнал стоит сразу за статистикой, и на панели они читаются как одна пара:
+     и там, и там — набор параллельных штрихов. Ниже варианты, у которых силуэт другой.</p>
+
+  <div class="problem">
+    <div class="bar-label">Как сейчас</div>
+    <div class="pair">
+      <div class="pair-item">
+        <div class="chip"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <div><b>Статистика</b><br><span>три вертикальных штриха</span></div>
+      </div>
+      <div class="pair-item">
+        <div class="chip"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="6" r="1.6"/><line x1="9" y1="6" x2="20" y2="6"/><circle cx="4" cy="12" r="1.6"/><line x1="9" y1="12" x2="17" y2="12"/><circle cx="4" cy="18" r="1.6"/><line x1="9" y1="18" x2="20" y2="18"/></svg></div>
+        <div><b>Журнал действий</b><br><span>три горизонтальных штриха</span></div>
+      </div>
+    </div>
+    <p class="note" style="margin:10px 0 0;">На 14 px разница в наклоне штрихов почти не читается — глаз видит две «решётки» подряд.
+       Поэтому все варианты ниже уходят от штрихов к другой форме: кругу, странице или ломаной.</p>
+  </div>
+
+  <h2>Варианты</h2>
+  <div class="grid" id="grid"></div>
+
+  <div class="foot">
+    <p><b>Рекомендую вариант 1 — «Часы со стрелкой».</b> Это привычный знак истории: круг рядом с
+       вертикальными штрихами статистики не спутать даже боковым зрением, а смысл «что происходило
+       раньше» читается без подписи. Вариант 3 — самый осторожный: строки остаются, но появляется
+       вертикальная нить события, и пара со статистикой распадается.</p>
+    <p class="note" style="margin:0;">Правки по кругу: скажи номер — поставлю. Иконки нарисованы тем же
+       контуром, что и остальная панель: 24×24, толщина 2, скруглённые концы.</p>
+  </div>
+</div>
+
+<script>
+const ВАРИАНТЫ = [
+  {
+    имя: 'Часы со стрелкой',
+    пометка: 'рекомендую',
+    почему: 'Общепринятый знак истории. Круглый силуэт — максимально далеко от вертикальных штрихов статистики.',
+    svg: '<path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><polyline points="12 8 12 12 15 14"/>'
+  },
+  {
+    имя: 'Часы',
+    почему: 'То же про время, но проще: на 14 px круг со стрелками остаётся читаемым, лишних деталей нет.',
+    svg: '<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/>'
+  },
+  {
+    имя: 'Лента событий',
+    почему: 'Осторожный вариант: строки остаются, но их нанизывает вертикальная нить — пара со статистикой распадается.',
+    svg: '<line x1="7" y1="3" x2="7" y2="21"/><circle cx="7" cy="7.5" r="2.2"/><circle cx="7" cy="16.5" r="2.2"/><line x1="12" y1="7.5" x2="21" y2="7.5"/><line x1="12" y1="16.5" x2="18" y2="16.5"/>'
+  },
+  {
+    имя: 'Тетрадь',
+    почему: 'Буквальный «журнал»: прошитая страница. Силуэт прямоугольный, но с корешком — со статистикой не рифмуется.',
+    svg: '<path d="M4 5a2.5 2.5 0 0 1 2.5-2.5H20v19H6.5A2.5 2.5 0 0 1 4 19z"/><line x1="8" y1="7.5" x2="16.5" y2="7.5"/><line x1="8" y1="11.5" x2="16.5" y2="11.5"/><line x1="8" y1="15.5" x2="13" y2="15.5"/>'
+  },
+  {
+    имя: 'Страница со временем',
+    почему: 'Лист и часы вместе: «что было записано и когда». Самая подробная из шести — на 14 px деталей многовато.',
+    svg: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"/><polyline points="14 3 14 8 19 8"/><line x1="8" y1="11" x2="13" y2="11"/><circle cx="17" cy="16.5" r="4.5"/><polyline points="17 14.5 17 16.5 18.6 17.5"/>'
+  },
+  {
+    имя: 'Ломаная действий',
+    почему: 'Резкий силуэт, ни на что на панели не похож. Но «график» рядом со статистикой может прочитаться как ещё одна аналитика.',
+    svg: '<polyline points="2 12 6.5 12 9.5 5 14 19 16.5 12 22 12"/>'
+  },
+];
+
+const СОСЕДИ = {
+  луна: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+  печать: '<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+  статистика: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+  глаз: '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>',
+  поиск: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  шестерня: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+};
+
+const рисуй = (внутри, размер, доп='') =>
+  `<svg width="${размер}" height="${размер}" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${доп}>${внутри}</svg>`;
+
+const панель = (кандидат, тема) => `
+  <div>
+    <div class="bar-label">${тема === 'night' ? 'Тёмная тема' : 'Светлая тема «Бланк»'}</div>
+    <div class="bar ${тема}">
+      <button title="Тёмный / светлый режим">${рисуй(СОСЕДИ.луна, 14)}</button>
+      <button title="Печать">${рисуй(СОСЕДИ.печать, 14)}</button>
+      <button title="Платёжный план" style="font-weight:700;font-size:13px;font-family:Geologica,Arial,sans-serif;">₽</button>
+      <button title="Статистика">${рисуй(СОСЕДИ.статистика, 14)}</button>
+      <button class="here" title="Журнал действий">${рисуй(кандидат, 14)}</button>
+      <button title="Скрыть опции">${рисуй(СОСЕДИ.глаз, 14)}</button>
+      <button title="Поиск по опциям">${рисуй(СОСЕДИ.поиск, 14)}</button>
+      <button title="Настройки">${рисуй(СОСЕДИ.шестерня, 14)}</button>
+    </div>
+  </div>`;
+
+document.getElementById('grid').innerHTML = ВАРИАНТЫ.map((в, i) => `
+  <div class="card${в.пометка ? ' pick' : ''}">
+    <div class="card-top">
+      <div class="big">${рисуй(в.svg, 30)}</div>
+      <div>
+        <h3>${i + 1}. ${в.имя}${в.пометка ? `<span class="tag">${в.пометка}</span>` : ''}</h3>
+        <p class="why">${в.почему}</p>
+      </div>
+    </div>
+    <div class="bars">
+      ${панель(в.svg, 'night')}
+      ${панель(в.svg, 'day')}
+    </div>
+  </div>`).join('');
+</script>
+</body>
+</html>
