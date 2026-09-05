@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Стиль печати «Реестр» — макет v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   «РЕЕСТР» — седьмой стиль печати спецификации.
+
+   Язык снят с присланного взаиморасчёта по договору подряда (ПСК ВЕГА,
+   31.07.2026) и переложен на спецификацию Баня-МСК. Что взято дословно:
+
+     • документ собран из карточек с волосяной рамкой и скруглением 8 px,
+       на белом поле — разделяет их рамка, а не заливка страницы;
+     • у первой карточки бирюзовая полоса 5 px по верхнему краю;
+     • итог вынесен в залитую бирюзовую панель: мелкая подпись вразрядку,
+       крупное число, черта, и под ней строка из четырёх пар;
+     • каждый раздел открывается залитой бирюзовой плашкой с номером и
+       названием, сумма раздела — на той же плашке справа;
+     • шапка таблицы — светлая заливка и мелкие прописные вразрядку;
+     • строки разделены волосяной линейкой, суммы справа полужирным;
+     • итоговая строка — бледная бирюзовая заливка;
+     • подписи сторон двумя колонками с длинной чертой над именем;
+     • дата формирования по центру подвала, мелкая и серая.
+
+   Цвета взяты пипеткой из PDF, без пересчёта. Шрифт заменён: в источнике
+   Liberation Sans (метрический двойник Arial), здесь фирменная Geologica —
+   тот же нейтральный гротеск, но документ остаётся в языке компании.
+   Кегли оставлены в пунктах, как в печатном документе.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Бирюзовый — из PDF пипеткой. Он на волос зеленее фирменного #1e6c72;
+     если нужен фирменный ровно, меняется здесь одной строкой. */
+  --rs-acc:        #17726f;
+  --rs-acc-dark:   #105755;   /* дальний край заливки итоговой панели */
+  --rs-acc-light:  #166f6c;   /* ближний край */
+
+  --rs-ink:        #1b2320;   /* основные чернила */
+  --rs-ink2:       #6b7a78;   /* подписи, надзаголовки, второстепенное */
+  --rs-rule:       #dde4e3;   /* волосяная линейка и рамка карточки */
+  --rs-head:       #f0f5f4;   /* шапка таблицы */
+  --rs-total:      #e7f1f1;   /* итоговая строка */
+  --rs-plus:       #1d793c;   /* прибавка, «в подарок», оплачено */
+  --rs-minus:      #b3251d;   /* вычет, скидка */
+
+  --rs-font: 'Geologica', Arial, 'Helvetica Neue', sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: #eef1f1;
+  color: var(--rs-ink);
+  font-family: var(--rs-font);
+  font-size: 9.6pt;
+  line-height: 1.45;
+  /* Цифры выравниваются по разрядам: суммы стоят столбцом. */
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Лист ────────────────────────────────────────────────────────────────
+   На экране лист лежит на сером поле, при печати поле исчезает. */
+.doc {
+  width: 210mm;
+  max-width: 100%;
+  min-height: 297mm;
+  margin: 24px auto;
+  padding: 14mm 13mm 12mm;
+  background: #fff;
+  box-shadow: 0 10px 40px rgba(16, 40, 38, .13);
+}
+
+/* ── Карточка ────────────────────────────────────────────────────────────
+   Основной кирпич документа: белая, волосяная рамка, скругление 8.
+   Разделяет карточки рамка, а не цвет — страница остаётся белой. */
+.rs-card {
+  border: 1px solid var(--rs-rule);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 9pt;
+  background: #fff;
+}
+/* Полоса по верхнему краю — только у первой карточки: она открывает документ. */
+.rs-card--lead { border-top: 5px solid var(--rs-acc); border-radius: 8px; }
+
+/* ── Шапка документа ─────────────────────────────────────────────────── */
+.rs-head { padding: 13pt 14pt 12pt; }
+.rs-title {
+  margin: 0;
+  font-size: 15pt;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -.01em;
+}
+.rs-sub { margin: 4pt 0 0; font-size: 9pt; color: var(--rs-ink2); }
+
+/* Реквизиты: мелкая прописная подпись вразрядку и значение под ней.
+   Ряд отбит волосяной линейкой сверху — это единственный разделитель. */
+.rs-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10pt 14pt;
+  margin-top: 11pt;
+  padding-top: 10pt;
+  border-top: 1px solid var(--rs-rule);
+}
+.rs-meta--foot { grid-template-columns: repeat(4, 1fr); border-top: 0; padding-top: 0; margin-top: 9pt; }
+.rs-k {
+  font-size: 7.6pt;
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--rs-ink2);
+}
+.rs-v { margin-top: 2pt; font-weight: 600; }
+.rs-v--plain { font-weight: 400; }
+
+/* ── Итоговая панель ─────────────────────────────────────────────────────
+   Единственное большое залитое место документа. Заливка идёт наискось,
+   как в источнике: светлее слева, темнее справа. */
+.rs-hero {
+  margin-bottom: 9pt;
+  padding: 13pt 14pt 12pt;
+  border-radius: 8px;
+  background: linear-gradient(115deg, var(--rs-acc-light) 0%, var(--rs-acc-dark) 100%);
+  color: #fff;
+  /* Заливка на печати обязана остаться: без этого браузер выбрасывает фон,
+     и белый текст ложится на белое. */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.rs-hero .rs-k { color: rgba(255, 255, 255, .72); }
+.rs-hero-sum {
+  margin: 5pt 0 0;
+  font-size: 26pt;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.05;
+}
+.rs-hero-rule { height: 1px; background: rgba(255, 255, 255, .26); margin: 11pt 0 10pt; }
+.rs-hero .rs-v { font-size: 10.5pt; font-weight: 600; }
+.rs-hero .rs-v--disc { color: #ffc9c4; }
+
+/* ── Плашка раздела ──────────────────────────────────────────────────────
+   Номер и название слева, сумма раздела справа — на той же плашке.
+   Скругление даёт карточка, поэтому у плашки его нет. */
+.rs-bar {
+  display: flex;
+  align-items: baseline;
+  gap: 10pt;
+  padding: 8pt 14pt;
+  background: var(--rs-acc);
+  color: #fff;
+  font-size: 10.5pt;
+  font-weight: 600;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.rs-bar__sum { margin-left: auto; white-space: nowrap; }
+/* Подпись под плашкой — примечание раздела, если оно есть. */
+.rs-bar-note {
+  padding: 7pt 14pt;
+  border-bottom: 1px solid var(--rs-rule);
+  font-size: 8.4pt;
+  color: var(--rs-ink2);
+}
+
+/* ── Таблица ─────────────────────────────────────────────────────────── */
+table.rs-tbl { width: 100%; border-collapse: collapse; }
+.rs-tbl th {
+  padding: 6pt 14pt;
+  background: var(--rs-head);
+  border: 0;
+  font-size: 7.4pt;
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--rs-ink2);
+  text-align: left;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.rs-tbl td {
+  padding: 7pt 14pt;
+  border-top: 1px solid var(--rs-rule);
+  vertical-align: top;
+}
+.rs-tbl tbody tr:first-child td { border-top: 0; }
+.rs-num  { width: 22pt; color: var(--rs-ink2); }
+.rs-sum  { text-align: right; font-weight: 600; white-space: nowrap; }
+/* Подпись числовой колонки стоит над числами, а не у левого края ячейки:
+   общее правило шапки выключает текст влево и перебивало выключку вправо. */
+.rs-tbl th.rs-sum { text-align: right; font-weight: 600; }
+.rs-when { white-space: nowrap; }
+.rs-base { width: 92pt; color: var(--rs-ink2); font-size: 9pt; }
+/* Уточнение под названием — «в т.ч. НДС», состав, оговорка. */
+.rs-fine { display: block; margin-top: 2pt; font-size: 8.4pt; color: var(--rs-ink2); }
+.rs-in   { color: var(--rs-plus); font-weight: 600; }
+.rs-plus { color: var(--rs-plus); }
+.rs-minus{ color: var(--rs-minus); }
+.rs-gift {
+  display: inline-block;
+  margin-left: 5pt;
+  padding: 1pt 5pt;
+  border: 1px solid var(--rs-plus);
+  border-radius: 3px;
+  font-size: 7pt;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--rs-plus);
+}
+/* Итоговая строка раздела — бледная бирюзовая заливка, как в источнике. */
+.rs-tbl tr.rs-sumrow td {
+  background: var(--rs-total);
+  border-top: 1px solid var(--rs-rule);
+  font-weight: 600;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+/* Строка-примечание внутри таблицы: без номера, курсивом не набирается —
+   отличается цветом и тем, что занимает всю ширину. */
+.rs-tbl tr.rs-noterow td { color: var(--rs-ink2); font-size: 8.6pt; }
+
+/* ── Подписи сторон ──────────────────────────────────────────────────── */
+.rs-sign {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20pt;
+  padding: 14pt;
+}
+.rs-sign__line { height: 1px; background: var(--rs-ink2); margin-bottom: 7pt; }
+.rs-sign__who { font-weight: 700; }
+.rs-sign__name { margin-top: 2pt; color: var(--rs-ink2); }
+
+.rs-foot { margin-top: 10pt; text-align: center; font-size: 8.4pt; color: var(--rs-ink2); }
+
+/* ── Панель показа: только на экране ─────────────────────────────────── */
+.demo {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 16px;
+  background: #fff;
+  border-bottom: 1px solid var(--rs-rule);
+  font-size: 12px; color: var(--rs-ink2);
+}
+.demo b { color: var(--rs-ink); font-weight: 600; }
+.demo button {
+  position: relative;
+  margin-left: auto;
+  padding: 7px 14px;
+  background: var(--rs-acc); color: #fff;
+  border: 0; border-radius: 7px;
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer;
+}
+/* Площадь нажатия доведена невидимым полем — коробка остаётся прежнего веса. */
+.demo button::before { content: ''; position: absolute; inset: -8px -6px; }
+.demo button:hover { background: var(--rs-acc-light); }
+
+/* ── Узкий экран ─────────────────────────────────────────────────────────
+   Лист — это A4, он шире телефона по построению. Вместо прокрутки вбок
+   уменьшаем весь лист целиком: пропорции документа сохраняются, а страница
+   не едет в сторону. На печать это не влияет — правило только экранное. */
+@media (max-width: 820px) {
+  /* Лист занимает ширину экрана, а не сжимается целиком. Сжатие пробовалось
+     и отвергнуто: при ширине телефона множитель выходит 0,46, и текст в
+     9,6 пункта превращается в 4,4 — прочитать нельзя. Здесь документ
+     перестраивается: поля уже, реквизиты в две колонки, набивка ячеек
+     меньше. На печать это не влияет — правило только экранное. */
+  .doc { min-height: 0; margin: 12px auto; padding: 16px 12px; }
+  .rs-meta, .rs-meta--foot { grid-template-columns: 1fr 1fr; gap: 9pt 12pt; }
+  .rs-head { padding: 12pt 11pt; }
+  .rs-hero { padding: 12pt 11pt; }
+  .rs-hero-sum { font-size: 22pt; }
+  .rs-bar, .rs-bar-note { padding-left: 11pt; padding-right: 11pt; }
+  .rs-tbl th, .rs-tbl td { padding-left: 9pt; padding-right: 9pt; }
+  .rs-sign { padding: 11pt; gap: 14pt; }
+  /* Колонка основания на телефоне съедает половину строки — отдаём ей
+     ширину по содержимому и уменьшаем кегль, название остаётся читаемым. */
+  .rs-base { width: auto; font-size: 8.4pt; }
+  .rs-num { width: 16pt; }
+}
+/* Совсем узкий экран: пятиколоночный платёжный план не помещается по-честному,
+   поэтому подписи колонок и сроки уходят на свою строку внутри ячейки. */
+@media (max-width: 460px) {
+  .rs-tbl th, .rs-tbl td { padding-left: 7pt; padding-right: 7pt; }
+  .rs-when { white-space: normal; }
+  .rs-title { font-size: 13pt; }
+}
+
+/* ── Печать ──────────────────────────────────────────────────────────────
+   Разделы не рвутся посередине, шапка таблицы повторяется на новой
+   странице, подписи не отрываются от документа. */
+@page { size: A4; margin: 12mm 11mm; }
+@media print {
+  body { background: #fff; }
+  .demo { display: none; }
+  .doc { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
+  .rs-card, .rs-hero, .rs-sign { break-inside: avoid; }
+  .rs-bar { break-after: avoid; }
+  .rs-tbl thead { display: table-header-group; }
+  .rs-tbl tr { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<div class="demo">
+  <b>Стиль печати «Реестр»</b> — макет v1 · спецификация в языке взаиморасчёта
+  <button onclick="window.print()">Печать / PDF</button>
+</div>
+
+<div class="doc">
+
+  <!-- ══ ШАПКА ДОКУМЕНТА ══════════════════════════════════════════════ -->
+  <div class="rs-card rs-card--lead">
+    <div class="rs-head">
+      <h1 class="rs-title">Спецификация к договору подряда № 60184233-КАР от 04.09.2026</h1>
+      <p class="rs-sub">Приложение №1 · каркасная баня «Онега» 6×4 · утепление 150 мм</p>
+
+      <div class="rs-meta">
+        <div>
+          <div class="rs-k">Заказчик</div>
+          <div class="rs-v">Сорокин Владимир Анатольевич</div>
+        </div>
+        <div>
+          <div class="rs-k">Подрядчик</div>
+          <div class="rs-v">ООО «Баня-МСК»</div>
+        </div>
+        <div>
+          <div class="rs-k">Объект</div>
+          <div class="rs-v">МО, Волоколамский р-н, д. Бражниково, КП «Пятница», ул. Береговая, д. 104</div>
+        </div>
+      </div>
+
+      <div class="rs-meta rs-meta--foot">
+        <div>
+          <div class="rs-k">Дата расчёта</div>
+          <div class="rs-v">04.09.2026</div>
+        </div>
+        <div>
+          <div class="rs-k">Менеджер</div>
+          <div class="rs-v rs-v--plain">Кислицын Константин</div>
+        </div>
+        <div>
+          <div class="rs-k">Позиций в договоре</div>
+          <div class="rs-v rs-v--plain">48</div>
+        </div>
+        <div>
+          <div class="rs-k">Срок работ</div>
+          <div class="rs-v rs-v--plain">90 рабочих дней</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ИТОГ ═════════════════════════════════════════════════════════ -->
+  <div class="rs-hero">
+    <div class="rs-k">Общая стоимость за наличные</div>
+    <div class="rs-hero-sum">5 130 826 ₽</div>
+    <div class="rs-hero-rule"></div>
+    <div class="rs-meta rs-meta--foot" style="margin-top:0;">
+      <div>
+        <div class="rs-k">Базовая комплектация</div>
+        <div class="rs-v">2 943 019 ₽</div>
+      </div>
+      <div>
+        <div class="rs-k">Опции</div>
+        <div class="rs-v">2 346 492 ₽</div>
+      </div>
+      <div>
+        <div class="rs-k">Без скидки</div>
+        <div class="rs-v">5 289 511 ₽</div>
+      </div>
+      <div>
+        <div class="rs-k">Спец. цена −3 %</div>
+        <div class="rs-v rs-v--disc">−158 685 ₽</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ РАЗДЕЛ 1 ═════════════════════════════════════════════════════ -->
+  <div class="rs-card">
+    <div class="rs-bar">
+      <span>1. Фундамент</span>
+      <span class="rs-bar__sum">248 000 ₽</span>
+    </div>
+    <div class="rs-bar-note">Геология участка не входит в базовую комплектацию и заказывается отдельно.</div>
+    <table class="rs-tbl">
+      <thead>
+        <tr>
+          <th class="rs-num">#</th>
+          <th>Позиция</th>
+          <th class="rs-base">Основание</th>
+          <th class="rs-sum">Сумма, ₽</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="rs-num">1</td>
+          <td>Ленточный фундамент, лента 400×600 мм, бетон B22,5 W6
+            <span class="rs-fine">Арматура А500С Ø12, шаг 200 мм; опалубка съёмная</span></td>
+          <td class="rs-base">Спецификация</td>
+          <td class="rs-sum">248 000</td>
+        </tr>
+        <tr>
+          <td class="rs-num">2</td>
+          <td>Двойная обвязка бруса 150×50 мм, антисептирование</td>
+          <td class="rs-base">Базовая</td>
+          <td class="rs-sum rs-in">Входит</td>
+        </tr>
+        <tr class="rs-sumrow">
+          <td colspan="3">Итого по разделу</td>
+          <td class="rs-sum">248 000</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══ РАЗДЕЛ 2 ═════════════════════════════════════════════════════ -->
+  <div class="rs-card">
+    <div class="rs-bar">
+      <span>2. Каркас</span>
+      <span class="rs-bar__sum">1 642 941 ₽</span>
+    </div>
+    <table class="rs-tbl">
+      <thead>
+        <tr>
+          <th class="rs-num">#</th>
+          <th>Позиция</th>
+          <th class="rs-base">Основание</th>
+          <th class="rs-sum">Сумма, ₽</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="rs-num">1</td>
+          <td>Высота пол/потолок в комнате отдыха — согласно проекту</td>
+          <td class="rs-base">Базовая</td>
+          <td class="rs-sum rs-in">Входит</td>
+        </tr>
+        <tr>
+          <td class="rs-num">2</td>
+          <td>Стропильная система — доска сухая строганная 45×145 мм</td>
+          <td class="rs-base">Базовая</td>
+          <td class="rs-sum rs-in">Входит</td>
+        </tr>
+        <tr>
+          <td class="rs-num">3</td>
+          <td>Контробрешётка кровли — доска 50×50 мм</td>
+          <td class="rs-base">Спецификация</td>
+          <td class="rs-sum">86 400</td>
+        </tr>
+        <tr>
+          <td class="rs-num">4</td>
+          <td>Увеличение высоты стен до 2 700 мм<span class="rs-gift">в подарок</span></td>
+          <td class="rs-base">ДС №1</td>
+          <td class="rs-sum rs-plus">0</td>
+        </tr>
+        <tr class="rs-noterow">
+          <td class="rs-num"></td>
+          <td colspan="3">Пирог стены: обшивка, ветрозащита, утеплитель 150 мм, пароизоляция, контррейка.</td>
+        </tr>
+        <tr class="rs-sumrow">
+          <td colspan="3">Итого по разделу</td>
+          <td class="rs-sum">1 642 941</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══ РАЗДЕЛ 3 ═════════════════════════════════════════════════════ -->
+  <div class="rs-card">
+    <div class="rs-bar">
+      <span>3. Инженерные коммуникации</span>
+      <span class="rs-bar__sum">142 300 ₽</span>
+    </div>
+    <table class="rs-tbl">
+      <thead>
+        <tr>
+          <th class="rs-num">#</th>
+          <th>Позиция</th>
+          <th class="rs-base">Основание</th>
+          <th class="rs-sum">Сумма, ₽</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="rs-num">1</td>
+          <td>Электрощит ABB 24M (2×12) в сборе
+            <span class="rs-fine">Шкаф UK620P3RU, автоматы SH201L / SH203L, дифавтоматы DSH201R 30 мА</span></td>
+          <td class="rs-base">Спецификация</td>
+          <td class="rs-sum rs-in">Входит</td>
+        </tr>
+        <tr>
+          <td class="rs-num">2</td>
+          <td>Приточный клапан Ore КИВ-125-05 D125 мм, 0,5 м</td>
+          <td class="rs-base">Спецификация</td>
+          <td class="rs-sum">12 400</td>
+        </tr>
+        <tr>
+          <td class="rs-num">3</td>
+          <td>Септик 5-ка (септик + сбросной колодец + трасса 5 м + монтаж)</td>
+          <td class="rs-base">Спецификация</td>
+          <td class="rs-sum">227 500</td>
+        </tr>
+        <tr class="rs-sumrow">
+          <td colspan="3">Итого по разделу</td>
+          <td class="rs-sum">142 300</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══ ПЛАТЁЖНЫЙ ПЛАН ═══════════════════════════════════════════════ -->
+  <div class="rs-card">
+    <div class="rs-bar">
+      <span>4. Платёжный план</span>
+      <span class="rs-bar__sum">5 130 826 ₽</span>
+    </div>
+    <table class="rs-tbl">
+      <thead>
+        <tr>
+          <th class="rs-num">#</th>
+          <th>Основание по договору</th>
+          <th class="rs-when">Срок</th>
+          <th class="rs-sum">Доля</th>
+          <th class="rs-sum">Сумма, ₽</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="rs-num">1</td>
+          <td>Задаток после уведомления о готовности начать работы</td>
+          <td class="rs-when">при подписании</td>
+          <td class="rs-sum">30 %</td>
+          <td class="rs-sum">1 539 248</td>
+        </tr>
+        <tr>
+          <td class="rs-num">2</td>
+          <td>Задаток в день заезда бригады и начала строительных работ</td>
+          <td class="rs-when">до 20.10.2026</td>
+          <td class="rs-sum">40 %</td>
+          <td class="rs-sum">2 052 330</td>
+        </tr>
+        <tr>
+          <td class="rs-num">3</td>
+          <td>Оплата в день подписания Акта выполненных работ</td>
+          <td class="rs-when">по завершении</td>
+          <td class="rs-sum">30 %</td>
+          <td class="rs-sum">1 539 248</td>
+        </tr>
+        <tr class="rs-sumrow">
+          <td colspan="3">Итого по плану</td>
+          <td class="rs-sum">100 %</td>
+          <td class="rs-sum">5 130 826</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══ СВОД ═════════════════════════════════════════════════════════ -->
+  <div class="rs-card">
+    <div class="rs-bar">
+      <span>5. Итоговый расчёт</span>
+    </div>
+    <table class="rs-tbl">
+      <thead>
+        <tr>
+          <th>Показатель</th>
+          <th class="rs-sum">Сумма, ₽</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Базовая комплектация</td><td class="rs-sum">2 943 019</td></tr>
+        <tr><td>Опции по разделам 1–3</td><td class="rs-sum">2 346 492</td></tr>
+        <tr><td>Стоимость без скидки</td><td class="rs-sum">5 289 511</td></tr>
+        <tr><td>Спец. цена за наличные, −3 %</td><td class="rs-sum rs-minus">−158 685</td></tr>
+        <tr class="rs-sumrow"><td>К оплате заказчиком</td><td class="rs-sum">5 130 826</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══ ПОДПИСИ ══════════════════════════════════════════════════════ -->
+  <div class="rs-card">
+    <div class="rs-sign">
+      <div>
+        <div class="rs-sign__line"></div>
+        <div class="rs-sign__who">Подрядчик</div>
+        <div class="rs-sign__name">ООО «Баня-МСК» — Кислицын К. А.</div>
+      </div>
+      <div>
+        <div class="rs-sign__line"></div>
+        <div class="rs-sign__who">Заказчик</div>
+        <div class="rs-sign__name">Сорокин В. А.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rs-foot">Дата формирования: 04.09.2026 · предложение действует до 18.09.2026</div>
+</div>
+
+</body>
+</html>
