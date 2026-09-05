@@ -139,13 +139,18 @@ body {
   print-color-adjust: exact;
 }
 .rs-hero .rs-k { color: rgba(255, 255, 255, .72); }
+.rs-hero-top { display: grid; grid-template-columns: 1fr; gap: 10pt 16pt; align-items: end; }
+.rs-hero-top--pair { grid-template-columns: 1fr auto; }
+.rs-hero-spec { text-align: right; }
 .rs-hero-sum {
   margin: 5pt 0 0;
   font-size: 26pt;
   font-weight: 700;
   letter-spacing: -.02em;
   line-height: 1.05;
+  white-space: nowrap;
 }
+.rs-hero-sum--spec { color: #ffb4ac; font-size: 22pt; }
 .rs-hero-rule { height: 1px; background: rgba(255, 255, 255, .26); margin: 11pt 0 10pt; }
 .rs-hero .rs-v { font-size: 10.5pt; font-weight: 600; }
 .rs-hero .rs-v--disc { color: #ffc9c4; }
@@ -197,7 +202,7 @@ table.rs-tbl { width: 100%; border-collapse: collapse; }
 .rs-tbl tbody tr:first-child td { border-top: 0; }
 /* 22pt при набивке 14pt с каждой стороны не вмещали двузначный номер —
    «10» ломался на две строки. */
-.rs-num  { width: 42pt; color: var(--rs-ink2); }
+.rs-num  { width: 58pt; color: var(--rs-ink2); white-space: nowrap; }
 .rs-sum  { text-align: right; font-weight: 600; white-space: nowrap; }
 /* Подпись числовой колонки стоит над числами, а не у левого края ячейки:
    общее правило шапки выключает текст влево и перебивало выключку вправо. */
@@ -284,13 +289,16 @@ table.rs-tbl { width: 100%; border-collapse: collapse; }
   .rs-head { padding: 12pt 11pt; }
   .rs-hero { padding: 12pt 11pt; }
   .rs-hero-sum { font-size: 22pt; }
+  .rs-hero-sum--spec { font-size: 19pt; }
+  .rs-hero-top--pair { grid-template-columns: 1fr; gap: 8pt; }
+  .rs-hero-spec { text-align: left; }
   .rs-bar, .rs-bar-note { padding-left: 11pt; padding-right: 11pt; }
   .rs-tbl th, .rs-tbl td { padding-left: 9pt; padding-right: 9pt; }
   .rs-sign { padding: 11pt; gap: 14pt; }
   /* Колонка основания на телефоне съедает половину строки — отдаём ей
      ширину по содержимому и уменьшаем кегль, название остаётся читаемым. */
   .rs-base { width: auto; font-size: 8.4pt; }
-  .rs-num { width: 30pt; }
+  .rs-num { width: 40pt; padding-left: 7pt; padding-right: 7pt; }
 }
 /* Совсем узкий экран: пятиколоночный платёжный план не помещается по-честному,
    поэтому подписи колонок и сроки уходят на свою строку внутри ячейки. */
@@ -332,12 +340,12 @@ table.rs-tbl { width: 100%; border-collapse: collapse; }
 
       <div class="rs-meta">
         <div>
-          <div class="rs-k">Заказчик</div>
-          <div class="rs-v">Сорокин Владимир Анатольевич</div>
+          <div class="rs-k">Менеджер</div>
+          <div class="rs-v">Кислицын Константин</div>
         </div>
         <div>
-          <div class="rs-k">Подрядчик</div>
-          <div class="rs-v">ООО «ПСК Вега»</div>
+          <div class="rs-k">Заказчик</div>
+          <div class="rs-v">Сорокин Владимир Анатольевич</div>
         </div>
         <div>
           <div class="rs-k">Объект</div>
@@ -351,8 +359,8 @@ table.rs-tbl { width: 100%; border-collapse: collapse; }
           <div class="rs-v">04.09.2026</div>
         </div>
         <div>
-          <div class="rs-k">Менеджер</div>
-          <div class="rs-v rs-v--plain">Кислицын Константин</div>
+          <div class="rs-k">Позиций в расчёте</div>
+          <div class="rs-v rs-v--plain">48</div>
         </div>
         <div>
           <div class="rs-k">Технология</div>
@@ -368,8 +376,16 @@ table.rs-tbl { width: 100%; border-collapse: collapse; }
 
   <!-- ══ ИТОГ ═════════════════════════════════════════════════════════ -->
   <div class="rs-hero">
-    <div class="rs-k">Общая стоимость за наличные</div>
-    <div class="rs-hero-sum">5 130 826 ₽</div>
+    <div class="rs-hero-top rs-hero-top--pair">
+      <div>
+        <div class="rs-k">Общая стоимость</div>
+        <div class="rs-hero-sum">5 289 511 ₽</div>
+      </div>
+      <div class="rs-hero-spec">
+        <div class="rs-k">Спец. цена</div>
+        <div class="rs-hero-sum rs-hero-sum--spec">5 130 826 ₽</div>
+      </div>
+    </div>
     <div class="rs-hero-rule"></div>
     <div class="rs-meta rs-meta--foot" style="margin-top:0;">
       <div>
@@ -381,12 +397,12 @@ table.rs-tbl { width: 100%; border-collapse: collapse; }
         <div class="rs-v">2 346 492 ₽</div>
       </div>
       <div>
-        <div class="rs-k">Без скидки</div>
-        <div class="rs-v">5 289 511 ₽</div>
+        <div class="rs-k">Выгода −3 %<i> за наличные</i></div>
+        <div class="rs-v rs-v--disc">158 685 ₽</div>
       </div>
       <div>
-        <div class="rs-k">Спец. цена −3 %</div>
-        <div class="rs-v rs-v--disc">−158 685 ₽</div>
+        <div class="rs-k">Действительна до</div>
+        <div class="rs-v">10.09.2026</div>
       </div>
     </div>
   </div>
@@ -408,13 +424,13 @@ table.rs-tbl { width: 100%; border-collapse: collapse; }
       </thead>
       <tbody>
         <tr>
-          <td class="rs-num">1</td>
+          <td class="rs-num">1.1</td>
           <td>Ленточный фундамент, лента 400×600 мм, бетон B22,5 W6
             <span class="rs-fine">Арматура А500С Ø12, шаг 200 мм; опалубка съёмная</span></td>
           <td class="rs-sum">248 000</td>
         </tr>
         <tr>
-          <td class="rs-num">2</td>
+          <td class="rs-num">1.2</td>
           <td>Двойная обвязка бруса 150×50 мм, антисептирование</td>
           <td class="rs-sum rs-in">Входит</td>
         </tr>
@@ -442,22 +458,22 @@ table.rs-tbl { width: 100%; border-collapse: collapse; }
       </thead>
       <tbody>
         <tr>
-          <td class="rs-num">1</td>
+          <td class="rs-num">2.1</td>
           <td>Высота пол/потолок в комнате отдыха — согласно проекту</td>
           <td class="rs-sum rs-in">Входит</td>
         </tr>
         <tr>
-          <td class="rs-num">2</td>
+          <td class="rs-num">2.2</td>
           <td>Стропильная система — доска сухая строганная 45×145 мм</td>
           <td class="rs-sum rs-in">Входит</td>
         </tr>
         <tr>
-          <td class="rs-num">3</td>
+          <td class="rs-num">2.3</td>
           <td>Контробрешётка кровли — доска 50×50 мм</td>
           <td class="rs-sum">86 400</td>
         </tr>
         <tr>
-          <td class="rs-num">4</td>
+          <td class="rs-num">2.4</td>
           <td>Увеличение высоты стен до 2 700 мм<span class="rs-gift">в подарок</span></td>
           <td class="rs-sum rs-plus">0</td>
         </tr>
@@ -489,18 +505,18 @@ table.rs-tbl { width: 100%; border-collapse: collapse; }
       </thead>
       <tbody>
         <tr>
-          <td class="rs-num">1</td>
+          <td class="rs-num">3.1</td>
           <td>Электрощит ABB 24M (2×12) в сборе
             <span class="rs-fine">Шкаф UK620P3RU, автоматы SH201L / SH203L, дифавтоматы DSH201R 30 мА</span></td>
           <td class="rs-sum rs-in">Входит</td>
         </tr>
         <tr>
-          <td class="rs-num">2</td>
+          <td class="rs-num">3.2</td>
           <td>Приточный клапан Ore КИВ-125-05 D125 мм, 0,5 м</td>
           <td class="rs-sum">12 400</td>
         </tr>
         <tr>
-          <td class="rs-num">3</td>
+          <td class="rs-num">3.3</td>
           <td>Септик 5-ка (септик + сбросной колодец + трасса 5 м + монтаж)</td>
           <td class="rs-sum">227 500</td>
         </tr>
@@ -528,7 +544,7 @@ table.rs-tbl { width: 100%; border-collapse: collapse; }
         <tr><td>Базовая комплектация</td><td class="rs-sum">2 943 019</td></tr>
         <tr><td>Опции по разделам 1–3</td><td class="rs-sum">2 346 492</td></tr>
         <tr><td>Стоимость без скидки</td><td class="rs-sum">5 289 511</td></tr>
-        <tr><td>Спец. цена за наличные, −3 %</td><td class="rs-sum rs-minus">−158 685</td></tr>
+        <tr><td>Выгода −3 % за наличные</td><td class="rs-sum rs-minus">−158 685</td></tr>
         <tr class="rs-sumrow"><td>К оплате заказчиком</td><td class="rs-sum">5 130 826</td></tr>
       </tbody>
     </table>
