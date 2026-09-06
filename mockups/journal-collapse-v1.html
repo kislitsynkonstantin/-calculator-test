@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Журнал обновлений: как сворачивать — макет</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#1e6c72;--gm:#2a8f97;--gl:#3db0ba;--gb:#e4f5f6;
+  --bk:#111;--gr:#555;--grl:#888;--bd:#d4e4e5;--w:#fff;
+}
+body.dark{--g:#1e6c72;--gm:#3db0ba;--gl:#4ecad4;--gb:#1a3034;--bk:#e8f0f1;--gr:#9ab;--grl:#678;
+  --bd:#2a3f42;--w:#1a2a2c;background:#111e20;}
+body{font-family:'Geologica',sans-serif;background:#f0f6f6;color:var(--bk);
+  padding:34px 20px 90px;transition:background .2s;}
+.wrap{max-width:880px;margin:0 auto;}
+
+/* ── шапка макета ── */
+.eyebrow{font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;
+  color:var(--gm);background:var(--gb);border-radius:20px;padding:4px 13px;display:inline-block;margin-bottom:14px;}
+h1{font-family:'Unbounded',sans-serif;font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;
+  margin-bottom:12px;color:var(--bk);}
+.lead{font-size:0.95rem;color:var(--gr);line-height:1.7;max-width:660px;}
+.lead+.lead{margin-top:12px;}
+
+/* ── переключатель темы ── */
+.tools{display:flex;gap:8px;align-items:center;margin:22px 0 34px;flex-wrap:wrap;}
+.tbtn{font:inherit;font-size:0.72rem;padding:9px 15px;border-radius:20px;border:1px solid var(--bd);
+  background:var(--w);color:var(--gr);cursor:pointer;}
+.tbtn.on{background:var(--g);border-color:var(--g);color:#fff;}
+
+/* ── карточка варианта ── */
+.opt{margin-bottom:44px;}
+.opt-h{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;margin-bottom:10px;}
+.opt-n{font-family:'Unbounded',sans-serif;font-size:1.4rem;font-weight:800;color:var(--gl);line-height:1;}
+.opt-t{font-family:'Unbounded',sans-serif;font-size:1rem;font-weight:700;color:var(--bk);}
+.opt-d{font-size:0.86rem;color:var(--gr);line-height:1.7;max-width:660px;margin-bottom:6px;}
+.opt-d b{color:var(--bk);font-weight:600;}
+.opt-why{font-size:0.78rem;color:var(--grl);line-height:1.65;max-width:660px;margin-bottom:16px;}
+
+/* ── «окно справки», в котором показан вариант ── */
+.frame{background:var(--w);border:1px solid var(--bd);border-radius:14px;overflow:hidden;}
+.frame-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--bd);
+  background:var(--gb);}
+.frame-dot{width:8px;height:8px;border-radius:50%;background:var(--gl);opacity:.5;}
+.frame-name{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:var(--gm);}
+.frame-body{padding:20px 16px 26px;max-height:560px;overflow-y:auto;}
+
+/* ── язык журнала: скопирован из справки без изменений ── */
+.upd{margin:0 0 22px;}
+.upd-head{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;
+  padding-bottom:9px;border-bottom:1px solid var(--bd);}
+.upd-ver{font-family:'Unbounded',sans-serif;font-size:1rem;font-weight:800;
+  color:var(--gm);letter-spacing:-0.01em;}
+.upd-date{font-size:0.72rem;color:var(--grl);}
+.upd-state{margin-left:auto;align-self:center;font-size:0.55rem;text-transform:uppercase;
+  letter-spacing:0.1em;font-weight:700;padding:3px 10px;border-radius:20px;
+  background:transparent;border:1px solid var(--bd);color:var(--grl);white-space:nowrap;}
+.upd-state.now{color:var(--g);border-color:var(--gl);background:var(--gb);}
+.upd-group{font-size:0.56rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--gm);padding:18px 14px 0;}
+body.dark .upd-group{color:var(--gl);}
+.upd-list>.upd-group:first-child{padding-top:12px;}
+.upd-item{position:relative;padding:13px 14px;font-size:0.86rem;line-height:1.7;color:var(--bk);}
+.upd-item strong{color:var(--bk);font-weight:700;}
+.upd-item > strong:first-child{color:var(--g);}
+body.dark .upd-item > strong:first-child{color:var(--gm);}
+.upd-item+.upd-item::before{content:'';position:absolute;left:14px;right:14px;top:0;
+  height:1px;background:var(--bd);}
+.upd-group+.upd-item::before{display:none;}
+.upd-link{color:var(--g);border-bottom:1px solid rgba(30,108,114,0.35);cursor:pointer;}
+.upd-link:hover{border-bottom-color:var(--g);}
+body.dark .upd-link{color:var(--gm);border-bottom-color:rgba(61,176,186,0.45);}
+
+/* ── А: гармошка по версиям ── */
+/* Шапка версии становится кнопкой: вся строка, а не одна стрелка — на телефоне
+   попасть в стрелку 14 px нечем. */
+.acc .upd-head{cursor:pointer;user-select:none;padding:10px 6px 10px 0;min-height:44px;
+  align-items:center;border-radius:8px;}
+.acc .upd-head:hover{background:var(--gb);}
+/* Стрелка всегда у правого края, метка «текущая» — рядом со счётом правок.
+   Иначе стрелки стоят лесенкой: у выпуска с меткой она уезжает вправо, у
+   остальных липнет к счётчику, и колонка распадается. */
+.acc .upd-state{margin-left:0;}
+.acc .upd-chev{margin-left:auto;flex:none;color:var(--grl);transition:transform .18s;}
+.acc .upd.open .upd-chev{transform:rotate(180deg);}
+.acc .upd-count{font-size:0.68rem;color:var(--grl);}
+.acc .upd-list{display:none;}
+.acc .upd.open .upd-list{display:block;}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+.bar-b{font:inherit;font-size:0.7rem;padding:8px 14px;border-radius:20px;border:1px solid var(--bd);
+  background:transparent;color:var(--gr);cursor:pointer;min-height:36px;}
+.bar-b:hover{border-color:var(--gl);color:var(--g);}
+.bar-b.on{background:var(--g);border-color:var(--g);color:#fff;}
+
+/* ── Б: только заголовки ── */
+.brief .upd-item{padding-left:30px;cursor:pointer;}
+.brief .upd-item::after{content:'';position:absolute;left:14px;top:20px;width:6px;height:6px;
+  border-right:1.5px solid var(--grl);border-bottom:1.5px solid var(--grl);
+  transform:rotate(-45deg);transition:transform .18s;}
+.brief .upd-item.open::after{transform:rotate(45deg);}
+.brief .upd-item .telo{display:none;}
+.brief .upd-item.open .telo{display:inline;}
+.brief .upd-item > strong:first-child{display:block;}
+
+/* ── В: отдельное окно ── */
+.win{background:var(--w);border:1px solid var(--bd);border-radius:14px;overflow:hidden;
+  box-shadow:0 10px 40px rgba(0,0,0,0.10);}
+.win-top{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--bd);}
+.win-title{font-family:'Unbounded',sans-serif;font-size:0.86rem;font-weight:700;color:var(--bk);}
+/* Крестик рисуется на 30 px — таким он и стоит во всех окнах калькулятора, —
+   а нажимается на 44: поле расширено невидимым слоем, а не самой кнопкой.
+   Раздувать коробку ради пальца значит утяжелять крестик до веса заголовка. */
+.win-x{position:relative;margin-left:auto;width:30px;height:30px;border-radius:9px;
+  border:1px solid var(--bd);background:transparent;color:var(--gr);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;}
+.win-x::before{content:'';position:absolute;inset:-7px;}
+.win-rail{display:flex;gap:7px;padding:11px 16px;border-bottom:1px solid var(--bd);overflow-x:auto;
+  -webkit-overflow-scrolling:touch;}
+.win-chip{font:inherit;font-size:0.72rem;padding:8px 13px;border-radius:20px;border:1px solid var(--bd);
+  background:transparent;color:var(--gr);cursor:pointer;white-space:nowrap;min-height:36px;}
+.win-chip.on{background:var(--g);border-color:var(--g);color:#fff;}
+.win-chip .d{opacity:.65;font-size:0.64rem;margin-left:5px;}
+.win-body{padding:16px 16px 24px;max-height:460px;overflow-y:auto;}
+.win-body .upd-head{display:none;}
+
+/* ── итоговый блок ── */
+.rec{background:var(--gb);border:1px solid var(--bd);border-left:3px solid var(--gl);
+  border-radius:12px;padding:18px 20px;margin-top:10px;}
+.rec h2{font-family:'Unbounded',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:10px;color:var(--bk);}
+.rec p{font-size:0.86rem;line-height:1.7;color:var(--gr);max-width:660px;}
+.rec p+p{margin-top:9px;}
+.rec b{color:var(--bk);font-weight:600;}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);
+  background:var(--g);color:#fff;font-size:0.76rem;padding:10px 18px;border-radius:22px;
+  opacity:0;pointer-events:none;transition:.2s;z-index:50;}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+@media(max-width:720px){
+  body{padding:22px 14px 80px;}
+  h1{font-size:1.2rem;}
+  .lead{font-size:0.86rem;}
+  .frame-body{padding:16px 10px 20px;max-height:none;}
+  .win-body{max-height:none;}
+  .upd-item{font-size:0.82rem;padding:11px 12px;}
+  .brief .upd-item{padding-left:28px;}
+  .upd-group{padding-left:12px;padding-right:12px;}
+  .upd-ver{font-size:0.92rem;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">test.calculator.baniamsk.ru/mockups</div>
+  <h1>Журнал обновлений: как сворачивать</h1>
+  <p class="lead">Сейчас журнал — одна лента: семьдесят три пункта в тринадцати выпусках, и чтобы
+    добраться до позапрошлой версии, её надо прокрутить целиком. Три варианта, как это разложить.
+    Содержимое во всех трёх настоящее — четыре последних выпуска из справки, ничего не сокращено.</p>
+  <p class="lead">Варианты не исключают друг друга: А и Б складываются в один, В — отдельное решение
+    и стоит дороже остальных. Ниже, после макетов, что бы взял я.</p>
+
+  <div class="tools">
+    <button class="tbtn on" id="btnDay" onclick="тема('day')">День</button>
+    <button class="tbtn" id="btnNight" onclick="тема('night')">Ночь</button>
+    <button class="tbtn" onclick="узко()" id="btnNarrow">Показать как на телефоне</button>
+  </div>
+
+  <!-- ── А ── -->
+  <section class="opt">
+    <div class="opt-h"><span class="opt-n">А</span><span class="opt-t">Гармошка по версиям</span></div>
+    <p class="opt-d">Каждый выпуск — сворачиваемая карточка. Открыт только текущий, остальные
+      свёрнуты в строку «версия · дата · сколько правок». Сверху кнопки <b>«Свернуть все»</b> и
+      <b>«Развернуть все»</b>. Нажимается вся строка выпуска, а не стрелка.</p>
+    <p class="opt-why">Это прямой ответ на задачу и самое дешёвое из трёх. Журнал открывается на
+      одном экране целиком: тринадцать строк вместо тринадцати простыней. Минус — внутри
+      развёрнутого выпуска по-прежнему длинная лента, если правок много.</p>
+    <div class="frame">
+      <div class="frame-bar"><span class="frame-dot"></span><span class="frame-name">Справка · Журнал обновлений</span></div>
+      <div class="frame-body">
+        <div class="bar">
+          <button class="bar-b" onclick="всеА(false)">Свернуть все</button>
+          <button class="bar-b" onclick="всеА(true)">Развернуть все</button>
+        </div>
+        <div class="acc" id="варА"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Б ── -->
+  <section class="opt">
+    <div class="opt-h"><span class="opt-n">Б</span><span class="opt-t">Только заголовки</span></div>
+    <p class="opt-d">То же сворачивание по выпускам, но внутри выпуска каждый пункт свёрнут до
+      своего заголовка — той самой бирюзовой строки. Нажал заголовок — раскрылся один пункт.
+      Переключатель <b>«Кратко / Подробно»</b> вверху меняет режим для всего журнала.</p>
+    <p class="opt-why">Даёт то, чего нет сейчас вовсе: список всех правок выпуска одним взглядом —
+      восемь строк вместо трёх экранов. Читается как оглавление. Минус — два уровня сворачивания
+      сразу, и человек, открывший журнал впервые, видит список без единого объяснения.</p>
+    <div class="frame">
+      <div class="frame-bar"><span class="frame-dot"></span><span class="frame-name">Справка · Журнал обновлений</span></div>
+      <div class="frame-body">
+        <div class="bar">
+          <button class="bar-b on" id="крБ" onclick="режимБ('кратко')">Кратко</button>
+          <button class="bar-b" id="прБ" onclick="режимБ('подробно')">Подробно</button>
+        </div>
+        <div class="acc brief" id="варБ"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── В ── -->
+  <section class="opt">
+    <div class="opt-h"><span class="opt-n">В</span><span class="opt-t">Отдельное окно</span></div>
+    <p class="opt-d">Журнал уходит из справки в собственное окно — как «Журнал действий» или
+      «Аналитика». Вверху ряд версий, ниже — только выбранный выпуск. Ничего не прокручивается
+      мимо: переключение версии это одно нажатие, а не путешествие по ленте.</p>
+    <p class="opt-why">Самый удобный для чтения и самый дорогой: отдельное окно, своя кнопка,
+      жёлтая точка о непрочитанном переезжает туда же, а справка теряет один раздел. Плюс —
+      журнал перестаёт быть главой справки и становится тем, чем он и является: лентой выпусков.</p>
+    <div class="win">
+      <div class="win-top">
+        <span class="win-title">Журнал обновлений</span>
+        <button class="win-x" onclick="стоп()" aria-label="Закрыть">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="win-rail" id="релсВ"></div>
+      <div class="win-body" id="варВ"></div>
+    </div>
+  </section>
+
+  <div class="rec">
+    <h2>Что бы взял я</h2>
+    <p><b>А плюс Б одним решением, без отдельного окна.</b> Выпуски свёрнуты, открыт текущий —
+      это закрывает задачу целиком. Внутри выпуска «Кратко / Подробно» стоит рядом и по умолчанию
+      выключен: человек, который зашёл прочитать, что нового, читает как раньше, а тот, кто ищет
+      конкретную правку, жмёт «Кратко» и видит все заголовки списком.</p>
+    <p><b>Отдельное окно — позже и только если журнал начнут открывать часто.</b> Сейчас он
+      открывается по жёлтой точке раз в выпуск, и ради этого заводить окно, кнопку в шапке и
+      перенос непрочитанного — работа ради работы. Вернуться к этому стоит, когда журнал станет
+      местом, куда заходят сами, а не по точке.</p>
+    <p>Что в любом варианте остаётся: состояние «свёрнуто/развёрнуто» надо помнить между
+      открытиями — иначе каждый раз сворачивать заново. И жёлтая точка о непрочитанном выпуске
+      должна сама разворачивать нужную карточку, а не оставлять человека перед списком.</p>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<template id="исход">
+<div class="upd">
+      <div class="upd-head">
+        <span class="upd-ver">v2.5.6</span>
+        <span class="upd-date">06.09.2026</span>
+        <span class="upd-state now">текущая</span>
+      </div>
+      <div class="upd-list">
+
+      <div class="upd-group">Что нового</div>
+
+      <div class="upd-item"><strong>Стиль печати «Модерн» заменён новым документом.</strong>
+        Стоит вторым в списке, сразу после «Бланка»; прежний «Модерн» удалён. Цифры
+        те же, что в остальных стилях, — меняется только оформление. Как он устроен
+        и когда его брать — в главе <span class="upd-link" onclick="goTo('print','Выбрать стиль')">«Версия для печати»</span>.</div>
+
+      <div class="upd-item"><strong>Добавлена автоматизация названий позиций.</strong>
+        Две позиции теперь пишут себя сами, от того, что выбрано рядом. Отметили кровлю
+        Шинглас — снегозадержатели становятся <em>крючками</em>, сняли — возвращаются
+        <em>трубчатыми</em>: на мягкой кровле трубчатые не ставятся, и в документ уходит
+        то, что поедет на объект. О замене калькулятор говорит всплывающим сообщением,
+        как и об автоматике примечаний, — чтобы соседняя строка не менялась молча. Отметили утепление пола и потолка 200 мм — лаги пола и
+        стропильная система переписываются на сечение <em>45×195 мм</em>, сняли — возвращаются
+        к 45×145. Каркас наружных стен не трогается: он идёт от утепления стен.
+        <br><br>
+        Из названия самой опции утепления убрана приписка про изменение конструктива —
+        сечение теперь стоит там, где ему место, в самих позициях лаг и стропил.
+        Все правила — в главе <span class="upd-link" onclick="goTo('options','Названия, которые меняются сами')">«Опции и разделы»</span>.</div>
+
+      <div class="upd-item"><strong>Позиции можно добавлять списком.</strong>
+        В форме «Добавить опцию» появилась вторая вкладка — «Списком». Вставьте туда кусок
+        спецификации из письма или таблицы, по позиции в строке: калькулятор срежет нумерацию
+        вида «4.1» и «1)», найдёт цены и покажет разбор до вставки — сколько позиций
+        распознано, у скольких есть цена и на сколько вырастет раздел. Лишнюю строку уберите
+        крестиком, она не добавится.
+        <br><br>
+        Цену от названия отделяют знаки <strong>|</strong> и <strong>;</strong> или
+        табуляция <strong>Tab</strong>, которая в таблице уже стоит между колонками.
+        С телефона, где клавиши <strong>Tab</strong> нет, — <strong>два пробела
+        подряд</strong>: зазор видно глазами, и разбор его понимает. Строка,
+        кончающаяся знаком рубля, тоже читается как цена. Тире и дефис
+        разделителями не считаются: они слишком часто стоят в самих названиях.
+        <br><br>
+        Под полем вставки стоит кнопка <strong>«Поставить разделитель»</strong>: курсор
+        туда, где кончается название, нажатие — и знак встал, разбор пересчитался.
+        Клавиатура при этом не закрывается.
+        <br><br>
+        Позиция без цены уходит нулём и печатается как «Входит». Позиция с ценой попадает
+        в сумму раздела, а в документе тоже стоит «Входит», пока не открыт глаз «показывать
+        цену» — как у любой своей опции. Строки, разорванные переносом, склеиваются обратно;
+        это выключается галочкой. Подробно — в главе <span class="upd-link" onclick="goTo('options','Добавить произвольную позицию')">«Опции и разделы»</span>.</div>
+
+      <div class="upd-group">Исправлено</div>
+
+      <div class="upd-item"><strong>Полоска итога больше не повисает посреди страницы
+        на телефоне.</strong> Когда открывалась экранная клавиатура — при добавлении
+        своей опции или примечания — полоска оставалась стоять поперёк строк
+        спецификации. Теперь на время набора она убирается и возвращается, как только
+        клавиатура закрылась.</div>
+
+      <div class="upd-item"><strong>Код состава в номере договора больше не пропадает.</strong>
+        Выбрали в «Разделах» основной договор или отделку — к номеру при печати
+        добавляется «-КАР», «-КБ» или «-ОТД». Раньше стоило снять галочку с одного
+        раздела, и код исчезал: печать считала, что состав больше не выбран. Теперь
+        состав держится, пока набор остаётся его частью — вы печатаете тот же договор,
+        просто без одного раздела. Код уходит только если отметили раздел из другого
+        договора или сняли все разделы этого. Как собирается номер — в главе <span class="upd-link" onclick="goTo('project','Данные для договора')">«Выбор проекта»</span>.</div>
+
+      <div class="upd-item"><strong>Убрано примечание «Терраса в базовую стоимость
+        не входит».</strong> Оно стояло в разделе «Внешняя отделка» и спорило с самой
+        спецификацией: террасная доска — лиственница или импрегнированная сосна —
+        входит в базовую комплектацию. Из раздела и из выгрузки строка убрана.
+        <br><br>
+        Заодно все примечания стали говорить одинаково — <strong>«в базовую
+        комплектацию»</strong>. Раньше половина из них говорила «в базовую стоимость»,
+        и в одном документе стояли обе формулировки. Смысл прежний, изменилось
+        только слово.</div>
+
+      </div>
+    </div>
+<div class="upd">
+      <div class="upd-head">
+        <span class="upd-ver">v2.5.5</span>
+        <span class="upd-date">04.09.2026</span>
+      </div>
+      <div class="upd-list">
+
+      <div class="upd-group">Что нового</div>
+
+      <div class="upd-item"><strong>Планкен: прямой или скошенный.</strong>
+        У всех тринадцати позиций с планкеном — сосна и лиственница — в строке появился
+        переключатель «Прямой / Скошенный», такой же, как «Листв / Импрег» у террасной доски.
+        Название меняется под выбор: «планкен прямой сосна», «планкен скошенный сосна», —
+        и в документ уходит выбранный профиль. На цену выбор не влияет.</div>
+
+      <div class="upd-item"><strong>Тип краски — переключателем, а не значком.</strong>
+        Значок палитры заменён переключателем «Укрывная / Лессирующая»: видно, что именно
+        выбрано, и не нужно догадываться, что делает значок. Лессирующий состав по-прежнему
+        дороже укрывного, и название позиции меняется вместе с выбором.</div>
+
+      <div class="upd-item"><strong>Платёжный план сохраняется в пресете.</strong>
+        Переименовали договор, добавили третий, перенесли раздел — всё это уходит в пресет
+        вместе с расчётом и возвращается при его открытии. «Сбросить всё» и выбор нового
+        проекта, наоборот, возвращают стандартные два договора — основной и на отделку —
+        и очищают разнесённые платежи, чтобы от прежнего расчёта ничего не оставалось. Подробно — в главе <span class="upd-link" onclick="goTo('payment','Свой план сохраняется в пресете')">«Платёжный план»</span>.</div>
+
+      <div class="upd-item"><strong>Добавлена автоматизация раздела фундамент.</strong>
+        Фундамент теперь один: отметили тип — остальные три гаснут и получают замок.
+        Двойная обвязка доступна только со свайно-винтовым фундаментом; сняли
+        фундамент — обвязка снимается сама. Очерёдность позиций в разделе выстроена
+        по порядку работ, и добавлено примечание: <em>геологические и геодезические
+        изыскания в базовую комплектацию не входят</em>. Все правила — в главе <span class="upd-link" onclick="goTo('options','Фундамент: тип только один')">«Опции и разделы»</span>.</div>
+
+      <div class="upd-item"><strong>Итог в печатном «Бланке» — в две колонки.</strong>
+        Общая стоимость слева, спец. цена за наличные справа той же строкой — как
+        в шапке этого же листа и как в «Карточках». Раньше все три строки были прижаты
+        влево лесенкой. Состав — база, опции, число позиций — остался сноской во всю
+        ширину под линейкой: он объясняет обе цифры сразу. Процент переехал из скобок
+        после суммы в подпись: «Спец. цена −3% за наличные», а сумма встала ровно
+        под общей стоимостью. Если проставлен срок «Действительна до», он встаёт
+        в правом углу сноски, под самой спец. ценой. Без скидки правая половина
+        не показывается, на телефоне колонки складываются в одну.</div>
+
+      <div class="upd-item"><strong>Закрытая позиция объясняет, кто её закрыл.</strong>
+        Нажмите на погашенную строку — рядом появится подсказка с названием того,
+        что мешает, а экран перенесёт к этой позиции и мигнёт рамкой. Раньше строка
+        просто не отвечала на нажатие: подсказку давал только замок при наведении
+        мышью, и на телефоне узнать причину было нечем. Работает во всех разделах,
+        а не только в фундаменте. Подробно — в главе <span class="upd-link" onclick="goTo('options','Почему позиция закрыта')">«Опции и разделы»</span>.</div>
+
+      <div class="upd-item"><strong>Позицию без суммы отметить нельзя.</strong>
+        У позиций с ценой по запросу — с полем «введите сумму» — галочка теперь
+        ставится только после того, как сумма введена. Нажали на строку с пустым
+        полем: поле мигнёт, курсор встанет в него, и появится подсказка. Раньше
+        такая позиция отмечалась с нулём и уходила в документ строкой без цены.</div>
+
+      <div class="upd-item"><strong>Примечания уходят сами, когда не к месту.</strong>
+        Примечание про редкие цвета и толщину металла остаётся только у металлочерепицы —
+        выбрали шинглас, ЦПЧ или наплавляемую кровлю, и оно скрывается глазом само.
+        Примечание про лессирующий состав уходит, когда состав уже выбран переключателем
+        или когда выбрана покраска маслом, — там лессирующего состава нет вовсе.
+        Вернуть скрытое примечание можно вручную, как и раньше. Все правила — в главе <span class="upd-link" onclick="goTo('options','Примечания, которые уходят сами')">«Опции и разделы»</span>.</div>
+
+      </div>
+    </div>
+<div class="upd">
+      <div class="upd-head">
+        <span class="upd-ver">v2.5.4</span>
+        <span class="upd-date">03.09.2026</span>
+      </div>
+      <div class="upd-list">
+
+      <div class="upd-group">Что нового</div>
+
+      <div class="upd-item"><strong>Пресет сохраняется сам, пока открыт.</strong>
+        Открыли пресет — у кнопки «Пресеты» загорается серая точка: всё, что вы
+        меняете, уходит в этот пресет само, нажимать «Сохранить» не нужно. Точка гаснет,
+        когда выбираете другой проект. У общих пресетов точки нет — там своя зелёная
+        полоска внизу. Кнопки «Сохранить» на карточке больше нет — она не нужна. Подробно — в главе <span class="upd-link" onclick="goTo('presets','Пока пресет открыт, он сохраняется сам')">«Пресеты»</span>.</div>
+
+      <div class="upd-item"><strong>Скидку можно задать суммой.</strong>
+        Строка «Экономия» стала полем «Скидка» и стоит всегда. Вводите процент —
+        появится сумма; вводите сумму — появится процент, округлённый до десятых.
+        Считать процент от суммы руками больше не нужно. Главным остаётся процент,
+        поэтому по выходу из поля сумма подтянется к округлённому проценту:
+        50 000 ₽ при стоимости 2 142 194 ₽ дадут 2,3 % и 49 270 ₽.
+        Галочка «за наличные» стоит здесь же, сразу после суммы. Подробно — в главе <span class="upd-link" onclick="goTo('project','Процентом или суммой')">«Выбор проекта»</span>.</div>
+
+      <div class="upd-item"><strong>Номер договора получает код состава.</strong>
+        В поле вводите только цифры. При печати к номеру добавится код выбранного
+        в «Разделах» состава: основной договор — «-КАР» в каркасе и «-КБ» в клеёном
+        брусе, отделка — «-ОТД». Состав не выбран — номер печатается как есть.
+        <br><br>
+        Если код дописан к номеру руками — печать его не меняет. Набрали
+        «5991387-КАР» — так и напечатается, какой бы состав ни был выбран.
+        <br><br>
+        У договора, который вы собрали сами в платёжном плане, код складывается
+        из первых букв ключевых слов названия — предлоги и союзы в счёт не идут,
+        букв не больше трёх. «Договор на парную» даёт «-ДП», «Инженерные работы» —
+        «-ИР». Код видно рядом с названием прямо в окне договоров, и он меняется,
+        пока вы набираете название, — так что подобрать нужный можно сразу.
+        <br><br>
+        В общий пресет номер и дата договора раньше не уходили: на экране стояли,
+        а в пресете их не было. Теперь сохраняются, как менеджер и заказчик, и код
+        состава подставляется и в пресетах, сохранённых раньше. Как собирается номер — в главе <span class="upd-link" onclick="goTo('project','Данные для договора')">«Выбор проекта»</span>.</div>
+
+      <div class="upd-item"><strong>Штукатурка фасада — на ЦСП.</strong>
+        Опция «Обшивка стен — штукатурка фасада» теперь считается по ЦСП, а не по ОСБ:
+        название и ставка обновлены. На 48 м² фасада выходит 294 943 ₽ вместо 237 514 ₽.</div>
+
+<div class="upd-item"><strong>Марка краски в позициях покраски.</strong>
+        «Покраска снаружи», «Заводская покраска снаружи» и «Покраска клеёного бруса
+        со шлифовкой» теперь называются с маркой: «укрывная краска Sikkens, Zobel
+        или аналоги».</div>
+
+      <div class="upd-item"><strong>Замок общего пресета закрывает правку.</strong>
+        Пока замок закрыт, изменить в пресете нельзя ничего: спецификация, реквизиты
+        и картинки не отвечают на нажатия. Просмотр, печать и снятие замка работают
+        как обычно. Подробно — в главе <span class="upd-link" onclick="goTo('presets','Замок на общем пресете')">«Пресеты»</span>.</div>
+
+      <div class="upd-item"><strong>Журнал действий стал подробнее.</strong>
+        В окне журнала появился ряд «Показ» с кнопками «Кратко» и «Подробно». Выберите
+        «Подробно» — и к обычным
+        событиям добавится то, как собирался расчёт: выбор проекта, технология, толщина,
+        применённая комплектация, набор опций сводкой, заполнение реквизитов, изображения
+        и чек-лист. «Кратко» — журнал выглядит как раньше.<br><br>
+        Набор опций пишется списком: каждая позиция с новой строки, отдельно
+        «Добавлены» и «Убраны». В журнал попадает всё, что меняет расчёт: свои опции
+        и свои примечания (добавление, правка, удаление), отметки показа — звезда,
+        выделение, глаз «цена в печати» и глаз у примечания, — «за наличные», срок
+        спец. цены, переименование состава и правки реквизитов. Отметки и реквизиты
+        пишутся сводкой за подход, а не строкой на каждое нажатие. Подробно — в главе <span class="upd-link" onclick="goTo('actionlog','Показ: «Кратко» и «Подробно»')">«Журнал действий»</span>.</div>
+
+      <div class="upd-item"><strong>«Загрузить» закрывает окно пресетов.</strong>
+        Раньше окно оставалось открытым, и его закрывали руками каждый раз.</div>
+
+      <div class="upd-item"><strong>Звезда в полоске общего пресета.</strong>
+        Открытый пресет можно отметить избранным прямо в полоске внизу, не открывая
+        список.</div>
+
+            <div class="upd-group">Исправлено</div>
+
+      <div class="upd-item"><strong>Часть правок не сохранялась в общем пресете.</strong>
+        Звезда и выделение опции, глаз «цена в печати», свои примечания, галочка
+        «за наличные», срок спец. цены и правки плана оплаты — «Распределить»,
+        «Сбросить», переименование этапа — оставались только на экране. Теперь
+        сохраняются все.</div>
+
+      <div class="upd-item"><strong>«undefined» в подписи заказчика.</strong>
+        Лишний пробел в имени заказчика попадал в документ как «undefined».</div>
+
+      <div class="upd-item"><strong>Полоска общего пресета на телефоне.</strong>
+        Она разъезжалась в столбцы, а имя рвалось на шесть строк. Теперь две строки:
+        имя сверху, состояние и замок снизу. Всплывающее сообщение больше её не
+        перекрывает.</div>
+
+      <div class="upd-item"><strong>Крестик очистки в поиске общих пресетов.</strong>
+        Он не показывался, если строку поиска набрали во вкладке «Мои», а потом
+        перешли в «Общие».</div>
+
+      </div>
+    </div>
+<div class="upd">
+      <div class="upd-head">
+        <span class="upd-ver">v2.5.3</span>
+        <span class="upd-date">01.09.2026</span>
+      </div>
+      <div class="upd-list">
+
+      <div class="upd-group">Что нового</div>
+
+      <div class="upd-item"><strong>Террасная доска: лиственница или сосна на выбор.</strong>
+        В строке позиции появился переключатель «Листв / Импрег» — такой же, как «+ Доп» и
+        «Замена» у других опций. Название меняется под выбор, и в документ уходит один
+        материал, а не два через косую черту. На цену выбор не влияет.
+        <br><br>
+        Сама позиция снимается при выборе проекта, если террасы в проекте нет — ни открытой,
+        ни крытой. Про переключатели в строке — в главе <span class="upd-link" onclick="goTo('options','Переключатели прямо в строке опции')">«Опции и разделы»</span>.</div>
+
+      <div class="upd-item"><strong>Примечания больше не пропадают со страницы.</strong>
+        Три примечания — про печь, водосточную систему и снегозадержатели — раньше исчезали,
+        когда вы выбирали соответствующую опцию. Теперь строка остаётся на месте зачёркнутой,
+        с закрытым глазом: видно и само примечание, и то, что в документ оно не пойдёт.
+        Вернуть его можно тем же глазом.</div>
+
+      <div class="upd-item"><strong>Каркас: клееные столбы и примечания мокрых зон.</strong>
+        У опции «Клееные столбы на террасе 200×200» убрано «(при наличии)», и она сама
+        подстраивается под проект: есть крытая терраса — галочка стоит, нет — снимается.
+        Правило нежёсткое: галочку можно вернуть или снять руками, пересчёт её не тронет.
+        <br><br>
+        Примечание «Ограждения, пергола и ступени» разделено на два — про ограждения
+        с перголой и про постоянные ступени. А примечание про мокрые зоны стало
+        подстраиваться: выбрали обшивку санузла — оно остаётся про моечное отделение,
+        выбрали моечное — про санузел, выбрали обе — уходит с печати.</div>
+
+      <div class="upd-item"><strong>Журнал действий — новое окно.</strong>
+        Кнопка со списком в шапке, сразу за аналитикой. Лентой показывает ваши действия
+        в калькуляторе: пресеты, печать, ссылки клиенту, скидки, правки цен, подарки,
+        платёжный план, договоры, ручные проекты. В строке — время, что сделано и с какого
+        значения на какое; нажатие раскрывает подробности.
+        <br><br>
+        Период выбирается списком: от семи дней до всего времени, плюс свой диапазон дат.
+        Булавка напротив пункта ставит период кнопкой прямо в панели — набор кнопок ваш
+        и запоминается на устройстве. Записи хранятся за всё время. Что в нём есть — в главе <span class="upd-link" onclick="goTo('actionlog','Что в окне')">«Журнал действий»</span>.</div>
+
+
+      <div class="upd-item"><strong>Экран входа в оформлении темы «Бланк».</strong>
+        Тот самый первый экран, где вводят почту и пароль. Раньше он открывался
+        в прежнем виде, даже когда в калькуляторе выбран «Бланк». Теперь он
+        один для всех и в языке темы: тот же шрифт и та же бирюза, поля
+        подчёркнуты линейкой. Переключатель дня и ночи остался на месте, слева
+        сверху; логотип в тёмной теме белый. Подробно — в главе <span class="upd-link" onclick="goTo('account','Экран входа')">«Аккаунт и синхронизация»</span>.</div>
+
+      </div>
+    </div>
+</template>
+<script>
+// Содержимое одно на три варианта: каждый клонирует его и вешает своё поведение.
+const ИСХОД = document.getElementById('исход');
+const карточки = () => [...ИСХОД.content.cloneNode(true).children].filter(э => э.classList && э.classList.contains('upd'));
+
+function число(n, формы) {           // 6 → «6 правок»
+  const о = Math.abs(n) % 100, е = о % 10;
+  if (о > 10 && о < 20) return n + ' ' + формы[2];
+  if (е > 1 && е < 5) return n + ' ' + формы[1];
+  if (е === 1) return n + ' ' + формы[0];
+  return n + ' ' + формы[2];
+}
+const ШЕВРОН = '<svg class="upd-chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>';
+
+// ── А и Б: гармошка по выпускам ──
+function собрать(куда, первыйОткрыт) {
+  const цель = document.getElementById(куда);
+  карточки().forEach((к, i) => {
+    const шапка = к.querySelector('.upd-head');
+    const сколько = к.querySelectorAll('.upd-item').length;
+    const счёт = document.createElement('span');
+    счёт.className = 'upd-count';
+    счёт.textContent = число(сколько, ['правка', 'правки', 'правок']);
+    const метка = шапка.querySelector('.upd-state');
+    метка ? шапка.insertBefore(счёт, метка) : шапка.appendChild(счёт);
+    шапка.insertAdjacentHTML('beforeend', ШЕВРОН);
+    шапка.onclick = () => к.classList.toggle('open');
+    if (i === 0 && первыйОткрыт) к.classList.add('open');
+    цель.appendChild(к);
+  });
+}
+function всеА(открыть) {
+  document.querySelectorAll('#варА .upd').forEach(к => к.classList.toggle('open', открыть));
+}
+// ── Б: пункт свёрнут до заголовка ──
+function режимБ(режим) {
+  const кратко = режим === 'кратко';
+  document.getElementById('крБ').classList.toggle('on', кратко);
+  document.getElementById('прБ').classList.toggle('on', !кратко);
+  const блок = document.getElementById('варБ');
+  блок.classList.toggle('brief', кратко);
+  if (!кратко) блок.querySelectorAll('.upd-item').forEach(п => п.classList.remove('open'));
+}
+function подготовитьБ() {
+  document.querySelectorAll('#варБ .upd-item').forEach(п => {
+    // всё, что после заголовка, заворачиваем в свой узел — его и прячем
+    const тело = document.createElement('span');
+    тело.className = 'telo';
+    const заг = п.firstElementChild;
+    while (заг.nextSibling) тело.appendChild(заг.nextSibling);
+    п.appendChild(тело);
+    п.onclick = е => { if (!е.target.closest('.upd-link')) п.classList.toggle('open'); };
+  });
+}
+// ── В: отдельное окно ──
+function собратьВ() {
+  const рельс = document.getElementById('релсВ'), тело = document.getElementById('варВ');
+  карточки().forEach((к, i) => {
+    const вер = к.querySelector('.upd-ver').textContent;
+    const дата = (к.querySelector('.upd-date') || {}).textContent || '';
+    const чип = document.createElement('button');
+    чип.className = 'win-chip' + (i === 0 ? ' on' : '');
+    чип.innerHTML = вер + (дата ? '<span class="d">' + дата.slice(0, 5) + '</span>' : '');
+    чип.onclick = () => {
+      [...рельс.children].forEach(c => c.classList.remove('on'));
+      чип.classList.add('on');
+      [...тело.children].forEach(к2 => к2.hidden = к2.dataset.вер !== вер);
+      тело.scrollTop = 0;
+    };
+    рельс.appendChild(чип);
+    к.dataset.вер = вер;
+    к.hidden = i !== 0;
+    тело.appendChild(к);
+  });
+}
+// ── обвязка макета ──
+function тема(к) {
+  document.body.classList.toggle('dark', к === 'night');
+  document.getElementById('btnDay').classList.toggle('on', к === 'day');
+  document.getElementById('btnNight').classList.toggle('on', к === 'night');
+}
+let узкий = false;
+function узко() {
+  узкий = !узкий;
+  document.querySelector('.wrap').style.maxWidth = узкий ? '390px' : '880px';
+  document.getElementById('btnNarrow').classList.toggle('on', узкий);
+  document.getElementById('btnNarrow').textContent = узкий ? 'Вернуть широкий экран' : 'Показать как на телефоне';
+}
+function goTo(гл) { всплыть('В справке отсюда открылась бы глава «' + гл + '»'); }
+function стоп() { всплыть('В макете окно не закрывается'); }
+let тм = null;
+function всплыть(т) {
+  const э = document.getElementById('toast');
+  э.textContent = т; э.classList.add('on');
+  clearTimeout(тм); тм = setTimeout(() => э.classList.remove('on'), 2200);
+}
+собрать('варА', true);
+собрать('варБ', true);
+подготовитьБ();
+собратьВ();
+</script>
+</body>
+</html>
