@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Углы у фото: удалить и изменить размер — макет v1</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+/* Токены «Бланка», дословно из калькулятора. Макет живёт в его языке. */
+:root{
+  --page:#f7fbfb; --sheet:#fff; --zebra:#f7fafb;
+  --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5;
+  --rule:#dceaeb; --rule2:#bcd9db;
+  --acc:#1e6c72; --acc2:#2a8f97; --pale:#a8dde0; --tint:#e4f5f6;
+}
+body.dark{
+  --page:#0e1a1c; --sheet:#132528; --zebra:#173338;
+  --ink:#e6f3f3; --ink2:#9db6b8; --ink3:#8aa4a6;
+  --rule:#224347; --rule2:#2d585d;
+  --acc:#8fd6dc; --acc2:#5fc2ca; --pale:#5fc2ca; --tint:#173338;
+}
+body{font-family:'Geologica',system-ui,sans-serif;background:var(--page);color:var(--ink);
+  font-variant-numeric:tabular-nums;-webkit-text-size-adjust:100%;}
+.main{max-width:1000px;margin:0 auto;padding:44px 40px 100px;}
+@media(max-width:720px){.main{padding:24px 16px 80px;}}
+
+.tag{display:inline-block;font-size:0.58rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.12em;color:var(--acc2);background:var(--tint);border-radius:20px;
+  padding:4px 13px;margin-bottom:14px;}
+h1{font-family:'Unbounded',sans-serif;font-size:1.5rem;font-weight:800;line-height:1.2;
+  letter-spacing:-0.02em;margin-bottom:12px;}
+@media(max-width:720px){h1{font-size:1.15rem;}}
+.lead{font-size:0.95rem;color:var(--ink2);line-height:1.7;max-width:680px;}
+.lead+.lead{margin-top:9px;}
+
+/* служебная панель макета — в калькулятор не едет */
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:22px 0 0;
+  padding:14px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);}
+.bar-b{font:inherit;font-size:0.72rem;padding:9px 14px;border:1px solid var(--rule2);
+  background:transparent;color:var(--ink2);cursor:pointer;min-height:38px;border-radius:2px;}
+.bar-b:hover{border-color:var(--acc2);color:var(--acc);}
+.bar-b.on{background:var(--acc);border-color:var(--acc);color:#fff;}
+body.dark .bar-b.on{color:#0e1a1c;}
+.bar-l{font-size:0.55rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--ink3);margin-right:2px;}
+
+.v{margin-top:44px;padding-top:26px;border-top:1px solid var(--rule);}
+.v:first-of-type{border-top:none;}
+.v-h{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;margin-bottom:5px;}
+.v-n{font-family:'Unbounded',sans-serif;font-size:0.72rem;font-weight:700;color:var(--acc2);}
+.v-t{font-family:'Unbounded',sans-serif;font-size:1rem;font-weight:700;letter-spacing:-0.01em;}
+@media(max-width:720px){.v-t{font-size:0.9rem;}}
+.v-st{font-size:0.55rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;
+  color:var(--ink3);border:1px solid var(--rule2);border-radius:20px;padding:3px 10px;white-space:nowrap;}
+.v-st.now{color:var(--acc);border-color:var(--acc2);background:var(--tint);}
+.v-d{font-size:0.85rem;color:var(--ink2);line-height:1.65;max-width:680px;margin-bottom:6px;}
+.v-p{font-size:0.78rem;color:var(--ink3);line-height:1.6;max-width:680px;margin-top:7px;}
+.v-p b{color:var(--ink2);font-weight:600;}
+
+/* холст, как в калькуляторе: поле с пунктиром */
+.canvas{position:relative;margin-top:16px;background:var(--sheet);
+  border:1px dashed var(--rule2);min-height:210px;padding:14px;
+  display:flex;gap:12px;flex-wrap:wrap;}
+.pic{position:relative;width:calc(50% - 6px);aspect-ratio:16/10;min-width:180px;flex:0 0 auto;
+  box-shadow:0 2px 10px rgba(18,38,42,.18);background:#fff;}
+@media(max-width:560px){.pic{width:100%;}}
+.pic svg{display:block;width:100%;height:100%;}
+.pic.gone{display:none;}
+
+/* ── общее для управляющих элементов ─────────────────────────────── */
+.ctl{position:absolute;z-index:5;cursor:pointer;border:none;background:none;
+  padding:0;font:inherit;display:flex;align-items:center;justify-content:center;}
+.ctl::before{content:'';position:absolute;inset:-13px;}   /* поле нажатия 44 px */
+.grip{position:absolute;z-index:5;cursor:se-resize;}
+.grip::before{content:'';position:absolute;inset:-15px;}
+.pic .ctl,.pic .grip{opacity:0;transition:opacity .14s;}
+.pic:hover .ctl,.pic:hover .grip,
+body.touch .pic .ctl,body.touch .pic .grip{opacity:1;}
+
+/* ── 0. Как сейчас ───────────────────────────────────────────────── */
+.s0 .pic{border-radius:6px;}
+.s0 .pic svg{border-radius:6px;}
+.s0 .del{top:-10px;right:-10px;width:22px;height:22px;background:#e44;color:#fff;
+  border-radius:50%;font-size:13px;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.s0 .del::before{inset:0;}
+.s0 .grip{bottom:-6px;right:-6px;width:12px;height:12px;background:var(--acc);border-radius:3px;}
+.s0 .grip::before{inset:0;}
+
+/* ── 1. Внутри поля ──────────────────────────────────────────────── */
+.s1 .del{top:8px;right:8px;width:26px;height:26px;border-radius:50%;
+  background:rgba(255,255,255,.92);color:var(--acc);
+  box-shadow:0 1px 5px rgba(18,38,42,.28);}
+.s1 .del svg{width:11px;height:11px;}
+/* Белая скоба пропадала на белом плане: у нас половина снимков — чертежи.
+   Угол получает ту же белую подложку, что и крестик, а скоба внутри — чернила. */
+.s1 .grip{bottom:8px;right:8px;width:22px;height:22px;border-radius:4px;
+  background:rgba(255,255,255,.92);box-shadow:0 1px 5px rgba(18,38,42,.28);}
+.s1 .grip::after{content:'';position:absolute;right:5px;bottom:5px;width:9px;height:9px;
+  border-right:2px solid var(--acc);border-bottom:2px solid var(--acc);}
+
+/* ── 2. Волосяная скоба ──────────────────────────────────────────── */
+/* Чернила с белым ореолом: на тёмной кровле работает ореол, на белом плане —
+   сами чернила. Белым по белому плану линии просто исчезали. */
+.s2 .del{top:7px;right:7px;width:20px;height:20px;color:#12262a;
+  filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 3px rgba(255,255,255,.95));}
+.s2 .del svg{width:13px;height:13px;}
+.s2 .grip{bottom:6px;right:6px;width:16px;height:16px;
+  border-right:2px solid #12262a;border-bottom:2px solid #12262a;
+  filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 3px rgba(255,255,255,.95));}
+
+/* ── 3. Полка под фото ───────────────────────────────────────────── */
+.s3 .pic{padding-bottom:30px;background:var(--sheet);}
+.s3 .pic svg{height:calc(100% - 30px);}
+.s3 .shelf{position:absolute;left:0;right:0;bottom:0;height:30px;display:flex;
+  align-items:center;justify-content:space-between;gap:8px;padding:0 9px;
+  border-top:1px solid var(--rule);background:var(--sheet);}
+.s3 .shelf-n{font-size:0.56rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.s3 .del{position:relative;top:auto;right:auto;opacity:1;color:var(--ink3);
+  font-size:0.66rem;letter-spacing:0.02em;flex:none;height:30px;}
+.s3 .pic:hover .del,body.touch .s3 .del{color:var(--acc);}
+.s3 .del::before{inset:-7px -10px;}
+.s3 .grip{bottom:36px;right:6px;width:15px;height:15px;
+  border-right:2px solid #12262a;border-bottom:2px solid #12262a;
+  filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 3px rgba(255,255,255,.95));}
+
+/* ── 4. Выделение ────────────────────────────────────────────────── */
+.s4 .pic{cursor:pointer;}
+.s4 .pic .ctl,.s4 .pic .grip{opacity:0;}
+.s4 .pic.sel{outline:2px solid var(--acc2);outline-offset:2px;}
+.s4 .pic.sel .ctl,.s4 .pic.sel .grip{opacity:1;}
+.s4 .canvas{padding-bottom:60px;}   /* место под полоску действий */
+.s4 .tools[hidden]{display:none;}   /* display:flex в классе бьёт [hidden] у браузера */
+.s4 .tools{position:absolute;left:0;right:0;bottom:-46px;height:40px;display:flex;
+  align-items:center;gap:4px;padding:0 4px;background:var(--sheet);
+  border:1px solid var(--rule2);z-index:6;}
+.s4 .tool{font:inherit;font-size:0.68rem;color:var(--ink2);background:none;border:none;
+  cursor:pointer;padding:0 9px;height:38px;white-space:nowrap;position:relative;}
+.s4 .tool::before{content:'';position:absolute;inset:-3px 0;}
+.s4 .tool:hover{color:var(--acc);}
+.s4 .tool.del-t:hover{color:#c0392b;}
+body.dark .s4 .tool.del-t:hover{color:#ff9b8f;}
+.s4 .grip{bottom:4px;right:4px;width:15px;height:15px;
+  border-right:2px solid var(--acc2);border-bottom:2px solid var(--acc2);
+  filter:drop-shadow(0 1px 2px rgba(18,38,42,.5));}
+.s4 .hint{font-size:0.72rem;color:var(--ink3);margin-top:46px;}
+
+.back{margin-top:12px;}
+.back-b{font:inherit;font-size:0.7rem;padding:8px 13px;border:1px solid var(--rule2);
+  background:transparent;color:var(--ink2);cursor:pointer;min-height:36px;border-radius:2px;}
+.back-b:hover{border-color:var(--acc2);color:var(--acc);}
+
+table{border-collapse:collapse;width:100%;margin-top:14px;font-size:0.8rem;}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top;}
+th{font-size:0.55rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink3);}
+td:first-child{color:var(--ink);font-weight:500;}
+td{color:var(--ink2);}
+.tw{overflow-x:auto;}
+</style>
+</head>
+<body>
+<div class="main">
+  <div class="tag">Макет</div>
+  <h1>Углы у фото: удалить и изменить размер</h1>
+  <p class="lead">Четыре варианта вместо нынешних красного кружка и бирюзового квадратика,
+     висящих снаружи снимка. Наводите на картинку, тяните угол, нажимайте крестик —
+     всё работает по-настоящему.</p>
+  <p class="lead">Снимки здесь нарисованные, не настоящие: макет про управление, а не про
+     содержимое.</p>
+
+  <div class="bar">
+    <span class="bar-l">Показать</span>
+    <button class="bar-b" id="bTheme" onclick="тема()">Ночь</button>
+    <button class="bar-b" id="bTouch" onclick="палец()">Как на телефоне</button>
+    <span class="bar-l" style="margin-left:8px">Всё вернуть</span>
+    <button class="bar-b" onclick="вернуть()">Сброс</button>
+  </div>
+
+  <!-- 0 -->
+  <div class="v s0">
+    <div class="v-h"><span class="v-n">0</span><span class="v-t">Как сейчас</span>
+      <span class="v-st now">в калькуляторе</span></div>
+    <p class="v-d">Крестик и квадратик висят снаружи снимка. Красный цвет в палитре калькулятора
+      больше нигде не встречается, квадратик в 12 px пальцем не поймать, а на границе двух
+      снимков непонятно, к какому из них они относятся.</p>
+    <div class="canvas" data-set="0"></div>
+    <p class="v-p"><b>Цель нажатия:</b> крестик 22 px, угол 12 px. <b>Норма — 44.</b></p>
+  </div>
+
+  <!-- 1 -->
+  <div class="v s1">
+    <div class="v-h"><span class="v-n">1</span><span class="v-t">Внутри поля</span></div>
+    <p class="v-d">Оба элемента заходят внутрь снимка и ничего за его границей не занимают.
+      Крестик и угол — бирюзовыми чернилами на белой подложке: читается и на светлом плане,
+      и на тёмной кровле.</p>
+    <div class="canvas" data-set="1"></div>
+    <p class="v-p"><b>Что чинит:</b> ничего не вылезает за снимок и не спорит с соседом; цвет
+      вернулся в палитру. <b>Чем платим:</b> кружок закрывает угол картинки, пока курсор на ней.</p>
+  </div>
+
+  <!-- 2 -->
+  <div class="v s2">
+    <div class="v-h"><span class="v-n">2</span><span class="v-t">Волосяная скоба</span></div>
+    <p class="v-d">Тот же принцип, но без заливок вообще — язык «Бланка»: только линии.
+      Крестик и уголок нарисованы чернилами с белым ореолом, как разметка на чертеже:
+      на тёмной кровле их держит ореол, на белом плане — сами чернила.</p>
+    <div class="canvas" data-set="2"></div>
+    <p class="v-p"><b>Что чинит:</b> то же, что и первый, и ещё тише — снимок почти не закрыт.
+      <b>Чем платим:</b> на пёстрой фотографии тонкие линии видно хуже кружка.</p>
+  </div>
+
+  <!-- 3 -->
+  <div class="v s3">
+    <div class="v-h"><span class="v-n">3</span><span class="v-t">Полка под снимком</span></div>
+    <p class="v-d">Управление уходит с картинки совсем: под ней узкая полка с названием и
+      словом «Удалить». Снимок не закрывается ничем, а заодно видно, где план, а где
+      визуализация — это же название уйдёт в печать, если понадобится.</p>
+    <div class="canvas" data-set="3"></div>
+    <p class="v-p"><b>Что чинит:</b> картинка остаётся целой, у снимка появляется имя.
+      <b>Чем платим:</b> 30 px высоты у каждого снимка и лишний элемент на холсте.</p>
+  </div>
+
+  <!-- 4 -->
+  <div class="v s4">
+    <div class="v-h"><span class="v-n">4</span><span class="v-t">Сначала выделить</span></div>
+    <p class="v-d">Пока не нажали — на снимке нет ничего. Нажали: рамка и полоска действий под
+      ней. Так ведут себя редакторы, и это единственный вариант, который честно работает
+      пальцем: на телефоне наведения не существует, а остальные три показывают управление
+      постоянно.</p>
+    <div class="canvas" data-set="4"></div>
+    <p class="v-p"><b>Что чинит:</b> чистый холст и работа пальцем без «висящих» кнопок.
+      <b>Чем платим:</b> одно лишнее нажатие и понятие «выделено», которого в калькуляторе
+      пока нет.</p>
+  </div>
+
+  <div class="v">
+    <div class="v-h"><span class="v-t">Чем отличаются</span></div>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Вариант</th><th>Цель нажатия</th><th>Закрывает снимок</th><th>Работает пальцем</th><th>Имя у снимка</th></tr></thead>
+      <tbody>
+        <tr><td>0 · как сейчас</td><td>22 и 12 px</td><td>нет, висит снаружи</td><td>плохо</td><td>нет</td></tr>
+        <tr><td>1 · внутри поля</td><td>44 px</td><td>угол, под курсором</td><td>да, постоянно видно</td><td>нет</td></tr>
+        <tr><td>2 · волосяная скоба</td><td>44 px</td><td>почти нет</td><td>да, постоянно видно</td><td>нет</td></tr>
+        <tr><td>3 · полка</td><td>44 px</td><td>нет</td><td>да, постоянно видно</td><td>да</td></tr>
+        <tr><td>4 · выделение</td><td>44 px</td><td>нет, пока не выделено</td><td>да, по нажатию</td><td>нет</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="v-p">Все четыре доводят цель нажатия до 44 px невидимым полем вокруг элемента,
+      а не раздутой кнопкой. Второй и третий почти не закрывают снимок, третий вдобавок даёт
+      ему имя, четвёртый оставляет холст чистым и один умеет пальцем без постоянных кнопок.
+      Нулевой — то, что стоит сейчас, оставлен для сравнения.</p>
+  </div>
+</div>
+
+<script>
+// ── два нарисованных снимка: план и «визуализация» ──────────────────
+const ПЛАН = `<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+ <rect width="320" height="200" fill="#fff"/>
+ <g stroke="#c9d6d8" stroke-width="1">
+  <path d="M30 24H196M30 24V176M196 24V176M30 176H196"/>
+  <path d="M30 96H196M104 24V176M150 96V176"/>
+ </g>
+ <g fill="#dbe9ea"><rect x="31" y="25" width="72" height="70"/><rect x="151" y="97" width="44" height="78"/></g>
+ <g fill="#eef5f6"><rect x="105" y="25" width="90" height="70"/><rect x="31" y="97" width="72" height="78"/></g>
+ <g stroke="#12262a" stroke-width="1.6" fill="none">
+  <path d="M30 24H196V176H30Z"/><path d="M104 24V95M30 96H195M150 97V176"/></g>
+ <g fill="#5b7376" font-family="Geologica,sans-serif" font-size="7">
+  <text x="228" y="34">План 1 этажа</text>
+  <text x="228" y="52">Кухня-гостиная</text><text x="300" y="52">29,7</text>
+  <text x="228" y="66">Спальня</text><text x="304" y="66">9,9</text>
+  <text x="228" y="80">Парная</text><text x="304" y="80">6,5</text>
+  <text x="228" y="94">Душевая</text><text x="304" y="94">7,6</text>
+  <text x="228" y="108">Зона отдыха</text><text x="300" y="108">20,0</text>
+  <text x="228" y="128">Терраса</text><text x="300" y="128">20,6</text></g>
+ <g stroke="#8da3a5" stroke-width="0.8"><path d="M228 40h72M228 116h72"/></g>
+ <text x="228" y="150" fill="#12262a" font-family="Geologica,sans-serif" font-size="8" font-weight="600">103,3 м²</text>
+</svg>`;
+const ФОТО = `<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+ <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+   <stop offset="0" stop-color="#9ec6db"/><stop offset="1" stop-color="#dfeef2"/></linearGradient>
+  <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+   <stop offset="0" stop-color="#7d5b3f"/><stop offset="1" stop-color="#5d422c"/></linearGradient></defs>
+ <rect width="320" height="200" fill="url(#sky)"/>
+ <g fill="#5f7f5a" opacity=".55"><circle cx="34" cy="66" r="26"/><circle cx="66" cy="52" r="20"/>
+  <circle cx="288" cy="58" r="24"/><circle cx="258" cy="70" r="16"/></g>
+ <rect y="146" width="320" height="54" fill="#7fa06a"/>
+ <path d="M88 76 168 44l86 34v10H88Z" fill="#4a3a2a"/>
+ <path d="M88 76 168 44l86 34" fill="none" stroke="#3b2c1e" stroke-width="7" stroke-linejoin="round"/>
+ <rect x="96" y="86" width="150" height="62" fill="url(#wood)"/>
+ <g fill="#cfe4ea" opacity=".92"><rect x="106" y="94" width="52" height="46"/>
+  <rect x="166" y="94" width="34" height="46"/><rect x="208" y="102" width="28" height="38"/></g>
+ <g stroke="#2f3a3d" stroke-width="2" fill="none"><rect x="106" y="94" width="52" height="46"/>
+  <rect x="166" y="94" width="34" height="46"/><rect x="208" y="102" width="28" height="38"/></g>
+ <rect x="92" y="146" width="162" height="6" fill="#8a6a4a"/>
+ <g fill="#6f8f5e"><ellipse cx="272" cy="160" rx="26" ry="10"/><ellipse cx="44" cy="164" rx="30" ry="11"/></g>
+</svg>`;
+const КРЕСТ = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>`;
+
+const ИМЕНА = ['Планировка', 'Визуализация'];
+
+function собрать(){
+  document.querySelectorAll('.canvas').forEach(х => {
+    const н = х.dataset.set;
+    х.innerHTML = '';
+    [ПЛАН, ФОТО].forEach((кар, i) => {
+      const p = document.createElement('div');
+      p.className = 'pic';
+      let низ = '';
+      if (н === '3') низ = `<div class="shelf"><span class="shelf-n">${ИМЕНА[i]}</span>
+        <button class="ctl del" title="Удалить">Удалить</button></div>`;
+      else if (н === '4') низ = `<div class="tools" hidden>
+        <button class="tool">Во всю ширину</button><button class="tool">По центру</button>
+        <button class="tool del-t">Удалить</button></div>`;
+      else низ = `<button class="ctl del" title="Удалить">${н==='0'?'✕':КРЕСТ}</button>`;
+      p.innerHTML = кар + низ + `<div class="grip" title="Изменить размер"></div>`;
+      х.appendChild(p);
+    });
+    оживить(х, н);
+  });
+}
+
+function оживить(х, н){
+  х.querySelectorAll('.pic').forEach(p => {
+    // удалить
+    const d = p.querySelector('.del, .del-t');
+    if (d) d.onclick = e => { e.stopPropagation(); p.classList.add('gone'); показатьВозврат(х); };
+    // выделение — только в четвёртом
+    if (н === '4') {
+      p.onclick = e => {
+        if (e.target.closest('.tools') || e.target.closest('.grip')) return;
+        const было = p.classList.contains('sel');
+        х.querySelectorAll('.pic').forEach(o => { o.classList.remove('sel');
+          const t = o.querySelector('.tools'); if (t) t.hidden = true; });
+        if (!было) { p.classList.add('sel');
+          const t = p.querySelector('.tools'); if (t) t.hidden = false; }
+      };
+    }
+    // размер — тянем угол
+    const g = p.querySelector('.grip');
+    if (!g) return;
+    const старт = e => {
+      e.preventDefault(); e.stopPropagation();
+      const т = e.touches ? e.touches[0] : e;
+      const w0 = p.offsetWidth, h0 = p.offsetHeight, x0 = т.clientX, y0 = т.clientY;
+      p.style.aspectRatio = 'auto';
+      const дв = ev => {
+        const т2 = ev.touches ? ev.touches[0] : ev;
+        p.style.width  = Math.max(120, w0 + т2.clientX - x0) + 'px';
+        p.style.height = Math.max(80,  h0 + т2.clientY - y0) + 'px';
+      };
+      const кон = () => {
+        document.removeEventListener('mousemove', дв); document.removeEventListener('mouseup', кон);
+        document.removeEventListener('touchmove', дв); document.removeEventListener('touchend', кон);
+      };
+      document.addEventListener('mousemove', дв); document.addEventListener('mouseup', кон);
+      document.addEventListener('touchmove', дв, {passive:false}); document.addEventListener('touchend', кон);
+    };
+    g.addEventListener('mousedown', старт);
+    g.addEventListener('touchstart', старт, {passive:false});
+  });
+}
+
+function показатьВозврат(х){
+  if (х.nextElementSibling && х.nextElementSibling.classList.contains('back')) return;
+  const b = document.createElement('div');
+  b.className = 'back';
+  b.innerHTML = '<button class="back-b">Вернуть снимок</button>';
+  b.querySelector('button').onclick = () => {
+    х.querySelectorAll('.pic.gone').forEach(p => p.classList.remove('gone'));
+    b.remove();
+  };
+  х.after(b);
+}
+
+function тема(){
+  const н = document.body.classList.toggle('dark');
+  const б = document.getElementById('bTheme');
+  б.textContent = н ? 'День' : 'Ночь';
+  б.classList.toggle('on', н);
+}
+function палец(){
+  document.body.classList.toggle('touch');
+  document.getElementById('bTouch').classList.toggle('on', document.body.classList.contains('touch'));
+}
+function вернуть(){ document.querySelectorAll('.back').forEach(b => b.remove()); собрать(); }
+собрать();
+</script>
+</body>
+</html>
