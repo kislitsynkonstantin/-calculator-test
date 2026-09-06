@@ -100,36 +100,84 @@ h1{font-family:'Unbounded',sans-serif;font-size:1.5rem;font-weight:800;line-heig
 .grip svg{width:16px;height:16px;}
 
 /* ── пять вариантов кнопки размера ───────────────────────────────── */
-/* 1 — подложка квадратом (как крестик), 2 — только полоски без подложки,
-   3 — круглая кнопка, 4 — косынка в углу, 5 — двойная стрелка. */
-.g-2{background:none!important;box-shadow:none!important;border:none!important;
-  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}
-.t-blank .g-2,.t-modern .g-2{color:#12262a;
-  filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 3px rgba(255,255,255,.95));}
-.t-blank-n .g-2,.t-modern-n .g-2{color:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.85));}
-.g-3{border-radius:50%!important;}
-.g-4{right:0!important;bottom:0!important;width:34px!important;height:34px!important;
-  border-radius:0!important;border:none!important;box-shadow:none!important;
-  clip-path:polygon(100% 0,100% 100%,0 100%);}
-.g-4 svg{position:absolute;right:5px;bottom:5px;width:15px;height:15px;}
-.t-blank .g-4{background:rgba(255,255,255,.92)!important;color:#1e6c72;}
-.t-blank-n .g-4{background:rgba(19,37,40,.9)!important;color:#e6f3f3;}
-.t-modern .g-4{background:rgba(255,255,255,.8)!important;color:#1e6c72;}
-.t-modern-n .g-4{background:rgba(18,32,35,.75)!important;color:#cfe9eb;}
-
-/* сетка вариантов ручки */
+/* Различаются рисунком, а не подложкой: полоски, точки, стрелка, рамка
+   с уголками, полоса по низу. Показаны крупно — в 26 px разницы не видно. */
 .gvars{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px;}
-@media(max-width:720px){.gvars{grid-template-columns:1fr;}}
+@media(max-width:820px){.gvars{grid-template-columns:1fr;}}
 .gcard{border:1px solid var(--rule);border-radius:10px;overflow:hidden;background:var(--sheet);}
 .gcard-h{display:flex;align-items:baseline;gap:9px;padding:10px 13px;border-bottom:1px solid var(--rule);}
 .gcard-n{font-family:'Unbounded',sans-serif;font-size:0.64rem;font-weight:700;color:var(--acc2);}
 .gcard-t{font-size:0.76rem;font-weight:500;}
 .gcard-d{font-size:0.68rem;color:var(--ink3);line-height:1.5;padding:9px 13px 12px;}
-.gpair{display:grid;grid-template-columns:1fr 1fr;}
-.gside{padding:11px;display:flex;gap:8px;}
+.gcard-l{font-size:0.54rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--ink3);padding:10px 13px 6px;}
+
+/* крупный показ: рисунок в 3 раза больше рабочего */
+.zoom{display:flex;gap:12px;padding:0 13px 4px;}
+.zoom-i{flex:1;position:relative;height:104px;border-radius:8px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;}
+.zoom-i.z-blank{background:#eef4f5;}
+.zoom-i.z-blank-n{background:#132528;}
+.zoom-i.z-modern{background:#dfeef2;}
+.zoom-i.z-modern-n{background:#1e3538;}
+.zoom-c{position:relative;width:78px;height:78px;}
+.zoom-l{font-size:0.56rem;color:var(--ink3);text-align:center;margin-top:5px;}
+
+/* рабочий размер — на плане и на фотографии */
+.gside{display:flex;gap:8px;padding:6px 13px 12px;}
 .gside .pic{flex:1 1 50%;min-width:0;aspect-ratio:4/3;}
-.gside-l{font-size:0.54rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;
-  color:var(--ink3);padding:0 13px 7px;}
+
+/* ── сами рисунки ─────────────────────────────────────────────────
+   Каждый живёт в квадрате .grip; в крупном показе тот же элемент
+   растянут до 78 px, поэтому рисунки заданы в процентах, а не в px. */
+.grip{position:absolute;right:8px;bottom:8px;width:26px;height:26px;cursor:se-resize;z-index:5;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s,color .15s,box-shadow .15s;}
+.grip::before{content:'';position:absolute;inset:-9px;}
+.grip svg{width:62%;height:62%;}
+.zoom-c .grip{position:absolute;inset:0;width:100%;height:100%;border-radius:12px;}
+.zoom-c .grip::before{inset:0;}
+
+/* 2 — точки */
+.g-dots{display:grid;grid-template-columns:repeat(3,1fr);gap:14%;width:58%;height:58%;}
+.g-dots i{border-radius:50%;background:currentColor;aspect-ratio:1;}
+.g-dots i:nth-child(1),.g-dots i:nth-child(2),.g-dots i:nth-child(4){opacity:0;}
+
+/* 4 — рамка с уголками: рисуется по всему снимку, а не в углу */
+.frame{position:absolute;inset:0;pointer-events:none;z-index:4;}
+.frame::before{content:'';position:absolute;inset:3px;border:1px solid currentColor;opacity:.9;}
+.frame b{position:absolute;width:9px;height:9px;background:currentColor;border-radius:2px;}
+.frame b:nth-child(1){left:0;top:0;} .frame b:nth-child(2){right:0;top:0;}
+.frame b:nth-child(3){left:0;bottom:0;} .frame b:nth-child(4){right:0;bottom:0;
+  pointer-events:auto;cursor:se-resize;}
+/* Квадрат угла 9 px — палец не попадёт; поле доводит до 45. */
+.frame b:nth-child(4)::before{content:'';position:absolute;inset:-18px;}
+.zoom-c .frame b{width:16px;height:16px;border-radius:4px;}
+
+/* 5 — полоса-ручка по нижнему краю */
+.bar-grip{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);
+  width:42%;height:6px;border-radius:6px;background:currentColor;opacity:.92;
+  cursor:ns-resize;z-index:5;}
+.bar-grip::before{content:'';position:absolute;inset:-19px -14px;}
+.zoom-c .bar-grip{width:70%;height:10px;bottom:14px;}
+
+/* цвет и подложка рисунков по темам */
+.t-blank .grip,.z-blank .grip{background:#fff;border:1px solid #dceaeb;color:#5b7376;border-radius:8px;}
+.t-blank-n .grip,.z-blank-n .grip{background:#132528;border:1px solid #224347;color:#9db6b8;border-radius:8px;}
+.t-modern .grip,.z-modern .grip{background:rgba(255,255,255,.72);
+  -webkit-backdrop-filter:blur(10px) saturate(1.4);backdrop-filter:blur(10px) saturate(1.4);
+  color:#1e6c72;border:none;border-radius:8px;
+  box-shadow:0 1px 3px rgba(20,60,64,.14), inset 0 0 0 1px rgba(255,255,255,.6);}
+.t-modern-n .grip,.z-modern-n .grip{background:rgba(18,32,35,.6);
+  -webkit-backdrop-filter:blur(10px) saturate(1.4);backdrop-filter:blur(10px) saturate(1.4);
+  color:#cfe9eb;border:none;border-radius:8px;
+  box-shadow:0 1px 3px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.12);}
+.t-blank .frame,.z-blank .frame{color:#1e6c72;} .t-blank-n .frame,.z-blank-n .frame{color:#8fd6dc;}
+.t-modern .frame,.z-modern .frame{color:#1e6c72;} .t-modern-n .frame,.z-modern-n .frame{color:#cfe9eb;}
+.t-blank .bar-grip,.z-blank .bar-grip{color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.5);}
+.t-blank-n .bar-grip,.z-blank-n .bar-grip{color:#e6f3f3;box-shadow:0 1px 3px rgba(0,0,0,.6);}
+.t-modern .bar-grip,.z-modern .bar-grip{color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.5);}
+.t-modern-n .bar-grip,.z-modern-n .bar-grip{color:#cfe9eb;box-shadow:0 1px 3px rgba(0,0,0,.6);}
 
 /* размеры для сравнения */
 .sizes{display:flex;gap:26px;flex-wrap:wrap;margin-top:14px;align-items:flex-end;}
@@ -181,8 +229,10 @@ h1{font-family:'Unbounded',sans-serif;font-size:1.5rem;font-weight:800;line-heig
   <div class="sizes" id="формы"></div>
 
   <div class="sec">Кнопка размера — пять вариантов</div>
-  <p class="note">У каждого показаны обе темы и обе подложки: светлая планировка и тёмная
-     фотография. Переключатель дня и ночи вверху действует и здесь.</p>
+  <p class="note">Различаются рисунком, а не подложкой: полоски, точки, стрелка, рамка
+     вокруг снимка, полоса по нижнему краю. Каждый сначала показан втрое крупнее рабочего —
+     в 26 px разницы не разглядеть, — а под ним тот же элемент в работе, на планировке
+     и на фотографии. Кнопка «Ночь» рядом переключает эти разделы.</p>
   <div class="gvars" id="ручки"></div>
 
   <div class="sec">Размер</div>
@@ -275,43 +325,48 @@ document.getElementById('формы').innerHTML = [['','Квадрат 8 px — 
     <div class="size-l">${п}</div>
   </div>`).join('');
 
-// пять вариантов кнопки размера
-const ПОЛОСКИ = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-  stroke-linecap="round"><path d="M20 9L9 20M20 14.5L14.5 20M20 20L19.8 20.2"/></svg>`;
-const СТРЕЛКА = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-  stroke-linecap="round" stroke-linejoin="round"><path d="M10 20H4v-6M20 4h-6M20 4v6M20 4L4 20"/></svg>`;
-const РУЧКИ5 = [
-  ['g-1', 'Полоски на подложке', ПОЛОСКИ,
-   'То же оформление, что у крестика: лист в «Бланке», стекло в «Модерне». Пара читается как пара.'],
-  ['g-2', 'Полоски без подложки', ПОЛОСКИ,
-   'Только линии — чернила с белым ореолом днём, белые с тенью ночью. Снимок закрыт меньше всего.'],
-  ['g-3', 'Круглая кнопка', ПОЛОСКИ,
-   'Та же подложка, но кругом — под круглый крестик, если возьмём его в «Модерне».'],
-  ['g-4', 'Косынка в углу', ПОЛОСКИ,
-   'Уголок залит целиком, полоски внутри. Самая заметная цель, но и самая тяжёлая.'],
-  ['g-5', 'Двойная стрелка', СТРЕЛКА,
-   'Вместо полосок — стрелка по диагонали. Говорит «тяни» прямее, но крупнее по рисунку.'],
+// пять вариантов кнопки размера — различаются рисунком, а не подложкой
+const ПОЛОСКИ = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+  stroke-linecap="round"><path d="M21 8L8 21M21 14L14 21M21 20L20 21"/></svg>`;
+const СТРЕЛКА = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+  stroke-linecap="round" stroke-linejoin="round"><path d="M4 15v5h5M20 9V4h-5M4 20L20 4"/></svg>`;
+const ТОЧКИ = `<div class="g-dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>`;
+const РАМКА = `<div class="frame"><b></b><b></b><b></b><b></b></div>`;
+const ПОЛОСА = `<div class="bar-grip" title="Изменить высоту"></div>`;
+
+// как элемент вставляется в снимок и как показывается крупно
+const ВИДЫ = [
+  {кл:'v-stripes', имя:'Косые полоски',
+   в:`<div class="grip">${ПОЛОСКИ}</div>`,
+   оп:'Классическая ручка размера: три полоски в углу. Тише всех и привычнее всех.'},
+  {кл:'v-dots', имя:'Точки лесенкой',
+   в:`<div class="grip">${ТОЧКИ}</div>`,
+   оп:'Шесть точек уступом. Так рисуют «взяться и тащить» в списках — знак читается издалека.'},
+  {кл:'v-arrow', имя:'Двойная стрелка',
+   в:`<div class="grip">${СТРЕЛКА}</div>`,
+   оп:'Стрелка с двумя остриями по диагонали. Говорит «тяни» прямее любого другого рисунка.'},
+  {кл:'v-frame', имя:'Рамка с уголками',
+   в:РАМКА,
+   оп:'Не кнопка в углу, а рамка вокруг всего снимка с квадратами по углам — как выделение в редакторе. Тянется правый нижний.'},
+  {кл:'v-bar', имя:'Полоса по низу',
+   в:ПОЛОСА,
+   оп:'Ручка лежит посередине нижнего края, как у выдвижной шторки. Тянет высоту, промахнуться нечем.'},
 ];
-document.getElementById('ручки').innerHTML = РУЧКИ5.map(([кл, имя, знак, оп], i) => `
-  <div class="gcard">
-    <div class="gcard-h"><span class="gcard-n">${i+1}</span><span class="gcard-t">${имя}</span></div>
-    <div class="gpair">
-      <div>
-        <div class="gside-l" data-l="blank">Бланк</div>
-        <div class="gside t-blank" data-t="blank">
-          ${[ПЛАН, ФОТО].map(к => `<div class="pic">${к}
-            <div class="grip ${кл}">${знак}</div></div>`).join('')}
-        </div>
-      </div>
-      <div>
-        <div class="gside-l">Модерн</div>
-        <div class="gside t-modern" data-t="modern">
-          ${[ПЛАН, ФОТО].map(к => `<div class="pic">${к}
-            <div class="grip ${кл}">${знак}</div></div>`).join('')}
-        </div>
-      </div>
+document.getElementById('ручки').innerHTML = ВИДЫ.map((в, i) => `
+  <div class="gcard" data-вид="${в.кл}">
+    <div class="gcard-h"><span class="gcard-n">${i+1}</span><span class="gcard-t">${в.имя}</span></div>
+    <div class="gcard-l">Крупно — втрое больше рабочего</div>
+    <div class="zoom">
+      <div><div class="zoom-i z-blank"><div class="zoom-c">${в.в}</div></div>
+        <div class="zoom-l">Бланк</div></div>
+      <div><div class="zoom-i z-modern"><div class="zoom-c">${в.в}</div></div>
+        <div class="zoom-l">Модерн</div></div>
     </div>
-    <div class="gcard-d">${оп}</div>
+    <div class="gcard-l">В работе — на планировке и на фотографии</div>
+    <div class="gside t-blank">
+      ${[ПЛАН, ФОТО].map(к => `<div class="pic">${к}${в.в}</div>`).join('')}
+    </div>
+    <div class="gcard-d">${в.оп}</div>
   </div>`).join('');
 
 document.getElementById('размеры').innerHTML = [['s-22','22 px'],['','28 px — как у окон'],['s-34','34 px']]
@@ -334,6 +389,13 @@ function пораСуток(){
   const н = document.body.classList.toggle('nightparts');
   document.querySelectorAll('.gside, .size').forEach(э => {
     ['t-blank','t-modern'].forEach(б => {
+      if (э.classList.contains(б)) { э.classList.remove(б); э.classList.add(б + '-n'); }
+      else if (э.classList.contains(б + '-n') && !н) { э.classList.remove(б + '-n'); э.classList.add(б); }
+    });
+  });
+  // крупный показ живёт своими классами z-*, переключаем и его
+  document.querySelectorAll('.zoom-i').forEach(э => {
+    ['z-blank','z-modern'].forEach(б => {
       if (э.classList.contains(б)) { э.classList.remove(б); э.classList.add(б + '-n'); }
       else if (э.classList.contains(б + '-n') && !н) { э.classList.remove(б + '-n'); э.classList.add(б); }
     });
