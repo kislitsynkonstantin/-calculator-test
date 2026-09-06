@@ -139,7 +139,12 @@ body {
   print-color-adjust: exact;
 }
 .rs-hero .rs-k { color: rgba(255, 255, 255, .72); }
-.rs-hero-top { display: grid; grid-template-columns: 1fr; gap: 10pt 16pt; align-items: end; }
+.rs-hero-top { display: grid; grid-template-columns: 1fr; column-gap: 16pt; row-gap: 0; align-items: baseline; }
+.rs-hero-top > div:first-child, .rs-hero-spec { display: contents; }
+.rs-hero-top > div:first-child > .rs-k { grid-area: 1 / 1; }
+.rs-hero-top > div:first-child > .rs-hero-sum { grid-area: 2 / 1; }
+.rs-hero-spec > .rs-k { grid-area: 1 / 2; }
+.rs-hero-sum--spec { grid-area: 2 / 2; }
 .rs-hero-top--pair { grid-template-columns: 1fr 1fr; }
 .rs-hero-spec { text-align: left; }
 .rs-hero-sum {
@@ -290,7 +295,9 @@ table.rs-tbl { width: 100%; border-collapse: collapse; }
   .rs-hero { padding: 12pt 11pt; }
   .rs-hero-sum { font-size: 22pt; }
   .rs-hero-sum--spec { font-size: 19pt; }
-  .rs-hero-top--pair { grid-template-columns: 1fr; gap: 8pt; }
+  .rs-hero-top--pair { grid-template-columns: 1fr; }
+  .rs-hero-spec > .rs-k { grid-area: 3 / 1; margin-top: 8pt; }
+  .rs-hero-sum--spec { grid-area: 4 / 1; }
   .rs-hero-spec { text-align: left; }
   .rs-bar, .rs-bar-note { padding-left: 11pt; padding-right: 11pt; }
   .rs-tbl th, .rs-tbl td { padding-left: 9pt; padding-right: 9pt; }
