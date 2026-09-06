@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Крестик и ручка размера: оформления — макет v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+/* Токены «Бланка», дословно из калькулятора. Макет живёт в его языке. */
+:root{
+  --page:#f7fbfb; --sheet:#fff; --zebra:#f7fafb;
+  --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5;
+  --rule:#dceaeb; --rule2:#bcd9db;
+  --acc:#1e6c72; --acc2:#2a8f97; --pale:#a8dde0; --tint:#e4f5f6;
+  --r:0;                                   /* «Бланк»: коробок нет, углы прямые */
+  --sh:0 2px 10px rgba(18,38,42,.18);
+  --canvas-bd:1px dashed var(--rule2); --canvas-r:0; --canvas-bg:var(--sheet);
+}
+
+/* ── «Модерн»: тот же калькулятор, другой язык — скругления, заливки, плашки.
+   Токены сняты с самого калькулятора: --page-bg, --card-bg, --green-* и форма
+   холста из .image-canvas-wrap. */
+body.modern{
+  --page:#f0fafa; --sheet:#fff; --zebra:#f7fefe;
+  --ink:#111; --ink2:#555; --ink3:#888;
+  --rule:#d8eef0; --rule2:#a8dde0;
+  --acc:#1e6c72; --acc2:#2a8f97; --pale:#a8dde0; --tint:#e4f5f6;
+  --r:6px;
+  --sh:0 3px 14px rgba(0,0,0,.18);
+  --canvas-bd:2px dashed var(--pale); --canvas-r:12px; --canvas-bg:#f7fefe;
+}
+body.modern.dark{
+  --page:#111e20; --sheet:#1a2a2c; --zebra:#1e3538;
+  --ink:#e8f4f5; --ink2:#9ab8bc; --ink3:#6a9098;
+  --rule:#2a4a4e; --rule2:#2a8f97; --tint:#1e3538;
+  --canvas-bg:#1e3538;
+}
+body.dark{
+  --page:#0e1a1c; --sheet:#132528; --zebra:#173338;
+  --ink:#e6f3f3; --ink2:#9db6b8; --ink3:#8aa4a6;
+  --rule:#224347; --rule2:#2d585d;
+  --acc:#8fd6dc; --acc2:#5fc2ca; --pale:#5fc2ca; --tint:#173338;
+}
+body{font-family:'Geologica',system-ui,sans-serif;background:var(--page);color:var(--ink);
+  font-variant-numeric:tabular-nums;-webkit-text-size-adjust:100%;}
+.main{max-width:1000px;margin:0 auto;padding:44px 40px 100px;}
+@media(max-width:720px){.main{padding:24px 16px 80px;}}
+
+.tag{display:inline-block;font-size:0.58rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.12em;color:var(--acc2);background:var(--tint);border-radius:20px;
+  padding:4px 13px;margin-bottom:14px;}
+h1{font-family:'Unbounded',sans-serif;font-size:1.5rem;font-weight:800;line-height:1.2;
+  letter-spacing:-0.02em;margin-bottom:12px;}
+@media(max-width:720px){h1{font-size:1.15rem;}}
+.lead{font-size:0.95rem;color:var(--ink2);line-height:1.7;max-width:680px;}
+.lead+.lead{margin-top:9px;}
+
+/* служебная панель макета — в калькулятор не едет */
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:22px 0 0;
+  padding:14px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);}
+.bar-b{font:inherit;font-size:0.72rem;padding:9px 14px;border:1px solid var(--rule2);
+  background:transparent;color:var(--ink2);cursor:pointer;min-height:38px;
+  border-radius:2px;}
+body.modern .bar-b{border-radius:7px;border-width:1.5px;}
+.bar-b:hover{border-color:var(--acc2);color:var(--acc);}
+.bar-b.on{background:var(--acc);border-color:var(--acc);color:#fff;}
+body.dark .bar-b.on{color:#0e1a1c;}
+.bar-l{font-size:0.55rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--ink3);margin-right:2px;}
+
+.v{margin-top:44px;padding-top:26px;border-top:1px solid var(--rule);}
+.v:first-of-type{border-top:none;}
+.v-h{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;margin-bottom:5px;}
+.v-n{font-family:'Unbounded',sans-serif;font-size:0.72rem;font-weight:700;color:var(--acc2);}
+.v-t{font-family:'Unbounded',sans-serif;font-size:1rem;font-weight:700;letter-spacing:-0.01em;}
+@media(max-width:720px){.v-t{font-size:0.9rem;}}
+.v-st{font-size:0.55rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;
+  color:var(--ink3);border:1px solid var(--rule2);border-radius:20px;padding:3px 10px;white-space:nowrap;}
+.v-st.now{color:var(--acc);border-color:var(--acc2);background:var(--tint);}
+.v-d{font-size:0.85rem;color:var(--ink2);line-height:1.65;max-width:680px;margin-bottom:6px;}
+.v-p{font-size:0.78rem;color:var(--ink3);line-height:1.6;max-width:680px;margin-top:7px;}
+.v-p b{color:var(--ink2);font-weight:600;}
+
+/* холст, как в калькуляторе: поле с пунктиром */
+.canvas{position:relative;margin-top:16px;background:var(--canvas-bg);
+  border:var(--canvas-bd);border-radius:var(--canvas-r);min-height:210px;padding:14px;
+  display:flex;gap:12px;flex-wrap:wrap;}
+.pic{position:relative;width:calc(50% - 6px);aspect-ratio:16/10;min-width:180px;flex:0 0 auto;
+  box-shadow:var(--sh);background:#fff;border-radius:var(--r);}
+.pic svg{border-radius:var(--r);}
+@media(max-width:560px){.pic{width:100%;}}
+.pic svg{display:block;width:100%;height:100%;}
+.pic.gone{display:none;}
+
+/* ── общее для управляющих элементов ─────────────────────────────── */
+.ctl{position:absolute;z-index:5;cursor:pointer;border:none;background:none;
+  padding:0;font:inherit;display:flex;align-items:center;justify-content:center;}
+.ctl::before{content:'';position:absolute;inset:-13px;}   /* поле нажатия 44 px */
+.grip{position:absolute;z-index:5;cursor:se-resize;}
+.grip::before{content:'';position:absolute;inset:-15px;}
+.pic .ctl,.pic .grip{opacity:0;transition:opacity .14s;}
+.pic:hover .ctl,.pic:hover .grip,
+body.touch .pic .ctl,body.touch .pic .grip{opacity:1;}
+
+/* ── плитки сравнения ─────────────────────────────────────────── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(226px,1fr));gap:16px;margin-top:16px;}
+.cell{border:1px solid var(--rule);border-radius:var(--r);padding:11px;background:var(--sheet);}
+body.modern .cell{border-radius:10px;}
+.cell-h{display:flex;align-items:baseline;gap:8px;margin-bottom:9px;}
+.cell-n{font-family:'Unbounded',sans-serif;font-size:0.62rem;font-weight:700;color:var(--acc2);}
+.cell-t{font-size:0.74rem;font-weight:500;color:var(--ink);}
+.cell-d{font-size:0.68rem;color:var(--ink3);line-height:1.5;margin-top:8px;}
+.pair{display:flex;gap:8px;}
+.tile{position:relative;flex:1;aspect-ratio:4/3;overflow:hidden;border-radius:var(--r);
+  box-shadow:var(--sh);}
+.tile svg{display:block;width:100%;height:100%;}
+
+/* ── крестик: общий каркас ────────────────────────────────────── */
+.x{position:absolute;top:7px;right:7px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;border:none;background:none;padding:0;z-index:4;}
+.x::before{content:'';position:absolute;inset:-14px;}
+.x svg{width:11px;height:11px;}
+.x1{width:24px;height:24px;border-radius:50%;background:var(--acc);color:#fff;
+  box-shadow:0 1px 4px rgba(18,38,42,.35);}
+.x2{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.94);color:var(--acc);
+  box-shadow:0 1px 5px rgba(18,38,42,.3);}
+.x3{width:26px;height:26px;border-radius:50%;background:rgba(12,28,30,.55);color:#fff;
+  backdrop-filter:blur(2px);}
+.x4{width:24px;height:24px;border-radius:6px;background:rgba(255,255,255,.94);color:var(--ink);
+  box-shadow:0 1px 5px rgba(18,38,42,.3);}
+.x5{width:22px;height:22px;color:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.85));}
+.x5 svg{width:15px;height:15px;}
+.x6{width:22px;height:22px;color:#12262a;
+  filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 3px rgba(255,255,255,.95));}
+.x6 svg{width:15px;height:15px;}
+.x7{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.22);color:#fff;
+  border:1px solid rgba(255,255,255,.75);backdrop-filter:blur(3px);}
+.x8{width:26px;height:26px;color:#fff;}
+.x8 svg{width:20px;height:20px;stroke-width:1.4;filter:drop-shadow(0 1px 3px rgba(0,0,0,.7));}
+.x9{top:-10px;right:-10px;width:22px;height:22px;border-radius:50%;background:#e44;color:#fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.x9 svg{width:10px;height:10px;}
+.x10{width:24px;height:24px;border-radius:50%;background:var(--sheet);color:var(--ink2);
+  border:1px solid var(--rule2);box-shadow:0 1px 4px rgba(18,38,42,.18);}
+
+/* ── ручка размера ────────────────────────────────────────────── */
+.g{position:absolute;bottom:7px;right:7px;cursor:se-resize;z-index:4;}
+.g::before{content:'';position:absolute;inset:-16px;}   /* 12 + 16×2 = 44 */
+.g1{width:12px;height:12px;background:var(--acc);border-radius:3px;
+  box-shadow:0 1px 3px rgba(0,0,0,.35);}
+.g2{width:16px;height:16px;border-right:2px solid #fff;border-bottom:2px solid #fff;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.7));}
+.g3{width:22px;height:22px;border-radius:5px;background:rgba(255,255,255,.94);}
+.g3::after{content:'';position:absolute;right:5px;bottom:5px;width:9px;height:9px;
+  border-right:2px solid var(--acc);border-bottom:2px solid var(--acc);}
+.g4{width:18px;height:18px;}
+.g4::after{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(-45deg,#fff 0 2px,transparent 2px 5px);
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.75));
+  -webkit-mask:linear-gradient(-45deg,transparent 46%,#000 46%);
+  mask:linear-gradient(-45deg,transparent 46%,#000 46%);}
+.g5{right:0;bottom:0;width:30px;height:30px;background:rgba(12,28,30,.5);
+  border-radius:var(--r) 0 var(--r) 0;}
+.g5::after{content:'';position:absolute;right:8px;bottom:8px;width:9px;height:9px;
+  border-right:2px solid #fff;border-bottom:2px solid #fff;}
+.g6{width:14px;height:14px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.5);border:2px solid var(--acc);}
+.g7{left:0;right:0;bottom:0;height:7px;border-radius:0;cursor:ns-resize;
+  background:linear-gradient(to top,rgba(255,255,255,.9),rgba(255,255,255,0));}
+.g7::before{inset:-20px 0 -18px;}   /* полоса в 7 px, нажатие 45 */
+.g8{width:18px;height:18px;border-radius:50%;background:rgba(12,28,30,.5);}
+.g8::after{content:'';position:absolute;right:5px;bottom:5px;width:7px;height:7px;
+  border-right:1.8px solid #fff;border-bottom:1.8px solid #fff;}
+
+/* ── проба в деле ─────────────────────────────────────────────── */
+.pickers{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;}
+.pick-g{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.pick-l{font-size:0.55rem;font-weight:800;letter-spacing:0.13em;text-transform:uppercase;
+  color:var(--ink3);margin-right:2px;}
+.pick-b{font:inherit;font-size:0.7rem;width:34px;height:38px;border:1px solid var(--rule2);
+  background:transparent;color:var(--ink2);cursor:pointer;border-radius:var(--r);position:relative;}
+.pick-b::before{content:'';position:absolute;inset:-3px -5px;}   /* 34 + 5×2 = 44 */
+body.modern .pick-b{border-radius:7px;}
+.pick-b.on{background:var(--acc);border-color:var(--acc);color:#fff;}
+body.dark .pick-b.on{color:#0e1a1c;}
+.stage{margin-top:16px;background:var(--canvas-bg);border:var(--canvas-bd);
+  border-radius:var(--canvas-r);padding:14px;display:flex;gap:12px;flex-wrap:wrap;}
+.stage .pic{position:relative;width:calc(50% - 6px);aspect-ratio:16/10;min-width:150px;
+  flex:0 0 auto;box-shadow:var(--sh);border-radius:var(--r);overflow:hidden;}
+@media(max-width:560px){.stage .pic{width:100%;}}
+.stage .pic svg{display:block;width:100%;height:100%;}
+.stage .x,.stage .g{opacity:0;transition:opacity .14s;}
+.stage .pic:hover .x,.stage .pic:hover .g,
+body.touch .stage .x,body.touch .stage .g{opacity:1;}
+.back{margin-top:12px;}
+.back-b{font:inherit;font-size:0.7rem;padding:8px 13px;border:1px solid var(--rule2);
+  background:transparent;color:var(--ink2);cursor:pointer;min-height:36px;border-radius:2px;}
+.back-b:hover{border-color:var(--acc2);color:var(--acc);}
+
+table{border-collapse:collapse;width:100%;margin-top:14px;font-size:0.8rem;}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top;}
+th{font-size:0.55rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink3);}
+td:first-child{color:var(--ink);font-weight:500;}
+td{color:var(--ink2);}
+.tw{overflow-x:auto;max-width:100%;}
+</style>
+</head>
+<body>
+<div class="main">
+  <div class="tag">Макет</div>
+  <h1>Крестик и ручка размера: оформления</h1>
+  <p class="lead">Механика прежняя — крестик в правом верхнем углу, ручка в правом нижнем.
+     Здесь только вид: десять крестиков и восемь ручек, каждый на светлой планировке
+     и на тёмной фотографии рядом, потому что читаться должен на обеих.</p>
+  <p class="lead">Внизу — примерочная: соберите любую пару и посмотрите на снимках в полный
+     размер, в обоих оформлениях и обеих темах.</p>
+
+  <div class="bar">
+    <span class="bar-l">Оформление</span>
+    <button class="bar-b on" id="bBlank" onclick="оформление('blank')">Бланк</button>
+    <button class="bar-b" id="bModern" onclick="оформление('modern')">Модерн</button>
+    <span class="bar-l" style="margin-left:8px">Показать</span>
+    <button class="bar-b" id="bTheme" onclick="тема()">Ночь</button>
+    <button class="bar-b" id="bTouch" onclick="палец()">Как на телефоне</button>
+  </div>
+
+  <div class="v">
+    <div class="v-h"><span class="v-t">Крестик</span></div>
+    <p class="v-d">Все стоят внутри снимка, в 7 px от края — кроме десятого, нынешнего:
+      он висит снаружи и потому спорит с соседним снимком.</p>
+    <div class="grid" id="сеткаX"></div>
+  </div>
+
+  <div class="v">
+    <div class="v-h"><span class="v-t">Ручка размера</span></div>
+    <p class="v-d">Та же логика: правый нижний угол, тянется по диагонали. Седьмая —
+      исключение: полоса вдоль всего нижнего края, тянет только высоту.</p>
+    <div class="grid" id="сеткаG"></div>
+  </div>
+
+  <div class="v">
+    <div class="v-h"><span class="v-t">Примерочная</span></div>
+    <p class="v-d">Выберите номер крестика и номер ручки — пара встанет на снимки
+      в рабочем размере. Наведите на снимок, чтобы увидеть их так, как увидит менеджер.</p>
+    <div class="pickers">
+      <div class="pick-g"><span class="pick-l">Крестик</span><span id="выборX"></span></div>
+      <div class="pick-g"><span class="pick-l">Ручка</span><span id="выборG"></span></div>
+    </div>
+    <div class="stage" id="сцена"></div>
+  </div>
+</div>
+<script>
+const ПЛАН = `<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+ <rect width="320" height="200" fill="#fff"/>
+ <g stroke="#c9d6d8" stroke-width="1">
+  <path d="M30 24H196M30 24V176M196 24V176M30 176H196"/>
+  <path d="M30 96H196M104 24V176M150 96V176"/>
+ </g>
+ <g fill="#dbe9ea"><rect x="31" y="25" width="72" height="70"/><rect x="151" y="97" width="44" height="78"/></g>
+ <g fill="#eef5f6"><rect x="105" y="25" width="90" height="70"/><rect x="31" y="97" width="72" height="78"/></g>
+ <g stroke="#12262a" stroke-width="1.6" fill="none">
+  <path d="M30 24H196V176H30Z"/><path d="M104 24V95M30 96H195M150 97V176"/></g>
+ <g fill="#5b7376" font-family="Geologica,sans-serif" font-size="7">
+  <text x="228" y="34">План 1 этажа</text>
+  <text x="228" y="52">Кухня-гостиная</text><text x="300" y="52">29,7</text>
+  <text x="228" y="66">Спальня</text><text x="304" y="66">9,9</text>
+  <text x="228" y="80">Парная</text><text x="304" y="80">6,5</text>
+  <text x="228" y="94">Душевая</text><text x="304" y="94">7,6</text>
+  <text x="228" y="108">Зона отдыха</text><text x="300" y="108">20,0</text>
+  <text x="228" y="128">Терраса</text><text x="300" y="128">20,6</text></g>
+ <g stroke="#8da3a5" stroke-width="0.8"><path d="M228 40h72M228 116h72"/></g>
+ <text x="228" y="150" fill="#12262a" font-family="Geologica,sans-serif" font-size="8" font-weight="600">103,3 м²</text>
+</svg>`;
+const ФОТО = `<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+ <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+   <stop offset="0" stop-color="#9ec6db"/><stop offset="1" stop-color="#dfeef2"/></linearGradient>
+  <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+   <stop offset="0" stop-color="#7d5b3f"/><stop offset="1" stop-color="#5d422c"/></linearGradient></defs>
+ <rect width="320" height="200" fill="url(#sky)"/>
+ <g fill="#5f7f5a" opacity=".55"><circle cx="34" cy="66" r="26"/><circle cx="66" cy="52" r="20"/>
+  <circle cx="288" cy="58" r="24"/><circle cx="258" cy="70" r="16"/></g>
+ <rect y="146" width="320" height="54" fill="#7fa06a"/>
+ <path d="M88 76 168 44l86 34v10H88Z" fill="#4a3a2a"/>
+ <path d="M88 76 168 44l86 34" fill="none" stroke="#3b2c1e" stroke-width="7" stroke-linejoin="round"/>
+ <rect x="96" y="86" width="150" height="62" fill="url(#wood)"/>
+ <g fill="#cfe4ea" opacity=".92"><rect x="106" y="94" width="52" height="46"/>
+  <rect x="166" y="94" width="34" height="46"/><rect x="208" y="102" width="28" height="38"/></g>
+ <g stroke="#2f3a3d" stroke-width="2" fill="none"><rect x="106" y="94" width="52" height="46"/>
+  <rect x="166" y="94" width="34" height="46"/><rect x="208" y="102" width="28" height="38"/></g>
+ <rect x="92" y="146" width="162" height="6" fill="#8a6a4a"/>
+ <g fill="#6f8f5e"><ellipse cx="272" cy="160" rx="26" ry="10"/><ellipse cx="44" cy="164" rx="30" ry="11"/></g>
+</svg>`;
+const КРЕСТ = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>`;
+
+const КРЕСТИКИ = [
+  ['Залитый бирюзовый', 'Цвет калькулятора, знак белый. Виден на любом снимке.'],
+  ['Белый круг, чернила', 'Подложка белая, знак бирюзовый — тише, чем залитый.'],
+  ['Тёмное стекло', 'Как в фотогалереях телефона: полупрозрачный тёмный круг.'],
+  ['Скруглённый квадрат', 'Та же белая подложка, но квадратом — под язык «Бланка».'],
+  ['Знак белый с тенью', 'Без подложки вовсе. На тёмном читается, на плане — хуже.'],
+  ['Знак с белым ореолом', 'Чернила с белым свечением: держится и на плане, и на кровле.'],
+  ['Матовое стекло', 'Полупрозрачная заливка с тонкой белой обводкой.'],
+  ['Крупный тонкий', 'Знак 20 px тонкой линией, без подложки — самый воздушный.'],
+  ['Красный снаружи', 'Нынешний. Красного в палитре нет, и он висит за краем снимка.'],
+  ['Как у листа', 'Подложка цвета листа с волосяной рамкой — из языка «Бланка».'],
+];
+const РУЧКИ = [
+  ['Залитый квадрат', 'Нынешняя, только внутри снимка: бирюзовый квадратик 12 px.'],
+  ['Белая скоба', 'Две линии углом. На плане пропадает — видно на тёмном.'],
+  ['Скоба на подложке', 'Тот же угол, но на белом квадрате — читается везде.'],
+  ['Диагональные риски', 'Как у поля ввода в браузере: три косые линии.'],
+  ['Затемнённый угол', 'Угол снимка притемняется, в нём белая скоба.'],
+  ['Точка', 'Белый кружок в бирюзовой обводке — как маркер на чертеже.'],
+  ['Полоса по низу', 'Вся нижняя кромка — ручка. Тянет высоту, промахнуться нечем.'],
+  ['Тёмный кружок', 'Полупрозрачный тёмный круг со скобой внутри.'],
+];
+
+function плитка(кар, внутрь){
+  return `<div class="tile">${кар}${внутрь}</div>`;
+}
+function собратьСетки(){
+  document.getElementById('сеткаX').innerHTML = КРЕСТИКИ.map(([т, о], i) => `
+    <div class="cell">
+      <div class="cell-h"><span class="cell-n">${i+1}</span><span class="cell-t">${т}</span></div>
+      <div class="pair">
+        ${плитка(ПЛАН, `<button class="x x${i+1}">${КРЕСТ}</button>`)}
+        ${плитка(ФОТО, `<button class="x x${i+1}">${КРЕСТ}</button>`)}
+      </div>
+      <div class="cell-d">${о}</div>
+    </div>`).join('');
+  document.getElementById('сеткаG').innerHTML = РУЧКИ.map(([т, о], i) => `
+    <div class="cell">
+      <div class="cell-h"><span class="cell-n">${i+1}</span><span class="cell-t">${т}</span></div>
+      <div class="pair">
+        ${плитка(ПЛАН, `<div class="g g${i+1}"></div>`)}
+        ${плитка(ФОТО, `<div class="g g${i+1}"></div>`)}
+      </div>
+      <div class="cell-d">${о}</div>
+    </div>`).join('');
+}
+
+let выбX = 1, выбG = 3;
+function собратьВыбор(){
+  document.getElementById('выборX').innerHTML = КРЕСТИКИ.map((_, i) =>
+    `<button class="pick-b${выбX===i+1?' on':''}" onclick="ставитьX(${i+1})">${i+1}</button>`).join('');
+  document.getElementById('выборG').innerHTML = РУЧКИ.map((_, i) =>
+    `<button class="pick-b${выбG===i+1?' on':''}" onclick="ставитьG(${i+1})">${i+1}</button>`).join('');
+}
+function сцена(){
+  document.getElementById('сцена').innerHTML = [ПЛАН, ФОТО].map(кар => `
+    <div class="pic">${кар}
+      <button class="x x${выбX}">${КРЕСТ}</button>
+      <div class="g g${выбG}"></div>
+    </div>`).join('');
+}
+function ставитьX(n){ выбX = n; собратьВыбор(); сцена(); }
+function ставитьG(n){ выбG = n; собратьВыбор(); сцена(); }
+
+function оформление(что){
+  document.body.classList.toggle('modern', что === 'modern');
+  document.getElementById('bBlank').classList.toggle('on', что !== 'modern');
+  document.getElementById('bModern').classList.toggle('on', что === 'modern');
+}
+function тема(){
+  const н = document.body.classList.toggle('dark');
+  const б = document.getElementById('bTheme');
+  б.textContent = н ? 'День' : 'Ночь'; б.classList.toggle('on', н);
+}
+function палец(){
+  document.body.classList.toggle('touch');
+  document.getElementById('bTouch').classList.toggle('on', document.body.classList.contains('touch'));
+}
+собратьСетки(); собратьВыбор(); сцена();
+</script>
+</body>
+</html>
