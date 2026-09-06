@@ -13,6 +13,28 @@
   --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5;
   --rule:#dceaeb; --rule2:#bcd9db;
   --acc:#1e6c72; --acc2:#2a8f97; --pale:#a8dde0; --tint:#e4f5f6;
+  --r:0;                                   /* «Бланк»: коробок нет, углы прямые */
+  --sh:0 2px 10px rgba(18,38,42,.18);
+  --canvas-bd:1px dashed var(--rule2); --canvas-r:0; --canvas-bg:var(--sheet);
+}
+
+/* ── «Модерн»: тот же калькулятор, другой язык — скругления, заливки, плашки.
+   Токены сняты с самого калькулятора: --page-bg, --card-bg, --green-* и форма
+   холста из .image-canvas-wrap. */
+body.modern{
+  --page:#f0fafa; --sheet:#fff; --zebra:#f7fefe;
+  --ink:#111; --ink2:#555; --ink3:#888;
+  --rule:#d8eef0; --rule2:#a8dde0;
+  --acc:#1e6c72; --acc2:#2a8f97; --pale:#a8dde0; --tint:#e4f5f6;
+  --r:6px;
+  --sh:0 3px 14px rgba(0,0,0,.18);
+  --canvas-bd:2px dashed var(--pale); --canvas-r:12px; --canvas-bg:#f7fefe;
+}
+body.modern.dark{
+  --page:#111e20; --sheet:#1a2a2c; --zebra:#1e3538;
+  --ink:#e8f4f5; --ink2:#9ab8bc; --ink3:#6a9098;
+  --rule:#2a4a4e; --rule2:#2a8f97; --tint:#1e3538;
+  --canvas-bg:#1e3538;
 }
 body.dark{
   --page:#0e1a1c; --sheet:#132528; --zebra:#173338;
@@ -38,7 +60,9 @@ h1{font-family:'Unbounded',sans-serif;font-size:1.5rem;font-weight:800;line-heig
 .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:22px 0 0;
   padding:14px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);}
 .bar-b{font:inherit;font-size:0.72rem;padding:9px 14px;border:1px solid var(--rule2);
-  background:transparent;color:var(--ink2);cursor:pointer;min-height:38px;border-radius:2px;}
+  background:transparent;color:var(--ink2);cursor:pointer;min-height:38px;
+  border-radius:2px;}
+body.modern .bar-b{border-radius:7px;border-width:1.5px;}
 .bar-b:hover{border-color:var(--acc2);color:var(--acc);}
 .bar-b.on{background:var(--acc);border-color:var(--acc);color:#fff;}
 body.dark .bar-b.on{color:#0e1a1c;}
@@ -59,11 +83,12 @@ body.dark .bar-b.on{color:#0e1a1c;}
 .v-p b{color:var(--ink2);font-weight:600;}
 
 /* холст, как в калькуляторе: поле с пунктиром */
-.canvas{position:relative;margin-top:16px;background:var(--sheet);
-  border:1px dashed var(--rule2);min-height:210px;padding:14px;
+.canvas{position:relative;margin-top:16px;background:var(--canvas-bg);
+  border:var(--canvas-bd);border-radius:var(--canvas-r);min-height:210px;padding:14px;
   display:flex;gap:12px;flex-wrap:wrap;}
 .pic{position:relative;width:calc(50% - 6px);aspect-ratio:16/10;min-width:180px;flex:0 0 auto;
-  box-shadow:0 2px 10px rgba(18,38,42,.18);background:#fff;}
+  box-shadow:var(--sh);background:#fff;border-radius:var(--r);}
+.pic svg{border-radius:var(--r);}
 @media(max-width:560px){.pic{width:100%;}}
 .pic svg{display:block;width:100%;height:100%;}
 .pic.gone{display:none;}
@@ -79,8 +104,7 @@ body.dark .bar-b.on{color:#0e1a1c;}
 body.touch .pic .ctl,body.touch .pic .grip{opacity:1;}
 
 /* ── 0. Как сейчас ───────────────────────────────────────────────── */
-.s0 .pic{border-radius:6px;}
-.s0 .pic svg{border-radius:6px;}
+.s0 .pic,.s0 .pic svg{border-radius:6px;}   /* нынешний вид: скругления есть в обеих темах */
 .s0 .del{top:-10px;right:-10px;width:22px;height:22px;background:#e44;color:#fff;
   border-radius:50%;font-size:13px;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.2);}
 .s0 .del::before{inset:0;}
@@ -112,7 +136,7 @@ body.touch .pic .ctl,body.touch .pic .grip{opacity:1;}
 /* ── 3. Полка под фото ───────────────────────────────────────────── */
 .s3 .pic{padding-bottom:30px;background:var(--sheet);}
 .s3 .pic svg{height:calc(100% - 30px);}
-.s3 .shelf{position:absolute;left:0;right:0;bottom:0;height:30px;display:flex;
+.s3 .shelf{border-radius:0 0 var(--r) var(--r);position:absolute;left:0;right:0;bottom:0;height:30px;display:flex;
   align-items:center;justify-content:space-between;gap:8px;padding:0 9px;
   border-top:1px solid var(--rule);background:var(--sheet);}
 .s3 .shelf-n{font-size:0.56rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;
@@ -134,7 +158,7 @@ body.touch .pic .ctl,body.touch .pic .grip{opacity:1;}
 .s4 .tools[hidden]{display:none;}   /* display:flex в классе бьёт [hidden] у браузера */
 .s4 .tools{position:absolute;left:0;right:0;bottom:-46px;height:40px;display:flex;
   align-items:center;gap:4px;padding:0 4px;background:var(--sheet);
-  border:1px solid var(--rule2);z-index:6;}
+  border:1px solid var(--rule2);border-radius:var(--r);z-index:6;}
 .s4 .tool{font:inherit;font-size:0.68rem;color:var(--ink2);background:none;border:none;
   cursor:pointer;padding:0 9px;height:38px;white-space:nowrap;position:relative;}
 .s4 .tool::before{content:'';position:absolute;inset:-3px 0;}
@@ -166,11 +190,17 @@ td{color:var(--ink2);}
   <p class="lead">Четыре варианта вместо нынешних красного кружка и бирюзового квадратика,
      висящих снаружи снимка. Наводите на картинку, тяните угол, нажимайте крестик —
      всё работает по-настоящему.</p>
+  <p class="lead">Каждый вариант показан в обоих оформлениях — «Бланк» и «Модерн»:
+     переключатель ниже. Отличается форма — скругления, заливки, вид холста, — само
+     управление одинаково.</p>
   <p class="lead">Снимки здесь нарисованные, не настоящие: макет про управление, а не про
      содержимое.</p>
 
   <div class="bar">
-    <span class="bar-l">Показать</span>
+    <span class="bar-l">Оформление</span>
+    <button class="bar-b on" id="bBlank" onclick="оформление('blank')">Бланк</button>
+    <button class="bar-b" id="bModern" onclick="оформление('modern')">Модерн</button>
+    <span class="bar-l" style="margin-left:8px">Показать</span>
     <button class="bar-b" id="bTheme" onclick="тема()">Ночь</button>
     <button class="bar-b" id="bTouch" onclick="палец()">Как на телефоне</button>
     <span class="bar-l" style="margin-left:8px">Всё вернуть</span>
@@ -202,7 +232,7 @@ td{color:var(--ink2);}
   <!-- 2 -->
   <div class="v s2">
     <div class="v-h"><span class="v-n">2</span><span class="v-t">Волосяная скоба</span></div>
-    <p class="v-d">Тот же принцип, но без заливок вообще — язык «Бланка»: только линии.
+    <p class="v-d">Тот же принцип, но без заливок вообще — только линии.
       Крестик и уголок нарисованы чернилами с белым ореолом, как разметка на чертеже:
       на тёмной кровле их держит ореол, на белом плане — сами чернила.</p>
     <div class="canvas" data-set="2"></div>
@@ -375,6 +405,11 @@ function показатьВозврат(х){
   х.after(b);
 }
 
+function оформление(что){
+  document.body.classList.toggle('modern', что==='modern');
+  document.getElementById('bBlank').classList.toggle('on', что!=='modern');
+  document.getElementById('bModern').classList.toggle('on', что==='modern');
+}
 function тема(){
   const н = document.body.classList.toggle('dark');
   const б = document.getElementById('bTheme');
