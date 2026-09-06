@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Управление снимками: пять других механик — макет v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+/* Токены «Бланка», дословно из калькулятора. Макет живёт в его языке. */
+:root{
+  --page:#f7fbfb; --sheet:#fff; --zebra:#f7fafb;
+  --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5;
+  --rule:#dceaeb; --rule2:#bcd9db;
+  --acc:#1e6c72; --acc2:#2a8f97; --pale:#a8dde0; --tint:#e4f5f6;
+  --r:0;                                   /* «Бланк»: коробок нет, углы прямые */
+  --sh:0 2px 10px rgba(18,38,42,.18);
+  --canvas-bd:1px dashed var(--rule2); --canvas-r:0; --canvas-bg:var(--sheet);
+}
+
+/* ── «Модерн»: тот же калькулятор, другой язык — скругления, заливки, плашки.
+   Токены сняты с самого калькулятора: --page-bg, --card-bg, --green-* и форма
+   холста из .image-canvas-wrap. */
+body.modern{
+  --page:#f0fafa; --sheet:#fff; --zebra:#f7fefe;
+  --ink:#111; --ink2:#555; --ink3:#888;
+  --rule:#d8eef0; --rule2:#a8dde0;
+  --acc:#1e6c72; --acc2:#2a8f97; --pale:#a8dde0; --tint:#e4f5f6;
+  --r:6px;
+  --sh:0 3px 14px rgba(0,0,0,.18);
+  --canvas-bd:2px dashed var(--pale); --canvas-r:12px; --canvas-bg:#f7fefe;
+}
+body.modern.dark{
+  --page:#111e20; --sheet:#1a2a2c; --zebra:#1e3538;
+  --ink:#e8f4f5; --ink2:#9ab8bc; --ink3:#6a9098;
+  --rule:#2a4a4e; --rule2:#2a8f97; --tint:#1e3538;
+  --canvas-bg:#1e3538;
+}
+body.dark{
+  --page:#0e1a1c; --sheet:#132528; --zebra:#173338;
+  --ink:#e6f3f3; --ink2:#9db6b8; --ink3:#8aa4a6;
+  --rule:#224347; --rule2:#2d585d;
+  --acc:#8fd6dc; --acc2:#5fc2ca; --pale:#5fc2ca; --tint:#173338;
+}
+body{font-family:'Geologica',system-ui,sans-serif;background:var(--page);color:var(--ink);
+  font-variant-numeric:tabular-nums;-webkit-text-size-adjust:100%;}
+.main{max-width:1000px;margin:0 auto;padding:44px 40px 100px;}
+@media(max-width:720px){.main{padding:24px 16px 80px;}}
+
+.tag{display:inline-block;font-size:0.58rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.12em;color:var(--acc2);background:var(--tint);border-radius:20px;
+  padding:4px 13px;margin-bottom:14px;}
+h1{font-family:'Unbounded',sans-serif;font-size:1.5rem;font-weight:800;line-height:1.2;
+  letter-spacing:-0.02em;margin-bottom:12px;}
+@media(max-width:720px){h1{font-size:1.15rem;}}
+.lead{font-size:0.95rem;color:var(--ink2);line-height:1.7;max-width:680px;}
+.lead+.lead{margin-top:9px;}
+
+/* служебная панель макета — в калькулятор не едет */
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:22px 0 0;
+  padding:14px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);}
+.bar-b{font:inherit;font-size:0.72rem;padding:9px 14px;border:1px solid var(--rule2);
+  background:transparent;color:var(--ink2);cursor:pointer;min-height:38px;
+  border-radius:2px;}
+body.modern .bar-b{border-radius:7px;border-width:1.5px;}
+.bar-b:hover{border-color:var(--acc2);color:var(--acc);}
+.bar-b.on{background:var(--acc);border-color:var(--acc);color:#fff;}
+body.dark .bar-b.on{color:#0e1a1c;}
+.bar-l{font-size:0.55rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--ink3);margin-right:2px;}
+
+.v{margin-top:44px;padding-top:26px;border-top:1px solid var(--rule);}
+.v:first-of-type{border-top:none;}
+.v-h{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;margin-bottom:5px;}
+.v-n{font-family:'Unbounded',sans-serif;font-size:0.72rem;font-weight:700;color:var(--acc2);}
+.v-t{font-family:'Unbounded',sans-serif;font-size:1rem;font-weight:700;letter-spacing:-0.01em;}
+@media(max-width:720px){.v-t{font-size:0.9rem;}}
+.v-st{font-size:0.55rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;
+  color:var(--ink3);border:1px solid var(--rule2);border-radius:20px;padding:3px 10px;white-space:nowrap;}
+.v-st.now{color:var(--acc);border-color:var(--acc2);background:var(--tint);}
+.v-d{font-size:0.85rem;color:var(--ink2);line-height:1.65;max-width:680px;margin-bottom:6px;}
+.v-p{font-size:0.78rem;color:var(--ink3);line-height:1.6;max-width:680px;margin-top:7px;}
+.v-p b{color:var(--ink2);font-weight:600;}
+
+/* холст, как в калькуляторе: поле с пунктиром */
+.canvas{position:relative;margin-top:16px;background:var(--canvas-bg);
+  border:var(--canvas-bd);border-radius:var(--canvas-r);min-height:210px;padding:14px;
+  display:flex;gap:12px;flex-wrap:wrap;}
+.pic{position:relative;width:calc(50% - 6px);aspect-ratio:16/10;min-width:96px;flex:0 0 auto;
+  box-shadow:var(--sh);background:#fff;border-radius:var(--r);}
+.pic svg{border-radius:var(--r);}
+@media(max-width:560px){.pic{width:100%;}}
+.pic svg{display:block;width:100%;height:100%;}
+.pic.gone{display:none;}
+
+/* ── общее для управляющих элементов ─────────────────────────────── */
+.ctl{position:absolute;z-index:5;cursor:pointer;border:none;background:none;
+  padding:0;font:inherit;display:flex;align-items:center;justify-content:center;}
+.ctl::before{content:'';position:absolute;inset:-13px;}   /* поле нажатия 44 px */
+.grip{position:absolute;z-index:5;cursor:se-resize;}
+.grip::before{content:'';position:absolute;inset:-15px;}
+.pic .ctl,.pic .grip{opacity:0;transition:opacity .14s;}
+.pic:hover .ctl,.pic:hover .grip,
+body.touch .pic .ctl,body.touch .pic .grip{opacity:1;}
+
+/* ══ общее ═══════════════════════════════════════════════════════ */
+.ctl{position:absolute;z-index:6;cursor:pointer;border:none;background:none;
+  padding:0;font:inherit;display:flex;align-items:center;justify-content:center;}
+.ctl::before{content:'';position:absolute;inset:-13px;}
+.pic{overflow:hidden;}
+.pic.gone{display:none;}
+.tools-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
+.tb{font:inherit;font-size:0.72rem;padding:0 13px;height:38px;border:1px solid var(--rule2);
+  background:transparent;color:var(--ink2);cursor:pointer;border-radius:var(--r);
+  display:inline-flex;align-items:center;gap:6px;white-space:nowrap;position:relative;}
+.tb::before{content:'';position:absolute;inset:-3px 0;}   /* нажатие 44 px при кнопке в 38 */
+body.modern .tb{border-radius:7px;border-width:1.5px;}
+.tb:hover{border-color:var(--acc2);color:var(--acc);}
+.tb[disabled]{opacity:.4;cursor:default;}
+.tb.danger:hover{border-color:#c0392b;color:#c0392b;}
+body.dark .tb.danger:hover{border-color:#ff9b8f;color:#ff9b8f;}
+.sel-note{font-size:0.7rem;color:var(--ink3);margin-left:2px;}
+
+/* ══ 1. Панель раздела ═══════════════════════════════════════════ */
+.s1 .pic{cursor:pointer;}
+.s1 .pic.sel{outline:2px solid var(--acc2);outline-offset:-2px;}
+
+/* ══ 2. Долгое нажатие ═══════════════════════════════════════════ */
+.s2 .pic{cursor:pointer;}
+.s2 .pic.held{outline:2px solid var(--acc2);outline-offset:-2px;}
+.menu{position:absolute;z-index:20;min-width:186px;background:var(--sheet);
+  border:1px solid var(--rule2);border-radius:var(--r);box-shadow:0 8px 28px rgba(18,38,42,.22);
+  padding:5px 0;}
+body.modern .menu{border-radius:9px;}
+.menu-b{display:block;width:100%;text-align:left;font:inherit;font-size:0.76rem;
+  padding:0 15px;height:40px;background:none;border:none;color:var(--ink);cursor:pointer;}
+.menu-b:hover{background:var(--tint);color:var(--acc);}
+.menu-b.danger:hover{color:#c0392b;background:transparent;}
+body.dark .menu-b.danger:hover{color:#ff9b8f;}
+.menu-sep{height:1px;background:var(--rule);margin:5px 0;}
+
+/* ══ 3. Свайп ════════════════════════════════════════════════════ */
+.s3 .swipe{position:relative;width:calc(50% - 6px);min-width:96px;flex:0 0 auto;}
+@media(max-width:560px){.s3 .swipe{width:100%;}}
+.s3 .swipe .pic{width:100%;position:relative;left:0;transition:transform .16s;touch-action:pan-y;}
+.s3 .swipe.dragging .pic{transition:none;}
+.s3 .under{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;
+  padding-right:18px;background:#f6e4e1;color:#c0392b;font-size:0.74rem;font-weight:600;
+  border-radius:var(--r);}
+body.dark .s3 .under{background:#3a2320;color:#ff9b8f;}
+.s3 .grip-edge{position:absolute;left:0;right:0;bottom:0;height:7px;cursor:ns-resize;
+  background:linear-gradient(to top,rgba(18,38,42,.35),transparent);opacity:0;transition:opacity .14s;}
+.s3 .grip-edge::before{content:'';position:absolute;inset:-19px 0 -8px;}
+.s3 .swipe:hover .grip-edge,body.touch .s3 .grip-edge{opacity:1;}
+
+/* ══ 4. Три размера ══════════════════════════════════════════════ */
+.s4 .pic{width:var(--w,calc(50% - 6px));}
+.s4 .sizes{display:flex;align-items:center;gap:6px;margin-top:9px;flex-wrap:wrap;}
+.s4 .sz{font:inherit;font-size:0.66rem;height:34px;padding:0 12px;border:1px solid var(--rule2);
+  background:transparent;color:var(--ink2);cursor:pointer;border-radius:var(--r);position:relative;}
+.s4 .sz::before{content:'';position:absolute;inset:-5px 0;}
+body.modern .s4 .sz{border-radius:7px;}
+.s4 .sz.on{border-color:var(--acc2);color:var(--acc);background:var(--tint);}
+.s4 .sz-l{font-size:0.55rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--ink3);margin-right:3px;}
+
+/* ══ 5. Затемнение ═══════════════════════════════════════════════ */
+.s5 .pic .veil{position:absolute;inset:0;background:rgba(10,26,28,.42);opacity:0;
+  transition:opacity .14s;display:flex;align-items:center;justify-content:center;
+  border-radius:var(--r);}
+.s5 .pic:hover .veil,body.touch .s5 .pic .veil{opacity:1;}
+.s5 .veil-b{font:inherit;font-size:0.74rem;font-weight:600;color:#fff;background:rgba(0,0,0,.28);
+  border:1px solid rgba(255,255,255,.75);border-radius:var(--r);height:40px;padding:0 18px;
+  cursor:pointer;display:inline-flex;align-items:center;gap:7px;position:relative;}
+body.modern .s5 .veil-b{border-radius:20px;}
+.s5 .veil-b::before{content:'';position:absolute;inset:-3px -6px;}
+.s5 .veil-b:hover{background:rgba(0,0,0,.5);}
+.s5 .edge{position:absolute;top:0;bottom:0;right:0;width:9px;cursor:ew-resize;opacity:0;
+  transition:opacity .14s;background:linear-gradient(to left,rgba(255,255,255,.85),transparent);}
+.s5 .edge::before{content:'';position:absolute;inset:0 -18px;}   /* 9 + 18×2 = 45 px */
+.s5 .pic:hover .edge,body.touch .s5 .edge{opacity:1;}
+.back{margin-top:12px;}
+.back-b{font:inherit;font-size:0.7rem;padding:8px 13px;border:1px solid var(--rule2);
+  background:transparent;color:var(--ink2);cursor:pointer;min-height:36px;border-radius:var(--r);}
+body.modern .back-b{border-radius:7px;}
+.back-b:hover{border-color:var(--acc2);color:var(--acc);}
+
+table{border-collapse:collapse;width:100%;margin-top:14px;font-size:0.8rem;}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top;}
+th{font-size:0.55rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink3);}
+td:first-child{color:var(--ink);font-weight:500;}
+td{color:var(--ink2);}
+.tw{overflow-x:auto;max-width:100%;}
+
+</style>
+</head>
+<body>
+<div class="main">
+  <div class="tag">Макет</div>
+  <h1>Управление снимками: пять других механик</h1>
+  <p class="lead">Первые четыре варианта были про то, как нарисовать те же два уголка.
+     Эти пять — про то, чтобы уголков не было вовсе: управление уходит в панель раздела,
+     в меню по долгому нажатию, в свайп, в готовые размеры или под затемнение.</p>
+  <p class="lead">Каждый показан в обоих оформлениях — «Бланк» и «Модерн». Всё живое:
+     удаляйте, тяните, выбирайте размер. Снимки нарисованные.</p>
+
+  <div class="bar">
+    <span class="bar-l">Оформление</span>
+    <button class="bar-b on" id="bBlank" onclick="оформление('blank')">Бланк</button>
+    <button class="bar-b" id="bModern" onclick="оформление('modern')">Модерн</button>
+    <span class="bar-l" style="margin-left:8px">Показать</span>
+    <button class="bar-b" id="bTheme" onclick="тема()">Ночь</button>
+    <button class="bar-b" id="bTouch" onclick="палец()">Как на телефоне</button>
+    <span class="bar-l" style="margin-left:8px">Всё вернуть</span>
+    <button class="bar-b" onclick="вернуть()">Сброс</button>
+  </div>
+
+  <div class="v s1">
+    <div class="v-h"><span class="v-n">1</span><span class="v-t">Действия в панели раздела</span></div>
+    <p class="v-d">На снимке нет ничего. Нажали по нему — он обведён, а в панели раздела,
+      рядом с «Авто-расстановкой», появились действия для выбранного: удалить, шире, уже.
+      Кнопки живут там, где уже стоят «Добавить изображение» и «Очистить всё».</p>
+    <div class="tools-row" data-tools="1">
+      <button class="tb">+ Добавить изображение</button>
+      <button class="tb">Очистить всё</button>
+      <button class="tb">Авто-расстановка</button>
+      <span class="sel-note" data-note>Снимок не выбран</span>
+    </div>
+    <div class="canvas" data-set="1"></div>
+    <p class="v-p"><b>Что чинит:</b> холст чистый совсем, ни одной кнопки поверх картинки;
+      цель нажатия — целая кнопка панели. <b>Чем платим:</b> действие в двух шагах и
+      понятие «выбрано», которого в калькуляторе пока нет.</p>
+  </div>
+
+  <div class="v s2">
+    <div class="v-h"><span class="v-n">2</span><span class="v-t">Долгое нажатие открывает меню</span></div>
+    <p class="v-d">Ни кнопок, ни уголков. Задержали палец на снимке (на компьютере —
+      правая кнопка) — вышло меню: во всю ширину, половина, треть, удалить.</p>
+    <div class="canvas" data-set="2"></div>
+    <p class="v-p"><b>Что чинит:</b> снимок не закрыт ничем и на телефоне ведёт себя как
+      привычная картинка. <b>Чем платим:</b> о долгом нажатии надо догадаться — само оно
+      о себе не говорит.</p>
+  </div>
+
+  <div class="v s3">
+    <div class="v-h"><span class="v-n">3</span><span class="v-t">Свайп в сторону удаляет</span></div>
+    <p class="v-d">Снимок сдвигается пальцем или мышью влево — под ним проступает
+      «Удалить». Отпустили за половиной — снимок ушёл, не дотянули — вернулся на место.
+      Размер тянется за нижний край: полоса во всю ширину, а не квадратик в углу.</p>
+    <div class="canvas" data-set="3"></div>
+    <p class="v-p"><b>Что чинит:</b> ни одной кнопки на снимке, удаление привычно по телефону,
+      ручка размера — во всю ширину. <b>Чем платим:</b> случайный сдвиг при прокрутке и
+      непривычность на компьютере.</p>
+  </div>
+
+  <div class="v s4">
+    <div class="v-h"><span class="v-n">4</span><span class="v-t">Размер без ручки — три ширины</span></div>
+    <p class="v-d">Тянуть угол вообще нечем: у снимка три ширины — треть, половина, во всю.
+      Выбираются кнопками под холстом, вместе с «Удалить». На листе снимки всегда встают
+      ровно, потому что произвольных размеров нет.</p>
+    <div class="canvas" data-set="4"></div>
+    <div class="sizes" data-sizes="4"></div>
+    <p class="v-p"><b>Что чинит:</b> ни уголков, ни кривых раскладок в печати; палец попадает
+      всегда. <b>Чем платим:</b> произвольный размер больше не задать.</p>
+  </div>
+
+  <div class="v s5">
+    <div class="v-h"><span class="v-n">5</span><span class="v-t">Затемнение при наведении</span></div>
+    <p class="v-d">Навели — снимок притемняется, и посередине встаёт одна крупная кнопка
+      «Удалить», а весь правый край становится ручкой размера. Промахнуться нечем: цели
+      во всю высоту и в середине.</p>
+    <div class="canvas" data-set="5"></div>
+    <p class="v-p"><b>Что чинит:</b> самые крупные цели из всех вариантов, ничего не торчит
+      за снимок. <b>Чем платим:</b> под курсором картинку временно хуже видно.</p>
+  </div>
+
+  <div class="v">
+    <div class="v-h"><span class="v-t">Чем отличаются</span></div>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Вариант</th><th>Удалить</th><th>Размер</th><th>На снимке</th><th>Пальцем</th></tr></thead>
+      <tbody>
+        <tr><td>1 · панель раздела</td><td>кнопка в панели</td><td>кнопки «шире / уже»</td><td>ничего</td><td>да, два шага</td></tr>
+        <tr><td>2 · долгое нажатие</td><td>пункт меню</td><td>пункты меню</td><td>ничего</td><td>да, привычно</td></tr>
+        <tr><td>3 · свайп</td><td>сдвиг в сторону</td><td>нижний край</td><td>ничего</td><td>да, привычно</td></tr>
+        <tr><td>4 · три ширины</td><td>кнопка под холстом</td><td>треть / половина / вся</td><td>ничего</td><td>да, крупные кнопки</td></tr>
+        <tr><td>5 · затемнение</td><td>крупная кнопка по центру</td><td>весь правый край</td><td>при наведении</td><td>да, самые крупные цели</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="v-p">Ни в одном из пяти нет уголка в углу. Первый и четвёртый уводят действия
+      под холст, второй и третий не показывают ничего до жеста, пятый показывает всё, но
+      только пока курсор на снимке. Удаление везде обратимо кнопкой «Вернуть снимок».</p>
+  </div>
+</div>
+<script>
+const ПЛАН = `<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+ <rect width="320" height="200" fill="#fff"/>
+ <g stroke="#c9d6d8" stroke-width="1">
+  <path d="M30 24H196M30 24V176M196 24V176M30 176H196"/>
+  <path d="M30 96H196M104 24V176M150 96V176"/>
+ </g>
+ <g fill="#dbe9ea"><rect x="31" y="25" width="72" height="70"/><rect x="151" y="97" width="44" height="78"/></g>
+ <g fill="#eef5f6"><rect x="105" y="25" width="90" height="70"/><rect x="31" y="97" width="72" height="78"/></g>
+ <g stroke="#12262a" stroke-width="1.6" fill="none">
+  <path d="M30 24H196V176H30Z"/><path d="M104 24V95M30 96H195M150 97V176"/></g>
+ <g fill="#5b7376" font-family="Geologica,sans-serif" font-size="7">
+  <text x="228" y="34">План 1 этажа</text>
+  <text x="228" y="52">Кухня-гостиная</text><text x="300" y="52">29,7</text>
+  <text x="228" y="66">Спальня</text><text x="304" y="66">9,9</text>
+  <text x="228" y="80">Парная</text><text x="304" y="80">6,5</text>
+  <text x="228" y="94">Душевая</text><text x="304" y="94">7,6</text>
+  <text x="228" y="108">Зона отдыха</text><text x="300" y="108">20,0</text>
+  <text x="228" y="128">Терраса</text><text x="300" y="128">20,6</text></g>
+ <g stroke="#8da3a5" stroke-width="0.8"><path d="M228 40h72M228 116h72"/></g>
+ <text x="228" y="150" fill="#12262a" font-family="Geologica,sans-serif" font-size="8" font-weight="600">103,3 м²</text>
+</svg>`;
+const ФОТО = `<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+ <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+   <stop offset="0" stop-color="#9ec6db"/><stop offset="1" stop-color="#dfeef2"/></linearGradient>
+  <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+   <stop offset="0" stop-color="#7d5b3f"/><stop offset="1" stop-color="#5d422c"/></linearGradient></defs>
+ <rect width="320" height="200" fill="url(#sky)"/>
+ <g fill="#5f7f5a" opacity=".55"><circle cx="34" cy="66" r="26"/><circle cx="66" cy="52" r="20"/>
+  <circle cx="288" cy="58" r="24"/><circle cx="258" cy="70" r="16"/></g>
+ <rect y="146" width="320" height="54" fill="#7fa06a"/>
+ <path d="M88 76 168 44l86 34v10H88Z" fill="#4a3a2a"/>
+ <path d="M88 76 168 44l86 34" fill="none" stroke="#3b2c1e" stroke-width="7" stroke-linejoin="round"/>
+ <rect x="96" y="86" width="150" height="62" fill="url(#wood)"/>
+ <g fill="#cfe4ea" opacity=".92"><rect x="106" y="94" width="52" height="46"/>
+  <rect x="166" y="94" width="34" height="46"/><rect x="208" y="102" width="28" height="38"/></g>
+ <g stroke="#2f3a3d" stroke-width="2" fill="none"><rect x="106" y="94" width="52" height="46"/>
+  <rect x="166" y="94" width="34" height="46"/><rect x="208" y="102" width="28" height="38"/></g>
+ <rect x="92" y="146" width="162" height="6" fill="#8a6a4a"/>
+ <g fill="#6f8f5e"><ellipse cx="272" cy="160" rx="26" ry="10"/><ellipse cx="44" cy="164" rx="30" ry="11"/></g>
+</svg>`;
+const ИМЕНА = ['Планировка', 'Визуализация'];
+
+function карточка(кар){
+  const p = document.createElement('div');
+  p.className = 'pic';
+  p.innerHTML = кар;
+  return p;
+}
+function показатьВозврат(х){
+  if (х.parentElement.querySelector('.back')) return;
+  const b = document.createElement('div');
+  b.className = 'back';
+  b.innerHTML = '<button class="back-b">Вернуть снимок</button>';
+  b.querySelector('button').onclick = () => {
+    х.querySelectorAll('.pic.gone, .swipe.gone').forEach(э => {
+      э.classList.remove('gone');
+      const p = э.classList.contains('swipe') ? э.querySelector('.pic') : э;
+      if (p) p.style.transform = '';
+    });
+    b.remove();
+  };
+  х.after(b);
+}
+function тянуть(эл, при, конец){
+  const старт = e => {
+    e.preventDefault(); e.stopPropagation();
+    const т = e.touches ? e.touches[0] : e;
+    const н = {x: т.clientX, y: т.clientY};
+    const дв = ev => { const т2 = ev.touches ? ev.touches[0] : ev;
+      при(т2.clientX - н.x, т2.clientY - н.y); };
+    const кон = () => {
+      document.removeEventListener('mousemove', дв); document.removeEventListener('mouseup', кон);
+      document.removeEventListener('touchmove', дв); document.removeEventListener('touchend', кон);
+      if (конец) конец();
+    };
+    document.addEventListener('mousemove', дв); document.addEventListener('mouseup', кон);
+    document.addEventListener('touchmove', дв, {passive:false}); document.addEventListener('touchend', кон);
+  };
+  эл.addEventListener('mousedown', старт);
+  эл.addEventListener('touchstart', старт, {passive:false});
+}
+
+// ── 1. Панель раздела ─────────────────────────────────────────────
+function собрать1(х){
+  const панель = document.querySelector('[data-tools="1"]');
+  панель.querySelectorAll('.tb-sel').forEach(b => b.remove());
+  const подпись = панель.querySelector('[data-note]');
+  const кнопки = ['Удалить снимок', 'Шире', 'Уже'].map(т => {
+    const b = document.createElement('button');
+    b.className = 'tb tb-sel' + (т.startsWith('Удал') ? ' danger' : '');
+    b.textContent = т; b.hidden = true;
+    панель.insertBefore(b, подпись);
+    return b;
+  });
+  const выбрать = p => {
+    х.querySelectorAll('.pic').forEach(o => o.classList.toggle('sel', o === p));
+    const есть = !!p;
+    кнопки.forEach(b => b.hidden = !есть);
+    подпись.textContent = есть ? 'Выбран снимок' : 'Снимок не выбран';
+    подпись.hidden = есть;
+  };
+  const текущий = () => х.querySelector('.pic.sel');
+  кнопки[0].onclick = () => { const p = текущий(); if (!p) return;
+    p.classList.add('gone'); выбрать(null); показатьВозврат(х); };
+  кнопки[1].onclick = () => { const p = текущий(); if (!p) return;
+    p.style.width = Math.min(х.clientWidth - 28, p.offsetWidth + 70) + 'px'; };
+  кнопки[2].onclick = () => { const p = текущий(); if (!p) return;
+    p.style.width = Math.max(130, p.offsetWidth - 70) + 'px'; };
+  [ПЛАН, ФОТО].forEach(кар => {
+    const p = карточка(кар);
+    p.onclick = () => выбрать(p.classList.contains('sel') ? null : p);
+    х.appendChild(p);
+  });
+  выбрать(null);
+}
+
+// ── 2. Долгое нажатие ─────────────────────────────────────────────
+function собрать2(х){
+  const закрыть = () => { х.querySelectorAll('.menu').forEach(m => m.remove());
+    х.querySelectorAll('.pic').forEach(p => p.classList.remove('held')); };
+  [ПЛАН, ФОТО].forEach(кар => {
+    const p = карточка(кар);
+    let таймер = null;
+    const открыть = (x, y) => {
+      закрыть(); p.classList.add('held');
+      const m = document.createElement('div');
+      m.className = 'menu';
+      const rх = х.getBoundingClientRect();
+      m.style.left = Math.min(x - rх.left, х.clientWidth - 196) + 'px';
+      m.style.top = (y - rх.top) + 'px';
+      [['Во всю ширину', () => p.style.width = (х.clientWidth - 28) + 'px'],
+       ['Половина',      () => p.style.width = 'calc(50% - 6px)'],
+       ['Треть',         () => p.style.width = 'calc(33.33% - 8px)'],
+       null,
+       ['Удалить',       () => { p.classList.add('gone'); показатьВозврат(х); }]
+      ].forEach(пункт => {
+        if (!пункт) { const s = document.createElement('div'); s.className = 'menu-sep'; m.appendChild(s); return; }
+        const b = document.createElement('button');
+        b.className = 'menu-b' + (пункт[0] === 'Удалить' ? ' danger' : '');
+        b.textContent = пункт[0];
+        b.onclick = e => { e.stopPropagation(); пункт[1](); закрыть(); };
+        m.appendChild(b);
+      });
+      х.appendChild(m);
+    };
+    p.addEventListener('contextmenu', e => { e.preventDefault(); открыть(e.clientX, e.clientY); });
+    p.addEventListener('touchstart', e => { const т = e.touches[0];
+      таймер = setTimeout(() => открыть(т.clientX, т.clientY), 450); }, {passive:true});
+    ['touchend','touchmove','touchcancel'].forEach(с => p.addEventListener(с, () => clearTimeout(таймер)));
+    p.addEventListener('mousedown', e => { if (e.button) return;
+      таймер = setTimeout(() => открыть(e.clientX, e.clientY), 450); });
+    ['mouseup','mouseleave'].forEach(с => p.addEventListener(с, () => clearTimeout(таймер)));
+    х.appendChild(p);
+  });
+  х.addEventListener('click', e => { if (!e.target.closest('.menu')) закрыть(); });
+}
+
+// ── 3. Свайп ──────────────────────────────────────────────────────
+function собрать3(х){
+  [ПЛАН, ФОТО].forEach(кар => {
+    const об = document.createElement('div');
+    об.className = 'swipe';
+    const под = document.createElement('div');
+    под.className = 'under'; под.textContent = 'Удалить';
+    const p = карточка(кар);
+    const край = document.createElement('div');
+    край.className = 'grip-edge'; край.title = 'Изменить высоту';
+    p.appendChild(край);
+    об.appendChild(под); об.appendChild(p);
+    let сдвиг = 0;
+    тянуть(p, (dx) => { if (Math.abs(dx) < 4) return;
+      об.classList.add('dragging'); сдвиг = Math.min(0, dx);
+      p.style.transform = `translateX(${сдвиг}px)`; },
+      () => { об.classList.remove('dragging');
+        if (Math.abs(сдвиг) > об.offsetWidth * 0.5) { об.classList.add('gone'); показатьВозврат(х); }
+        p.style.transform = ''; сдвиг = 0; });
+    let h0 = 0;
+    тянуть(край, (dx, dy) => { if (!h0) h0 = p.offsetHeight;
+      p.style.aspectRatio = 'auto';
+      p.style.height = Math.max(90, h0 + dy) + 'px'; }, () => { h0 = 0; });
+    х.appendChild(об);
+  });
+}
+
+// ── 4. Три ширины ─────────────────────────────────────────────────
+function собрать4(х){
+  const полка = document.querySelector('[data-sizes="4"]');
+  полка.innerHTML = '';
+  const снимки = [ПЛАН, ФОТО].map(кар => { const p = карточка(кар); х.appendChild(p); return p; });
+  let выбран = снимки[0];
+  снимки.forEach(p => p.onclick = () => { выбран = p; отметить(); });
+  const ширины = [['Треть', 'calc(33.33% - 8px)'], ['Половина', 'calc(50% - 6px)'], ['Во всю', 'calc(100% - 0px)']];
+  const л = document.createElement('span'); л.className = 'sz-l'; л.textContent = 'Ширина'; полка.appendChild(л);
+  const кн = ширины.map(([т, w]) => { const b = document.createElement('button');
+    b.className = 'sz'; b.textContent = т;
+    b.onclick = () => { выбран.style.setProperty('--w', w); отметить(); };
+    полка.appendChild(b); return b; });
+  const уд = document.createElement('button');
+  уд.className = 'sz'; уд.textContent = 'Удалить'; уд.style.marginLeft = '8px';
+  уд.onclick = () => { выбран.classList.add('gone');
+    выбран = снимки.find(p => !p.classList.contains('gone')) || снимки[0];
+    показатьВозврат(х); отметить(); };
+  полка.appendChild(уд);
+  function отметить(){
+    снимки.forEach(p => p.style.outline = p === выбран ? '2px solid var(--acc2)' : '');
+    const w = выбран.style.getPropertyValue('--w') || 'calc(50% - 6px)';
+    кн.forEach((b, i) => b.classList.toggle('on', ширины[i][1] === w));
+  }
+  отметить();
+}
+
+// ── 5. Затемнение ─────────────────────────────────────────────────
+function собрать5(х){
+  [ПЛАН, ФОТО].forEach(кар => {
+    const p = карточка(кар);
+    const v = document.createElement('div');
+    v.className = 'veil';
+    v.innerHTML = '<button class="veil-b">Удалить снимок</button>';
+    v.querySelector('button').onclick = e => { e.stopPropagation();
+      p.classList.add('gone'); показатьВозврат(х); };
+    const e2 = document.createElement('div');
+    e2.className = 'edge'; e2.title = 'Изменить ширину';
+    let w0 = 0;
+    тянуть(e2, dx => { if (!w0) w0 = p.offsetWidth;
+      p.style.width = Math.max(130, Math.min(х.clientWidth - 28, w0 + dx)) + 'px'; }, () => { w0 = 0; });
+    p.appendChild(v); p.appendChild(e2);
+    х.appendChild(p);
+  });
+}
+
+const СБОРЩИКИ = {1: собрать1, 2: собрать2, 3: собрать3, 4: собрать4, 5: собрать5};
+function собрать(){
+  document.querySelectorAll('.back').forEach(b => b.remove());
+  document.querySelectorAll('.canvas').forEach(х => { х.innerHTML = '';
+    СБОРЩИКИ[х.dataset.set](х); });
+}
+function оформление(что){
+  document.body.classList.toggle('modern', что === 'modern');
+  document.getElementById('bBlank').classList.toggle('on', что !== 'modern');
+  document.getElementById('bModern').classList.toggle('on', что === 'modern');
+}
+function тема(){
+  const н = document.body.classList.toggle('dark');
+  const б = document.getElementById('bTheme');
+  б.textContent = н ? 'День' : 'Ночь'; б.classList.toggle('on', н);
+}
+function палец(){
+  document.body.classList.toggle('touch');
+  document.getElementById('bTouch').classList.toggle('on', document.body.classList.contains('touch'));
+}
+function вернуть(){ собрать(); }
+собрать();
+</script>
+</body>
+</html>
