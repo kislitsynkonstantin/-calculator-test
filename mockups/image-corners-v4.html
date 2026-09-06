@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Крестик как у окон и уголок с полосками — макет v4</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --page:#f7fbfb; --sheet:#fff; --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5;
+  --rule:#dceaeb; --rule2:#bcd9db; --acc:#1e6c72; --acc2:#2a8f97; --tint:#e4f5f6;
+}
+body{font-family:'Geologica',system-ui,sans-serif;background:var(--page);color:var(--ink);
+  font-variant-numeric:tabular-nums;-webkit-text-size-adjust:100%;}
+.main{max-width:1060px;margin:0 auto;padding:44px 40px 96px;}
+@media(max-width:720px){.main{padding:24px 16px 72px;}}
+.tag{display:inline-block;font-size:0.58rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.12em;color:var(--acc2);background:var(--tint);border-radius:20px;
+  padding:4px 13px;margin-bottom:14px;}
+h1{font-family:'Unbounded',sans-serif;font-size:1.5rem;font-weight:800;line-height:1.2;
+  letter-spacing:-0.02em;margin-bottom:12px;}
+@media(max-width:720px){h1{font-size:1.15rem;}}
+.lead{font-size:0.95rem;color:var(--ink2);line-height:1.7;max-width:700px;}
+.lead+.lead{margin-top:9px;}
+.sec{font-family:'Unbounded',sans-serif;font-size:1rem;font-weight:700;margin:38px 0 4px;
+  letter-spacing:-0.01em;}
+.note{font-size:0.8rem;color:var(--ink3);line-height:1.6;max-width:700px;margin-top:6px;}
+
+/* ── четыре блока: обе темы и обе поры суток разом ────────────────── */
+.blocks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px;}
+@media(max-width:720px){.blocks{grid-template-columns:1fr;}}
+.block{border:1px solid var(--rule);border-radius:10px;overflow:hidden;}
+.block-h{display:flex;align-items:baseline;gap:9px;padding:11px 14px;border-bottom:1px solid var(--rule);
+  background:var(--sheet);}
+.block-t{font-family:'Unbounded',sans-serif;font-size:0.78rem;font-weight:700;}
+.block-s{font-size:0.62rem;color:var(--ink3);}
+.stage{padding:14px;display:flex;gap:12px;flex-wrap:wrap;}
+.pic{position:relative;flex:1 1 46%;min-width:132px;aspect-ratio:4/3;overflow:hidden;}
+.pic svg.art{display:block;width:100%;height:100%;}
+
+/* ── оформление «Бланк»: лист, прямые углы, волосяные линейки ─────── */
+.t-blank .stage{background:#fff;border:0;}
+.t-blank .pic{border-radius:0;box-shadow:0 2px 10px rgba(18,38,42,.18);}
+.t-blank .x{background:#fff;border:1px solid #dceaeb;color:#5b7376;border-radius:8px;box-shadow:none;}
+.t-blank .x:hover{color:#12262a;border-color:#bcd9db;}
+.t-blank .grip{background:#fff;border:1px solid #dceaeb;color:#5b7376;border-radius:8px;}
+.t-blank .grip:hover{color:#12262a;border-color:#bcd9db;}
+
+.t-blank-n .stage{background:#132528;}
+.t-blank-n .pic{border-radius:0;box-shadow:0 2px 10px rgba(0,0,0,.45);}
+.t-blank-n .x{background:#132528;border:1px solid #224347;color:#9db6b8;border-radius:8px;}
+.t-blank-n .x:hover{color:#e6f3f3;border-color:#2d585d;}
+.t-blank-n .grip{background:#132528;border:1px solid #224347;color:#9db6b8;border-radius:8px;}
+.t-blank-n .grip:hover{color:#e6f3f3;border-color:#2d585d;}
+.t-blank-n .block-h{background:#132528;border-bottom-color:#224347;color:#e6f3f3;}
+.t-blank-n .block-s{color:#8aa4a6;}
+
+/* ── оформление «Модерн»: стекло, скругления ─────────────────────── */
+.t-modern .stage{background:#f7fefe;}
+.t-modern .pic{border-radius:6px;box-shadow:0 3px 14px rgba(0,0,0,.18);}
+.t-modern .x{background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(10px) saturate(1.4);
+  backdrop-filter:blur(10px) saturate(1.4);color:#1e6c72;border-radius:8px;border:none;
+  box-shadow:0 1px 3px rgba(20,60,64,.14), inset 0 0 0 1px rgba(255,255,255,.6);}
+.t-modern .x:hover{background:rgba(255,255,255,.9);}
+.t-modern .grip{background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(10px) saturate(1.4);
+  backdrop-filter:blur(10px) saturate(1.4);border-radius:8px;color:#1e6c72;border:none;
+  box-shadow:0 1px 3px rgba(20,60,64,.14), inset 0 0 0 1px rgba(255,255,255,.6);}
+.t-modern .grip:hover{background:rgba(255,255,255,.9);}
+
+.t-modern-n .stage{background:#1e3538;}
+.t-modern-n .pic{border-radius:6px;box-shadow:0 3px 14px rgba(0,0,0,.5);}
+.t-modern-n .x{background:rgba(18,32,35,.6);-webkit-backdrop-filter:blur(10px) saturate(1.4);
+  backdrop-filter:blur(10px) saturate(1.4);color:#cfe9eb;border-radius:8px;border:none;
+  box-shadow:0 1px 3px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.12);}
+.t-modern-n .x:hover{background:rgba(18,32,35,.82);color:#fff;}
+.t-modern-n .grip{background:rgba(18,32,35,.6);-webkit-backdrop-filter:blur(10px) saturate(1.4);
+  backdrop-filter:blur(10px) saturate(1.4);border-radius:8px;color:#cfe9eb;border:none;
+  box-shadow:0 1px 3px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.12);}
+.t-modern-n .grip:hover{background:rgba(18,32,35,.82);color:#fff;}
+.t-modern-n .block-h{background:#1a2a2c;border-bottom-color:#2a4a4e;color:#e8f4f5;}
+.t-modern-n .block-s{color:#6a9098;}
+
+/* ── сам крестик: коробка одна на обе темы, разное только оформление ── */
+.x{position:absolute;top:8px;right:8px;width:28px;height:28px;display:inline-flex;
+  align-items:center;justify-content:center;padding:0;cursor:pointer;z-index:5;
+  transition:background .15s,color .15s,box-shadow .15s;}
+.x::before{content:'';position:absolute;inset:-8px;}
+.x svg{width:16px;height:16px;}
+
+/* ── уголок с косыми полосками ───────────────────────────────────── */
+.grip{position:absolute;right:8px;bottom:8px;width:26px;height:26px;cursor:se-resize;z-index:5;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s,color .15s,box-shadow .15s;}
+.grip::before{content:'';position:absolute;inset:-9px;}
+.grip svg{width:16px;height:16px;}
+
+/* размеры для сравнения */
+.sizes{display:flex;gap:26px;flex-wrap:wrap;margin-top:14px;align-items:flex-end;}
+.size{text-align:center;}
+.size-box{position:relative;width:150px;height:112px;overflow:hidden;border-radius:6px;
+  box-shadow:0 3px 14px rgba(0,0,0,.18);}
+.size-l{font-size:0.62rem;color:var(--ink3);margin-top:7px;}
+.s-22 .x{width:22px;height:22px;} .s-22 .x svg{width:13px;height:13px;}
+.s-22 .grip{width:22px;height:22px;} .s-22 .grip svg{width:13px;height:13px;}
+.s-34 .x{width:34px;height:34px;} .s-34 .x svg{width:19px;height:19px;}
+.s-34 .grip{width:34px;height:34px;} .s-34 .grip svg{width:19px;height:19px;}
+
+.hover-note{font-size:0.72rem;color:var(--ink3);margin-top:10px;}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:22px 0 0;
+  padding:14px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);}
+.bar-b{font:inherit;font-size:0.72rem;padding:9px 14px;border:1px solid var(--rule2);
+  background:transparent;color:var(--ink2);cursor:pointer;min-height:38px;border-radius:2px;}
+.bar-b.on{background:var(--acc);border-color:var(--acc);color:#fff;}
+.bar-l{font-size:0.55rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--ink3);margin-right:2px;}
+</style>
+</head>
+<body>
+<div class="main">
+  <div class="tag">Макет</div>
+  <h1>Крестик как у окон и уголок с полосками</h1>
+  <p class="lead">Крестик — тот самый, что закрывает окна калькулятора: в «Модерне» стекло
+     с размытием, в «Бланке» лист с волосяной рамкой. Ничего нового не придумано, взято
+     оформление, которое уже выбрано и работает.</p>
+  <p class="lead">Ручка размера — уголок из трёх косых полосок, как у поля ввода в браузере:
+     полоски сами говорят «тяни по диагонали». Оформление у неё то же, что у крестика,
+     чтобы пара читалась как пара.</p>
+  <p class="lead">Обе темы показаны сразу, и день, и ночь — переключать ничего не нужно.</p>
+
+  <div class="bar">
+    <span class="bar-l">Показать</span>
+    <button class="bar-b on" id="bHover" onclick="постоянно()">Всегда видны</button>
+    <span class="bar-l" style="margin-left:6px">или только под курсором — нажмите ещё раз</span>
+  </div>
+
+  <div class="blocks" id="блоки"></div>
+
+  <div class="sec">Размер</div>
+  <p class="note">Крестик у окон — 28 px, и здесь он такой же. Рядом 22 и 34 для сравнения:
+     22 мелковат для пальца даже с невидимым полем, 34 спорит по весу с самим снимком.</p>
+  <div class="sizes" id="размеры"></div>
+
+  <div class="sec">Почему так</div>
+  <p class="note">Крестик закрытия в калькуляторе один на все окна, и менеджер уже знает его
+     в лицо. Тот же знак на снимке означает то же самое — «убрать», — и учить нечему.</p>
+  <p class="note">Уголок с полосками — единственная форма, которая объясняет себя без подписи:
+     косые линии в углу читаются как «тянуть». Квадратик такого не говорит, а скоба говорит
+     тише.</p>
+  <p class="note">Оба стоят внутри снимка, в 6–8 px от края: снаружи они спорили с соседним
+     снимком и с панелью раздела.</p>
+  <p class="note">Что видно на светлой планировке: в «Модерне» стекло на белом почти
+     не читается подложкой — держит только сам знак. Это цена того, что взято оформление
+     окна как есть, без правок. В «Бланке» такого нет: там подложка — лист с рамкой.</p>
+</div>
+
+<script>
+const ПЛАН = `<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+ <rect width="320" height="200" fill="#fff"/>
+ <g stroke="#c9d6d8" stroke-width="1">
+  <path d="M30 24H196M30 24V176M196 24V176M30 176H196"/>
+  <path d="M30 96H196M104 24V176M150 96V176"/>
+ </g>
+ <g fill="#dbe9ea"><rect x="31" y="25" width="72" height="70"/><rect x="151" y="97" width="44" height="78"/></g>
+ <g fill="#eef5f6"><rect x="105" y="25" width="90" height="70"/><rect x="31" y="97" width="72" height="78"/></g>
+ <g stroke="#12262a" stroke-width="1.6" fill="none">
+  <path d="M30 24H196V176H30Z"/><path d="M104 24V95M30 96H195M150 97V176"/></g>
+ <g fill="#5b7376" font-family="Geologica,sans-serif" font-size="7">
+  <text x="228" y="34">План 1 этажа</text>
+  <text x="228" y="52">Кухня-гостиная</text><text x="300" y="52">29,7</text>
+  <text x="228" y="66">Спальня</text><text x="304" y="66">9,9</text>
+  <text x="228" y="80">Парная</text><text x="304" y="80">6,5</text>
+  <text x="228" y="94">Душевая</text><text x="304" y="94">7,6</text>
+  <text x="228" y="108">Зона отдыха</text><text x="300" y="108">20,0</text>
+  <text x="228" y="128">Терраса</text><text x="300" y="128">20,6</text></g>
+ <g stroke="#8da3a5" stroke-width="0.8"><path d="M228 40h72M228 116h72"/></g>
+ <text x="228" y="150" fill="#12262a" font-family="Geologica,sans-serif" font-size="8" font-weight="600">103,3 м²</text>
+</svg>`;
+const ФОТО = `<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+ <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+   <stop offset="0" stop-color="#9ec6db"/><stop offset="1" stop-color="#dfeef2"/></linearGradient>
+  <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+   <stop offset="0" stop-color="#7d5b3f"/><stop offset="1" stop-color="#5d422c"/></linearGradient></defs>
+ <rect width="320" height="200" fill="url(#sky)"/>
+ <g fill="#5f7f5a" opacity=".55"><circle cx="34" cy="66" r="26"/><circle cx="66" cy="52" r="20"/>
+  <circle cx="288" cy="58" r="24"/><circle cx="258" cy="70" r="16"/></g>
+ <rect y="146" width="320" height="54" fill="#7fa06a"/>
+ <path d="M88 76 168 44l86 34v10H88Z" fill="#4a3a2a"/>
+ <path d="M88 76 168 44l86 34" fill="none" stroke="#3b2c1e" stroke-width="7" stroke-linejoin="round"/>
+ <rect x="96" y="86" width="150" height="62" fill="url(#wood)"/>
+ <g fill="#cfe4ea" opacity=".92"><rect x="106" y="94" width="52" height="46"/>
+  <rect x="166" y="94" width="34" height="46"/><rect x="208" y="102" width="28" height="38"/></g>
+ <g stroke="#2f3a3d" stroke-width="2" fill="none"><rect x="106" y="94" width="52" height="46"/>
+  <rect x="166" y="94" width="34" height="46"/><rect x="208" y="102" width="28" height="38"/></g>
+ <rect x="92" y="146" width="162" height="6" fill="#8a6a4a"/>
+ <g fill="#6f8f5e"><ellipse cx="272" cy="160" rx="26" ry="10"/><ellipse cx="44" cy="164" rx="30" ry="11"/></g>
+</svg>`;
+const КРЕСТ = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>`;
+// Три косые полоски: короткая у самого угла, длиннее к середине — так рисуют
+// ручку размера у поля ввода, и форма объясняет себя без подписи.
+const УГОЛОК = `<div class="grip" title="Изменить размер"><svg viewBox="0 0 24 24" fill="none"
+  stroke="currentColor" stroke-width="2" stroke-linecap="round">
+  <path d="M20 9L9 20M20 14.5L14.5 20M20 20L19.8 20.2"/></svg></div>`;
+const ТЕМЫ = [
+  ['t-blank',    'Бланк',  'день'],
+  ['t-blank-n',  'Бланк',  'ночь'],
+  ['t-modern',   'Модерн', 'день'],
+  ['t-modern-n', 'Модерн', 'ночь'],
+];
+document.getElementById('блоки').innerHTML = ТЕМЫ.map(([кл, имя, пора]) => `
+  <div class="block ${кл}">
+    <div class="block-h"><span class="block-t">${имя}</span><span class="block-s">${пора}</span></div>
+    <div class="stage">
+      ${[ПЛАН, ФОТО].map(кар => `<div class="pic">${кар}
+        <button class="x" title="Удалить">${КРЕСТ}</button>${УГОЛОК}</div>`).join('')}
+    </div>
+  </div>`).join('');
+
+document.getElementById('размеры').innerHTML = [['s-22','22 px'],['','28 px — как у окон'],['s-34','34 px']]
+  .map(([кл, п]) => `
+  <div class="size t-modern ${кл}">
+    <div class="size-box">${ФОТО}<button class="x">${КРЕСТ}</button>${УГОЛОК}</div>
+    <div class="size-l">${п}</div>
+  </div>`).join('');
+
+let всегда = true;
+function постоянно(){
+  всегда = !всегда;
+  document.body.classList.toggle('hoveronly', !всегда);
+  const б = document.getElementById('bHover');
+  б.classList.toggle('on', всегда);
+  б.textContent = всегда ? 'Всегда видны' : 'Только под курсором';
+}
+const ст = document.createElement('style');
+ст.textContent = 'body.hoveronly .x,body.hoveronly .grip{opacity:0;transition:opacity .14s;}'
+  + 'body.hoveronly .pic:hover .x,body.hoveronly .pic:hover .grip,'
+  + 'body.hoveronly .size-box:hover .x,body.hoveronly .size-box:hover .grip{opacity:1;}';
+document.head.appendChild(ст);
+</script>
+</body>
+</html>
