@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="ru" data-page="day">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Спецификация целиком в боковой панели — тема «Бланк»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   СПЕЦИФИКАЦИЯ ЦЕЛИКОМ ВНУТРИ БОКОВОЙ ПАНЕЛИ — тема «Бланк»
+
+   Прошлый макет отвечал на вопрос «где я и что ещё есть». Этот отвечает на
+   следующий: как выглядит рабочий день внутри выбранного сервиса, когда в
+   панели живёт ещё и оглавление расчёта, а кнопки разведены между панелью и
+   шапкой спецификации.
+
+   Расчёт настоящий: двенадцать разделов, четыре раскрыты позициями, восемь
+   свёрнуты, снизу свод и итог. Цифры сходятся: сумма разделов = 1 796 835 ₽.
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* ── токены темы: два набора, чтобы день и ночь стояли на одной странице ──── */
+.day, html[data-page="day"] .auto {
+  --bl-page:#f7fbfb; --bl-sheet:#fff; --bl-zebra:#f7fafb;
+  --bl-ink:#12262a; --bl-ink2:#5b7376; --bl-ink3:#8da3a5;
+  --bl-rule:#dceaeb; --bl-rule2:#bcd9db;
+  --bl-acc:#1e6c72; --bl-acc2:#2a8f97; --bl-pale:#a8dde0;
+  --bl-tint:#e4f5f6; --bl-fill:#1e6c72; --bl-on-acc:#fff;
+  --bl-shadow:0 18px 48px rgba(18,38,42,.10);
+  --bl-warn:#c06010;
+}
+.night, html[data-page="night"] .auto {
+  --bl-page:#0e1a1c; --bl-sheet:#132528; --bl-zebra:#173338;
+  --bl-ink:#e6f3f3; --bl-ink2:#9db6b8; --bl-ink3:#8aa4a6;
+  --bl-rule:#224347; --bl-rule2:#2d585d;
+  --bl-acc:#8fd6dc; --bl-acc2:#5fc2ca; --bl-pale:#5fc2ca;
+  --bl-tint:#173338; --bl-fill:#2a8f97; --bl-on-acc:#08181a;
+  --bl-shadow:0 18px 48px rgba(0,0,0,.45);
+  --bl-warn:#e0b070;
+}
+
+/* ── страница вокруг макета: язык статьи, он же в справке ────────────────── */
+html[data-page="day"] { --mn-page:#f0f6f6; --mn-card:#fff; --mn-ink:#111; --mn-ink2:#555;
+  --mn-ink3:#888; --mn-rule:#d4e4e5; --mn-acc:#1e6c72; --mn-acc-ink:#1e6c72;
+  --mn-acc2:#2a8f97; --mn-tint:#e4f5f6; }
+html[data-page="night"] { --mn-page:#111e20; --mn-card:#1a2a2c; --mn-ink:#e8f0f1; --mn-ink2:#9ab;
+  --mn-ink3:#678; --mn-rule:#2a3f42; --mn-acc:#1e6c72; --mn-acc-ink:#5fc8d2;
+  --mn-acc2:#3db0ba; --mn-tint:#1a3034; }
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 0 20px 80px;
+  background: var(--mn-page); color: var(--mn-ink);
+  font-family: 'Geologica', system-ui, sans-serif; font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  transition: background .2s, color .2s;
+}
+.wrap { max-width: 1180px; margin: 0 auto; }
+
+/* ── шапка макета ─────────────────────────────────────────────────────────── */
+.top { padding: 34px 0 8px; }
+.eyebrow { font-size: .66rem; text-transform: uppercase; letter-spacing: .18em;
+  color: var(--mn-acc2); font-weight: 500; font-family: 'Unbounded', sans-serif; }
+h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: 1.4rem;
+  letter-spacing: -.01em; margin: .35em 0 .3em; line-height: 1.25; }
+.lead { font-size: .95rem; color: var(--mn-ink2); max-width: 660px; margin: 0 0 4px;
+  line-height: 1.62; }
+.seg { display: inline-flex; gap: 18px; margin: 18px 0 4px;
+  border-bottom: 1px solid var(--mn-rule); }
+.seg button { appearance: none; background: none; border: 0; cursor: pointer;
+  font-family: 'Geologica', sans-serif; font-size: .78rem; color: var(--mn-ink3);
+  padding: 8px 2px 9px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  position: relative; }
+.seg button::before { content: ''; position: absolute; inset: -8px -6px; }
+.seg button[aria-pressed="true"] { color: var(--mn-acc-ink); font-weight: 500;
+  border-bottom-color: var(--mn-acc2); }
+
+.v { margin: 44px 0 0; }
+.v-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  border-bottom: 2px solid var(--mn-acc-ink); padding-bottom: 10px; margin-bottom: 6px; }
+.v-name { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: 1.02rem;
+  color: var(--mn-acc-ink); }
+.v p { font-size: .88rem; color: var(--mn-ink2); max-width: 68ch; line-height: 1.62;
+  margin: 12px 0; }
+.v p b { color: var(--mn-ink); font-weight: 500; }
+.cost { font-size: .82rem; color: var(--mn-ink2); border-left: 3px solid var(--mn-acc2);
+  background: var(--mn-tint); border-radius: 0 10px 10px 0; padding: 11px 14px;
+  margin: 16px 0 0; max-width: 68ch; }
+.cost b { color: var(--mn-acc-ink); font-weight: 600; }
+.cap { font-size: .68rem; text-transform: uppercase; letter-spacing: .14em;
+  color: var(--mn-ink3); margin: 24px 0 8px; font-family: 'Unbounded', sans-serif; }
+
+/* ── рамка окна ───────────────────────────────────────────────────────────── */
+/* overflow:clip вместо hidden: он тоже обрезает по скруглению, но не делает
+   кадр своей прокруткой и не отменяет липкую колонку. */
+.frame { border: 1px solid var(--bl-rule); border-radius: 14px; overflow: clip;
+  background: var(--bl-sheet); color: var(--bl-ink); box-shadow: var(--bl-shadow);
+  font-weight: 300; }
+
+/* ═══ ОБОЛОЧКА ═══ */
+.shell { display: grid; grid-template-columns: 236px minmax(0, 1fr); }
+/* Колонка едет вместе с листом: без этого нижние кнопки и имя оказывались в
+   пяти тысячах пикселей от начала расчёта — лист длинный. */
+.rail { border-right: 1px solid var(--bl-rule); display: flex; flex-direction: column;
+  padding: 16px 0 12px; background: var(--bl-sheet);
+  position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; }
+.rail-mark { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: .78rem;
+  letter-spacing: .08em; color: var(--bl-acc); padding: 0 16px 14px;
+  border-bottom: 1px solid var(--bl-rule); }
+.rail-grp { font-family: 'Unbounded', sans-serif; font-size: .6rem; font-weight: 400;
+  text-transform: uppercase; letter-spacing: .18em; color: var(--bl-ink2);
+  padding: 15px 16px 5px; }
+.rail-grp.sep { border-top: 1px solid var(--bl-rule); margin-top: 10px; padding-top: 15px; }
+/* Строка панели целиком цель нажатия: 44 px даёт сама строка. Невидимого поля
+   здесь быть не должно — строки стоят вплотную, поля соседей перекрылись бы. */
+.nav-i { display: grid; grid-template-columns: 18px minmax(0,1fr) auto; align-items: center;
+  gap: 10px; min-height: 44px; padding: 0 16px; font-size: .82rem; color: var(--bl-ink2);
+  position: relative; cursor: pointer; background: none; border: 0; width: 100%;
+  text-align: left; font-family: 'Geologica', sans-serif; font-weight: 300; }
+.nav-i svg { width: 17px; height: 17px; opacity: .85; }
+.nav-i .cnt { font-size: .72rem; color: var(--bl-ink3); }
+.nav-i .cnt.hot { color: var(--bl-acc); font-weight: 500; }
+.nav-i.is-on { color: var(--bl-ink); font-weight: 500;
+  background: linear-gradient(90deg, var(--bl-tint), transparent 210px); }
+.nav-i.is-on::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 2px; background: var(--bl-acc); }
+.nav-i.is-on svg { opacity: 1; color: var(--bl-acc); }
+.nav-i.soon { color: var(--bl-ink3); }
+.nav-i.soon .cnt { font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; }
+@media (hover: hover) { .nav-i:not(.is-on):hover { color: var(--bl-ink); background: var(--bl-zebra); } }
+
+/* оглавление расчёта — те же строки, но с номером раздела вместо значка */
+.nav-s { grid-template-columns: 16px minmax(0,1fr) auto; font-size: .78rem; }
+.nav-s .no { font-family: 'Unbounded', sans-serif; font-size: .74rem; color: var(--bl-pale); }
+.nav-s .sum { font-size: .72rem; color: var(--bl-ink3); }
+.nav-s.is-zero { color: var(--bl-ink3); }
+.nav-s.is-zero .sum { color: var(--bl-ink3); }
+.nav-s.is-on .no { color: var(--bl-acc); }
+.nav-s.is-on .sum { color: var(--bl-ink); }
+
+.rail-foot { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--bl-rule); }
+.rail-tools { display: flex; gap: 14px; padding: 4px 14px 6px; }
+.ib { width: 30px; height: 30px; border-radius: 7px; border: 0; background: none;
+  color: var(--bl-ink2); display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; position: relative; }
+.ib::before { content: ''; position: absolute; inset: -7px; }
+.ib svg { width: 17px; height: 17px; }
+@media (hover: hover) { .ib:hover { background: var(--bl-tint); color: var(--bl-acc); } }
+.who { display: grid; grid-template-columns: 26px 1fr; gap: 9px; align-items: center;
+  padding: 4px 16px 0; font-size: .74rem; color: var(--bl-ink2); }
+.who .ava { width: 26px; height: 26px; border-radius: 50%; background: var(--bl-fill);
+  color: var(--bl-on-acc); display: grid; place-items: center; font-size: .62rem;
+  font-family: 'Unbounded', sans-serif; font-weight: 600; }
+
+/* ═══ ЛИСТ ═══ */
+.sheet { padding: 18px clamp(14px, 2.4vw, 28px) 26px; min-width: 0; }
+.doc-head { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap;
+  padding-bottom: 12px; border-bottom: 1px solid var(--bl-rule); }
+.doc-over { font-family: 'Unbounded', sans-serif; font-size: .58rem; font-weight: 400;
+  text-transform: uppercase; letter-spacing: .18em; color: var(--bl-ink3); }
+.doc-name { font-family: 'Unbounded', sans-serif; font-size: 1.02rem; font-weight: 700;
+  color: var(--bl-ink); margin-top: 5px; line-height: 1.3; }
+.doc-name em { font-style: normal; color: var(--bl-acc); }
+.doc-meta { margin-left: auto; text-align: right; font-size: .68rem; color: var(--bl-ink3);
+  line-height: 1.7; }
+.tools { display: flex; flex-wrap: wrap; gap: 12px; padding: 12px 0 0; }
+.tb { border: 1px solid var(--bl-rule2); border-radius: 8px; background: none;
+  color: var(--bl-ink2); font-family: 'Geologica', sans-serif; font-size: .74rem;
+  font-weight: 300; padding: 8px 11px; cursor: pointer; display: inline-flex;
+  align-items: center; gap: 6px; position: relative; }
+/* Кнопка нарисована 32 px, поле нажатия 44: по 6 px вверх-вниз, значит и зазор
+   между рядами не меньше 12 (правило 8 темы). */
+.tb::before { content: ''; position: absolute; inset: -6px -4px; }
+.tb svg { width: 14px; height: 14px; }
+@media (hover: hover) { .tb:hover { background: var(--bl-tint); color: var(--bl-acc); } }
+.tb.dash { border-style: dashed; color: var(--bl-ink3); }
+
+/* ── карточка проекта ─────────────────────────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  margin-top: 16px; }
+.two-col > div:last-child { border-left: 1px solid var(--bl-rule); padding-left: 22px; }
+.two-col > div:first-child { padding-right: 22px; }
+.card-t { font-family: 'Unbounded', sans-serif; font-size: .68rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .12em; color: var(--bl-acc);
+  border-bottom: 2px solid var(--bl-acc); padding-bottom: 7px; margin-bottom: 12px; }
+.fld { display: grid; grid-template-columns: minmax(64px, 92px) minmax(0,1fr);
+  align-items: center; gap: 12px; margin-bottom: 10px; }
+.fld .k { font-size: .68rem; color: var(--bl-ink3); }
+.fld .v { border-bottom: 1px solid var(--bl-rule2); padding: 8px 2px; font-size: .84rem;
+  color: var(--bl-ink); min-height: 36px; display: flex; align-items: center; }
+.thick { display: flex; gap: 20px; border-bottom: 1px solid var(--bl-rule); }
+.thick button { appearance: none; background: none; border: 0; cursor: pointer;
+  font-family: 'Geologica', sans-serif; font-size: .78rem; color: var(--bl-ink2);
+  padding: 10px 2px 9px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  position: relative; }
+.thick button::before { content: ''; position: absolute; inset: -6px -8px; }
+.thick button[aria-pressed="true"] { color: var(--bl-acc); font-weight: 500;
+  border-bottom-color: var(--bl-acc); }
+.def { display: grid; grid-template-columns: auto 1fr auto; align-items: baseline;
+  gap: 8px; font-size: .8rem; padding: 7px 0; }
+.def .k { color: var(--bl-ink3); font-size: .74rem; }
+.def .dots { border-bottom: 1px dotted var(--bl-rule2); transform: translateY(-3px); }
+.def .val { color: var(--bl-ink); }
+
+/* ── разделы ──────────────────────────────────────────────────────────────── */
+.sec-h { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 14px;
+  align-items: baseline; border-bottom: 2px solid var(--bl-acc); padding-bottom: 9px;
+  margin: 26px 0 0; cursor: pointer; position: relative; }
+.sec-h .no { font-family: 'Unbounded', sans-serif; font-weight: 300;
+  font-size: clamp(1.4rem, 3.4vw, 1.9rem); color: var(--bl-pale); line-height: 1; }
+.sec-h .nm { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: .86rem;
+  color: var(--bl-acc); }
+.sec-h .nm small { display: block; font-family: 'Geologica', sans-serif; font-weight: 300;
+  font-size: .72rem; color: var(--bl-ink3); margin-top: 4px; letter-spacing: 0;
+  text-transform: none; }
+.sec-h .sum { font-size: .86rem; color: var(--bl-ink); white-space: nowrap; }
+.sec-h.is-zero .nm, .sec-h.is-zero .sum { color: var(--bl-ink3); }
+.sec-h.is-zero { border-bottom-color: var(--bl-rule2); }
+/* Свёрнутый раздел обязан отличаться от пустого: без стрелки он читался как
+   раздел, в котором просто ничего не выбрано. */
+.sec-h.fold { grid-template-columns: auto minmax(0,1fr) auto 16px; }
+.sec-h .chev { width: 16px; height: 16px; color: var(--bl-ink3); align-self: center; }
+
+.opts { margin: 0 0 4px; }
+.opt { display: grid; grid-template-columns: 20px minmax(0,1fr) auto; gap: 12px;
+  align-items: start; padding: 11px 0; border-bottom: 1px solid var(--bl-rule);
+  font-size: .82rem; position: relative; min-height: 44px; }
+.opt.on { background: linear-gradient(90deg, var(--bl-tint), transparent 340px); }
+.opt.on::after { content: ''; position: absolute; left: -8px; top: 0; bottom: 0;
+  width: 2px; background: var(--bl-acc); }
+.check { width: 20px; height: 20px; border-radius: 4px; margin-top: 1px; flex: none;
+  box-shadow: inset 0 0 0 1.5px var(--bl-rule2); background: none; }
+.opt.on .check { background: var(--bl-fill); box-shadow: none;
+  display: grid; place-items: center; }
+.opt.on .check svg { width: 13px; height: 13px; color: var(--bl-on-acc); }
+.opt .nm { color: var(--bl-ink); min-width: 0; }
+.opt.off .nm { color: var(--bl-ink2); }
+.opt .nm small { display: block; font-size: .71rem; color: var(--bl-ink3); margin-top: 3px; }
+.opt .pr { white-space: nowrap; color: var(--bl-ink); display: flex; align-items: center;
+  gap: 10px; }
+.opt.off .pr { color: var(--bl-ink3); }
+.opt .pr .base { font-size: .72rem; color: var(--bl-ink3); }
+.qty { display: inline-flex; border: 1px solid var(--bl-rule2); border-radius: 8px;
+  overflow: hidden; }
+.qty button { width: 30px; height: 30px; border: 0; background: none; cursor: pointer;
+  color: var(--bl-ink2); font-size: .9rem; position: relative; font-family: inherit; }
+.qty button::before { content: ''; position: absolute; inset: -7px -1px; }
+.qty .val { width: 34px; display: grid; place-items: center; font-size: .78rem;
+  border-left: 1px solid var(--bl-rule); border-right: 1px solid var(--bl-rule); }
+.note { background: var(--bl-tint); font-size: .74rem; color: var(--bl-ink2);
+  padding: 10px 12px; margin: 10px 0 0; line-height: 1.55; }
+.note b { color: var(--bl-acc); font-weight: 500; }
+.add { border: 1px dashed var(--bl-rule2); border-radius: 8px; background: none;
+  color: var(--bl-ink3); font-family: 'Geologica', sans-serif; font-size: .74rem;
+  font-weight: 300; padding: 8px 11px; cursor: pointer; margin-top: 12px;
+  position: relative; }
+.add::before { content: ''; position: absolute; inset: -6px -4px; }
+
+/* ── свод ─────────────────────────────────────────────────────────────────── */
+.bd { margin-top: 34px; }
+.bd-h { display: grid; grid-template-columns: auto minmax(0,1fr) 64px auto; gap: 12px;
+  font-family: 'Unbounded', sans-serif; font-size: .62rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .12em; color: var(--bl-ink2);
+  border-bottom: 2px solid var(--bl-acc); padding-bottom: 8px; }
+.bd-r { display: grid; grid-template-columns: auto minmax(0,1fr) 64px auto; gap: 12px;
+  font-size: .8rem; padding: 9px 0; border-bottom: 1px solid var(--bl-rule);
+  align-items: baseline; }
+.bd-r .no { font-family: 'Unbounded', sans-serif; color: var(--bl-pale); font-size: .8rem; }
+.bd-r .pc, .bd-r .sm { text-align: right; white-space: nowrap; }
+.bd-r.is-zero { color: var(--bl-ink3); }
+.bd-t { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px;
+  border-top: 2px solid var(--bl-acc); padding-top: 12px; margin-top: 2px;
+  align-items: baseline; }
+.bd-t span { font-family: 'Unbounded', sans-serif; font-size: .66rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .12em; color: var(--bl-ink2); }
+.bd-t b { font-family: 'Unbounded', sans-serif; font-size: 1.16rem; color: var(--bl-ink); }
+.strip { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 14px;
+  background: var(--bl-fill); color: var(--bl-on-acc); padding: 13px 16px;
+  margin: 18px -28px -26px; align-items: center; }
+.strip .l { font-size: .76rem; opacity: .92; }
+.strip .r { font-family: 'Unbounded', sans-serif; font-size: 1.02rem; white-space: nowrap; }
+
+/* ── легенда: какая кнопка где ────────────────────────────────────────────── */
+.leg { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin-top: 14px; }
+.leg-c { border: 1px solid var(--mn-rule); border-radius: 12px; padding: 15px;
+  background: var(--mn-card); }
+.leg-t { font-size: .66rem; text-transform: uppercase; letter-spacing: .14em;
+  color: var(--mn-acc-ink); margin-bottom: 4px; font-family: 'Unbounded', sans-serif;
+  font-weight: 600; }
+.leg-w { font-size: .74rem; color: var(--mn-ink3); margin-bottom: 12px; }
+.leg-l { list-style: none; margin: 0; padding: 0; font-size: .82rem; color: var(--mn-ink2); }
+.leg-l li { padding: 6px 0; border-bottom: 1px solid var(--mn-rule); }
+.leg-l li:last-child { border-bottom: 0; }
+.leg-l b { color: var(--mn-ink); font-weight: 500; }
+
+footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--mn-rule);
+  font-size: .76rem; color: var(--mn-ink3); }
+code { font-family: ui-monospace, Menlo, monospace; font-size: .86em; color: var(--mn-acc-ink); }
+
+/* Ниже 620 px колонка не помещается: 236 px от 350 не оставляют листа. Панель
+   прячется, появляется полоса с бургером — как на телефоне. */
+.ph-bar { display: none; align-items: center; gap: 10px; padding: 8px 12px;
+  border-bottom: 1px solid var(--bl-rule); grid-column: 1 / -1; }
+.burger { width: 34px; height: 34px; border-radius: 7px; border: 1px solid var(--bl-rule2);
+  background: none; color: var(--bl-ink2); display: grid; place-items: center;
+  cursor: pointer; position: relative; }
+.burger::before { content: ''; position: absolute; inset: -5px; }
+.ph-name { font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: .78rem;
+  color: var(--bl-ink); }
+.ph-badge { margin-left: auto; font-size: .7rem; color: var(--bl-acc); }
+@media (max-width: 860px) {
+  .two-col { grid-template-columns: minmax(0,1fr); }
+  .two-col > div:last-child { border-left: 0; border-top: 1px solid var(--bl-rule);
+    padding-left: 0; padding-top: 18px; margin-top: 18px; }
+  .two-col > div:first-child { padding-right: 0; }
+}
+@media (max-width: 620px) {
+  .shell { grid-template-columns: minmax(0,1fr); }
+  .shell > .rail { display: none; }
+  .shell > .ph-bar { display: flex; }
+  .strip { margin-left: -14px; margin-right: -14px; }
+  /* Цену на телефоне под названием не переносим: столбец сумм — это то, по
+     чему спецификацию читают. Переносится название, сумма остаётся справа. */
+  .opt { gap: 8px; }
+  .opt .pr { flex-direction: column; align-items: flex-end; gap: 6px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="eyebrow">Макет · 08.09.2026</div>
+    <h1>Спецификация целиком внутри панели</h1>
+    <p class="lead">Прошлый макет отвечал на вопрос «где я и что ещё есть». Этот — на
+      следующий: как выглядит рабочий день внутри сервиса, когда в панели живёт ещё и
+      оглавление расчёта, а кнопки разведены между панелью и шапкой спецификации.</p>
+    <div class="seg" role="group" aria-label="Пора суток">
+      <button id="segDay" aria-pressed="true" onclick="пора('day')">День</button>
+      <button id="segNight" aria-pressed="false" onclick="пора('night')">Ночь</button>
+    </div>
+    <p class="lead" style="font-size:.82rem">Расчёт настоящий: двенадцать разделов,
+      четыре раскрыты позициями, восемь свёрнуты, снизу свод и итог. Оба кадра —
+      одна и та же страница днём и ночью.</p>
+  </div>
+
+  <div class="v">
+    <div class="v-head"><span class="v-name">Как устроена страница</span></div>
+    <p>В панели теперь два уровня. Сверху — сервисы, как в прошлом макете. Ниже, за
+      отдельной линейкой, — <b>оглавление открытого расчёта</b>: двенадцать разделов с
+      суммами, пустые тише остальных. Нажатие ведёт к разделу на листе, а по мере
+      прокрутки отмечается тот, что сейчас перед глазами.</p>
+    <p>Это то же боковое меню разделов, что есть сегодня, — но ему больше не нужна своя
+      коробка поверх листа: оно живёт в колонке, которая и так стоит.</p>
+
+    <div class="cap">День</div>
+    <div class="frame day" id="кадрД"></div>
+
+    <div class="cap">Ночь — та же страница</div>
+    <div class="frame night" id="кадрН"></div>
+
+    <div class="cost"><b>Чем платим:</b> колонка выросла с 214 до 236 px — оглавлению
+      нужны и название раздела, и сумма. При 1440 px лист остаётся 1180 px. Свернуть до
+      значков по-прежнему можно, но оглавление тогда прячется вместе с ней: в 58 px
+      номера разделов без названий не читаются.</div>
+
+    <div class="cap">Какая кнопка куда переехала</div>
+    <div class="leg">
+      <div class="leg-c">
+        <div class="leg-t">В шапке спецификации</div>
+        <div class="leg-w">Что делаем с этим документом. Меняется вместе с сервисом.</div>
+        <ul class="leg-l">
+          <li><b>Печать</b> — версия для печати и стили</li>
+          <li><b>Платёжный план</b> — этапы и договоры этого расчёта</li>
+          <li><b>Пресеты</b> — сохранить, открыть, поделиться</li>
+          <li><b>Поиск по опциям</b> — по этому расчёту</li>
+          <li><b>Показ клиенту</b> — спрятать цены и внутреннее</li>
+          <li><b>Добавить опцию</b> — внизу раздела, где ей место</li>
+        </ul>
+      </div>
+      <div class="leg-c">
+        <div class="leg-t">В панели, рядом с оглавлением</div>
+        <div class="leg-w">Как смотрим документ. Относится к листу, а не к работе с ним.</div>
+        <ul class="leg-l">
+          <li><b>Свернуть все разделы</b> — было в шапке, теперь у оглавления</li>
+          <li><b>Скрыть невыбранные</b> — там же, рядом с тем, что скрывает</li>
+          <li><b>Комплектации</b> — набор, из которого собран расчёт</li>
+        </ul>
+      </div>
+      <div class="leg-c">
+        <div class="leg-t">В панели, внизу</div>
+        <div class="leg-w">Общее для всей программы. От сервиса не зависит.</div>
+        <ul class="leg-l">
+          <li><b>Тема</b> — день и ночь</li>
+          <li><b>Справка</b> — руководство и журнал</li>
+          <li><b>Настройки</b> — и горячие клавиши</li>
+          <li><b>Аккаунт</b> — строкой внизу, а не значком</li>
+        </ul>
+      </div>
+    </div>
+    <p>Правило разведения простое: <b>в шапке то, что делают с документом, в панели —
+      то, как на него смотрят и что верно для всей программы.</b> «Статистика» и «Журнал
+      действий» из шапки ушли совсем — это отдельные сервисы, их место в верхнем списке
+      колонки.</p>
+  </div>
+
+  <footer>Макет · тема «Бланк» · токены и рецепты из скилла <code>design-skill-blank</code>.
+    Устройство страницы — из <code>multiservice-sidebar-v1.html</code>. Ничего не внедрено.</footer>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────────────────────────────────────
+   Лист собирается кодом и вставляется в оба кадра — так день и ночь заведомо
+   одинаковы, а расчёт правится в одном месте.
+   ───────────────────────────────────────────────────────────────────────────── */
+function пора(п){
+  document.documentElement.dataset.page = п;
+  document.getElementById('segDay').setAttribute('aria-pressed', п==='day');
+  document.getElementById('segNight').setAttribute('aria-pressed', п==='night');
+}
+const З = {
+  спец:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/>',
+  задачи:'<path d="M9 11l2 2 4-4"/><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4"/>',
+  оплаты:'<path d="M7 6h7a4 4 0 0 1 0 8H7M7 10h10M7 14v4"/>',
+  аналитика:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  база:'<path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"/><path d="M8 7h7M8 11h7"/>',
+  гарантии:'<path d="M12 3l8 4v6c0 4.5-3.2 7.4-8 8-4.8-.6-8-3.5-8-8V7z"/>',
+  луна:'<path d="M21 13a8.5 8.5 0 1 1-9.9-9.9 7 7 0 0 0 9.9 9.9z"/>',
+  солнце:'<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7"/>',
+  справка:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.8-.9 1.4v.5"/><path d="M12 17h.01"/>',
+  настройки:'<circle cx="12" cy="12" r="3"/><path d="M5 12a7 7 0 0 1 .3-2L3.6 8.6l2-3.4 2.1.8A7 7 0 0 1 10 4.6L10.4 2.4h3.2L14 4.6a7 7 0 0 1 2.3 1.4l2.1-.8 2 3.4L18.7 10a7 7 0 0 1 0 4l1.7 1.4-2 3.4-2.1-.8a7 7 0 0 1-2.3 1.4l-.4 2.2h-3.2L10 19.4a7 7 0 0 1-2.3-1.4l-2.1.8-2-3.4L5.3 14A7 7 0 0 1 5 12z"/>',
+  печать:'<path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z"/>',
+  пресеты:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/>',
+  поиск:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.2-4.2"/>',
+  глаз:'<path d="M3 3l18 18M10.6 10.6A2 2 0 0 0 12 14a2 2 0 0 0 1.4-.6"/><path d="M6.7 6.8C4.6 8.1 3 10 2 12c2 4 6 6.5 10 6.5 1.7 0 3.3-.4 4.7-1.1M9.9 5.7A9.9 9.9 0 0 1 12 5.5c4 0 8 2.5 10 6.5-.8 1.5-1.9 2.9-3.2 4"/>',
+  свернуть:'<path d="M4 9l8-5 8 5M4 15l8 5 8-5"/>',
+  комплектации:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
+  галка:'<path d="M5 12.5l4.2 4.2L19 7"/>'
+};
+const зн = (и, ш) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'
+  + (ш||1.7) + '" stroke-linecap="round" stroke-linejoin="round">' + З[и] + '</svg>';
+const рубли = н => н.toLocaleString('ru-RU').replace(/ /g, ' ') + ' ₽';
+const тыс = н => н ? н.toLocaleString('ru-RU').replace(/ /g, ' ') : '—';
+
+/* ── сам расчёт ─────────────────────────────────────────────────────────────
+   Фахверковая баня «Бонн» 4×4, каркас, утепление 200 мм. Суммы разделов дают
+   ровно 1 796 835 ₽ — как в полоске итога. */
+const РАЗДЕЛЫ = [
+  { н:1, имя:'Фундамент', сумма:254800, подпись:'Свайно-винтовой, 24 сваи', открыт:true,
+    позиции:[
+      {в:1, имя:'Свайно-винтовой фундамент', под:'Свая 108×2500, 24 шт., оголовок 250×250', цена:186000},
+      {в:1, имя:'Обвязка бруса 150×150', под:'Антисептик, два слоя', цена:48800},
+      {в:1, имя:'Геодезическая разметка и вынос осей', цена:20000},
+      {в:0, имя:'Ростверк монолитный', под:'Вместо обвязки бруса — по грунту', цена:96400},
+    ],
+    примечание:'Тип фундамента и глубину заложения подтверждает инженер после выезда на участок. До выезда сумма раздела считается предварительной.' },
+
+  { н:2, имя:'Каркас', сумма:612400, подпись:'Двойная обвязка, доска 45×195', открыт:true, база:true,
+    позиции:[
+      {в:1, имя:'Каркас наружных стен', под:'Доска 45×145, шаг 600 мм', вбазе:true},
+      {в:1, имя:'Двойная обвязка', под:'Доска 45×195', вбазе:true},
+      {в:1, имя:'Лаги пола 45×195', под:'Шаг 500 мм — от утепления 200 мм', вбазе:true},
+      {в:1, имя:'Стропильная система 45×195', под:'Шаг 600 мм', вбазе:true},
+      {в:1, имя:'Усиление под печь, брус 100×100', цена:18400},
+    ],
+    примечание:'Сечение лаг и стропил переписалось само: выбрано утепление пола и потолка 200 мм. Снимете — вернётся 45×145.' },
+
+  { н:3, имя:'Утепление', сумма:138900, подпись:'200 мм, стены и потолок', открыт:true,
+    позиции:[
+      {в:1, имя:'Стены 200 мм', под:'Базальт, 42 м²', цена:62400, кол:42},
+      {в:1, имя:'Потолок 200 мм', под:'Базальт, 26 м²', цена:38700, кол:26},
+      {в:1, имя:'Пол 150 мм', под:'Базальт, 26 м²', цена:27800, кол:26},
+      {в:1, имя:'Пароизоляция и ветрозащита', под:'Изнутри и снаружи контура', цена:10000},
+    ] },
+
+  { н:4, имя:'Внешняя отделка', сумма:196300, подпись:'Планкен из сосны 20×140, сорт АВ', открыт:true,
+    позиции:[
+      {в:1, имя:'Планкен из сосны 20×140, сорт АВ', под:'56 м², с зазором 8 мм', цена:148200},
+      {в:1, имя:'Обрешётка и контробрешётка', под:'Вентиляционный зазор 40 мм', цена:26100},
+      {в:1, имя:'Отделка углов и наличники', цена:22000},
+      {в:0, имя:'Планкен из лиственницы 20×140', под:'Вместо сосны', цена:214600},
+    ] },
+
+  { н:5,  имя:'Окна и двери',              сумма:128400 },
+  { н:6,  имя:'Кровля',                    сумма:174600 },
+  { н:7,  имя:'Покраска',                  сумма:86200 },
+  { н:8,  имя:'Внутренняя отделка',        сумма:112300 },
+  { н:9,  имя:'Парное',                    сумма:68900 },
+  { н:10, имя:'Печь',                      сумма:0 },
+  { н:11, имя:'Дополнительные',            сумма:24035 },
+  { н:12, имя:'Инженерные коммуникации',   сумма:0 },
+];
+const ИТОГО = РАЗДЕЛЫ.reduce((с, р) => с + р.сумма, 0);
+
+const строка = п => {
+  const цена = п.вбазе ? '<span class="base">входит в базу</span>' : рубли(п.цена);
+  const счёт = п.кол ? '<span class="qty"><button aria-label="Меньше">−</button>'
+    + '<span class="val">' + п.кол + '</span><button aria-label="Больше">+</button></span>' : '';
+  return '<div class="opt ' + (п.в ? 'on' : 'off') + '">'
+    + '<span class="check">' + (п.в ? зн('галка', 2.6) : '') + '</span>'
+    + '<span class="nm">' + п.имя + (п.под ? '<small>' + п.под + '</small>' : '') + '</span>'
+    + '<span class="pr">' + счёт + цена + '</span></div>';
+};
+
+const раздел = р => {
+  if (!р.открыт) {
+    return '<div class="sec-h fold' + (р.сумма ? '' : ' is-zero') + '">'
+      + '<span class="no">' + р.н + '</span>'
+      + '<span class="nm">' + р.имя + '</span>'
+      + '<span class="sum">' + (р.сумма ? рубли(р.сумма) : 'не выбрано') + '</span>'
+      + '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+      + 'stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>';
+  }
+  return '<div class="sec-h"><span class="no">' + р.н + '</span>'
+    + '<span class="nm">' + р.имя + (р.подпись ? '<small>' + р.подпись + '</small>' : '') + '</span>'
+    + '<span class="sum">' + рубли(р.сумма) + '</span></div>'
+    + '<div class="opts">' + р.позиции.map(строка).join('') + '</div>'
+    + (р.примечание ? '<div class="note"><b>Примечание.</b> ' + р.примечание + '</div>' : '')
+    + '<button class="add">+ Добавить опцию</button>';
+};
+
+const сервис = (и, имя, кол, вкл, скоро) =>
+  '<button class="nav-i' + (вкл ? ' is-on' : '') + (скоро ? ' soon' : '') + '">'
+  + зн(и) + '<span class="lbl">' + имя + '</span>'
+  + '<span class="cnt' + (кол && !скоро && кол !== '12' ? ' hot' : '') + '">' + (кол || '') + '</span></button>';
+
+const огл = р => '<button class="nav-i nav-s' + (р.н === 1 ? ' is-on' : '')
+  + (р.сумма ? '' : ' is-zero') + '">'
+  + '<span class="no">' + р.н + '</span><span class="lbl">' + р.имя + '</span>'
+  + '<span class="sum">' + тыс(р.сумма) + '</span></button>';
+
+const кнопка = (и, имя) => '<button class="tb">' + зн(и) + имя + '</button>';
+const значок = (и, имя) => '<button class="ib" title="' + имя + '">' + зн(и) + '</button>';
+
+function страница(ночь) {
+  return '<div class="shell">'
+  + '<div class="ph-bar"><button class="burger" aria-label="Сервисы и разделы">'
+  + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="17" height="17"><path d="M4 7h16M4 12h16M4 17h16"/></svg>'
+  + '</button><span class="ph-name">Спецификация</span><span class="ph-badge">5 ждут</span></div>'
+
+  + '<div class="rail">'
+    + '<div class="rail-mark">БАНЯ·МСК</div>'
+    + '<div class="rail-grp">Работа</div>'
+    + сервис('спец', 'Спецификации', '12', true)
+    + сервис('задачи', 'Задачи', '3')
+    + сервис('оплаты', 'Оплаты', '2')
+    + '<div class="rail-grp">Справочное</div>'
+    + сервис('аналитика', 'Аналитика')
+    + сервис('база', 'База знаний')
+    + сервис('гарантии', 'Гарантии', 'скоро', false, true)
+
+    + '<div class="rail-grp sep">Разделы расчёта</div>'
+    + РАЗДЕЛЫ.map(огл).join('')
+    + '<div class="rail-tools" style="padding-top:8px">'
+      + значок('свернуть', 'Свернуть все разделы')
+      + значок('глаз', 'Скрыть невыбранные')
+      + значок('комплектации', 'Комплектации')
+    + '</div>'
+
+    + '<div class="rail-foot">'
+      + '<div class="rail-tools">'
+        + значок(ночь ? 'солнце' : 'луна', 'Тёмный / светлый режим')
+        + значок('справка', 'Справка')
+        + значок('настройки', 'Настройки')
+      + '</div>'
+      + '<div class="who"><span class="ava">КК</span><span class="nm">К. Кислицын</span></div>'
+    + '</div>'
+  + '</div>'
+
+  + '<div class="sheet">'
+    + '<div class="doc-head"><div>'
+      + '<div class="doc-over">Приложение к договору</div>'
+      + '<div class="doc-name">Спецификация / <em>Каркасный дом</em></div>'
+    + '</div><div class="doc-meta">Фахверковая баня «Бонн» 4×4<br>Пресет открыт · правки идут в него</div></div>'
+    + '<div class="tools">'
+      + кнопка('печать', 'Печать') + кнопка('оплаты', 'Платёжный план')
+      + кнопка('пресеты', 'Пресеты') + кнопка('поиск', 'Поиск по опциям')
+      + кнопка('глаз', 'Показ клиенту')
+    + '</div>'
+
+    + '<div class="two-col"><div>'
+      + '<div class="card-t">Проект</div>'
+      + '<div class="fld"><span class="k">Проект</span><span class="v">Фахверковая баня «Бонн» 4×4</span></div>'
+      + '<div class="fld"><span class="k">Толщина утепления</span><span class="v" style="border:0;padding:0">'
+        + '<span class="thick"><button aria-pressed="false">100 мм</button>'
+        + '<button aria-pressed="false">150 мм</button>'
+        + '<button aria-pressed="true">200 мм</button></span></span></div>'
+    + '</div><div>'
+      + '<div class="card-t">Характеристики</div>'
+      + '<div class="def"><span class="k">Тёплый контур</span><span class="dots"></span><span class="val">26 м²</span></div>'
+      + '<div class="def"><span class="k">Этажей</span><span class="dots"></span><span class="val">1 + мансарда</span></div>'
+      + '<div class="def"><span class="k">Кровля</span><span class="dots"></span><span class="val">Двускатная, шинглас</span></div>'
+      + '<div class="def"><span class="k">Цена за м²</span><span class="dots"></span><span class="val">69 109 ₽</span></div>'
+    + '</div></div>'
+
+    + РАЗДЕЛЫ.map(раздел).join('')
+
+    + '<div class="bd"><div class="bd-h"><span></span><span>Раздел</span><span class="pc">%</span><span class="sm">Сумма</span></div>'
+      + РАЗДЕЛЫ.map(р => '<div class="bd-r' + (р.сумма ? '' : ' is-zero') + '">'
+          + '<span class="no">' + р.н + '</span><span>' + р.имя + '</span>'
+          + '<span class="pc">' + (р.сумма ? (р.сумма / ИТОГО * 100).toFixed(1) : '—') + '</span>'
+          + '<span class="sm">' + (р.сумма ? рубли(р.сумма) : '—') + '</span></div>').join('')
+      + '<div class="bd-t"><span>Итого по спецификации</span><b>' + рубли(ИТОГО) + '</b></div>'
+    + '</div>'
+
+    + '<div class="strip"><span class="l">Фахверковая баня «Бонн» 4×4 · 48 позиций · пресет «Бонн — сентябрь»</span>'
+      + '<span class="r">' + рубли(ИТОГО) + '</span></div>'
+  + '</div></div>';
+}
+document.getElementById('кадрД').innerHTML = страница(false);
+document.getElementById('кадрН').innerHTML = страница(true);
+</script>
+</body>
+</html>
