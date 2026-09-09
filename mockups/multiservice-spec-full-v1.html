@@ -100,11 +100,12 @@ h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: 1.4rem;
 
 /* ═══ ОБОЛОЧКА ═══ */
 .shell { display: grid; grid-template-columns: 236px minmax(0, 1fr); }
-/* Колонка едет вместе с листом: без этого нижние кнопки и имя оказывались в
-   пяти тысячах пикселей от начала расчёта — лист длинный. */
-.rail { border-right: 1px solid var(--bl-rule); display: flex; flex-direction: column;
-  padding: 16px 0 12px; background: var(--bl-sheet);
-  position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; }
+/* Колонка тянется во всю высоту кадра — иначе разделительная линейка обрывалась
+   там, где кончались пункты, и лист снизу оставался без левой границы. Липким
+   сделано нутро колонки: оно едет вместе с листом, а рамка стоит. */
+.rail { border-right: 1px solid var(--bl-rule); background: var(--bl-sheet); }
+.rail-in { display: flex; flex-direction: column; padding: 16px 0 12px;
+  position: sticky; top: 0; max-height: 100vh; overflow-y: auto; }
 .rail-mark { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: .78rem;
   letter-spacing: .08em; color: var(--bl-acc); padding: 0 16px 14px;
   border-bottom: 1px solid var(--bl-rule); }
@@ -540,7 +541,7 @@ function страница(ночь) {
   + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="17" height="17"><path d="M4 7h16M4 12h16M4 17h16"/></svg>'
   + '</button><span class="ph-name">Спецификация</span><span class="ph-badge">5 ждут</span></div>'
 
-  + '<div class="rail">'
+  + '<div class="rail"><div class="rail-in">'
     + '<div class="rail-mark">БАНЯ·МСК</div>'
     + '<div class="rail-grp">Работа</div>'
     + сервис('спец', 'Спецификации', '12', true)
@@ -567,7 +568,7 @@ function страница(ночь) {
       + '</div>'
       + '<div class="who"><span class="ava">КК</span><span class="nm">К. Кислицын</span></div>'
     + '</div>'
-  + '</div>'
+  + '</div></div>'
 
   + '<div class="sheet">'
     + '<div class="doc-head"><div>'
