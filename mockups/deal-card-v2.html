@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="ru" data-page="day">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Карточка сделки v2 — лента справа, как в Битриксе</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   КАРТОЧКА СДЕЛКИ v2 — двухчастная, как в «Битриксе»
+
+   Что взято оттуда по устройству:
+   · карточка делится надвое. Слева — всё, что переключается вкладками:
+     поля сделки, расчёты, платежи, чек-листы, документы. Справа — лента,
+     и она НЕ вкладка: видна всегда, потому что работа идёт в ней.
+   · сверху ленты — панель быстрых действий: задача, звонок, встреча,
+     письмо, комментарий.
+   · над историей — блок «Запланировано»: ближайшие дела со сроками.
+   · когда запланированных дел нет — карточка об этом говорит. В «Битриксе»
+     это красный счётчик на сделке; смысл тот же: сделка без следующего шага
+     теряется, и заметить это должна система, а не память сотрудника.
+
+   Что сделано иначе — в блоке пояснений внизу страницы.
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* ── токены темы: два набора, чтобы день и ночь стояли на одной странице ──── */
+.day, html[data-page="day"] .auto {
+  --bl-page:#f7fbfb; --bl-sheet:#fff; --bl-zebra:#f7fafb;
+  --bl-ink:#12262a; --bl-ink2:#5b7376; --bl-ink3:#8da3a5;
+  --bl-rule:#dceaeb; --bl-rule2:#bcd9db;
+  --bl-acc:#1e6c72; --bl-acc2:#2a8f97; --bl-pale:#a8dde0;
+  --bl-tint:#e4f5f6; --bl-fill:#1e6c72; --bl-on-acc:#fff;
+  --bl-shadow:0 18px 48px rgba(18,38,42,.10);
+  --bl-warn:#c06010;
+}
+.night, html[data-page="night"] .auto {
+  --bl-page:#0e1a1c; --bl-sheet:#132528; --bl-zebra:#173338;
+  --bl-ink:#e6f3f3; --bl-ink2:#9db6b8; --bl-ink3:#8aa4a6;
+  --bl-rule:#224347; --bl-rule2:#2d585d;
+  --bl-acc:#8fd6dc; --bl-acc2:#5fc2ca; --bl-pale:#5fc2ca;
+  --bl-tint:#173338; --bl-fill:#2a8f97; --bl-on-acc:#08181a;
+  --bl-shadow:0 18px 48px rgba(0,0,0,.45);
+  --bl-warn:#e0b070;
+}
+
+/* ── страница вокруг макета: язык статьи, он же в справке ────────────────── */
+html[data-page="day"] { --mn-page:#f0f6f6; --mn-card:#fff; --mn-ink:#111; --mn-ink2:#555;
+  --mn-ink3:#888; --mn-rule:#d4e4e5; --mn-acc:#1e6c72; --mn-acc-ink:#1e6c72;
+  --mn-acc2:#2a8f97; --mn-tint:#e4f5f6; }
+html[data-page="night"] { --mn-page:#111e20; --mn-card:#1a2a2c; --mn-ink:#e8f0f1; --mn-ink2:#9ab;
+  --mn-ink3:#678; --mn-rule:#2a3f42; --mn-acc:#1e6c72; --mn-acc-ink:#5fc8d2;
+  --mn-acc2:#3db0ba; --mn-tint:#1a3034; }
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 0 20px 80px;
+  background: var(--mn-page); color: var(--mn-ink);
+  font-family: 'Geologica', system-ui, sans-serif; font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  transition: background .2s, color .2s;
+}
+.wrap { max-width: 1180px; margin: 0 auto; }
+
+/* ── шапка макета ─────────────────────────────────────────────────────────── */
+.top { padding: 34px 0 8px; }
+.eyebrow { font-size: .66rem; text-transform: uppercase; letter-spacing: .18em;
+  color: var(--mn-acc2); font-weight: 500; font-family: 'Unbounded', sans-serif; }
+h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: 1.4rem;
+  letter-spacing: -.01em; margin: .35em 0 .3em; line-height: 1.25; }
+.lead { font-size: .95rem; color: var(--mn-ink2); max-width: 660px; margin: 0 0 4px;
+  line-height: 1.62; }
+.seg { display: inline-flex; gap: 18px; margin: 18px 0 4px;
+  border-bottom: 1px solid var(--mn-rule); }
+.seg button { appearance: none; background: none; border: 0; cursor: pointer;
+  font-family: 'Geologica', sans-serif; font-size: .78rem; color: var(--mn-ink3);
+  padding: 8px 2px 9px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  position: relative; }
+.seg button::before { content: ''; position: absolute; inset: -8px -6px; }
+.seg button[aria-pressed="true"] { color: var(--mn-acc-ink); font-weight: 500;
+  border-bottom-color: var(--mn-acc2); }
+
+.v { margin: 44px 0 0; }
+.v-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  border-bottom: 2px solid var(--mn-acc-ink); padding-bottom: 10px; margin-bottom: 6px; }
+.v-name { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: 1.02rem;
+  color: var(--mn-acc-ink); }
+.v p { font-size: .88rem; color: var(--mn-ink2); max-width: 68ch; line-height: 1.62;
+  margin: 12px 0; }
+.v p b { color: var(--mn-ink); font-weight: 500; }
+.cost { font-size: .82rem; color: var(--mn-ink2); border-left: 3px solid var(--mn-acc2);
+  background: var(--mn-tint); border-radius: 0 10px 10px 0; padding: 11px 14px;
+  margin: 16px 0 0; max-width: 68ch; }
+.cost b { color: var(--mn-acc-ink); font-weight: 600; }
+.cap { font-size: .68rem; text-transform: uppercase; letter-spacing: .14em;
+  color: var(--mn-ink3); margin: 24px 0 8px; font-family: 'Unbounded', sans-serif; }
+
+/* ── рамка окна ───────────────────────────────────────────────────────────── */
+/* overflow:clip вместо hidden: он тоже обрезает по скруглению, но не делает
+   кадр своей прокруткой и не отменяет липкую колонку. */
+.frame { border: 1px solid var(--bl-rule); border-radius: 14px; overflow: clip;
+  background: var(--bl-sheet); color: var(--bl-ink); box-shadow: var(--bl-shadow);
+  font-weight: 300; }
+
+/* ═══ ОБОЛОЧКА ═══ */
+.shell { display: grid; grid-template-columns: 236px minmax(0, 1fr); }
+/* Колонка тянется во всю высоту кадра — иначе разделительная линейка обрывалась
+   там, где кончались пункты, и лист снизу оставался без левой границы. Липким
+   сделано нутро колонки: оно едет вместе с листом, а рамка стоит. */
+.rail { border-right: 1px solid var(--bl-rule); background: var(--bl-sheet); }
+.rail-in { display: flex; flex-direction: column; padding: 16px 0 12px;
+  position: sticky; top: 0; max-height: 100vh; overflow-y: auto; }
+.rail-mark { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: .78rem;
+  letter-spacing: .08em; color: var(--bl-acc); padding: 0 16px 14px;
+  border-bottom: 1px solid var(--bl-rule); }
+.rail-grp { font-family: 'Unbounded', sans-serif; font-size: .6rem; font-weight: 400;
+  text-transform: uppercase; letter-spacing: .18em; color: var(--bl-ink2);
+  padding: 15px 16px 5px; }
+.rail-grp.sep { border-top: 1px solid var(--bl-rule); margin-top: 10px; padding-top: 15px; }
+/* Строка панели целиком цель нажатия: 44 px даёт сама строка. Невидимого поля
+   здесь быть не должно — строки стоят вплотную, поля соседей перекрылись бы. */
+.nav-i { display: grid; grid-template-columns: 18px minmax(0,1fr) auto; align-items: center;
+  gap: 10px; min-height: 44px; padding: 0 16px; font-size: .82rem; color: var(--bl-ink2);
+  position: relative; cursor: pointer; background: none; border: 0; width: 100%;
+  text-align: left; font-family: 'Geologica', sans-serif; font-weight: 300; }
+.nav-i svg { width: 17px; height: 17px; opacity: .85; }
+.nav-i .cnt { font-size: .72rem; color: var(--bl-ink3); }
+.nav-i .cnt.hot { color: var(--bl-acc); font-weight: 500; }
+.nav-i.is-on { color: var(--bl-ink); font-weight: 500;
+  background: linear-gradient(90deg, var(--bl-tint), transparent 210px); }
+.nav-i.is-on::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 2px; background: var(--bl-acc); }
+.nav-i.is-on svg { opacity: 1; color: var(--bl-acc); }
+.nav-i.soon { color: var(--bl-ink3); }
+.nav-i.soon .cnt { font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; }
+@media (hover: hover) { .nav-i:not(.is-on):hover { color: var(--bl-ink); background: var(--bl-zebra); } }
+
+/* оглавление расчёта — те же строки, но с номером раздела вместо значка */
+.nav-s { grid-template-columns: 16px minmax(0,1fr) auto; font-size: .78rem; }
+.nav-s .no { font-family: 'Unbounded', sans-serif; font-size: .74rem; color: var(--bl-pale); }
+.nav-s .sum { font-size: .72rem; color: var(--bl-ink3); }
+.nav-s.is-zero { color: var(--bl-ink3); }
+.nav-s.is-zero .sum { color: var(--bl-ink3); }
+.nav-s.is-on .no { color: var(--bl-acc); }
+.nav-s.is-on .sum { color: var(--bl-ink); }
+
+.rail-foot { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--bl-rule); }
+.rail-tools { display: flex; gap: 14px; padding: 4px 14px 6px; }
+.ib { width: 30px; height: 30px; border-radius: 7px; border: 0; background: none;
+  color: var(--bl-ink2); display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; position: relative; }
+.ib::before { content: ''; position: absolute; inset: -7px; }
+.ib svg { width: 17px; height: 17px; }
+@media (hover: hover) { .ib:hover { background: var(--bl-tint); color: var(--bl-acc); } }
+.who { display: grid; grid-template-columns: 26px 1fr; gap: 9px; align-items: center;
+  padding: 4px 16px 0; font-size: .74rem; color: var(--bl-ink2); }
+.who .ava { width: 26px; height: 26px; border-radius: 50%; background: var(--bl-fill);
+  color: var(--bl-on-acc); display: grid; place-items: center; font-size: .62rem;
+  font-family: 'Unbounded', sans-serif; font-weight: 600; }
+
+/* ═══ ЛИСТ ═══ */
+.sheet { padding: 18px clamp(14px, 2.4vw, 28px) 26px; min-width: 0; }
+.doc-head { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap;
+  padding-bottom: 12px; border-bottom: 1px solid var(--bl-rule); }
+.doc-over { font-family: 'Unbounded', sans-serif; font-size: .58rem; font-weight: 400;
+  text-transform: uppercase; letter-spacing: .18em; color: var(--bl-ink3); }
+.doc-name { font-family: 'Unbounded', sans-serif; font-size: 1.02rem; font-weight: 700;
+  color: var(--bl-ink); margin-top: 5px; line-height: 1.3; }
+.doc-name em { font-style: normal; color: var(--bl-acc); }
+.doc-meta { margin-left: auto; text-align: right; font-size: .68rem; color: var(--bl-ink3);
+  line-height: 1.7; }
+.tools { display: flex; flex-wrap: wrap; gap: 12px; padding: 12px 0 0; }
+.tb { border: 1px solid var(--bl-rule2); border-radius: 8px; background: none;
+  color: var(--bl-ink2); font-family: 'Geologica', sans-serif; font-size: .74rem;
+  font-weight: 300; padding: 8px 11px; cursor: pointer; display: inline-flex;
+  align-items: center; gap: 6px; position: relative; }
+/* Кнопка нарисована 32 px, поле нажатия 44: по 6 px вверх-вниз, значит и зазор
+   между рядами не меньше 12 (правило 8 темы). */
+.tb::before { content: ''; position: absolute; inset: -6px -4px; }
+.tb svg { width: 14px; height: 14px; }
+@media (hover: hover) { .tb:hover { background: var(--bl-tint); color: var(--bl-acc); } }
+.tb.dash { border-style: dashed; color: var(--bl-ink3); }
+
+
+
+/* ═══ ШАПКА СДЕЛКИ ═══════════════════════════════════════════════════════ */
+.deal-head { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 18px;
+  align-items: start; padding-bottom: 13px; border-bottom: 1px solid var(--bl-rule); }
+.deal-over { font-family: 'Unbounded', sans-serif; font-size: .58rem; font-weight: 400;
+  text-transform: uppercase; letter-spacing: .18em; color: var(--bl-ink3); }
+.deal-name { font-family: 'Unbounded', sans-serif; font-size: 1.06rem; font-weight: 700;
+  color: var(--bl-ink); margin-top: 5px; line-height: 1.3; }
+.deal-name em { font-style: normal; color: var(--bl-acc); }
+.deal-sub { font-size: .78rem; color: var(--bl-ink2); margin-top: 7px; }
+.deal-sub span + span::before { content: ' · '; color: var(--bl-ink3); }
+.deal-sum { text-align: right; }
+.deal-sum b { font-family: 'Unbounded', sans-serif; font-size: 1.06rem; color: var(--bl-ink);
+  display: block; white-space: nowrap; }
+.deal-sum small { font-size: .68rem; color: var(--bl-ink3); display: block; margin-top: 5px; }
+.deal-acts { display: flex; gap: 12px; margin-top: 12px; justify-content: flex-end; }
+
+/* ═══ СТАДИИ — сетка ступеней (вариант 5 из deal-stages-v2) ══════════════ */
+.s5 { display: grid; grid-template-columns: repeat(auto-fit, minmax(146px, 1fr));
+  gap: 0; padding: 14px 0 2px; }
+.s5 .c { display: grid; grid-template-columns: 24px minmax(0,1fr); gap: 8px;
+  align-items: baseline; min-height: 44px; padding: 6px 12px 6px 0; position: relative;
+  background: none; border: 0; text-align: left; font-family: inherit; font-weight: 300;
+  cursor: pointer; border-top: 1px solid var(--bl-rule); }
+.s5 .no { font-family: 'Unbounded', sans-serif; font-size: .8rem; color: var(--bl-pale); }
+.s5 .nm { font-size: .76rem; color: var(--bl-ink3); line-height: 1.35; }
+.s5 .nm .dt { display: block; font-size: .66rem; color: var(--bl-ink3); margin-top: 3px; }
+.s5 .c.done { border-top-color: var(--bl-acc); }
+.s5 .c.done .nm { color: var(--bl-ink2); } .s5 .c.done .no { color: var(--bl-acc2); }
+.s5 .c.now { border-top-color: var(--bl-acc); }
+.s5 .c.now .nm { color: var(--bl-ink); font-weight: 500; }
+.s5 .c.now .no { color: var(--bl-acc); } .s5 .c.now .nm .dt { color: var(--bl-acc); }
+.s5 .c.now::after { content: ''; position: absolute; left: 0; top: -1px; width: 26px;
+  height: 3px; background: var(--bl-fill); }
+@media (hover: hover) { .s5 .c:hover .nm { color: var(--bl-ink); } }
+
+/* ═══ ДВЕ ЧАСТИ КАРТОЧКИ ═════════════════════════════════════════════════ */
+/* Слева всё, что переключается вкладками. Справа лента — не вкладка, видна
+   всегда: работа идёт в ней, и прятать её за переключателем значит вернуть
+   ровно ту память сотрудника, от которой уходим. */
+.card2 { display: grid; grid-template-columns: minmax(0,1fr) 372px; margin-top: 16px; }
+.card2 > .left { padding-right: 24px; min-width: 0; }
+.card2 > .feed-col { border-left: 1px solid var(--bl-rule); padding-left: 20px; min-width: 0; }
+
+.tabs { display: flex; gap: 22px; border-bottom: 1px solid var(--bl-rule); overflow-x: auto; }
+.tabs button { appearance: none; background: none; border: 0; cursor: pointer;
+  font-family: 'Geologica', sans-serif; font-size: .82rem; font-weight: 300;
+  color: var(--bl-ink2); padding: 13px 2px 12px; border-bottom: 2px solid transparent;
+  margin-bottom: -1px; white-space: nowrap; position: relative;
+  display: inline-flex; align-items: center; gap: 7px; }
+.tabs button::before { content: ''; position: absolute; inset: -1px -8px; }
+.tabs button .cnt { font-size: .72rem; color: var(--bl-acc); }
+.tabs button[aria-pressed="true"] { color: var(--bl-acc); font-weight: 500;
+  border-bottom-color: var(--bl-acc); }
+.fade-x { position: relative; }
+.fade-x::after { content: ''; position: absolute; right: 0; top: 0; bottom: 1px; width: 46px;
+  pointer-events: none; background: linear-gradient(90deg, transparent, var(--bl-sheet) 80%); }
+
+.blk { margin-top: 22px; }
+.blk-t { font-family: 'Unbounded', sans-serif; font-size: .68rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .12em; color: var(--bl-acc);
+  border-bottom: 2px solid var(--bl-acc); padding-bottom: 7px;
+  display: flex; justify-content: space-between; align-items: baseline; gap: 14px; }
+.blk-t .rt { font-family: 'Geologica', sans-serif; font-weight: 300; font-size: .72rem;
+  color: var(--bl-ink2); text-transform: none; letter-spacing: 0; }
+.blk-t.quiet { color: var(--bl-ink2); border-bottom-color: var(--bl-rule2); }
+
+/* поля сделки в две колонки */
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0 34px; }
+.def { display: grid; grid-template-columns: auto 1fr auto; align-items: baseline;
+  gap: 8px; font-size: .8rem; padding: 8px 0; }
+.def .k { color: var(--bl-ink3); font-size: .74rem; white-space: nowrap; }
+.def .dots { border-bottom: 1px dotted var(--bl-rule2); transform: translateY(-3px); }
+.def .val { color: var(--bl-ink); text-align: right; min-width: 0; }
+
+/* расчёты */
+.calc { display: grid; grid-template-columns: 20px minmax(0,1fr) auto auto; gap: 12px;
+  align-items: center; padding: 12px 0; border-bottom: 1px solid var(--bl-rule);
+  font-size: .82rem; }
+.calc .mark { width: 20px; height: 20px; border-radius: 4px; display: grid; place-items: center;
+  box-shadow: inset 0 0 0 1.5px var(--bl-rule2); }
+.calc.main .mark { background: var(--bl-fill); box-shadow: none; }
+.calc.main .mark svg { width: 13px; height: 13px; color: var(--bl-on-acc); }
+.calc .t { color: var(--bl-ink); min-width: 0; }
+.calc .t small { display: block; font-size: .71rem; color: var(--bl-ink3); margin-top: 3px; }
+.calc .s { white-space: nowrap; color: var(--bl-ink); }
+
+/* платежи */
+.pay-h, .pay-r { display: grid; grid-template-columns: 44px minmax(0,1fr) 100px 92px; gap: 12px; }
+.pay-h { font-family: 'Unbounded', sans-serif; font-size: .62rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .12em; color: var(--bl-ink2);
+  border-bottom: 2px solid var(--bl-acc); padding-bottom: 8px; margin-top: 6px; }
+.pay-r { font-size: .82rem; padding: 12px 0; border-bottom: 1px solid var(--bl-rule);
+  align-items: baseline; }
+.pay-r .cd { font-family: 'Unbounded', sans-serif; font-size: .7rem; color: var(--bl-pale); }
+.pay-r .t { color: var(--bl-ink); min-width: 0; }
+.pay-r .t small { display: block; font-size: .71rem; color: var(--bl-ink3); margin-top: 3px; }
+.pay-r .pl { white-space: nowrap; text-align: right; }
+.pay-r .fc { font-size: .76rem; text-align: right; white-space: nowrap; }
+.pay-r.wait, .pay-r.wait .t, .pay-r.wait .pl { color: var(--bl-ink3); }
+.pay-r .fc.paid { color: var(--bl-ink); } .pay-r .fc.late { color: var(--bl-warn); }
+.pay-r .fc.mut { color: var(--bl-ink3); }
+.pay-tot { display: grid; grid-template-columns: minmax(0,1fr) repeat(3, auto); gap: 22px;
+  border-top: 2px solid var(--bl-acc); padding-top: 12px; align-items: baseline; }
+.pay-tot .k { font-family: 'Unbounded', sans-serif; font-size: .62rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .12em; color: var(--bl-ink2); }
+.pay-tot .val { font-family: 'Unbounded', sans-serif; font-size: .88rem; color: var(--bl-ink);
+  white-space: nowrap; }
+.pay-tot .val small { display: block; font-family: 'Geologica', sans-serif; font-size: .6rem;
+  font-weight: 300; text-transform: uppercase; letter-spacing: .12em; color: var(--bl-ink3);
+  margin-bottom: 4px; }
+
+/* чек-листы */
+.ck-h { display: flex; justify-content: space-between; align-items: baseline; gap: 14px;
+  font-size: .82rem; color: var(--bl-ink); padding: 14px 0 8px; }
+.ck-h .nm { font-weight: 500; }
+.ck-h .pr { font-size: .72rem; color: var(--bl-ink2); white-space: nowrap; }
+.ck-bar { height: 3px; background: var(--bl-rule); }
+.ck-bar span { display: block; height: 3px; background: var(--bl-acc); }
+.ck-i { display: grid; grid-template-columns: 20px minmax(0,1fr) auto; gap: 12px;
+  align-items: start; padding: 10px 0; border-bottom: 1px solid var(--bl-rule);
+  font-size: .8rem; }
+.ck-i .box { width: 20px; height: 20px; border-radius: 4px; margin-top: 1px;
+  box-shadow: inset 0 0 0 1.5px var(--bl-rule2); }
+.ck-i.done .box { background: var(--bl-fill); box-shadow: none; display: grid; place-items: center; }
+.ck-i.done .box svg { width: 13px; height: 13px; color: var(--bl-on-acc); }
+.ck-i .t { color: var(--bl-ink); min-width: 0; }
+.ck-i.done .t { color: var(--bl-ink3); }
+.ck-i .t small { display: block; font-size: .71rem; color: var(--bl-ink3); margin-top: 3px; }
+.ck-i .w { font-size: .72rem; color: var(--bl-ink3); white-space: nowrap; }
+.ck-i .w.late { color: var(--bl-warn); }
+
+/* документы */
+.doc-i { display: grid; grid-template-columns: 18px minmax(0,1fr) auto auto; gap: 12px;
+  align-items: center; padding: 12px 0; border-bottom: 1px solid var(--bl-rule);
+  font-size: .82rem; }
+.doc-i svg { width: 17px; height: 17px; color: var(--bl-ink3); }
+.doc-i .t { color: var(--bl-ink); min-width: 0; }
+.doc-i .t small { display: block; font-size: .71rem; color: var(--bl-ink3); margin-top: 3px; }
+.doc-i .w { font-size: .74rem; color: var(--bl-ink2); white-space: nowrap; }
+
+/* ═══ ЛЕНТА СПРАВА ══════════════════════════════════════════════════════ */
+.feed-t { font-family: 'Unbounded', sans-serif; font-size: .68rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .12em; color: var(--bl-acc);
+  border-bottom: 2px solid var(--bl-acc); padding-bottom: 7px;
+  display: flex; justify-content: space-between; align-items: baseline; }
+.feed-t .rt { font-family: 'Geologica', sans-serif; font-weight: 300; font-size: .72rem;
+  color: var(--bl-ink3); text-transform: none; letter-spacing: 0; }
+/* панель быстрых действий — то, чем лента начинается в «Битриксе» */
+.qa { display: flex; flex-wrap: wrap; gap: 12px; padding: 14px 0 4px; }
+.qa button { border: 1px solid var(--bl-rule2); border-radius: 8px; background: none;
+  color: var(--bl-ink2); font-family: 'Geologica', sans-serif; font-size: .74rem;
+  font-weight: 300; padding: 8px 10px; cursor: pointer; display: inline-flex;
+  align-items: center; gap: 6px; position: relative; }
+.qa button::before { content: ''; position: absolute; inset: -6px -4px; }
+.qa button svg { width: 14px; height: 14px; }
+.qa button.main { border-color: var(--bl-acc); color: var(--bl-acc); }
+@media (hover: hover) { .qa button:hover { background: var(--bl-tint); color: var(--bl-acc); } }
+
+.f-grp { font-family: 'Unbounded', sans-serif; font-size: .58rem; font-weight: 400;
+  text-transform: uppercase; letter-spacing: .18em; color: var(--bl-ink2);
+  padding: 20px 0 4px; display: flex; justify-content: space-between; align-items: baseline; }
+.f-grp .n { font-family: 'Geologica', sans-serif; font-weight: 300; font-size: .7rem;
+  color: var(--bl-ink3); text-transform: none; letter-spacing: 0; }
+
+/* запланированное дело */
+.pl-i { display: grid; grid-template-columns: 20px minmax(0,1fr); gap: 11px;
+  padding: 11px 0; border-bottom: 1px solid var(--bl-rule); font-size: .8rem;
+  position: relative; }
+.pl-i .box { width: 20px; height: 20px; border-radius: 4px; margin-top: 1px;
+  box-shadow: inset 0 0 0 1.5px var(--bl-rule2); background: none; cursor: pointer;
+  border: 0; padding: 0; position: relative; }
+.pl-i .box::before { content: ''; position: absolute; inset: -12px; }
+.pl-i .t { color: var(--bl-ink); line-height: 1.45; }
+.pl-i .m { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 5px;
+  font-size: .71rem; color: var(--bl-ink3); }
+.pl-i .m .w.late { color: var(--bl-warn); }
+.pl-i .m .w.today { color: var(--bl-acc); font-weight: 500; }
+.pl-i .m .src b { color: var(--bl-acc); font-weight: 500; }
+
+/* пусто: ни одного запланированного дела */
+.empty { border-left: 3px solid var(--bl-warn); background: var(--bl-tint);
+  border-radius: 0 10px 10px 0; padding: 12px 14px; margin-top: 12px; font-size: .78rem;
+  color: var(--bl-ink2); line-height: 1.5; }
+.empty b { color: var(--bl-warn); font-weight: 600; display: block; margin-bottom: 4px; }
+.empty .go { margin-top: 12px; display: block; }
+
+/* история */
+.h-i { display: grid; grid-template-columns: 18px minmax(0,1fr); gap: 11px;
+  padding: 12px 0; border-bottom: 1px solid var(--bl-rule); font-size: .79rem; }
+.h-i svg { width: 16px; height: 16px; color: var(--bl-ink3); margin-top: 2px; }
+.h-i.rule svg { color: var(--bl-acc); }
+.h-i .t { color: var(--bl-ink2); line-height: 1.5; min-width: 0; }
+.h-i .t b { color: var(--bl-ink); font-weight: 500; }
+.h-i .t .rl { color: var(--bl-acc); }
+.h-i .tm { display: block; font-size: .7rem; color: var(--bl-ink3); margin-top: 4px; }
+/* комментарий — единственная залитая строка в ленте: он от человека, а не событие */
+.h-i.cmt .t { background: var(--bl-tint); padding: 10px 12px; border-radius: 0 8px 8px 0;
+  border-left: 2px solid var(--bl-acc2); color: var(--bl-ink); }
+
+/* ── полоса с бургером: ниже 620 px колонка сервисов не помещается ─────── */
+.ph-bar { display: none; align-items: center; gap: 10px; padding: 8px 12px;
+  border-bottom: 1px solid var(--bl-rule); grid-column: 1 / -1; }
+.burger { width: 34px; height: 34px; border-radius: 7px; border: 1px solid var(--bl-rule2);
+  background: none; color: var(--bl-ink2); display: grid; place-items: center;
+  cursor: pointer; position: relative; }
+.burger::before { content: ''; position: absolute; inset: -5px; }
+.ph-name { font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: .78rem;
+  color: var(--bl-ink); }
+.ph-badge { margin-left: auto; font-size: .7rem; color: var(--bl-acc); }
+@media (max-width: 620px) {
+  .shell { grid-template-columns: minmax(0,1fr); }
+  .shell > .rail { display: none; }
+  .shell > .ph-bar { display: flex; }
+}
+
+/* ── два состояния ленты рядом ─────────────────────────────────────────── */
+.pair2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 18px; align-items: start; }
+/* колонка ленты, показанная отдельно от карточки: рамку и поля даёт кадр */
+.feed-col.only { border-left: 0; padding: 18px clamp(14px, 2.4vw, 22px) 20px; }
+
+/* ═══ пояснения ═════════════════════════════════════════════════════════ */
+.leg { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr));
+  margin-top: 14px; }
+.leg-c { border: 1px solid var(--mn-rule); border-radius: 12px; padding: 15px;
+  background: var(--mn-card); }
+.leg-t { font-size: .66rem; text-transform: uppercase; letter-spacing: .14em;
+  color: var(--mn-acc-ink); margin-bottom: 4px; font-family: 'Unbounded', sans-serif;
+  font-weight: 600; }
+.leg-w { font-size: .74rem; color: var(--mn-ink3); margin-bottom: 12px; }
+.leg-l { list-style: none; margin: 0; padding: 0; font-size: .82rem; color: var(--mn-ink2); }
+.leg-l li { padding: 7px 0; border-bottom: 1px solid var(--mn-rule); line-height: 1.5; }
+.leg-l li:last-child { border-bottom: 0; }
+.leg-l b { color: var(--mn-ink); font-weight: 500; }
+
+footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--mn-rule);
+  font-size: .76rem; color: var(--mn-ink3); }
+code { font-family: ui-monospace, Menlo, monospace; font-size: .86em; color: var(--mn-acc-ink); }
+
+@media (max-width: 1080px) {
+  /* Лента уходит под вкладки, но остаётся на той же странице: отдельной
+     вкладкой её делать нельзя — тогда она перестаёт быть тем, что видно всегда. */
+  .card2 { grid-template-columns: minmax(0,1fr); }
+  .card2 > .left { padding-right: 0; }
+  .card2 > .feed-col { border-left: 0; border-top: 1px solid var(--bl-rule);
+    padding-left: 0; margin-top: 26px; padding-top: 20px; }
+}
+@media (max-width: 720px) {
+  .deal-head { grid-template-columns: minmax(0,1fr); gap: 10px; }
+  .deal-sum { text-align: left; }
+  .deal-sum b { display: inline; } .deal-sum small { display: inline; margin-left: 8px; }
+  .deal-acts { justify-content: flex-start; }
+  .pay-h { display: none; }
+  .pay-r { grid-template-columns: 44px minmax(0,1fr) auto; row-gap: 6px; }
+  .pay-r .fc { grid-column: 2; text-align: left; }
+  .pay-tot { grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px 12px; }
+  .pay-tot .k { grid-column: 1 / -1; }
+  .calc { grid-template-columns: 20px minmax(0,1fr); row-gap: 8px; }
+  .calc .s, .calc .tb { grid-column: 2; justify-self: start; }
+  .doc-i { grid-template-columns: 18px minmax(0,1fr); row-gap: 6px; }
+  .doc-i .w, .doc-i .tb { grid-column: 2; justify-self: start; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="eyebrow">Макет · 10.09.2026</div>
+    <h1>Карточка сделки v2 — лента справа</h1>
+    <p class="lead">Устройство из «Битрикса»: карточка делится надвое. Слева всё, что
+      переключается вкладками — поля, расчёты, платежи, чек-листы, документы. Справа
+      лента, и она <b>не вкладка</b>: видна всегда, потому что работа идёт в ней.</p>
+    <div class="seg" role="group" aria-label="Пора суток">
+      <button id="segDay" aria-pressed="true" onclick="пора('day')">День</button>
+      <button id="segNight" aria-pressed="false" onclick="пора('night')">Ночь</button>
+    </div>
+    <p class="lead" style="font-size:.82rem">Полоска стадий взята пятая — сетка ступеней
+      из <code>deal-stages-v2.html</code>; выберешь другую — встанет на её место, ничего
+      вокруг не меняя.</p>
+  </div>
+
+  <div class="v">
+    <div class="v-head"><span class="v-name">Карточка целиком — слева «Обзор», справа лента</span></div>
+    <p>Задачи ушли из вкладок в ленту: в «Битриксе» они называются делами и живут именно
+      там, вместе со звонками, встречами и комментариями. Разделять их на «задачи» и
+      «события» — значит заставлять смотреть в два места; смотреть надо в одно.</p>
+    <div class="cap">День</div>
+    <div class="frame day" id="кадрОбзор"></div>
+    <div class="cap">Ночь — открыта вкладка «Платежи»</div>
+    <div class="frame night" id="кадрПлатежи"></div>
+  </div>
+
+  <div class="v">
+    <div class="v-head"><span class="v-name">Вкладка «Чек-листы»</span></div>
+    <p>То, что сейчас держится в голове: что проверить перед отправкой, что взять на
+      выезд, что сдать. У каждого пункта может стоять срок, и просроченный виден.
+      Позже отсюда же родятся автозадачи: <b>непройденный чек-лист — законный повод
+      завести дело</b>, и правилу не нужно ничего выдумывать.</p>
+    <div class="frame auto" id="кадрЧек"></div>
+  </div>
+
+  <div class="v">
+    <div class="v-head"><span class="v-name">Лента: два состояния</span></div>
+    <p>Слева — как обычно: сверху запланированные дела, под ними история. Справа — то,
+      ради чего всё затевается: <b>ни одного запланированного дела</b>. В «Битриксе» на
+      сделке в этот момент загорается красный счётчик; смысл тот же — сделка без
+      следующего шага теряется, и заметить это должна система, а не память сотрудника.</p>
+    <div class="pair2">
+      <div><div class="cap">Есть запланированное</div><div class="frame auto" id="кадрЛента"></div></div>
+      <div><div class="cap">Ничего не запланировано</div><div class="frame auto" id="кадрПусто"></div></div>
+    </div>
+  </div>
+
+  <div class="v">
+    <div class="v-head"><span class="v-name">Что взято у «Битрикса», а что сделано иначе</span></div>
+    <div class="leg">
+      <div class="leg-c">
+        <div class="leg-t">Взято по устройству</div>
+        <div class="leg-w">Проверено чужим опытом, спорить не с чем.</div>
+        <ul class="leg-l">
+          <li><b>Две части.</b> Слева вкладки, справа лента — всегда</li>
+          <li><b>Панель быстрых действий</b> сверху ленты: задача, звонок, встреча,
+            письмо, комментарий</li>
+          <li><b>«Запланировано» отдельным блоком</b> над историей, со сроками</li>
+          <li><b>Дела и события в одной ленте</b>, а не в разных вкладках</li>
+          <li><b>Счётчик пустоты.</b> Нет следующего шага — карточка об этом говорит</li>
+          <li><b>Чек-листы</b> внутри карточки, с прогрессом</li>
+        </ul>
+      </div>
+      <div class="leg-c">
+        <div class="leg-t">Сделано иначе</div>
+        <div class="leg-w">Там, где «Битрикс» нам не подходит.</div>
+        <ul class="leg-l">
+          <li><b>Оформление.</b> Ни одной коробки: линейки, отточия, чернила — язык
+            калькулятора, а не язык приложения</li>
+          <li><b>Стадии сеткой, а не стрелками</b>, и с датой наступления под каждой:
+            из даты считается срок платежа</li>
+          <li><b>Платежи — вкладка карточки</b>, а не отдельный «счёт». У нас план
+            разносит сумму спецификации по договорам, и это часть сделки</li>
+          <li><b>Расчёты вкладкой.</b> В «Битриксе» это товары; у нас — пресеты
+            калькулятора, и открываются они калькулятором</li>
+          <li><b>Роботы не в карточке.</b> Правила настраиваются отдельно и одинаково
+            для всех сделок; в карточке видно только, что правило сделало</li>
+        </ul>
+      </div>
+      <div class="leg-c">
+        <div class="leg-t">Чего нет нарочно</div>
+        <div class="leg-w">Отложено, и вот почему.</div>
+        <ul class="leg-l">
+          <li><b>Звонки и почта внутри системы.</b> Кнопки есть, запись разговора —
+            отдельная работа с телефонией</li>
+          <li><b>Канбан-доска.</b> Сделок у менеджера единицы; ведомость со сроком
+            полезнее плиток</li>
+          <li><b>Настройка полей карточки.</b> Поля у нас известны заранее</li>
+          <li><b>Лента как вкладка.</b> Спрятать её за переключателем — вернуть ровно
+            ту память сотрудника, от которой уходим</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer>Макет · тема «Бланк» · полоски стадий — <code>deal-stages-v2.html</code>,
+    первая версия карточки — <code>deal-card-v1.html</code>, архитектура —
+    <code>docs/deal-card-architecture.md</code>. Ничего не внедрено.</footer>
+</div>
+<script>
+function пора(п){
+  document.documentElement.dataset.page = п;
+  document.getElementById('segDay').setAttribute('aria-pressed', п==='day');
+  document.getElementById('segNight').setAttribute('aria-pressed', п==='night');
+}
+const З = {
+  спец:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/>',
+  сделки:'<path d="M3 7h18v13a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/>',
+  задачи:'<path d="M9 11l2 2 4-4"/><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4"/>',
+  оплаты:'<path d="M7 6h7a4 4 0 0 1 0 8H7M7 10h10M7 14v4"/>',
+  аналитика:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  база:'<path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"/><path d="M8 7h7M8 11h7"/>',
+  луна:'<path d="M21 13a8.5 8.5 0 1 1-9.9-9.9 7 7 0 0 0 9.9 9.9z"/>',
+  солнце:'<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7"/>',
+  справка:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.8-.9 1.4v.5"/><path d="M12 17h.01"/>',
+  настройки:'<circle cx="12" cy="12" r="3"/><path d="M5 12a7 7 0 0 1 .3-2L3.6 8.6l2-3.4 2.1.8A7 7 0 0 1 10 4.6L10.4 2.4h3.2L14 4.6a7 7 0 0 1 2.3 1.4l2.1-.8 2 3.4L18.7 10a7 7 0 0 1 0 4l1.7 1.4-2 3.4-2.1-.8a7 7 0 0 1-2.3 1.4l-.4 2.2h-3.2L10 19.4a7 7 0 0 1-2.3-1.4l-2.1.8-2-3.4L5.3 14A7 7 0 0 1 5 12z"/>',
+  печать:'<path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z"/>',
+  звонок:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+  встреча:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/>',
+  письмо:'<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/>',
+  комментарий:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  плюс:'<path d="M12 5v14M5 12h14"/>',
+  часы:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/>',
+  галка:'<path d="M5 12.5l4.2 4.2L19 7"/>',
+  правило:'<path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H13z"/>',
+  файл:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>',
+  стадия:'<path d="M4 6h16M4 12h10M4 18h6"/>'
+};
+const зн = (и, ш) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'
+  + (ш || 1.7) + '" stroke-linecap="round" stroke-linejoin="round">' + З[и] + '</svg>';
+const рубли = н => (н || 0).toLocaleString('ru-RU').replace(/ /g, ' ') + ' ₽';
+
+/* ═══ ДАННЫЕ ═══════════════════════════════════════════════════════════════ */
+const СТАДИИ = [
+  {имя:'Новая',дата:'01.09'},{имя:'Расчёт',дата:'02.09'},{имя:'Проверка',дата:'04.09'},
+  {имя:'У клиента',дата:'05.09'},{имя:'Договор',дата:'07.09'},
+  {имя:'Фундамент',дата:'09.09',текущая:true},{имя:'Каркас'},{имя:'Кровля'},
+  {имя:'Утепление'},{имя:'Отделка'},{имя:'Парная и печь'},{имя:'Сдача'},
+];
+const ТЕК = СТАДИИ.findIndex(с => с.текущая);
+
+const ПЛАТЕЖИ = [
+  {дог:'КАР',эт:'Аванс по договору',под:'при подписании · 07.09',план:484690,факт:'оплачен 07.09',вид:'paid'},
+  {дог:'КАР',эт:'Платёж за фундамент',под:'+3 дня от стадии «Фундамент» · 12.09',план:254800,факт:'оплачен 09.09',вид:'paid'},
+  {дог:'КАР',эт:'При заезде бригады',под:'+3 дня от стадии «Каркас» · 06.09',план:646250,факт:'просрочен 3 дня',вид:'late'},
+  {дог:'КАР',эт:'По завершении каркасных работ',под:'+3 дня от стадии «Каркас»',план:152000,факт:'ждёт стадию',вид:'mut',ждёт:true},
+  {дог:'КАР',эт:'По завершении кровельных работ',под:'+3 дня от стадии «Кровля»',план:77895,факт:'ждёт стадию',вид:'mut',ждёт:true},
+  {дог:'ОТД',эт:'Аванс по договору отделки',под:'+5 дней от стадии «Отделка»',план:126840,факт:'ждёт стадию',вид:'mut',ждёт:true},
+  {дог:'ОТД',эт:'Перед монтажом парного',под:'+5 дней от стадии «Парная и печь»',план:4360,факт:'ждёт стадию',вид:'mut',ждёт:true},
+  {дог:'ОТД',эт:'Финальный платёж',под:'при сдаче',план:50000,факт:'ждёт стадию',вид:'mut',ждёт:true},
+];
+const ПЛАН = ПЛАТЕЖИ.reduce((с,п)=>с+п.план,0);
+const ОПЛАЧЕНО = ПЛАТЕЖИ.filter(п=>п.вид==='paid').reduce((с,п)=>с+п.план,0);
+
+const ЧЕКЛИСТЫ = [
+  { имя:'Проверка спецификации перед отправкой', пункты:[
+    {т:'Марки красок с оговоркой «или аналоги»',сделан:true},
+    {т:'Снегозадержатели соответствуют кровле',сделан:true},
+    {т:'Сечение лаг и стропил под утепление 200 мм',сделан:true},
+    {т:'Терраса, пергола и ограждения посчитаны',сделан:false,срок:'просрочен 2 дня',поздно:true},
+    {т:'Инженерные коммуникации: вода, канализация, электрика',сделан:false,срок:'до 11.09'},
+  ]},
+  { имя:'Выезд инженера на участок', пункты:[
+    {т:'Грунт и глубина промерзания',сделан:true},
+    {т:'Подъезд для техники и место под бытовку',сделан:true},
+    {т:'Точка подключения электричества',сделан:false,срок:'до 12.09'},
+    {т:'Фото участка с четырёх сторон',сделан:false,срок:'до 12.09'},
+  ]},
+];
+
+const ЗАПЛАНИРОВАНО = [
+  { т:'Забрать оплату по этапу «При заезде бригады»', срок:'просрочена 3 дня', вид:'late',
+    кто:'К. Кислицын', правило:'Оплата просрочена' },
+  { т:'Позвонить клиенту — ссылку открыли дважды, ответа нет', срок:'сегодня', вид:'today',
+    кто:'К. Кислицын', правило:'Тишина после отправки' },
+  { т:'Согласовать смету фундамента с инженером', срок:'11.09', кто:'К. Кислицын' },
+];
+
+const ИСТОРИЯ = [
+  { вид:'правило', знак:'правило', т:'<span class="rl">Правило «Оплата просрочена»</span> завело дело <b>«Забрать оплату по этапу „При заезде бригады“»</b>', к:'сегодня 09:14' },
+  { вид:'стадия', знак:'стадия', т:'<b>К. Кислицын</b> — стадия <b>«Фундамент»</b>; платежу за фундамент проставлен срок 12.09', к:'сегодня 08:00' },
+  { вид:'комментарий', знак:'комментарий', т:'Клиент просит перенести заезд бригады на неделю — ждёт ответа по срокам от прораба', к:'вчера 19:40 · К. Кислицын' },
+  { вид:'событие', знак:'письмо', т:'Клиент открыл ссылку на спецификацию — второй раз', к:'вчера 18:02' },
+  { вид:'дело', знак:'галка', т:'<b>К. Кислицын</b> завершил дело <b>«Отправить спецификацию клиенту»</b>', к:'вчера 12:15' },
+  { вид:'правило', знак:'правило', т:'<span class="rl">Правило «Оплата просрочена»</span> сняло дело <b>«Забрать оплату за фундамент»</b> — платёж пришёл', к:'вчера 11:37' },
+  { вид:'оплата', знак:'оплаты', т:'<b>К. Кислицын</b> внёс оплату <b>254 800 ₽</b> по этапу «Платёж за фундамент»', к:'08.09 16:20' },
+  { вид:'стадия', знак:'стадия', т:'<b>К. Кислицын</b> — стадия <b>«Договор»</b>; план платежей развёрнут в восемь этапов', к:'07.09 12:40' },
+];
+
+/* ═══ ОБОЛОЧКА ═══════════════════════════════════════════════════════════ */
+const сервис = (и,имя,кол,вкл,горячий) =>
+  '<button class="nav-i'+(вкл?' is-on':'')+'">'+зн(и)+'<span class="lbl">'+имя+'</span>'
+  +'<span class="cnt'+(горячий?' hot':'')+'">'+(кол||'')+'</span></button>';
+const значок = (и,имя) => '<button class="ib" title="'+имя+'">'+зн(и)+'</button>';
+
+function оболочка(ночь, лист) {
+  return '<div class="shell">'
+  + '<div class="ph-bar"><button class="burger" aria-label="Сервисы">'
+  + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="17" height="17"><path d="M4 7h16M4 12h16M4 17h16"/></svg>'
+  + '</button><span class="ph-name">Сделка 1043</span><span class="ph-badge">3 дела</span></div>'
+  + '<div class="rail"><div class="rail-in">'
+    + '<div class="rail-mark">БАНЯ·МСК</div>'
+    + '<div class="rail-grp">Работа</div>'
+    + сервис('сделки','Сделки','5',true,true)
+    + сервис('спец','Спецификации','12')
+    + сервис('задачи','Задачи','3',false,true)
+    + сервис('оплаты','Оплаты','2',false,true)
+    + '<div class="rail-grp">Справочное</div>'
+    + сервис('аналитика','Аналитика') + сервис('база','База знаний')
+    + '<div class="rail-foot"><div class="rail-tools">'
+      + значок(ночь?'солнце':'луна','Тёмный / светлый режим')
+      + значок('справка','Справка') + значок('настройки','Настройки')
+    + '</div><div class="who"><span class="ava">КК</span><span class="nm">К. Кислицын</span></div></div>'
+  + '</div></div>'
+  + '<div class="sheet">' + лист + '</div></div>';
+}
+
+/* ═══ ЧАСТИ ЛИСТА ════════════════════════════════════════════════════════ */
+const шапка =
+  '<div class="deal-head"><div>'
+  + '<div class="deal-over">Сделка № 1043 · заведена 01.09.2026</div>'
+  + '<div class="deal-name">Фахверковая баня <em>«Бонн» 4×4</em></div>'
+  + '<div class="deal-sub"><span>Иванов И. И.</span><span>+7 900 123-45-67</span>'
+    + '<span>Дмитров, СНТ «Луч»</span><span>К. Кислицын</span></div>'
+  + '</div><div><div class="deal-sum"><b>' + рубли(ПЛАН) + '</b>'
+  + '<small>по спецификации · оплачено ' + рубли(ОПЛАЧЕНО) + '</small></div>'
+  + '<div class="deal-acts"><button class="tb">Сделка успешна</button>'
+  + '<button class="tb dash">Провалена</button></div></div></div>';
+
+const стадии = '<div class="s5">'
+  + СТАДИИ.map((с,i) => '<button class="c ' + (с.текущая?'now':(i<ТЕК?'done':'')) + '">'
+      + '<span class="no">' + String(i+1).padStart(2,'0') + '</span>'
+      + '<span class="nm">' + с.имя + '<span class="dt">' + (с.дата||'—') + '</span></span>'
+      + '</button>').join('')
+  + '</div>';
+
+const вкладки = актив => '<div class="fade-x"><div class="tabs">'
+  + [['Обзор',''],['Расчёты','3'],['Платежи','2'],['Чек-листы','2'],['Документы','4']]
+    .map(([имя,кол]) => '<button aria-pressed="' + (имя===актив) + '">' + имя
+      + (кол ? '<span class="cnt">' + кол + '</span>' : '') + '</button>').join('')
+  + '</div></div>';
+
+/* ── содержимое вкладок ── */
+const телоОбзор =
+  '<div class="blk"><div class="blk-t">О сделке<span class="rt">двенадцать полей</span></div>'
+  + '<div class="fields">'
+  + [['Клиент','Иванов Иван Иванович'],['Телефон','+7 900 123-45-67'],
+     ['Почта','ivanov@example.ru'],['Адрес','Дмитров, СНТ «Луч», уч. 42'],
+     ['Договор','№ 1043-КАР от 07.09'],['Договор отделки','№ 1043-ОТД от 07.09'],
+     ['Менеджер','К. Кислицын'],['Заведена','01.09.2026'],
+     ['Откуда','Сайт · форма расчёта'],['Проект','Баня «Бонн» 4×4'],
+     ['Технология','Каркас · 200 мм'],['Тёплый контур','26 м²']]
+    .map(([к,в]) => '<div class="def"><span class="k">' + к + '</span>'
+      + '<span class="dots"></span><span class="val">' + в + '</span></div>').join('')
+  + '</div></div>'
+  + '<div class="blk"><div class="blk-t quiet">Расчёты<span class="rt">основной помечен</span></div>'
+  + '<div class="calc main"><span class="mark">' + зн('галка',2.6) + '</span>'
+    + '<span class="t">Бонн 4×4 · утепление 200 мм<small>По нему развёрнут план платежей</small></span>'
+    + '<span class="s">1 796 835 ₽</span><button class="tb">Открыть</button></div>'
+  + '<div class="calc"><span class="mark"></span>'
+    + '<span class="t">Бонн 4×4 · утепление 150 мм<small>Вариант · показан клиенту 03.09</small></span>'
+    + '<span class="s">1 684 200 ₽</span><button class="tb">Открыть</button></div></div>';
+
+const телоПлатежи =
+  '<div class="pay-h"><span>Дог.</span><span>Этап и срок</span>'
+    + '<span style="text-align:right">План</span><span style="text-align:right">Факт</span></div>'
+  + ПЛАТЕЖИ.map(п => '<div class="pay-r' + (п.ждёт?' wait':'') + '">'
+      + '<span class="cd">' + п.дог + '</span>'
+      + '<span class="t">' + п.эт + '<small>' + п.под + '</small></span>'
+      + '<span class="pl">' + рубли(п.план) + '</span>'
+      + '<span class="fc ' + п.вид + '">' + п.факт + '</span></div>').join('')
+  + '<div class="pay-tot"><span class="k">Итого</span>'
+    + '<span class="val"><small>план</small>' + рубли(ПЛАН) + '</span>'
+    + '<span class="val"><small>оплачено</small>' + рубли(ОПЛАЧЕНО) + '</span>'
+    + '<span class="val"><small>осталось</small>' + рубли(ПЛАН-ОПЛАЧЕНО) + '</span></div>';
+
+const телоЧек = ЧЕКЛИСТЫ.map(ч => {
+  const сделано = ч.пункты.filter(п => п.сделан).length;
+  const доля = Math.round(сделано / ч.пункты.length * 100);
+  return '<div class="blk"><div class="ck-h"><span class="nm">' + ч.имя + '</span>'
+    + '<span class="pr">' + сделано + ' из ' + ч.пункты.length + '</span></div>'
+    + '<div class="ck-bar"><span style="width:' + доля + '%"></span></div>'
+    + ч.пункты.map(п => '<div class="ck-i' + (п.сделан?' done':'') + '">'
+        + '<span class="box">' + (п.сделан ? зн('галка',2.6) : '') + '</span>'
+        + '<span class="t">' + п.т + '</span>'
+        + '<span class="w' + (п.поздно?' late':'') + '">' + (п.срок||'') + '</span></div>').join('')
+    + '</div>';
+}).join('');
+
+const телоДок =
+  '<div class="blk"><div class="blk-t quiet">Документы сделки</div>'
+  + [['Спецификация от 05.09','Отправлена клиенту · открыта дважды','ссылка'],
+     ['Договор № 1043-КАР','Подписан 07.09','pdf'],
+     ['Договор № 1043-ОТД','Подписан 07.09','pdf'],
+     ['План платежей','Развёрнут 07.09 · восемь этапов','pdf']]
+    .map(([имя,под,вид]) => '<div class="doc-i">' + зн('файл')
+      + '<span class="t">' + имя + '<small>' + под + '</small></span>'
+      + '<span class="w">' + вид + '</span>'
+      + '<button class="tb">Открыть</button></div>').join('')
+  + '</div>';
+
+/* ── лента ── */
+const панельДействий =
+  '<div class="qa">'
+  + '<button class="main">' + зн('задачи') + 'Задача</button>'
+  + '<button>' + зн('звонок') + 'Звонок</button>'
+  + '<button>' + зн('встреча') + 'Встреча</button>'
+  + '<button>' + зн('письмо') + 'Письмо</button>'
+  + '<button>' + зн('комментарий') + 'Комментарий</button>'
+  + '</div>';
+
+const запланировано = список => списокПуст(список)
+  ? '<div class="f-grp">Запланировано<span class="n">ничего</span></div>'
+    + '<div class="empty"><b>Ни одного запланированного дела</b>'
+    + 'Сделка без следующего шага теряется: через неделю никто не вспомнит, чей ход. '
+    + 'Запланируй дело или закрой сделку.'
+    + '<span class="go"><button class="tb">' + зн('плюс') + 'Запланировать дело</button></span></div>'
+  : '<div class="f-grp">Запланировано<span class="n">' + список.length + '</span></div>'
+    + список.map(з => '<div class="pl-i"><button class="box" aria-label="Завершить"></button>'
+      + '<span class="t">' + з.т
+      + '<span class="m"><span class="w ' + (з.вид||'') + '">' + з.срок + '</span>'
+      + '<span>' + з.кто + '</span>'
+      + (з.правило ? '<span class="src">завело правило <b>«' + з.правило + '»</b></span>' : '')
+      + '</span></span></div>').join('');
+const списокПуст = с => !с || !с.length;
+
+const история = '<div class="f-grp">История<span class="n">' + ИСТОРИЯ.length + '</span></div>'
+  + ИСТОРИЯ.map(с => '<div class="h-i ' + (с.вид==='правило'?'rule':'')
+      + (с.вид==='комментарий'?' cmt':'') + '">' + зн(с.знак)
+      + '<span class="t">' + с.т + '<span class="tm">' + с.к + '</span></span></div>').join('');
+
+const лента = (список) =>
+  '<div class="feed-t">Лента<span class="rt">дела, события и комментарии</span></div>'
+  + панельДействий + запланировано(список) + история;
+
+/* ═══ сборка ═════════════════════════════════════════════════════════════ */
+const лист = (вкладка, тело) => шапка + стадии + вкладки(вкладка)
+  + '<div class="card2"><div class="left">' + тело + '</div>'
+  + '<div class="feed-col">' + лента(ЗАПЛАНИРОВАНО) + '</div></div>';
+
+document.getElementById('кадрОбзор').innerHTML   = оболочка(false, лист('Обзор', телоОбзор));
+document.getElementById('кадрПлатежи').innerHTML = оболочка(true,  лист('Платежи', телоПлатежи));
+document.getElementById('кадрЧек').innerHTML     = оболочка(false, лист('Чек-листы', телоЧек));
+
+/* два состояния ленты — только колонка, без оболочки */
+const колонка = список => '<div class="feed-col only">' + лента(список) + '</div>';
+document.getElementById('кадрЛента').innerHTML = колонка(ЗАПЛАНИРОВАНО);
+document.getElementById('кадрПусто').innerHTML = колонка([]);
+</script>
+</body>
+</html>
