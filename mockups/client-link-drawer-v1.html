@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="ru" data-page="day">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ссылка клиенту — выдвижной блок в панели печати</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   ССЫЛКА КЛИЕНТУ — ВЫДВИЖНОЙ БЛОК В ПАНЕЛИ ПЕЧАТИ
+
+   Сейчас строка со ссылкой стоит в панели всегда и занимает её вторым этажом.
+   Здесь она свёрнута в одну полоску и выдвигается по стрелке — тем же приёмом,
+   что и «Визуализация и планировка» в самом расчёте: заголовок с точкой,
+   подпись, стрелка справа, нажатие по всей строке.
+
+   Отличие одно: там содержимое просто появляется (display), здесь оно
+   выезжает — блок стоит внутри панели, и рывок на пол-экрана в ней виден.
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* ── токены темы «Бланк»: день и ночь стоят на одной странице ─────────────── */
+.day, html[data-page="day"] .auto {
+  --bl-page:#f7fbfb; --bl-sheet:#fff; --bl-zebra:#f7fafb;
+  --bl-ink:#12262a; --bl-ink2:#5b7376; --bl-ink3:#8da3a5;
+  --bl-rule:#dceaeb; --bl-rule2:#bcd9db;
+  --bl-acc:#1e6c72; --bl-acc2:#2a8f97; --bl-pale:#a8dde0;
+  --bl-tint:#e4f5f6; --bl-warn:#c06010;
+  --bl-shadow:0 10px 30px rgba(18,38,42,.10);
+}
+.night, html[data-page="night"] .auto {
+  --bl-page:#0e1a1c; --bl-sheet:#132528; --bl-zebra:#173338;
+  --bl-ink:#e6f3f3; --bl-ink2:#9db6b8; --bl-ink3:#8aa4a6;
+  --bl-rule:#224347; --bl-rule2:#2d585d;
+  --bl-acc:#8fd6dc; --bl-acc2:#5fc2ca; --bl-pale:#5fc2ca;
+  --bl-tint:#173338; --bl-warn:#e0b070;
+  --bl-shadow:0 10px 30px rgba(0,0,0,.45);
+}
+
+/* ── страница разбора ─────────────────────────────────────────────────────── */
+html[data-page="day"] { --mn-page:#f0f6f6; --mn-card:#fff; --mn-ink:#111; --mn-ink2:#555;
+  --mn-ink3:#888; --mn-rule:#d4e4e5; --mn-acc:#1e6c72; --mn-acc-ink:#1e6c72;
+  --mn-acc2:#2a8f97; --mn-tint:#e4f5f6; }
+html[data-page="night"] { --mn-page:#111e20; --mn-card:#1a2a2c; --mn-ink:#e8f0f1; --mn-ink2:#9ab;
+  --mn-ink3:#678; --mn-rule:#2a3f42; --mn-acc:#1e6c72; --mn-acc-ink:#5fc8d2;
+  --mn-acc2:#3db0ba; --mn-tint:#1a3034; }
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 0 20px 80px;
+  background: var(--mn-page); color: var(--mn-ink);
+  font-family: 'Geologica', system-ui, sans-serif; font-weight: 300;
+  font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding-top: 40px; }
+.eyebrow {
+  font-family: 'Unbounded', sans-serif; font-size: .6rem; font-weight: 400;
+  text-transform: uppercase; letter-spacing: .16em; color: var(--mn-acc-ink);
+}
+h1 {
+  font-family: 'Unbounded', sans-serif; font-size: clamp(1.3rem, 4vw, 1.9rem);
+  font-weight: 700; margin: 10px 0 12px; line-height: 1.2;
+}
+.lead { font-size: .94rem; color: var(--mn-ink2); max-width: 62ch; margin: 0; }
+.seg { display: inline-flex; gap: 4px; margin-top: 22px; border-bottom: 1px solid var(--mn-rule); }
+.seg button {
+  position: relative; background: none; border: 0; border-bottom: 2px solid transparent;
+  font: inherit; font-size: .82rem; color: var(--mn-ink3); padding: 8px 14px; cursor: pointer;
+}
+.seg button::before { content: ''; position: absolute; inset: -8px -2px; }
+.seg button[aria-pressed="true"] { color: var(--mn-acc-ink); border-bottom-color: var(--mn-acc2); }
+
+.v { margin: 44px 0 0; }
+.v-head { display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid var(--mn-acc2); padding-bottom: 8px; }
+.v-name { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: .92rem; color: var(--mn-acc-ink); }
+.v p { font-size: .88rem; color: var(--mn-ink2); max-width: 68ch; line-height: 1.62; margin: 16px 0 0; }
+.v p b { color: var(--mn-ink); font-weight: 500; }
+.cap {
+  font-size: .68rem; text-transform: uppercase; letter-spacing: .14em;
+  color: var(--mn-ink3); margin: 26px 0 9px;
+}
+code { font-family: ui-monospace, Menlo, monospace; font-size: .86em; color: var(--mn-acc-ink); }
+
+/* ── кадр: панель печати ──────────────────────────────────────────────────── */
+.frame { border-radius: 14px; background: var(--bl-page); padding: 18px; overflow: hidden; }
+.phone-wrap { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+.phone { width: 372px; max-width: 100%; }
+
+/* ── сама панель ──────────────────────────────────────────────────────────── */
+.tb {
+  background: var(--bl-sheet); border: 1px solid var(--bl-rule); border-radius: 14px;
+  box-shadow: var(--bl-shadow); padding: 12px 20px 0; position: relative; color: var(--bl-ink);
+}
+.tb-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding-bottom: 12px; padding-right: 44px;
+}
+.b {
+  position: relative; display: inline-flex; align-items: center; gap: 7px;
+  height: 34px; padding: 0 13px; border: 1px solid var(--bl-rule2); border-radius: 8px;
+  background: none; color: var(--bl-ink2); font: inherit; font-size: .78rem;
+  cursor: pointer; white-space: nowrap;
+}
+.b::before { content: ''; position: absolute; inset: -5px; }
+.b svg { width: 13px; height: 13px; flex-shrink: 0; }
+.b.main { background: var(--bl-acc); border-color: var(--bl-acc); color: var(--bl-sheet); font-weight: 600; }
+.b.pick { margin-left: auto; }
+.x {
+  position: absolute; top: 12px; right: 12px; width: 34px; height: 34px;
+  border: 1px solid var(--bl-rule2); border-radius: 8px; background: none;
+  color: var(--bl-ink3); display: grid; place-items: center; cursor: pointer;
+}
+.x svg { width: 15px; height: 15px; }
+.rule { height: 1px; background: var(--bl-rule); margin: 0 -20px; }
+
+/* ── свёрнутая полоска ссылки: заголовок, подпись, стрелка ────────────────── */
+.cl {
+  border-bottom: 1px solid var(--bl-rule);
+}
+.cl-head {
+  display: flex; align-items: center; gap: 9px; padding: 11px 0; cursor: pointer;
+  user-select: none;
+}
+.cl-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--bl-acc2); flex-shrink: 0; }
+.cl-dot.off { background: var(--bl-rule2); }
+.cl-t {
+  font-family: 'Unbounded', sans-serif; font-size: .72rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .08em; color: var(--bl-acc);
+  white-space: nowrap;   /* на телефоне заголовок ломался пополам */
+}
+.cl-sub { font-size: .76rem; color: var(--bl-ink3); min-width: 0; }
+.cl-sub b { color: var(--bl-ink2); font-weight: 500; }
+.cl-sub .old { color: var(--bl-warn); }
+/* Стрелка — единственный элемент строки с margin-left:auto: всё остальное
+   стоит слева подряд, и подпись не повисает посреди пустоты. */
+.cl-arrow {
+  position: relative; margin-left: auto; border: 0; background: none; padding: 2px 4px;
+  color: var(--bl-ink3); display: inline-flex; cursor: pointer; flex-shrink: 0;
+}
+.cl-arrow::before { content: ''; position: absolute; inset: -11px -9px; }
+.cl-arrow svg { width: 22px; height: 22px; transition: transform .22s ease; }
+.cl.open .cl-arrow svg { transform: rotate(180deg); }
+.cl-head:hover .cl-arrow { color: var(--bl-acc); }
+
+/* Выдвижение. Сетка с 0fr→1fr: высота считается сама, без magic-числа в
+   max-height, и блок не дёргается, если строк в нём станет больше. */
+.cl-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .26s ease; }
+.cl.open .cl-body { grid-template-rows: 1fr; }
+.cl-body > div { overflow: hidden; }
+.cl-in { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 2px 0 13px; }
+@media (prefers-reduced-motion: reduce) {
+  .cl-body { transition: none; }
+  .cl-arrow svg { transition: none; }
+}
+
+.addr {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--bl-rule2); border-radius: 8px; background: var(--bl-zebra);
+  padding: 7px 11px; font-family: ui-monospace, Menlo, monospace; font-size: .78rem;
+  color: var(--bl-ink2); white-space: nowrap; overflow-x: auto; max-width: 100%;
+}
+.addr svg { width: 13px; height: 13px; flex-shrink: 0; }
+.addr b { color: var(--bl-acc); font-weight: 600; }
+.note { font-size: .74rem; color: var(--bl-ink2); margin-left: auto; padding-left: 6px; }
+.note b { color: var(--bl-ink); font-weight: 500; }
+.note .old { color: var(--bl-warn); }
+.hint {
+  flex-basis: 100%; font-size: .74rem; color: var(--bl-ink3); line-height: 1.5;
+  padding-bottom: 2px; max-width: 70ch;
+}
+
+/* полоса разделов — просто чтобы панель была настоящей */
+.secs {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 0; font-size: .76rem; color: var(--bl-ink2);
+}
+.secs .k { font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--bl-ink3); }
+.secs i { width: 6px; height: 6px; border-radius: 50%; background: #4caf50; display: inline-block; }
+.secs i.y { background: #e0a020; }
+.sheet {
+  background: var(--bl-sheet); border: 1px solid var(--bl-rule); border-radius: 12px;
+  margin-top: 10px; padding: 22px 24px; color: var(--bl-ink3); font-size: .8rem;
+}
+.sheet .nm {
+  font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: .95rem;
+  color: var(--bl-ink); margin-bottom: 6px;
+}
+
+/* ── пояснения ────────────────────────────────────────────────────────────── */
+.cost {
+  border-left: 3px solid var(--mn-acc2); background: var(--mn-tint);
+  border-radius: 0 10px 10px 0; padding: 12px 14px; margin-top: 16px;
+  font-size: .82rem; color: var(--mn-ink2); line-height: 1.55;
+}
+.cost b { color: var(--mn-acc-ink); font-weight: 600; }
+.leg { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 18px; }
+.leg-c { background: var(--mn-card); border: 1px solid var(--mn-rule); border-radius: 12px; padding: 15px 16px; }
+.leg-t {
+  font-family: 'Unbounded', sans-serif; font-size: .64rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .1em; color: var(--mn-acc-ink);
+}
+.leg-w { font-size: .76rem; color: var(--mn-ink3); margin-top: 3px; }
+.leg-l { list-style: none; margin: 10px 0 0; padding: 0; font-size: .82rem; color: var(--mn-ink2); }
+.leg-l li { padding: 7px 0; border-bottom: 1px solid var(--mn-rule); line-height: 1.5; }
+.leg-l li:last-child { border-bottom: 0; }
+.leg-l b { color: var(--mn-ink); font-weight: 500; }
+
+footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--mn-rule); font-size: .76rem; color: var(--mn-ink3); }
+
+@media (max-width: 700px) {
+  .note { margin-left: 0; width: 100%; padding-left: 0; }
+  /* Телефон. Заголовок и стрелка стоят строкой, подпись уходит под них: три
+     слова капителью рядом с длинной подписью на 390 px не помещаются. */
+  .cl-head { flex-wrap: wrap; row-gap: 2px; }
+  /* Стрелка остаётся в первой строке рядом с заголовком: на своей строке она
+     повисала в пустоте под подписью. Подпись уходит третьей, во всю ширину. */
+  .cl-dot { order: 0; } .cl-t { order: 1; } .cl-arrow { order: 2; }
+  .cl-sub { order: 3; flex-basis: 100%; padding-left: 17px; }
+  /* Адрес занимает всю ширину строки, иначе код упирается в край блока. */
+  .addr { flex: 1 1 100%; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="eyebrow">Макет · 12.09.2026</div>
+    <h1>Ссылка клиенту — выдвижной блок</h1>
+    <p class="lead">Строка со ссылкой перестаёт занимать панель печати вторым этажом:
+      она свёрнута в одну полоску и выдвигается по стрелке — тем же приёмом, что и
+      «Визуализация и планировка» в расчёте.</p>
+    <div class="seg" role="group" aria-label="Пора суток этой страницы разбора">
+      <button id="segDay" aria-pressed="true" onclick="пора('day')">День</button>
+      <button id="segNight" aria-pressed="false" onclick="пора('night')">Ночь</button>
+    </div>
+    <div class="cap" style="margin-top:10px">Переключатель — этой страницы разбора;
+      в калькуляторе тема своя</div>
+  </div>
+
+  <!-- ═══ 1. КАК ЭТО РАБОТАЕТ ═══ -->
+  <div class="v">
+    <div class="v-head"><span class="v-name">Свёрнуто и развёрнуто</span></div>
+    <p>Нажимается вся строка, не только стрелка, — как у «Визуализации». Стрелка
+      поворачивается, блок выезжает. Свёрнутая полоска сама по себе полезна: по ней
+      видно, выдана ли ссылка и открывал ли её клиент, — ради этого панель разворачивать
+      не нужно.</p>
+
+    <div class="cap">Свёрнуто — панель занимает одну строку</div>
+    <div class="frame day"><div id="кадр1"></div></div>
+
+    <div class="cap">Развёрнуто — то же, что было отдельной строкой</div>
+    <div class="frame day"><div id="кадр2"></div></div>
+
+    <div class="cost"><b>Живьём:</b> нажмите на строку в любом кадре ниже — блок
+      выезжает по-настоящему, со всей механикой. Выдвижение сделано сеткой
+      <code>0fr → 1fr</code>, а не <code>max-height</code> с числом наугад: высота
+      считается сама, и блок не дёрнется, когда строк в нём станет больше.</div>
+  </div>
+
+  <!-- ═══ 2. ТРИ СОСТОЯНИЯ ═══ -->
+  <div class="v">
+    <div class="v-head"><span class="v-name">Три состояния полоски</span></div>
+    <p>Полоска говорит одно и то же место разное: ссылки нет, ссылка есть и её открывали,
+      ссылка отозвана. Точка слева — как у «Визуализации»: горит, когда есть что
+      показать.</p>
+
+    <div class="cap">Ссылки ещё нет</div>
+    <div class="frame day"><div id="кадр3"></div></div>
+
+    <div class="cap">Клиент открыл прежнюю версию</div>
+    <div class="frame day"><div id="кадр4"></div></div>
+
+    <div class="cap">Ссылка отозвана</div>
+    <div class="frame day"><div id="кадр5"></div></div>
+  </div>
+
+  <!-- ═══ 3. ТЕЛЕФОН И НОЧЬ ═══ -->
+  <div class="v">
+    <div class="v-head"><span class="v-name">Телефон и ночная тема</span></div>
+    <p>На телефоне кнопки блока переносятся в несколько строк, а подпись о прочтении
+      встаёт отдельной строкой под ними. Свёрнутая полоска остаётся одной строкой —
+      в этом и смысл.</p>
+    <div class="phone-wrap">
+      <div class="phone"><div class="frame day"><div id="кадр6"></div></div></div>
+      <div class="phone"><div class="frame night"><div id="кадр7"></div></div></div>
+    </div>
+  </div>
+
+  <!-- ═══ 4. ПОЧЕМУ ТАК ═══ -->
+  <div class="v">
+    <div class="v-head"><span class="v-name">Почему так, а не иначе</span></div>
+    <div class="leg">
+      <div class="leg-c">
+        <div class="leg-t">Что забирает панель</div>
+        <div class="leg-w">Сейчас против предлагаемого.</div>
+        <ul class="leg-l">
+          <li>Было: строка со ссылкой стоит всегда — <b>две строки кнопок и адрес</b></li>
+          <li>Стало: <b>одна полоска</b>, блок выезжает по нажатию</li>
+          <li>На телефоне это разница в <b>три строки</b> панели — лист начинается выше</li>
+        </ul>
+      </div>
+      <div class="leg-c">
+        <div class="leg-t">Как у «Визуализации»</div>
+        <div class="leg-w">Механика взята оттуда, чтобы не изобретать вторую.</div>
+        <ul class="leg-l">
+          <li>Нажимается вся строка, не только стрелка</li>
+          <li>Стрелка <b>поворачивается на 180°</b></li>
+          <li>Точка слева горит, когда внутри что-то есть</li>
+          <li>Поле нажатия стрелки — с запасом вокруг неё, знак при этом маленький</li>
+        </ul>
+      </div>
+      <div class="leg-c">
+        <div class="leg-t">Чем отличается</div>
+        <div class="leg-w">Одно отличие намеренное.</div>
+        <ul class="leg-l">
+          <li>У «Визуализации» содержимое просто появляется</li>
+          <li>Здесь — <b>выезжает</b>: блок внутри панели, и рывок в ней заметен</li>
+          <li>При «уменьшить движение» в системе выезд выключается сам</li>
+        </ul>
+      </div>
+    </div>
+    <div class="cost"><b>Что остаётся решить:</b> открывать ли полоску самой, когда
+      ссылка по этому расчёту уже выдана. Сейчас в макете — нет: панель всегда начинается
+      свёрнутой, а состояние видно по подписи. Если удобнее наоборот — скажи, это одна
+      строчка.</div>
+  </div>
+
+  <footer>Макет · тема «Бланк» · в основном файле пока ничего не менялось</footer>
+</div>
+
+<script>
+/* ── пора суток страницы разбора ──────────────────────────────────────────── */
+function пора(п) {
+  document.documentElement.dataset.page = п;
+  document.getElementById('segDay').setAttribute('aria-pressed', п === 'day');
+  document.getElementById('segNight').setAttribute('aria-pressed', п === 'night');
+}
+
+const З = {
+  ссылка: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  копия:  '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  обновить:'<polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-2.1-9.4L23 10"/>',
+  печать: '<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+  крест:  '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  палитра:'<circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1"/><circle cx="12" cy="8" r="1"/><circle cx="15.5" cy="10" r="1"/>',
+  список: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/>',
+  лист:   '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/>',
+  вниз:   '<polyline points="6 9 12 15 18 9"/>',
+};
+const зн = (и, ш) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'
+  + (ш || 1.8) + '" stroke-linecap="round" stroke-linejoin="round">' + З[и] + '</svg>';
+
+const КОД = 'k7m2xq4p';
+const АДРЕС = 'calculator.baniamsk.ru/<b>' + КОД + '</b>';
+
+/* ── панель печати целиком ────────────────────────────────────────────────── */
+function панель(о) {
+  о = Object.assign({ состояние: 'есть', открыт: false, лист: true }, о);
+  const ст = о.состояние;
+
+  const подпись =
+    ст === 'нет'      ? 'ещё не выдана'
+  : ст === 'отозвана' ? 'отозвана — клиент видит сообщение, что доступ закрыт'
+  : ст === 'отстал'   ? 'клиент открыл <b>1 раз</b> — <b class="old">версию от 09.09</b>, новую ещё не открывал'
+  :                     'клиент открыл <b>2 раза</b>, последний раз вчера в 18:02';
+
+  const тело =
+    ст === 'нет'
+      ? '<div class="cl-in">'
+          + '<button class="b main">' + зн('ссылка') + 'Выдать ссылку</button>'
+          + '<div class="hint">Клиент получит ту же спецификацию, что уходит в PDF, '
+            + 'страницей по короткому адресу — без входа в аккаунт. Уйдёт ровно то, '
+            + 'что сейчас на листе.</div>'
+        + '</div>'
+      : '<div class="cl-in">'
+          + '<span class="addr">' + зн('ссылка') + АДРЕС + '</span>'
+          + '<button class="b">' + зн('копия') + 'Скопировать</button>'
+          + (ст === 'отозвана'
+              ? '<button class="b">' + зн('обновить') + 'Вернуть ссылку</button>'
+              : '<button class="b">' + зн('обновить') + 'Обновить</button>')
+          + '<button class="b">' + зн('печать') + 'Как клиент</button>'
+          + (ст === 'отозвана' ? '' : '<button class="b">' + зн('крест') + 'Отозвать</button>')
+          + '<span class="note">' + (ст === 'отозвана'
+              ? 'Выдана <b>05.09 в 12:40</b>'
+              : 'Снимок от <b>11.09 в 14:20</b>') + '</span>'
+        + '</div>';
+
+  return '<div class="tb">'
+    + '<div class="tb-row">'
+      + '<button class="b main">' + зн('лист') + 'Спецификация</button>'
+      + '<button class="b pick">' + зн('палитра') + 'Бланк</button>'
+      + '<button class="b">' + зн('список') + 'Разделы</button>'
+      + '<button class="b">' + зн('лист') + 'Параметры</button>'
+      + '<button class="b">' + зн('печать') + 'Печать / PDF</button>'
+    + '</div>'
+    + '<div class="rule"></div>'
+    + '<div class="cl' + (о.открыт ? ' open' : '') + '">'
+      + '<div class="cl-head" onclick="переключить(this)">'
+        + '<span class="cl-dot' + (ст === 'нет' ? ' off' : '') + '"></span>'
+        + '<span class="cl-t">Ссылка клиенту</span>'
+        + '<span class="cl-sub">' + подпись + '</span>'
+        + '<button class="cl-arrow" onclick="event.stopPropagation();переключить(this.parentElement)" '
+          + 'title="Развернуть" aria-label="Развернуть">' + зн('вниз', 2.4) + '</button>'
+      + '</div>'
+      + '<div class="cl-body"><div>' + тело + '</div></div>'
+    + '</div>'
+    + '<div class="rule"></div>'
+    + '<div class="secs"><span class="k">Состав:</span>'
+      + '<span><i></i> 1. Фундамент</span><span><i></i> 2. Каркас</span>'
+      + '<span><i></i> 3. Утепление</span><span><i class="y"></i> 8. Внутренняя отделка</span>'
+      + '<span><i></i> 12. Инженерные</span></div>'
+    + '<button class="x">' + зн('крест', 2.2) + '</button>'
+  + '</div>'
+  + (о.лист ? '<div class="sheet"><div class="nm">Фахверковая баня «Берлин» 9х5</div>'
+      + 'Спецификация · приложение №1 к договору подряда № 5997878-КАР от 05.09.2026 г.</div>' : '');
+}
+
+function переключить(узел) {
+  const б = узел.closest('.cl');
+  if (!б) return;
+  б.classList.toggle('open');
+  const с = б.querySelector('.cl-arrow');
+  if (с) с.title = б.classList.contains('open') ? 'Свернуть' : 'Развернуть';
+}
+
+document.getElementById('кадр1').innerHTML = панель({ открыт: false });
+document.getElementById('кадр2').innerHTML = панель({ открыт: true });
+document.getElementById('кадр3').innerHTML = панель({ состояние: 'нет', открыт: true, лист: false });
+document.getElementById('кадр4').innerHTML = панель({ состояние: 'отстал', открыт: true, лист: false });
+document.getElementById('кадр5').innerHTML = панель({ состояние: 'отозвана', открыт: true, лист: false });
+document.getElementById('кадр6').innerHTML = панель({ открыт: true, лист: false });
+document.getElementById('кадр7').innerHTML = панель({ открыт: false, лист: false });
+</script>
+</body>
+</html>
