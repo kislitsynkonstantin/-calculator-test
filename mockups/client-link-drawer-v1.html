@@ -105,6 +105,25 @@ code { font-family: ui-monospace, Menlo, monospace; font-size: .86em; color: var
 .b::before { content: ''; position: absolute; inset: -5px; }
 .b svg { width: 13px; height: 13px; flex-shrink: 0; }
 .b.main { background: var(--bl-acc); border-color: var(--bl-acc); color: var(--bl-sheet); font-weight: 600; }
+/* Значок внутри кнопки — своё поле нажатия: короткое нажатие по нему копирует
+   ссылку, не открывая блок. Видно это только по наведению и по подсказке —
+   кнопка нарочно выглядит одной. */
+.b.lnk { padding-left: 6px; gap: 0; }
+.b .ic {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 26px; border-radius: 6px; margin-right: 5px; cursor: copy;
+}
+.b .ic::before { content: ''; position: absolute; inset: -5px -3px; }
+.b .ic:hover, .b .ic:focus-visible { background: var(--bl-tint); color: var(--bl-acc); outline: none; }
+.b .lbl { padding-right: 2px; }
+/* Всплывающий ответ на копирование — там же, где нажали */
+.toast {
+  position: absolute; left: 50%; transform: translate(-50%, 6px); top: calc(100% + 8px);
+  background: var(--bl-ink); color: var(--bl-page); font-size: .72rem; white-space: nowrap;
+  padding: 7px 12px; border-radius: 8px; opacity: 0; pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease; z-index: 5;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
 .b.pick { margin-left: auto; }
 .x {
   position: absolute; top: 12px; right: 12px; width: 34px; height: 34px;
@@ -243,9 +262,14 @@ footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--mn-rul
       поворачивается, блок выезжает. Свёрнутая полоска сама по себе полезна: по ней
       видно, выдана ли ссылка и открывал ли её клиент, — ради этого панель разворачивать
       не нужно.</p>
-    <p><b>«Скопировать ссылку» вынесена на панель</b>, к «Печать / PDF»: копируют чаще
-      всего, и раскрывать ради этого блок незачем. Внутри остаётся то, что делают реже:
-      «Обновить», «Как клиент», «Отозвать» и сам адрес — глазами проверить, тот ли.</p>
+    <p><b>У кнопки на панели два поля нажатия.</b> Нажали по подписи «Ссылка клиенту» —
+      блок развернулся. Нажали <b>по самому значку</b> — ссылка молча легла в буфер, блок
+      даже не открылся; под кнопкой на полторы секунды всплывает «Ссылка скопирована».
+      Это короткий путь для того, что делают каждый день: отправить клиенту ссылку
+      и закрыть окно.</p>
+    <p>Кнопка при этом выглядит одной — значок отзывается только на наведение и несёт
+      подсказку «Скопировать ссылку». Внутри блока копирования нет: там то, что делают
+      реже, — «Обновить», «Как клиент», «Отозвать» и сам адрес, глазами проверить, тот ли.</p>
 
     <div class="cap">Свёрнуто — панель занимает одну строку</div>
     <div class="frame day"><div id="кадр1"></div></div>
@@ -263,8 +287,9 @@ footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--mn-rul
   <div class="v">
     <div class="v-head"><span class="v-name">Три состояния полоски</span></div>
     <p>Полоска говорит одно и то же место разное: ссылки нет, ссылка есть и её открывали,
-      ссылка отозвана. Вместе с ней меняется и кнопка на панели: пока ссылки нет —
-      «Ссылка клиенту», после выдачи — «Скопировать ссылку».</p>
+      ссылка отозвана. Кнопка на панели во всех трёх случаях одна и та же: подпись
+      разворачивает блок, значок копирует. Пока ссылки нет, нажатие по значку её сначала
+      выдаёт, а потом кладёт в буфер — одним движением.</p>
 
     <div class="cap">Ссылки ещё нет</div>
     <div class="frame day"><div id="кадр3"></div></div>
@@ -293,13 +318,24 @@ footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--mn-rul
     <div class="v-head"><span class="v-name">Почему так, а не иначе</span></div>
     <div class="leg">
       <div class="leg-c">
+        <div class="leg-t">Значок как короткий путь</div>
+        <div class="leg-w">Одна кнопка, два поля нажатия.</div>
+        <ul class="leg-l">
+          <li><b>Значок</b> — копирует ссылку молча, блок не открывается</li>
+          <li><b>Подпись</b> — разворачивает блок, как обычно</li>
+          <li>Ответ всплывает под самой кнопкой, а не в углу экрана</li>
+          <li>Значок отзывается на наведение и несёт подсказку — иначе о нём
+            никто бы не узнал</li>
+        </ul>
+      </div>
+      <div class="leg-c">
         <div class="leg-t">Что забирает панель</div>
         <div class="leg-w">Сейчас против предлагаемого.</div>
         <ul class="leg-l">
           <li>Было: строка со ссылкой стоит всегда — <b>адрес и четыре кнопки</b></li>
           <li>Стало: <b>одна полоска</b>, блок выезжает по нажатию</li>
-          <li><b>«Скопировать ссылку» — на панели</b>, к «Печать / PDF»: это самое частое
-            действие, и разворачивать ради него блок незачем</li>
+          <li><b>Копирование — на панели</b>, по значку: это самое частое действие,
+            и разворачивать ради него блок незачем</li>
           <li>На телефоне это разница в <b>три строки</b> панели — лист начинается выше</li>
         </ul>
       </div>
@@ -371,9 +407,10 @@ function панель(о) {
   const тело =
     ст === 'нет'
       ? '<div class="cl-in">'
-          + '<div class="hint">Ссылка ещё не выдана. Нажмите <b>«Ссылка клиенту»</b> '
-            + 'на панели — клиент получит ту же спецификацию, что уходит в PDF, страницей '
-            + 'по короткому адресу, без входа в аккаунт. Уйдёт ровно то, что сейчас на листе.</div>'
+          + '<div class="hint">Ссылка ещё не выдана. Нажмите <b>значок ссылки</b> на панели — '
+            + 'она выдастся и сразу ляжет в буфер. Клиент получит ту же спецификацию, что '
+            + 'уходит в PDF, страницей по короткому адресу, без входа в аккаунт: уйдёт ровно '
+            + 'то, что сейчас на листе.</div>'
         + '</div>'
       : '<div class="cl-in">'
           + '<span class="addr">' + зн('ссылка') + АДРЕС + '</span>'
@@ -394,9 +431,12 @@ function панель(о) {
       + '<button class="b">' + зн('список') + 'Разделы</button>'
       + '<button class="b">' + зн('лист') + 'Параметры</button>'
       + '<button class="b">' + зн('печать') + 'Печать / PDF</button>'
-      + (ст === 'нет'
-          ? '<button class="b">' + зн('ссылка') + 'Ссылка клиенту</button>'
-          : '<button class="b">' + зн('копия') + 'Скопировать ссылку</button>')
+      + '<button class="b lnk" onclick="изПанели(this)">'
+          + '<span class="ic" role="button" tabindex="0" title="Скопировать ссылку" '
+            + 'aria-label="Скопировать ссылку" onclick="event.stopPropagation();скопировать(this)">'
+            + зн('ссылка') + '</span>'
+          + '<span class="lbl">Ссылка клиенту</span>'
+        + '</button>'
     + '</div>'
     + '<div class="rule"></div>'
     + '<div class="cl' + (о.открыт ? ' open' : '') + '">'
@@ -417,6 +457,26 @@ function панель(о) {
   + '</div>'
   + (о.лист ? '<div class="sheet"><div class="nm">Фахверковая баня «Берлин» 9х5</div>'
       + 'Спецификация · приложение №1 к договору подряда № 5997878-КАР от 05.09.2026 г.</div>' : '');
+}
+
+// Значок копирует и отвечает всплывашкой там же, где нажали: менеджеру не надо
+// искать глазами подтверждение в другом углу экрана.
+function скопировать(значок) {
+  const кнопка = значок.closest('.b');
+  const адрес = 'https://calculator.baniamsk.ru/' + КОД;
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(адрес).catch(() => {});
+  let т = кнопка.querySelector('.toast');
+  if (!т) { т = document.createElement('span'); т.className = 'toast'; кнопка.appendChild(т); }
+  т.textContent = 'Ссылка скопирована';
+  requestAnimationFrame(() => т.classList.add('on'));
+  clearTimeout(кнопка._таймер);
+  кнопка._таймер = setTimeout(() => т.classList.remove('on'), 1700);
+}
+
+// Нажатие по подписи — обычное: разворачивает блок со ссылкой.
+function изПанели(кнопка) {
+  const блок = кнопка.closest('.tb').querySelector('.cl');
+  if (блок) переключить(блок);
 }
 
 function переключить(узел) {
