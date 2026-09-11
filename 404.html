@@ -244,13 +244,20 @@ var SB = 'https://jogylulfstjsznduirub.supabase.co';
 var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZ3lsdWxmc3Rqc3puZHVpcnViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDQ0NjEsImV4cCI6MjA5MTY4MDQ2MX0.cGkTkrM09ZxV3LH5wwy19ITloykao472WgppimoWiUQ';
 var ПРЕДПРОСМОТР = /(^|[?&])preview=1(&|$)/.test(location.search);
 
-/* Запрос за снимком не кладётся в кэш: POST не кэшируется посредниками, а от
-   кэша браузера защищает cache: 'no-store' и заголовок.
+/* Запрос за снимком не кладётся в кэш: POST посредниками не кэшируется, а от
+   кэша браузера защищает cache: 'no-store'.
 
    Отметки времени в адресе тут быть не должно: у PostgREST параметры адреса
    на /rpc/ — это фильтры по столбцам ответа, и «?t=…» он читает как фильтр по
    столбцу «t», которого нет. Ответ — 400, страница показывала «Не удалось
-   открыть». Найдено 12.09.2026 на живой ссылке. */
+   открыть». Найдено 12.09.2026 на живой ссылке.
+
+   Заголовка Cache-Control здесь тоже нет, и это нарочно. Он ничего не добавлял
+   к cache:'no-store', зато попадал в предзапрос CORS: браузер спрашивал бы
+   разрешения на заголовок, которого прежние — работавшие — запросы не слали.
+   Проверить этот предзапрос из разработки нечем: и домен, и supabase.co
+   закрыты политикой шлюза. Набор заголовков оставлен ровно тот, на котором в
+   журнале базы лежит успешный ответ 200 (client_link_code_free, 11.09.2026). */
 var ПРИЧИНА = '';
 
 function зов(имя, тело) {
@@ -259,7 +266,7 @@ function зов(имя, тело) {
     cache: 'no-store',
     headers: {
       'apikey': KEY, 'Authorization': 'Bearer ' + KEY,
-      'Content-Type': 'application/json', 'Cache-Control': 'no-cache'
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify(тело || {})
   }).then(function (r) {
