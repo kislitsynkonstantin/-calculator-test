@@ -115,22 +115,19 @@ code { font-family: ui-monospace, Menlo, monospace; font-size: .86em; color: var
 .rule { height: 1px; background: var(--bl-rule); margin: 0 -20px; }
 
 /* ── свёрнутая полоска ссылки: заголовок, подпись, стрелка ────────────────── */
-.cl {
-  border-bottom: 1px solid var(--bl-rule);
-}
+.cl { padding: 16px 0 0; }
 .cl-head {
-  display: flex; align-items: center; gap: 9px; padding: 11px 0; cursor: pointer;
-  user-select: none;
+  display: flex; align-items: center; gap: 9px; cursor: pointer; user-select: none;
+  padding-bottom: 8px; border-bottom: 2px solid var(--bl-acc); margin-bottom: 12px;
 }
-.cl-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--bl-acc2); flex-shrink: 0; }
-.cl-dot.off { background: var(--bl-rule2); }
+.night .cl-head { border-bottom-color: var(--bl-acc); }
 .cl-t {
-  font-family: 'Unbounded', sans-serif; font-size: .72rem; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .08em; color: var(--bl-acc);
-  white-space: nowrap;   /* на телефоне заголовок ломался пополам */
+  font-family: 'Unbounded', sans-serif; font-size: .86rem; font-weight: 600;
+  letter-spacing: .01em; color: var(--bl-acc); white-space: nowrap;
 }
-.cl-sub { font-size: .76rem; color: var(--bl-ink3); min-width: 0; }
-.cl-sub b { color: var(--bl-ink2); font-weight: 500; }
+.night .cl-t { color: #bfe6e8; }
+.cl-sub { font-size: .68rem; color: var(--bl-ink2); min-width: 0; }
+.cl-sub b { color: var(--bl-ink); font-weight: 500; }
 .cl-sub .old { color: var(--bl-warn); }
 /* Стрелка — единственный элемент строки с margin-left:auto: всё остальное
    стоит слева подряд, и подпись не повисает посреди пустоты. */
@@ -148,7 +145,7 @@ code { font-family: ui-monospace, Menlo, monospace; font-size: .86em; color: var
 .cl-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .26s ease; }
 .cl.open .cl-body { grid-template-rows: 1fr; }
 .cl-body > div { overflow: hidden; }
-.cl-in { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 2px 0 13px; }
+.cl-in { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 0 0 14px; }
 @media (prefers-reduced-motion: reduce) {
   .cl-body { transition: none; }
   .cl-arrow svg { transition: none; }
@@ -215,8 +212,8 @@ footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--mn-rul
   .cl-head { flex-wrap: wrap; row-gap: 2px; }
   /* Стрелка остаётся в первой строке рядом с заголовком: на своей строке она
      повисала в пустоте под подписью. Подпись уходит третьей, во всю ширину. */
-  .cl-dot { order: 0; } .cl-t { order: 1; } .cl-arrow { order: 2; }
-  .cl-sub { order: 3; flex-basis: 100%; padding-left: 17px; }
+  .cl-t { order: 1; } .cl-arrow { order: 2; }
+  .cl-sub { order: 3; flex-basis: 100%; }
   /* Адрес занимает всю ширину строки, иначе код упирается в край блока. */
   .addr { flex: 1 1 100%; }
 }
@@ -246,6 +243,9 @@ footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--mn-rul
       поворачивается, блок выезжает. Свёрнутая полоска сама по себе полезна: по ней
       видно, выдана ли ссылка и открывал ли её клиент, — ради этого панель разворачивать
       не нужно.</p>
+    <p><b>«Скопировать ссылку» вынесена на панель</b>, к «Печать / PDF»: копируют чаще
+      всего, и раскрывать ради этого блок незачем. Внутри остаётся то, что делают реже:
+      «Обновить», «Как клиент», «Отозвать» и сам адрес — глазами проверить, тот ли.</p>
 
     <div class="cap">Свёрнуто — панель занимает одну строку</div>
     <div class="frame day"><div id="кадр1"></div></div>
@@ -263,8 +263,8 @@ footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--mn-rul
   <div class="v">
     <div class="v-head"><span class="v-name">Три состояния полоски</span></div>
     <p>Полоска говорит одно и то же место разное: ссылки нет, ссылка есть и её открывали,
-      ссылка отозвана. Точка слева — как у «Визуализации»: горит, когда есть что
-      показать.</p>
+      ссылка отозвана. Вместе с ней меняется и кнопка на панели: пока ссылки нет —
+      «Ссылка клиенту», после выдачи — «Скопировать ссылку».</p>
 
     <div class="cap">Ссылки ещё нет</div>
     <div class="frame day"><div id="кадр3"></div></div>
@@ -296,8 +296,10 @@ footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--mn-rul
         <div class="leg-t">Что забирает панель</div>
         <div class="leg-w">Сейчас против предлагаемого.</div>
         <ul class="leg-l">
-          <li>Было: строка со ссылкой стоит всегда — <b>две строки кнопок и адрес</b></li>
+          <li>Было: строка со ссылкой стоит всегда — <b>адрес и четыре кнопки</b></li>
           <li>Стало: <b>одна полоска</b>, блок выезжает по нажатию</li>
+          <li><b>«Скопировать ссылку» — на панели</b>, к «Печать / PDF»: это самое частое
+            действие, и разворачивать ради него блок незачем</li>
           <li>На телефоне это разница в <b>три строки</b> панели — лист начинается выше</li>
         </ul>
       </div>
@@ -307,7 +309,7 @@ footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--mn-rul
         <ul class="leg-l">
           <li>Нажимается вся строка, не только стрелка</li>
           <li>Стрелка <b>поворачивается на 180°</b></li>
-          <li>Точка слева горит, когда внутри что-то есть</li>
+          <li>Заголовок тот же: Unbounded, обычный регистр, линейка 2 px под ним</li>
           <li>Поле нажатия стрелки — с запасом вокруг неё, знак при этом маленький</li>
         </ul>
       </div>
@@ -369,14 +371,12 @@ function панель(о) {
   const тело =
     ст === 'нет'
       ? '<div class="cl-in">'
-          + '<button class="b main">' + зн('ссылка') + 'Выдать ссылку</button>'
-          + '<div class="hint">Клиент получит ту же спецификацию, что уходит в PDF, '
-            + 'страницей по короткому адресу — без входа в аккаунт. Уйдёт ровно то, '
-            + 'что сейчас на листе.</div>'
+          + '<div class="hint">Ссылка ещё не выдана. Нажмите <b>«Ссылка клиенту»</b> '
+            + 'на панели — клиент получит ту же спецификацию, что уходит в PDF, страницей '
+            + 'по короткому адресу, без входа в аккаунт. Уйдёт ровно то, что сейчас на листе.</div>'
         + '</div>'
       : '<div class="cl-in">'
           + '<span class="addr">' + зн('ссылка') + АДРЕС + '</span>'
-          + '<button class="b">' + зн('копия') + 'Скопировать</button>'
           + (ст === 'отозвана'
               ? '<button class="b">' + зн('обновить') + 'Вернуть ссылку</button>'
               : '<button class="b">' + зн('обновить') + 'Обновить</button>')
@@ -394,11 +394,13 @@ function панель(о) {
       + '<button class="b">' + зн('список') + 'Разделы</button>'
       + '<button class="b">' + зн('лист') + 'Параметры</button>'
       + '<button class="b">' + зн('печать') + 'Печать / PDF</button>'
+      + (ст === 'нет'
+          ? '<button class="b">' + зн('ссылка') + 'Ссылка клиенту</button>'
+          : '<button class="b">' + зн('копия') + 'Скопировать ссылку</button>')
     + '</div>'
     + '<div class="rule"></div>'
     + '<div class="cl' + (о.открыт ? ' open' : '') + '">'
       + '<div class="cl-head" onclick="переключить(this)">'
-        + '<span class="cl-dot' + (ст === 'нет' ? ' off' : '') + '"></span>'
         + '<span class="cl-t">Ссылка клиенту</span>'
         + '<span class="cl-sub">' + подпись + '</span>'
         + '<button class="cl-arrow" onclick="event.stopPropagation();переключить(this.parentElement)" '
