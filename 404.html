@@ -198,6 +198,14 @@ body {
   width: 9px; height: 9px; border-radius: 50%; background: var(--acc2);
   animation: pulse 1.2s ease-in-out infinite;
 }
+/* Настоящая причина — только по ?debug=1: клиенту такое читать незачем,
+   а мне без неё остаётся гадать по снимку экрана. */
+.state .why {
+  font-family: ui-monospace, Menlo, monospace; font-size: .72rem; color: var(--ink3);
+  background: var(--zebra); border: 1px solid var(--rule); border-radius: 8px;
+  padding: 10px 12px; max-width: 90vw; overflow-x: auto; white-space: pre-wrap;
+  text-align: left; line-height: 1.5;
+}
 @keyframes pulse { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1)} }
 @media (prefers-reduced-motion: reduce) { .state .dot { animation: none; opacity: .8; } }
 
@@ -236,16 +244,36 @@ var SB = 'https://jogylulfstjsznduirub.supabase.co';
 var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZ3lsdWxmc3Rqc3puZHVpcnViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDQ0NjEsImV4cCI6MjA5MTY4MDQ2MX0.cGkTkrM09ZxV3LH5wwy19ITloykao472WgppimoWiUQ';
 var ПРЕДПРОСМОТР = /(^|[?&])preview=1(&|$)/.test(location.search);
 
-/* Запрос за снимком никогда не кладётся в кэш, и в адресе стоит отметка
-   времени: даже если между нами и базой окажется кэширующий посредник,
-   подсунуть вчерашний ответ ему нечем. */
+/* Запрос за снимком не кладётся в кэш: POST не кэшируется посредниками, а от
+   кэша браузера защищает cache: 'no-store' и заголовок.
+
+   Отметки времени в адресе тут быть не должно: у PostgREST параметры адреса
+   на /rpc/ — это фильтры по столбцам ответа, и «?t=…» он читает как фильтр по
+   столбцу «t», которого нет. Ответ — 400, страница показывала «Не удалось
+   открыть». Найдено 12.09.2026 на живой ссылке. */
+var ПРИЧИНА = '';
+
 function зов(имя, тело) {
-  return fetch(SB + '/rest/v1/rpc/' + имя + '?t=' + Date.now(), {
+  return fetch(SB + '/rest/v1/rpc/' + имя, {
     method: 'POST',
     cache: 'no-store',
-    headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+    headers: {
+      'apikey': KEY, 'Authorization': 'Bearer ' + KEY,
+      'Content-Type': 'application/json', 'Cache-Control': 'no-cache'
+    },
     body: JSON.stringify(тело || {})
-  }).then(function (r) { return r.ok ? r.json() : null; });
+  }).then(function (r) {
+    if (r.ok) return r.json();
+    return r.text().then(function (т) {
+      ПРИЧИНА = имя + ': ' + r.status + ' ' + (т || '').slice(0, 300);
+      console.warn('[ссылка клиенту]', ПРИЧИНА);
+      return null;
+    });
+  }).catch(function (e) {
+    ПРИЧИНА = имя + ': ' + (e && e.message ? e.message : 'сеть недоступна');
+    console.warn('[ссылка клиенту]', ПРИЧИНА);
+    return null;
+  });
 }
 
 var рубли = function (n) { return (Math.round(n) || 0).toLocaleString('ru-RU') + ' ₽'; };
@@ -261,10 +289,15 @@ function склон(н, о, д, м) {
 var ЛОГО = '<svg viewBox="0 0 60 34" fill="none" aria-hidden="true"><path d="M4 30L30 6l26 24" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 6v24" stroke="currentColor" stroke-width="2" opacity=".45"/></svg>';
 var ЗН_СКАЧАТЬ = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
 
-function состояние(заголовок, текст) {
+var ОТЛАДКА = /(^|[?&])debug=1(&|$)/.test(location.search);
+
+function состояние(заголовок, текст, кнопка) {
   document.getElementById('корень').innerHTML =
     '<div class="state"><div class="t">' + экр(заголовок) + '</div>' +
-    '<div class="s">' + экр(текст) + '</div></div>';
+    '<div class="s">' + экр(текст) + '</div>' +
+    (кнопка ? '<button class="cl-pdf" onclick="location.reload()">Обновить страницу</button>' : '') +
+    (ОТЛАДКА && ПРИЧИНА ? '<div class="why">' + экр(ПРИЧИНА) + '</div>' : '') +
+    '</div>';
 }
 
 function дата(iso) {
@@ -355,7 +388,7 @@ var ВЕРСИЯ = null;
 
 function открыть() {
   зов('client_link_get', { p_code: КОД }).then(function (о) {
-    if (!о) { состояние('Не удалось открыть', 'Проверьте связь и обновите страницу.'); return; }
+    if (!о) { состояние('Не удалось открыть', 'Проверьте связь и обновите страницу.', true); return; }
     if (о.status === 'revoked') {
       состояние('Ссылка больше не действует', 'Менеджер закрыл доступ к этому расчёту. Запросите новую ссылку.');
       return;
@@ -369,7 +402,7 @@ function открыть() {
     нарисовать(о.snapshot, о.snapshot_at, о.price_until);
     if (!ПРЕДПРОСМОТР) зов('client_link_seen', { p_code: КОД, p_version: о.snapshot_at });
   }).catch(function () {
-    состояние('Не удалось открыть', 'Проверьте связь и обновите страницу.');
+    состояние('Не удалось открыть', 'Проверьте связь и обновите страницу.', true);
   });
 }
 
