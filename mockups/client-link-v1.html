@@ -261,8 +261,7 @@ h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: 1.4rem;
 .note b { color: var(--bl-acc); font-weight: 500; }
 
 /* фото */
-.pics { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;
-  margin-top: 16px; }
+.pics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
 .pic { border: 1px solid var(--bl-rule); aspect-ratio: 16/10; display: grid; place-items: center;
   color: var(--bl-ink3); font-size: .72rem; background: var(--bl-zebra); }
 
@@ -701,13 +700,12 @@ function страницаКлиента() {
     + РАЗДЕЛЫ.map(разделДок).join('')
     + '<div class="note"><b>Примечание.</b> Инженерные коммуникации считаются по факту '
       + 'после выезда инженера на участок и в стоимость выше не входят.</div>'
-    + '<div class="sec-h" style="margin-top:30px"><span class="no">13</span>'
-      + '<span class="nm">Визуализация и планировка</span><span class="sum"></span></div>'
-    + '<div class="pics"><div class="pic">визуализация</div><div class="pic">планировка 1 этажа</div></div>'
     + '<div class="total"><span class="k">Общая стоимость</span>'
       + '<span class="val">' + рубли(ИТОГО) + '</span>'
       + '<span class="sub">База ' + рубли(БАЗА) + ' · опции ' + рубли(ИТОГО-БАЗА)
       + ' · ' + склон(ПОЗИЦИЙ, 'позиция', 'позиции', 'позиций') + '</span></div>'
+    + '<div class="pics"><div class="pic">визуализация</div>'
+      + '<div class="pic">планировка 1 этажа</div></div>'
     + '<div class="deadline"><b>Цена действует до 14.09.2026.</b> После этой даты '
       + 'спецификацию пересчитают — стоимость материалов меняется.</div>'
     + '<div class="cl-foot"><b>Версия от 11.09.2026</b>, подготовил Ефремов Артём · '
