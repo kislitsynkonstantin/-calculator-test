@@ -2,30 +2,395 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Баня-МСК · Загрузка…</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Цвет шапки браузера берётся у устройства: у клиента своего переключателя
+     тем нет, и полоса над страницей должна совпадать со страницей. -->
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#132528" media="(prefers-color-scheme: dark)">
+<title>Спецификация · Баня-МСК</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231e6c72'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Arial,sans-serif' font-size='9' font-weight='900' fill='white'%3EБМСК%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  body { margin: 0; font-family: sans-serif; background: #0f1e20; color: #a8dde0; display: flex; align-items: center; justify-content: center; min-height: 100vh; flex-direction: column; gap: 16px; }
-  .logo { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.06em; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: #2a8f97; animation: pulse 1.2s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{opacity:0.3;transform:scale(0.8)} 50%{opacity:1;transform:scale(1)} }
+/* ═══════════════════════════════════════════════════════════════════════════
+   КЛИЕНТСКАЯ СТРАНИЦА СПЕЦИФИКАЦИИ
+
+   Открывается по адресу calculator.baniamsk.ru/<код>. GitHub Pages отдаёт на
+   несуществующий путь этот файл — отсюда и код берётся, из самого пути.
+
+   Страница ничего не считает: она рисует снимок, замороженный браузером
+   менеджера в момент выдачи. Каталог цен наружу не выходит, и смета не
+   меняется под клиентом, пока менеджер не нажмёт «Обновить».
+
+   Тему берём у устройства. Своей кнопки переключения здесь нет и не будет:
+   выбор клиент уже сделал в телефоне.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --page:#f7fbfb; --sheet:#fff; --zebra:#f7fafb;
+  --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5;
+  --rule:#dceaeb; --rule2:#bcd9db;
+  --acc:#1e6c72; --acc2:#2a8f97; --pale:#a8dde0;
+  --tint:#e4f5f6; --warn:#c06010;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page:#0e1a1c; --sheet:#132528; --zebra:#173338;
+    --ink:#e6f3f3; --ink2:#9db6b8; --ink3:#8aa4a6;
+    --rule:#224347; --rule2:#2d585d;
+    --acc:#8fd6dc; --acc2:#5fc2ca; --pale:#5fc2ca;
+    --tint:#173338; --warn:#e0b070;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--page); color: var(--ink);
+  font-family: 'Geologica', system-ui, -apple-system, sans-serif; font-weight: 300;
+  font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased;
+  line-height: 1.55;
+}
+
+/* ── полоса сверху: она же шапка листа, она же печатается ─────────────────── */
+.cl-bar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px clamp(14px, 3vw, 30px);
+  background: var(--sheet); border-bottom: 1px solid var(--rule);
+}
+.cl-mark {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: .78rem;
+  letter-spacing: .06em; color: var(--ink);
+}
+.cl-mark svg { width: 22px; height: 13px; color: var(--acc); }
+.cl-bar .right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.cl-pdf {
+  position: relative; display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--rule2); border-radius: 8px; background: none;
+  color: var(--ink2); font: inherit; font-size: .8rem; padding: 8px 14px;
+  cursor: pointer;
+}
+.cl-pdf::before { content: ''; position: absolute; inset: -6px -4px; }
+.cl-pdf svg { width: 14px; height: 14px; }
+@media (hover: hover) { .cl-pdf:hover { background: var(--tint); color: var(--acc); } }
+
+/* ── лист ─────────────────────────────────────────────────────────────────── */
+.doc {
+  background: var(--sheet); max-width: 820px; margin: 0 auto;
+  padding: clamp(24px, 5vw, 52px) clamp(16px, 4vw, 44px) 0;
+  min-height: 60vh;
+}
+.doc-over {
+  font-family: 'Unbounded', sans-serif; font-size: .58rem; font-weight: 400;
+  text-transform: uppercase; letter-spacing: .14em; color: var(--acc2);
+  line-height: 1.7;
+}
+.doc-name {
+  font-family: 'Unbounded', sans-serif; font-size: clamp(1.1rem, 3.4vw, 1.5rem);
+  font-weight: 700; color: var(--ink); margin-top: 8px; line-height: 1.25;
+}
+.doc-name em { font-style: normal; color: var(--acc); }
+
+.req { margin-top: 22px; border-top: 1px solid var(--rule); }
+.req .r {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 10px;
+  padding: 11px 0; border-bottom: 1px solid var(--rule); font-size: .84rem;
+}
+.req .k {
+  font-family: 'Unbounded', sans-serif; font-size: .58rem; font-weight: 400;
+  text-transform: uppercase; letter-spacing: .14em; color: var(--ink3); white-space: nowrap;
+}
+.req .dots { border-bottom: 1px dotted var(--rule2); transform: translateY(-3px); }
+.req .val { color: var(--ink); font-weight: 500; text-align: right; }
+
+.sec-h {
+  display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 14px;
+  align-items: baseline; border-bottom: 2px solid var(--acc);
+  padding-bottom: 9px; margin: 30px 0 0;
+}
+.sec-h .no {
+  font-family: 'Unbounded', sans-serif; font-weight: 300;
+  font-size: clamp(1.3rem, 3.4vw, 1.8rem); color: var(--pale); line-height: 1;
+}
+.sec-h .nm { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: .86rem; color: var(--acc); }
+.sec-h .sum { font-size: .86rem; color: var(--ink); white-space: nowrap; }
+.sec-h.is-zero .nm, .sec-h.is-zero .sum { color: var(--ink3); }
+.sec-h.is-zero { border-bottom-color: var(--rule2); }
+
+.pos {
+  display: grid; grid-template-columns: 26px minmax(0,1fr) auto; gap: 12px;
+  align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--rule);
+  font-size: .82rem;
+}
+.pos .n { font-family: 'Unbounded', sans-serif; font-size: .74rem; color: var(--pale); }
+.pos .t { color: var(--ink); min-width: 0; }
+.pos .q { font-size: .76rem; color: var(--ink2); white-space: nowrap; }
+.pos .gift { color: var(--acc); }
+.note {
+  background: var(--tint); font-size: .76rem; color: var(--ink2);
+  padding: 11px 13px; margin-top: 12px; line-height: 1.55;
+}
+.note b { color: var(--acc); font-weight: 500; }
+
+.total {
+  display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 14px;
+  border-top: 2px solid var(--acc); margin-top: 26px; padding-top: 14px; align-items: baseline;
+}
+.total .k {
+  font-family: 'Unbounded', sans-serif; font-size: .66rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .12em; color: var(--ink2);
+}
+.total .val {
+  font-family: 'Unbounded', sans-serif; font-size: clamp(1.2rem, 4vw, 1.7rem);
+  color: var(--ink); white-space: nowrap;
+}
+.total .sub { grid-column: 1 / -1; font-size: .76rem; color: var(--ink3); margin-top: 6px; }
+.total .was { color: var(--ink3); text-decoration: line-through; font-weight: 400; font-size: .8em; }
+
+/* Снимки — как в версии для печати: две колонки рядом сразу под итогом,
+   без отдельного номерного заголовка, и на телефоне тоже рядом. */
+.pics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+.pic {
+  border: 1px solid var(--rule); background: var(--zebra); aspect-ratio: 16/10;
+  display: grid; place-items: center; overflow: hidden; max-width: 100%;
+}
+.pic img { width: 100%; height: 100%; object-fit: contain; }
+
+.deadline {
+  border-left: 3px solid var(--acc2); background: var(--tint);
+  border-radius: 0 10px 10px 0; padding: 12px 14px; margin-top: 18px;
+  font-size: .8rem; color: var(--ink2); line-height: 1.5;
+}
+.deadline b { color: var(--acc); font-weight: 600; }
+.cl-foot {
+  margin-top: 26px; padding: 16px 0 40px; border-top: 1px solid var(--rule);
+  font-size: .74rem; color: var(--ink3); line-height: 1.7;
+}
+.cl-foot b { color: var(--ink2); font-weight: 500; }
+
+/* ── полоска «расчёт обновлён» ────────────────────────────────────────────── */
+.fresh {
+  position: sticky; top: 57px; z-index: 19;
+  display: none; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: var(--acc); color: #fff; padding: 11px clamp(14px, 3vw, 30px);
+  font-size: .82rem;
+}
+.fresh.on { display: flex; }
+.fresh button {
+  border: 1px solid rgba(255,255,255,.5); border-radius: 7px; background: none;
+  color: #fff; font: inherit; font-size: .78rem; padding: 6px 12px; cursor: pointer;
+  position: relative;
+}
+.fresh button::before { content: ''; position: absolute; inset: -8px -6px; }
+
+/* ── состояния ────────────────────────────────────────────────────────────── */
+.state {
+  min-height: 70vh; display: grid; place-content: center; justify-items: center;
+  gap: 14px; padding: 40px 22px; text-align: center;
+}
+.state .t {
+  font-family: 'Unbounded', sans-serif; font-weight: 700;
+  font-size: clamp(1rem, 3.6vw, 1.25rem); color: var(--ink);
+}
+.state .s { font-size: .86rem; color: var(--ink2); max-width: 44ch; line-height: 1.6; }
+.state .dot {
+  width: 9px; height: 9px; border-radius: 50%; background: var(--acc2);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1)} }
+@media (prefers-reduced-motion: reduce) { .state .dot { animation: none; opacity: .8; } }
+
+@media print {
+  .cl-bar { position: static; border-bottom: 1px solid #ddd; }
+  .cl-pdf, .fresh { display: none !important; }
+  body { background: #fff; }
+  .doc { max-width: none; padding: 0 10mm; }
+  .sec-h { break-after: avoid; }
+  .pos { break-inside: avoid; }
+}
 </style>
-<script>
-  // Extract 6-digit code from URL path (e.g. /482916 or /482916/)
-  (function() {
-    var path = window.location.pathname.replace(/\//g, '');
-    if (/^\d{6}$/.test(path)) {
-      // Redirect to root with ?code= param
-      window.location.replace('/?code=' + path);
-    } else {
-      // No code — just go home
-      window.location.replace('/');
-    }
-  })();
-</script>
 </head>
 <body>
-  <div class="logo">БАНЯ-МСК</div>
-  <div class="dot"></div>
+<div id="корень">
+  <div class="state">
+    <div class="dot"></div>
+    <div class="s">Открываем спецификацию…</div>
+  </div>
+</div>
+
+<script>
+/* ── адрес: calculator.baniamsk.ru/<код> ──────────────────────────────────────
+   Восемь знаков из алфавита без похожих друг на друга букв и цифр. Шестизначный
+   цифровой код — это прежние ссылки для сотрудников, их по-прежнему уводим в
+   калькулятор, а не открываем здесь. */
+var ПУТЬ = location.pathname.replace(/^\/+|\/+$/g, '');
+var КОД = /^[a-z0-9]{8}$/.test(ПУТЬ) ? ПУТЬ : null;
+
+if (!КОД) {
+  if (/^\d{6}$/.test(ПУТЬ)) location.replace('/?code=' + ПУТЬ);
+  else location.replace('/');
+}
+
+var SB = 'https://jogylulfstjsznduirub.supabase.co';
+var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZ3lsdWxmc3Rqc3puZHVpcnViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDQ0NjEsImV4cCI6MjA5MTY4MDQ2MX0.cGkTkrM09ZxV3LH5wwy19ITloykao472WgppimoWiUQ';
+var ПРЕДПРОСМОТР = /(^|[?&])preview=1(&|$)/.test(location.search);
+
+/* Запрос за снимком никогда не кладётся в кэш, и в адресе стоит отметка
+   времени: даже если между нами и базой окажется кэширующий посредник,
+   подсунуть вчерашний ответ ему нечем. */
+function зов(имя, тело) {
+  return fetch(SB + '/rest/v1/rpc/' + имя + '?t=' + Date.now(), {
+    method: 'POST',
+    cache: 'no-store',
+    headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify(тело || {})
+  }).then(function (r) { return r.ok ? r.json() : null; });
+}
+
+var рубли = function (n) { return (Math.round(n) || 0).toLocaleString('ru-RU') + ' ₽'; };
+var экр = function (т) {
+  return String(т == null ? '' : т)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+};
+function склон(н, о, д, м) {
+  var х = н % 100, е = н % 10;
+  return н + ' ' + (х > 4 && х < 21 ? м : е === 1 ? о : е > 1 && е < 5 ? д : м);
+}
+var ЛОГО = '<svg viewBox="0 0 60 34" fill="none" aria-hidden="true"><path d="M4 30L30 6l26 24" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 6v24" stroke="currentColor" stroke-width="2" opacity=".45"/></svg>';
+var ЗН_СКАЧАТЬ = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+
+function состояние(заголовок, текст) {
+  document.getElementById('корень').innerHTML =
+    '<div class="state"><div class="t">' + экр(заголовок) + '</div>' +
+    '<div class="s">' + экр(текст) + '</div></div>';
+}
+
+function дата(iso) {
+  if (!iso) return '';
+  var д = new Date(iso);
+  return isNaN(д) ? '' : д.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function разделДок(р, н) {
+  // Раздел с нулевой суммой печатается без цифры — так же, как в бумажном
+  // документе: почему он без цены, объясняет собственное примечание раздела
+  // («считаются по факту»), а не подпись вместо суммы. Клиентская страница —
+  // тот же документ, и расходиться с ним она не должна.
+  var нулевой = !р.сумма;
+  var шапка = '<div class="sec-h' + (нулевой ? ' is-zero' : '') + '">' +
+    '<span class="no">' + н + '</span>' +
+    '<span class="nm">' + экр(р.имя) + '</span>' +
+    '<span class="sum">' + (нулевой ? '' : рубли(р.сумма)) + '</span></div>';
+  var строки = (р.позиции || []).map(function (п, i) {
+    var прав = п.подарок ? '<span class="q gift">в подарок</span>'
+      : (п.ц ? '<span class="q">' + рубли(п.ц) + '</span>' : '<span class="q"></span>');
+    return '<div class="pos"><span class="n">' + (i + 1) + '</span>' +
+      '<span class="t">' + экр(п.т) + '</span>' + прав + '</div>';
+  }).join('');
+  var прим = (р.примечания || []).map(function (т) {
+    return '<div class="note">' + экр(т) + '</div>';
+  }).join('');
+  return шапка + строки + прим;
+}
+
+function нарисовать(с, версия, ценаДо) {
+  var реквизиты = [
+    ['Менеджер', с.менеджер], ['Технология', с.технология],
+    ['Заказчик', с.заказчик], ['Толщина утепления', с.утепление],
+    ['Договор №', с.договор], ['Дата', с.датаДоговора]
+  ].filter(function (п) { return п[1]; });
+
+  var приложение = 'Спецификация · приложение №1 к договору подряда' +
+    (с.договор ? '<br>№ ' + экр(с.договор) : '') +
+    (с.датаДоговора ? ' от ' + экр(с.датаДоговора) + ' г.' : '');
+
+  var имя = экр(с.проект).replace(/«([^»]+)»/, '<em>«$1»</em>');
+
+  var снимки = (с.снимки || []).slice(0, 2).map(function (u) {
+    return '<div class="pic"><img src="' + экр(u) + '" alt="" loading="lazy"></div>';
+  }).join('');
+
+  var подытог = 'Позиций в расчёте — ' + склон(с.позиций || 0, 'позиция', 'позиции', 'позиций');
+  var было = с.доСкидки && с.доСкидки > с.итог
+    ? '<span class="was">' + рубли(с.доСкидки) + '</span> ' : '';
+
+  document.getElementById('корень').innerHTML =
+    '<div class="cl-bar">' +
+      '<span class="cl-mark">' + ЛОГО + 'БАНЯ МСК</span>' +
+      '<span class="right"><button class="cl-pdf" onclick="window.print()">' +
+        ЗН_СКАЧАТЬ + 'Скачать PDF</button></span>' +
+    '</div>' +
+    '<div class="fresh" id="полоскаСвежести">' +
+      '<span>Менеджер обновил расчёт.</span>' +
+      '<button onclick="location.reload()">Показать новую версию</button>' +
+    '</div>' +
+    '<div class="doc">' +
+      '<div class="doc-over">' + приложение + '</div>' +
+      '<div class="doc-name">' + имя + '</div>' +
+      '<div class="req">' + реквизиты.map(function (п) {
+        return '<div class="r"><span class="k">' + экр(п[0]) + '</span>' +
+          '<span class="dots"></span><span class="val">' + экр(п[1]) + '</span></div>';
+      }).join('') + '</div>' +
+      (с.разделы || []).map(function (р, i) { return разделДок(р, i + 1); }).join('') +
+      '<div class="total"><span class="k">Общая стоимость</span>' +
+        '<span class="val">' + было + рубли(с.итог) + '</span>' +
+        '<span class="sub">' + подытог + '</span></div>' +
+      (снимки ? '<div class="pics">' + снимки + '</div>' : '') +
+      (ценаДо || с.ценаДо
+        ? '<div class="deadline"><b>Цена действует до ' + экр(дата(ценаДо) || с.ценаДо) + '.</b> ' +
+          'После этой даты спецификацию пересчитают — стоимость материалов меняется.</div>'
+        : '') +
+      '<div class="cl-foot">' +
+        (версия ? '<b>Версия от ' + экр(дата(версия)) + '</b>' : '') +
+        (с.менеджер ? ', подготовил ' + экр(с.менеджер) : '') +
+        '<br>Вопросы по спецификации — менеджеру.' +
+        (с.подрядчик ? ' ' + экр(с.подрядчик) + '.' : '') +
+      '</div>' +
+    '</div>';
+}
+
+var ВЕРСИЯ = null;
+
+function открыть() {
+  зов('client_link_get', { p_code: КОД }).then(function (о) {
+    if (!о) { состояние('Не удалось открыть', 'Проверьте связь и обновите страницу.'); return; }
+    if (о.status === 'revoked') {
+      состояние('Ссылка больше не действует', 'Менеджер закрыл доступ к этому расчёту. Запросите новую ссылку.');
+      return;
+    }
+    if (о.status !== 'ok' || !о.snapshot) {
+      состояние('Расчёт не найден', 'Проверьте адрес целиком — в нём восемь знаков после косой черты.');
+      return;
+    }
+    ВЕРСИЯ = о.snapshot_at;
+    document.title = (о.snapshot.проект || 'Спецификация') + ' · Баня-МСК';
+    нарисовать(о.snapshot, о.snapshot_at, о.price_until);
+    if (!ПРЕДПРОСМОТР) зов('client_link_seen', { p_code: КОД, p_version: о.snapshot_at });
+  }).catch(function () {
+    состояние('Не удалось открыть', 'Проверьте связь и обновите страницу.');
+  });
+}
+
+/* Вкладку держат открытой неделями: вернулись к ней — переспрашиваем версию.
+   Цифры под читающим не подменяем, предлагаем полоской. */
+var ПРОВЕРЯЕМ = false;
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState !== 'visible' || !ВЕРСИЯ || ПРОВЕРЯЕМ) return;
+  ПРОВЕРЯЕМ = true;
+  зов('client_link_get', { p_code: КОД }).then(function (о) {
+    ПРОВЕРЯЕМ = false;
+    if (!о || о.status !== 'ok') return;
+    if (о.snapshot_at !== ВЕРСИЯ) {
+      var п = document.getElementById('полоскаСвежести');
+      if (п) п.classList.add('on');
+    }
+    if (!ПРЕДПРОСМОТР) зов('client_link_seen', { p_code: КОД, p_version: ВЕРСИЯ });
+  }).catch(function () { ПРОВЕРЯЕМ = false; });
+});
+
+if (КОД) открыть();
+</script>
 </body>
 </html>
