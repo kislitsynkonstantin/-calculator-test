@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="ru" data-page="day">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ссылка клиенту — страница клиента и сторона менеджера</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   ССЫЛКА КЛИЕНТУ — три вещи на одной странице
+
+   1. Что видит клиент. Тот же печатный документ, что уходит сегодня в PDF,
+      отрисованный страницей: ни калькулятора, ни вкладок, ни договора, ни
+      платёжного плана. Сверху — «Скачать PDF», он же печать страницы.
+   2. Что видит менеджер. Окно со ссылкой: код, «Копировать», «Обновить»
+      (снимок заменяется, ссылка та же) и отметка о прочтении.
+   3. Куда приходит уведомление. Колокольчик в шапке рядом с остальными
+      кнопками — туда же потом лягут другие уведомления.
+
+   Документ заморожен: собирается браузером менеджера в момент выдачи и
+   хранится снимком. Клиентская страница только рисует — каталог цен наружу
+   не выходит, и смета не меняется под клиентом, пока менеджер не обновит.
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* ── токены темы: два набора, чтобы день и ночь стояли на одной странице ──── */
+.day, html[data-page="day"] .auto {
+  --bl-page:#f7fbfb; --bl-sheet:#fff; --bl-zebra:#f7fafb;
+  --bl-ink:#12262a; --bl-ink2:#5b7376; --bl-ink3:#8da3a5;
+  --bl-rule:#dceaeb; --bl-rule2:#bcd9db;
+  --bl-acc:#1e6c72; --bl-acc2:#2a8f97; --bl-pale:#a8dde0;
+  --bl-tint:#e4f5f6; --bl-fill:#1e6c72; --bl-on-acc:#fff;
+  --bl-shadow:0 18px 48px rgba(18,38,42,.10);
+  --bl-warn:#c06010;
+}
+.night, html[data-page="night"] .auto {
+  --bl-page:#0e1a1c; --bl-sheet:#132528; --bl-zebra:#173338;
+  --bl-ink:#e6f3f3; --bl-ink2:#9db6b8; --bl-ink3:#8aa4a6;
+  --bl-rule:#224347; --bl-rule2:#2d585d;
+  --bl-acc:#8fd6dc; --bl-acc2:#5fc2ca; --bl-pale:#5fc2ca;
+  --bl-tint:#173338; --bl-fill:#2a8f97; --bl-on-acc:#08181a;
+  --bl-shadow:0 18px 48px rgba(0,0,0,.45);
+  --bl-warn:#e0b070;
+}
+
+/* ── страница вокруг макета: язык статьи, он же в справке ────────────────── */
+html[data-page="day"] { --mn-page:#f0f6f6; --mn-card:#fff; --mn-ink:#111; --mn-ink2:#555;
+  --mn-ink3:#888; --mn-rule:#d4e4e5; --mn-acc:#1e6c72; --mn-acc-ink:#1e6c72;
+  --mn-acc2:#2a8f97; --mn-tint:#e4f5f6; }
+html[data-page="night"] { --mn-page:#111e20; --mn-card:#1a2a2c; --mn-ink:#e8f0f1; --mn-ink2:#9ab;
+  --mn-ink3:#678; --mn-rule:#2a3f42; --mn-acc:#1e6c72; --mn-acc-ink:#5fc8d2;
+  --mn-acc2:#3db0ba; --mn-tint:#1a3034; }
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 0 20px 80px;
+  background: var(--mn-page); color: var(--mn-ink);
+  font-family: 'Geologica', system-ui, sans-serif; font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  transition: background .2s, color .2s;
+}
+.wrap { max-width: 1180px; margin: 0 auto; }
+
+/* ── шапка макета ─────────────────────────────────────────────────────────── */
+.top { padding: 34px 0 8px; }
+.eyebrow { font-size: .66rem; text-transform: uppercase; letter-spacing: .18em;
+  color: var(--mn-acc2); font-weight: 500; font-family: 'Unbounded', sans-serif; }
+h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: 1.4rem;
+  letter-spacing: -.01em; margin: .35em 0 .3em; line-height: 1.25; }
+.lead { font-size: .95rem; color: var(--mn-ink2); max-width: 660px; margin: 0 0 4px;
+  line-height: 1.62; }
+.seg { display: inline-flex; gap: 18px; margin: 18px 0 4px;
+  border-bottom: 1px solid var(--mn-rule); }
+.seg button { appearance: none; background: none; border: 0; cursor: pointer;
+  font-family: 'Geologica', sans-serif; font-size: .78rem; color: var(--mn-ink3);
+  padding: 8px 2px 9px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  position: relative; }
+.seg button::before { content: ''; position: absolute; inset: -8px -6px; }
+.seg button[aria-pressed="true"] { color: var(--mn-acc-ink); font-weight: 500;
+  border-bottom-color: var(--mn-acc2); }
+
+.v { margin: 44px 0 0; }
+.v-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  border-bottom: 2px solid var(--mn-acc-ink); padding-bottom: 10px; margin-bottom: 6px; }
+.v-name { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: 1.02rem;
+  color: var(--mn-acc-ink); }
+.v p { font-size: .88rem; color: var(--mn-ink2); max-width: 68ch; line-height: 1.62;
+  margin: 12px 0; }
+.v p b { color: var(--mn-ink); font-weight: 500; }
+.cost { font-size: .82rem; color: var(--mn-ink2); border-left: 3px solid var(--mn-acc2);
+  background: var(--mn-tint); border-radius: 0 10px 10px 0; padding: 11px 14px;
+  margin: 16px 0 0; max-width: 68ch; }
+.cost b { color: var(--mn-acc-ink); font-weight: 600; }
+.cap { font-size: .68rem; text-transform: uppercase; letter-spacing: .14em;
+  color: var(--mn-ink3); margin: 24px 0 8px; font-family: 'Unbounded', sans-serif; }
+
+/* ── рамка окна ───────────────────────────────────────────────────────────── */
+/* overflow:clip вместо hidden: он тоже обрезает по скруглению, но не делает
+   кадр своей прокруткой и не отменяет липкую колонку. */
+.frame { border: 1px solid var(--bl-rule); border-radius: 14px; overflow: clip;
+  background: var(--bl-sheet); color: var(--bl-ink); box-shadow: var(--bl-shadow);
+  font-weight: 300; }
+
+/* ═══ ОБОЛОЧКА ═══ */
+.shell { display: grid; grid-template-columns: 236px minmax(0, 1fr); }
+/* Колонка тянется во всю высоту кадра — иначе разделительная линейка обрывалась
+   там, где кончались пункты, и лист снизу оставался без левой границы. Липким
+   сделано нутро колонки: оно едет вместе с листом, а рамка стоит. */
+.rail { border-right: 1px solid var(--bl-rule); background: var(--bl-sheet); }
+.rail-in { display: flex; flex-direction: column; padding: 16px 0 12px;
+  position: sticky; top: 0; max-height: 100vh; overflow-y: auto; }
+.rail-mark { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: .78rem;
+  letter-spacing: .08em; color: var(--bl-acc); padding: 0 16px 14px;
+  border-bottom: 1px solid var(--bl-rule); }
+.rail-grp { font-family: 'Unbounded', sans-serif; font-size: .6rem; font-weight: 400;
+  text-transform: uppercase; letter-spacing: .18em; color: var(--bl-ink2);
+  padding: 15px 16px 5px; }
+.rail-grp.sep { border-top: 1px solid var(--bl-rule); margin-top: 10px; padding-top: 15px; }
+/* Строка панели целиком цель нажатия: 44 px даёт сама строка. Невидимого поля
+   здесь быть не должно — строки стоят вплотную, поля соседей перекрылись бы. */
+.nav-i { display: grid; grid-template-columns: 18px minmax(0,1fr) auto; align-items: center;
+  gap: 10px; min-height: 44px; padding: 0 16px; font-size: .82rem; color: var(--bl-ink2);
+  position: relative; cursor: pointer; background: none; border: 0; width: 100%;
+  text-align: left; font-family: 'Geologica', sans-serif; font-weight: 300; }
+.nav-i svg { width: 17px; height: 17px; opacity: .85; }
+.nav-i .cnt { font-size: .72rem; color: var(--bl-ink3); }
+.nav-i .cnt.hot { color: var(--bl-acc); font-weight: 500; }
+.nav-i.is-on { color: var(--bl-ink); font-weight: 500;
+  background: linear-gradient(90deg, var(--bl-tint), transparent 210px); }
+.nav-i.is-on::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 2px; background: var(--bl-acc); }
+.nav-i.is-on svg { opacity: 1; color: var(--bl-acc); }
+.nav-i.soon { color: var(--bl-ink3); }
+.nav-i.soon .cnt { font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; }
+@media (hover: hover) { .nav-i:not(.is-on):hover { color: var(--bl-ink); background: var(--bl-zebra); } }
+
+/* оглавление расчёта — те же строки, но с номером раздела вместо значка */
+.nav-s { grid-template-columns: 16px minmax(0,1fr) auto; font-size: .78rem; }
+.nav-s .no { font-family: 'Unbounded', sans-serif; font-size: .74rem; color: var(--bl-pale); }
+.nav-s .sum { font-size: .72rem; color: var(--bl-ink3); }
+.nav-s.is-zero { color: var(--bl-ink3); }
+.nav-s.is-zero .sum { color: var(--bl-ink3); }
+.nav-s.is-on .no { color: var(--bl-acc); }
+.nav-s.is-on .sum { color: var(--bl-ink); }
+
+.rail-foot { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--bl-rule); }
+.rail-tools { display: flex; gap: 14px; padding: 4px 14px 6px; }
+.ib { width: 30px; height: 30px; border-radius: 7px; border: 0; background: none;
+  color: var(--bl-ink2); display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; position: relative; }
+.ib::before { content: ''; position: absolute; inset: -7px; }
+.ib svg { width: 17px; height: 17px; }
+@media (hover: hover) { .ib:hover { background: var(--bl-tint); color: var(--bl-acc); } }
+.who { display: grid; grid-template-columns: 26px 1fr; gap: 9px; align-items: center;
+  padding: 4px 16px 0; font-size: .74rem; color: var(--bl-ink2); }
+.who .ava { width: 26px; height: 26px; border-radius: 50%; background: var(--bl-fill);
+  color: var(--bl-on-acc); display: grid; place-items: center; font-size: .62rem;
+  font-family: 'Unbounded', sans-serif; font-weight: 600; }
+
+/* ═══ ЛИСТ ═══ */
+.sheet { padding: 18px clamp(14px, 2.4vw, 28px) 26px; min-width: 0; }
+.doc-head { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap;
+  padding-bottom: 12px; border-bottom: 1px solid var(--bl-rule); }
+.doc-over { font-family: 'Unbounded', sans-serif; font-size: .58rem; font-weight: 400;
+  text-transform: uppercase; letter-spacing: .18em; color: var(--bl-ink3); }
+.doc-name { font-family: 'Unbounded', sans-serif; font-size: 1.02rem; font-weight: 700;
+  color: var(--bl-ink); margin-top: 5px; line-height: 1.3; }
+.doc-name em { font-style: normal; color: var(--bl-acc); }
+.doc-meta { margin-left: auto; text-align: right; font-size: .68rem; color: var(--bl-ink3);
+  line-height: 1.7; }
+.tools { display: flex; flex-wrap: wrap; gap: 12px; padding: 12px 0 0; }
+.tb { border: 1px solid var(--bl-rule2); border-radius: 8px; background: none;
+  color: var(--bl-ink2); font-family: 'Geologica', sans-serif; font-size: .74rem;
+  font-weight: 300; padding: 8px 11px; cursor: pointer; display: inline-flex;
+  align-items: center; gap: 6px; position: relative; }
+/* Кнопка нарисована 32 px, поле нажатия 44: по 6 px вверх-вниз, значит и зазор
+   между рядами не меньше 12 (правило 8 темы). */
+.tb::before { content: ''; position: absolute; inset: -6px -4px; }
+.tb svg { width: 14px; height: 14px; }
+@media (hover: hover) { .tb:hover { background: var(--bl-tint); color: var(--bl-acc); } }
+.tb.dash { border-style: dashed; color: var(--bl-ink2); }
+
+
+
+
+/* ═══ КЛИЕНТСКАЯ СТРАНИЦА ════════════════════════════════════════════════ */
+/* Полоса сверху — единственное, чего нет в печатном документе. Она не шапка
+   калькулятора: ни вкладок, ни настроек, ни входа. Лого, чтобы клиент видел,
+   от кого документ, и одна кнопка. */
+.cl-bar { display: flex; align-items: center; gap: 14px; padding: 12px clamp(14px, 3vw, 30px);
+  border-bottom: 1px solid var(--bl-rule); background: var(--bl-sheet); position: sticky;
+  top: 0; z-index: 5; }
+.cl-mark { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: .78rem;
+  letter-spacing: .06em; color: var(--bl-ink); display: inline-flex; align-items: center; gap: 8px; }
+.cl-mark svg { width: 22px; height: 13px; color: var(--bl-acc); }
+.cl-bar .right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.cl-pdf { border: 1px solid var(--bl-rule2); border-radius: 8px; background: none;
+  color: var(--bl-ink2); font-family: 'Geologica', sans-serif; font-size: .76rem;
+  font-weight: 300; padding: 8px 12px; cursor: pointer; display: inline-flex;
+  align-items: center; gap: 7px; position: relative; white-space: nowrap; }
+.cl-pdf::before { content: ''; position: absolute; inset: -6px -4px; }
+.cl-pdf svg { width: 14px; height: 14px; }
+@media (hover: hover) { .cl-pdf:hover { background: var(--bl-tint); color: var(--bl-acc); } }
+
+.doc { padding: clamp(18px, 4vw, 42px) clamp(14px, 3vw, 30px) 0; max-width: 860px; margin: 0 auto; }
+.doc-logo { display: inline-flex; align-items: center; gap: 9px; font-family: 'Unbounded', sans-serif;
+  font-weight: 800; font-size: .96rem; letter-spacing: .02em; color: var(--bl-ink); }
+.doc-logo svg { width: 30px; height: 17px; color: var(--bl-acc); }
+.doc-over { font-family: 'Unbounded', sans-serif; font-size: .58rem; font-weight: 400;
+  text-transform: uppercase; letter-spacing: .16em; color: var(--bl-acc); margin-top: 16px;
+  line-height: 1.7; }
+.doc-name { font-family: 'Unbounded', sans-serif; font-size: clamp(1.15rem, 3.4vw, 1.6rem);
+  font-weight: 700; color: var(--bl-ink); margin-top: 8px; line-height: 1.25; }
+.doc-name em { font-style: normal; color: var(--bl-acc); }
+.req { margin-top: 22px; border-top: 1px solid var(--bl-rule); }
+.req .r { display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 10px;
+  padding: 11px 0; border-bottom: 1px solid var(--bl-rule); font-size: .84rem; }
+.req .k { font-family: 'Unbounded', sans-serif; font-size: .58rem; font-weight: 400;
+  text-transform: uppercase; letter-spacing: .14em; color: var(--bl-ink3); white-space: nowrap; }
+.req .dots { border-bottom: 1px dotted var(--bl-rule2); transform: translateY(-3px); }
+.req .val { color: var(--bl-ink); font-weight: 500; text-align: right; }
+
+/* разделы документа */
+.sec-h { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 14px;
+  align-items: baseline; border-bottom: 2px solid var(--bl-acc); padding-bottom: 9px;
+  margin: 30px 0 0; }
+.sec-h .no { font-family: 'Unbounded', sans-serif; font-weight: 300;
+  font-size: clamp(1.3rem, 3.4vw, 1.8rem); color: var(--bl-pale); line-height: 1; }
+.sec-h .nm { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: .86rem;
+  color: var(--bl-acc); }
+.sec-h .sum { font-size: .86rem; color: var(--bl-ink); white-space: nowrap; }
+.sec-h.is-zero .nm, .sec-h.is-zero .sum { color: var(--bl-ink3); }
+.sec-h.is-zero { border-bottom-color: var(--bl-rule2); }
+.pos { display: grid; grid-template-columns: 26px minmax(0,1fr) auto; gap: 12px;
+  align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--bl-rule);
+  font-size: .82rem; }
+.pos .n { font-family: 'Unbounded', sans-serif; font-size: .74rem; color: var(--bl-pale); }
+.pos .t { color: var(--bl-ink); min-width: 0; }
+.pos .t small { display: block; font-size: .71rem; color: var(--bl-ink3); margin-top: 3px; }
+.pos .q { font-size: .76rem; color: var(--bl-ink2); white-space: nowrap; }
+/* Подарок — единственная отметка в документе, которую клиент должен заметить */
+.pos .gift { color: var(--bl-acc); }
+.note { background: var(--bl-tint); font-size: .76rem; color: var(--bl-ink2);
+  padding: 11px 13px; margin-top: 12px; line-height: 1.55; }
+.note b { color: var(--bl-acc); font-weight: 500; }
+
+/* фото */
+.pics { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;
+  margin-top: 16px; }
+.pic { border: 1px solid var(--bl-rule); aspect-ratio: 16/10; display: grid; place-items: center;
+  color: var(--bl-ink3); font-size: .72rem; background: var(--bl-zebra); }
+
+/* итог */
+.total { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 14px;
+  border-top: 2px solid var(--bl-acc); margin-top: 26px; padding-top: 14px; align-items: baseline; }
+.total .k { font-family: 'Unbounded', sans-serif; font-size: .66rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .12em; color: var(--bl-ink2); }
+.total .val { font-family: 'Unbounded', sans-serif; font-size: clamp(1.2rem, 4vw, 1.7rem);
+  color: var(--bl-ink); white-space: nowrap; }
+.total .sub { grid-column: 1 / -1; font-size: .76rem; color: var(--bl-ink3); margin-top: 6px; }
+.deadline { border-left: 3px solid var(--bl-acc2); background: var(--bl-tint);
+  border-radius: 0 10px 10px 0; padding: 12px 14px; margin-top: 18px; font-size: .8rem;
+  color: var(--bl-ink2); line-height: 1.5; }
+.deadline b { color: var(--bl-acc); font-weight: 600; }
+.cl-foot { margin-top: 26px; padding: 16px 0 30px; border-top: 1px solid var(--bl-rule);
+  font-size: .74rem; color: var(--bl-ink3); line-height: 1.7; }
+.cl-foot b { color: var(--bl-ink2); font-weight: 500; }
+
+/* ═══ СТОРОНА МЕНЕДЖЕРА: окно со ссылкой ════════════════════════════════ */
+.ovl { padding: 18px clamp(16px, 3vw, 26px) 22px; }
+.ovl-h { display: flex; align-items: baseline; gap: 14px; padding-bottom: 12px;
+  border-bottom: 2px solid var(--bl-acc); }
+.ovl-h .t { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: .92rem;
+  color: var(--bl-ink); }
+.ovl-h .s { font-size: .74rem; color: var(--bl-ink3); margin-left: auto; }
+.lnk { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; align-items: center;
+  margin-top: 18px; }
+.lnk .box { border: 1px solid var(--bl-rule2); border-radius: 8px; padding: 11px 13px;
+  font-family: ui-monospace, Menlo, monospace; font-size: .84rem; color: var(--bl-ink);
+  overflow-x: auto; white-space: nowrap; }
+.lnk .box b { color: var(--bl-acc); font-weight: 600; }
+.st { margin-top: 16px; }
+.st .r { display: grid; grid-template-columns: 18px minmax(0,1fr) auto; gap: 11px;
+  align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--bl-rule);
+  font-size: .82rem; color: var(--bl-ink2); }
+.st .r svg { width: 16px; height: 16px; color: var(--bl-ink3); align-self: center; }
+.st .r.hot svg { color: var(--bl-acc); }
+.st .r b { color: var(--bl-ink); font-weight: 500; }
+.st .r .w { font-size: .74rem; color: var(--bl-ink3); white-space: nowrap; }
+.ovl-acts { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+.warn-box { border-left: 3px solid var(--bl-warn); background: var(--bl-tint);
+  border-radius: 0 10px 10px 0; padding: 11px 13px; margin-top: 16px; font-size: .78rem;
+  color: var(--bl-ink2); line-height: 1.5; }
+.warn-box b { color: var(--bl-warn); font-weight: 600; }
+
+/* ═══ ШАПКА КАЛЬКУЛЯТОРА С КОЛОКОЛЬЧИКОМ ════════════════════════════════ */
+.hdr { display: flex; align-items: center; gap: 2px; padding: 10px clamp(12px, 2vw, 18px);
+  border-bottom: 1px solid var(--bl-rule); flex-wrap: wrap; }
+.hb { width: 34px; height: 34px; border-radius: 7px; border: 0; background: none;
+  color: var(--bl-ink2); display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; position: relative; }
+.hb::before { content: ''; position: absolute; inset: -5px; }
+.hb svg { width: 18px; height: 18px; }
+@media (hover: hover) { .hb:hover { background: var(--bl-tint); color: var(--bl-acc); } }
+.hb .dot { position: absolute; top: 5px; right: 5px; width: 7px; height: 7px; border-radius: 50%;
+  background: #e05555; box-shadow: 0 0 0 2px var(--bl-sheet); }
+.hb.bell { margin-left: auto; }
+.hdr .presets { border: 1px solid var(--bl-rule2); border-radius: 8px; padding: 7px 11px;
+  font-size: .76rem; color: var(--bl-ink2); display: inline-flex; align-items: center; gap: 7px;
+  margin-left: 10px; }
+.hdr .presets svg { width: 14px; height: 14px; }
+
+/* выпавшие уведомления */
+.under { position: relative; padding: 14px clamp(12px, 2vw, 18px) 18px; }
+.under .ghost { position: absolute; inset: 16px clamp(12px, 2vw, 18px) auto;
+  display: grid; gap: 9px; }
+.under .ghost i { display: block; height: 10px; border-radius: 3px; background: var(--bl-rule);
+  opacity: .65; }
+.notif { position: relative; border: 1px solid var(--bl-rule); border-radius: 14px;
+  background: var(--bl-sheet); box-shadow: var(--bl-shadow);
+  width: min(380px, 100%); margin-left: auto; overflow: hidden; }
+@media (max-width: 620px) { .under .ghost { display: none; } }
+.notif-h { display: flex; align-items: baseline; gap: 12px; padding: 13px 16px 11px;
+  border-bottom: 2px solid var(--bl-acc); }
+.notif-h .t { font-family: 'Unbounded', sans-serif; font-size: .66rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .12em; color: var(--bl-acc); }
+.notif-h .a { margin-left: auto; font-size: .72rem; color: var(--bl-ink3); cursor: pointer; }
+.notif-i { display: grid; grid-template-columns: 18px minmax(0,1fr); gap: 11px;
+  padding: 12px 16px; border-bottom: 1px solid var(--bl-rule); font-size: .8rem;
+  position: relative; cursor: pointer; }
+.notif-i svg { width: 16px; height: 16px; color: var(--bl-ink3); margin-top: 2px; }
+.notif-i.new svg { color: var(--bl-acc); }
+.notif-i .t { color: var(--bl-ink2); line-height: 1.5; }
+.notif-i .t b { color: var(--bl-ink); font-weight: 500; }
+.notif-i .tm { display: block; font-size: .7rem; color: var(--bl-ink3); margin-top: 4px; }
+.notif-i.new::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--bl-acc); }
+@media (hover: hover) { .notif-i:hover { background: var(--bl-zebra); } }
+.notif-f { padding: 11px 16px; font-size: .74rem; color: var(--bl-ink3); text-align: center; }
+
+/* ═══ пояснения ═════════════════════════════════════════════════════════ */
+.leg { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr));
+  margin-top: 14px; }
+.leg-c { border: 1px solid var(--mn-rule); border-radius: 12px; padding: 15px;
+  background: var(--mn-card); }
+.leg-t { font-size: .66rem; text-transform: uppercase; letter-spacing: .14em;
+  color: var(--mn-acc-ink); margin-bottom: 4px; font-family: 'Unbounded', sans-serif;
+  font-weight: 600; }
+.leg-w { font-size: .74rem; color: var(--mn-ink3); margin-bottom: 12px; }
+.leg-l { list-style: none; margin: 0; padding: 0; font-size: .82rem; color: var(--mn-ink2); }
+.leg-l li { padding: 7px 0; border-bottom: 1px solid var(--mn-rule); line-height: 1.5; }
+.leg-l li:last-child { border-bottom: 0; }
+.leg-l b { color: var(--mn-ink); font-weight: 500; }
+.code-demo { font-family: ui-monospace, Menlo, monospace; font-size: .86rem;
+  color: var(--mn-acc-ink); background: var(--mn-tint); padding: 10px 12px; border-radius: 8px;
+  margin-top: 10px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.code-demo.solid { display: block; word-break: break-all; }
+.phone-wrap { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+.phone { width: 360px; max-width: 100%; }
+
+footer { margin-top: 42px; padding-top: 16px; border-top: 1px solid var(--mn-rule);
+  font-size: .76rem; color: var(--mn-ink3); }
+code { font-family: ui-monospace, Menlo, monospace; font-size: .86em; color: var(--mn-acc-ink); }
+@media (max-width: 620px) {
+  .lnk { grid-template-columns: minmax(0,1fr); }
+  .st .r { grid-template-columns: 18px minmax(0,1fr); }
+  .st .r .w { grid-column: 2; white-space: normal; margin-top: 4px; }
+  .req .r { grid-template-columns: minmax(0,1fr) auto; }
+  .req .dots { display: none; }
+  .total { grid-template-columns: minmax(0,1fr); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="eyebrow">Макет · 11.09.2026</div>
+    <h1>Ссылка клиенту</h1>
+    <p class="lead">Три вещи: что видит клиент, что видит менеджер и куда приходит
+      уведомление о прочтении. Документ заморожен — собирается браузером менеджера в
+      момент выдачи и хранится снимком; клиентская страница только рисует.</p>
+    <div class="seg" role="group" aria-label="Пора суток">
+      <button id="segDay" aria-pressed="true" onclick="пора('day')">День</button>
+      <button id="segNight" aria-pressed="false" onclick="пора('night')">Ночь</button>
+    </div>
+  </div>
+
+  <!-- ═══ 1. КЛИЕНТ ═══ -->
+  <div class="v">
+    <div class="v-head"><span class="v-name">Что видит клиент</span></div>
+    <p>Тот же печатный документ, что уходит сегодня в PDF, отрисованный страницей. Ни
+      калькулятора, ни вкладок, ни выбора стиля, ни договора, ни платёжного плана. Сверху
+      одна полоса: логотип — чтобы было видно, от кого документ, — и <b>«Скачать PDF»</b>,
+      то есть печать этой же страницы; привычный файл у клиента остаётся.</p>
+    <p>Цены по правилу, которое уже работает: <b>цены позиций скрыты, суммы разделов
+      видны</b>. Открыть цену конкретной строки менеджер может «глазом» в калькуляторе —
+      и тогда она приедет в снимок.</p>
+    <div class="cap">Телефон — клиент откроет её оттуда</div>
+    <div class="phone-wrap">
+      <div class="phone"><div class="frame day" id="клиентТел"></div></div>
+      <div style="flex:1;min-width:260px">
+        <div class="cost" style="margin-top:0"><b>Почему документ, а не калькулятор:</b>
+          клиент уже знает эту бумагу — она приходила ему в PDF. Вид калькулятора обещает
+          то, чего он сделать не может: отмечать опции и менять количества. И свёрстан
+          калькулятор для работы, а документ — для чтения.</div>
+        <div class="cost"><b>Чего на странице нет нарочно:</b> договора и вкладок,
+          платёжного плана, реквизитов менеджера, внутренних примечаний и любой
+          возможности что-то изменить. Всё, что похоже на личный кабинет, требует входа,
+          а вход убивает саму идею ссылки.</div>
+      </div>
+    </div>
+    <div class="cap">Широкий экран — день</div>
+    <div class="frame day" id="клиентДень"></div>
+    <div class="cap">Широкий экран — ночь</div>
+    <div class="frame night" id="клиентНочь"></div>
+  </div>
+
+  <!-- ═══ 2. МЕНЕДЖЕР ═══ -->
+  <div class="v">
+    <div class="v-head"><span class="v-name">Что видит менеджер — окно «Ссылка клиенту»</span></div>
+    <p>Ссылка одна и не меняется. <b>«Обновить»</b> заменяет снимок: клиент по той же
+      ссылке увидит новый расчёт, а на странице у него появится «версия от 11.09».
+      До нажатия он видит ровно то, что отправляли, — смета не меняется под ним молча.</p>
+    <div class="frame auto" id="окноСсылки"></div>
+  </div>
+
+  <!-- ═══ 3. КОЛОКОЛЬЧИК ═══ -->
+  <div class="v">
+    <div class="v-head"><span class="v-name">Куда приходит уведомление</span></div>
+    <p>Колокольчик в шапке, справа, перед «Пресетами» — там же, где сейчас живут кнопки
+      и жёлтая точка у справки. Красная точка означает непрочитанное. Со временем туда
+      лягут остальные уведомления: истекающая спец. цена, правки общих расчётов, позже —
+      просроченные оплаты и задачи.</p>
+    <div class="cap">Шапка: колокольчик с непрочитанным</div>
+    <div class="frame auto" id="шапка"></div>
+    <div class="cap">Он же нажат</div>
+    <div class="frame auto" id="уведомления"></div>
+    <div class="cost"><b>Почему в шапке, а не всплывающим окном:</b> всплывающее
+      уведомление перекрывает расчёт и исчезает, а колокольчик копит и ждёт. Менеджер
+      увидит «клиент открыл» и через час, и на следующее утро.</div>
+  </div>
+
+  <!-- ═══ 4. КОД ССЫЛКИ ═══ -->
+  <div class="v">
+    <div class="v-head"><span class="v-name">Код ссылки</span></div>
+    <p>Формат <code>calculator.baniamsk.ru/&lt;код&gt;</code>, код — восемь знаков из
+      алфавита без похожих друг на друга букв и цифр: без нуля и «O», без единицы, «l» и
+      «I». Такой код диктуется по телефону без «эл как палка».</p>
+    <div class="leg">
+      <div class="leg-c">
+        <div class="leg-t">Алфавит и длина</div>
+        <div class="leg-w">31 знак, восемь позиций.</div>
+        <div class="code-demo solid" id="алфавит"></div>
+        <ul class="leg-l" style="margin-top:12px">
+          <li><b>31<sup>8</sup> ≈ 852 миллиарда</b> сочетаний</li>
+          <li>Перебор по десять попыток в секунду — <b>около 2700 лет</b></li>
+          <li>Нынешний шестизначный цифровой — миллион сочетаний, для своих годится,
+            для публичного адреса подбирается за часы</li>
+        </ul>
+      </div>
+      <div class="leg-c">
+        <div class="leg-t">Как выглядит</div>
+        <div class="leg-w">Десять примеров из генератора.</div>
+        <div class="code-demo" id="примеры"></div>
+        <ul class="leg-l" style="margin-top:12px">
+          <li>Короткий — помещается в сообщение и в разговор</li>
+          <li>Без похожих знаков — не путается при наборе руками</li>
+          <li>Проверка на занятость перед выдачей, как у нынешнего кода</li>
+        </ul>
+      </div>
+      <div class="leg-c">
+        <div class="leg-t">Что ещё у ссылки есть</div>
+        <div class="leg-w">Кроме самого кода.</div>
+        <ul class="leg-l">
+          <li><b>Отзыв.</b> Нажал — открытая страница перестаёт работать</li>
+          <li><b>Срок.</b> Истекла спец. цена — страница честно говорит об этом и
+            предлагает запросить новый расчёт</li>
+          <li><b>Версия.</b> На странице стоит дата снимка, а не «сегодня»</li>
+          <li><b>Ничего лишнего в записи об открытии:</b> ссылка и время. Ни адреса,
+            ни устройства — они не нужны и добавляют обязательств</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer>Макет · тема «Бланк» · архитектура — <code>docs/deal-card-architecture.md</code>,
+    задача 5 «Лога развития». В основном файле ничего не менялось.</footer>
+</div>
+<script>
+function пора(п){
+  document.documentElement.dataset.page = п;
+  document.getElementById('segDay').setAttribute('aria-pressed', п==='day');
+  document.getElementById('segNight').setAttribute('aria-pressed', п==='night');
+}
+const З = {
+  печать:'<path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z"/>',
+  скачать:'<path d="M12 3v12M8 11l4 4 4-4M4 21h16"/>',
+  копия:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',
+  обновить:'<polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-2.1-9.4L23 10"/>',
+  отозвать:'<path d="M18 6L6 18M6 6l12 12"/>',
+  глаз:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
+  часы:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/>',
+  колокол:'<path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+  рубль:'<path d="M7 6h7a4 4 0 0 1 0 8H7M7 10h10M7 14v4"/>',
+  правка:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  тема:'<path d="M21 13a8.5 8.5 0 1 1-9.9-9.9 7 7 0 0 0 9.9 9.9z"/>',
+  план:'<path d="M7 6h7a4 4 0 0 1 0 8H7M7 10h10M7 14v4"/>',
+  стата:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  журнал:'<path d="M3 12a9 9 0 1 0 3-6.7M3 4v4h4"/><path d="M12 8v4l3 2"/>',
+  скрыть:'<path d="M3 3l18 18M10.6 10.6A2 2 0 0 0 12 14a2 2 0 0 0 1.4-.6"/><path d="M6.7 6.8C4.6 8.1 3 10 2 12c2 4 6 6.5 10 6.5 1.7 0 3.3-.4 4.7-1.1M9.9 5.7A9.9 9.9 0 0 1 12 5.5c4 0 8 2.5 10 6.5-.8 1.5-1.9 2.9-3.2 4"/>',
+  поиск:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.2-4.2"/>',
+  компл:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
+  пресеты:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/>',
+  справка:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.8-.9 1.4v.5"/><path d="M12 17h.01"/>',
+  настройки:'<circle cx="12" cy="12" r="3"/><path d="M5 12a7 7 0 0 1 .3-2L3.6 8.6l2-3.4 2.1.8A7 7 0 0 1 10 4.6L10.4 2.4h3.2L14 4.6a7 7 0 0 1 2.3 1.4l2.1-.8 2 3.4L18.7 10a7 7 0 0 1 0 4l1.7 1.4-2 3.4-2.1-.8a7 7 0 0 1-2.3 1.4l-.4 2.2h-3.2L10 19.4a7 7 0 0 1-2.3-1.4l-2.1.8-2-3.4L5.3 14A7 7 0 0 1 5 12z"/>'
+};
+const зн = (и,ш) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'
+  + (ш||1.7) + '" stroke-linecap="round" stroke-linejoin="round">' + З[и] + '</svg>';
+const ЛОГО = '<svg viewBox="0 0 60 34" fill="none"><path d="M4 30L30 6l26 24" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 6v24" stroke="currentColor" stroke-width="2" opacity=".45"/></svg>';
+const рубли = н => (н||0).toLocaleString('ru-RU').replace(/ /g,' ') + ' ₽';
+
+/* ═══ КОД ССЫЛКИ ═══════════════════════════════════════════════════════════
+   Алфавит без похожих знаков: нет 0 и O, нет 1, l и I. Восемь позиций. */
+const АЛФАВИТ = '23456789abcdefghjkmnpqrstuvwxyz';
+const ДЛИНА = 8;
+function кодСсылки() {
+  const б = new Uint32Array(ДЛИНА);
+  (self.crypto || {}).getRandomValues ? crypto.getRandomValues(б)
+    : б.forEach((_, i) => б[i] = Math.floor(Math.random() * 4294967296));
+  return [...б].map(x => АЛФАВИТ[x % АЛФАВИТ.length]).join('');
+}
+const КОД = 'k7m2xq4p';   // в кадрах код постоянный, чтобы снимки не плясали
+
+/* ═══ ДАННЫЕ ДОКУМЕНТА ═══════════════════════════════════════════════════
+   Фахверковая баня «Берлин» 9х5, утепление 150 мм. Суммы разделов дают
+   ровно 3 124 932 ₽ — как в калькуляторе. */
+const РАЗДЕЛЫ = [
+  { н:1, имя:'Фундамент и цоколь', сумма:402300, позиции:[
+      {т:'Свайно-винтовой фундамент', п:'Свая 108×2500, 42 шт., оголовок 250×250', к:'42 шт.'},
+      {т:'Обвязка бруса 150×150', п:'Антисептик, два слоя', к:'58 м'},
+      {т:'Цокольная отделка — планкен', к:'46 м²'},
+      {т:'Геодезическая разметка и вынос осей'},
+  ]},
+  { н:2, имя:'Каркас', сумма:1041500, позиции:[
+      {т:'Каркас наружных стен', п:'Доска 45×145, шаг 600 мм', к:'132 м²'},
+      {т:'Двойная обвязка', п:'Доска 45×195'},
+      {т:'Лаги пола 45×195', п:'Шаг 500 мм'},
+      {т:'Стропильная система 45×195', п:'Шаг 600 мм'},
+      {т:'Усиление под печь, брус 100×100'},
+  ]},
+  { н:3, имя:'Утепление, плёнки', сумма:214800, позиции:[
+      {т:'Стены 150 мм', п:'Базальт', к:'132 м²'},
+      {т:'Потолок 200 мм', п:'Базальт', к:'45 м²'},
+      {т:'Пол 150 мм', п:'Базальт', к:'45 м²'},
+      {т:'Пароизоляция и ветрозащита', п:'Изнутри и снаружи контура'},
+  ]},
+  { н:4,  имя:'Внешняя отделка',          сумма:336900, свёрнут:true, позиций:6 },
+  { н:5,  имя:'Окна и двери',             сумма:268400, свёрнут:true, позиций:7 },
+  { н:6,  имя:'Кровля',                   сумма:297600, свёрнут:true, позиций:5 },
+  { н:7,  имя:'Покраска',                 сумма:148200, свёрнут:true, позиций:4 },
+  { н:8,  имя:'Внутренняя отделка',       сумма:215700, свёрнут:true, позиций:6 },
+  { н:9,  имя:'Парное отделение',         сумма:142800, свёрнут:true, позиций:8 },
+  { н:10, имя:'Печь и дымоход',           сумма:186400, свёрнут:true, позиций:5 },
+  { н:11, имя:'Дополнительные опции',     сумма:56732,  свёрнут:true, позиций:3,
+    подарок:'Комплект для розжига — в подарок' },
+  { н:12, имя:'Инженерные коммуникации',  сумма:0,      свёрнут:true },
+];
+const ИТОГО = РАЗДЕЛЫ.reduce((с,р)=>с+р.сумма,0);
+const ПОЗИЦИЙ = 56;
+// 51 позиция, 52 позиции, 56 позиций — число в документе склоняется само
+function склон(н, о, д, м) {
+  const х = н % 100, е = н % 10;
+  return н + ' ' + (х > 4 && х < 21 ? м : е === 1 ? о : е > 1 && е < 5 ? д : м);
+}
+const БАЗА = 2943019;
+
+/* ═══ КЛИЕНТСКАЯ СТРАНИЦА ═══ */
+const реквизиты = [
+  ['Менеджер','Ефремов Артём'],
+  ['Технология','Каркас'],
+  ['Заказчик','Иванов Иван Сергеевич'],
+  ['Толщина утепления','150 мм'],
+  ['Договор №','5997878-КАР'],
+  ['Дата','05.09.2026'],
+];
+
+function разделДок(р) {
+  const шапка = '<div class="sec-h' + (р.сумма ? '' : ' is-zero') + '">'
+    + '<span class="no">' + р.н + '</span>'
+    + '<span class="nm">' + р.имя + '</span>'
+    + '<span class="sum">' + (р.сумма ? рубли(р.сумма) : 'по факту') + '</span></div>';
+  if (р.свёрнут) {
+    const счёт = р.позиций
+      ? '<div class="pos"><span class="n"></span><span class="t">'
+        + склон(р.позиций, 'позиция', 'позиции', 'позиций')
+        + '</span><span class="q"></span></div>' : '';
+    const хвост = счёт + (р.подарок
+      ? '<div class="pos"><span class="n"></span><span class="t gift">'
+        + р.подарок + '</span><span class="q"></span></div>' : '');
+    return шапка + хвост;
+  }
+  return шапка + р.позиции.map((п,i) => '<div class="pos">'
+    + '<span class="n">' + (i+1) + '</span>'
+    + '<span class="t">' + п.т + (п.п ? '<small>' + п.п + '</small>' : '') + '</span>'
+    + '<span class="q">' + (п.к || '') + '</span></div>').join('');
+}
+
+function страницаКлиента() {
+  return '<div class="cl-bar">'
+    + '<span class="cl-mark">' + ЛОГО + 'БАНЯ МСК</span>'
+    + '<span class="right"><button class="cl-pdf">' + зн('скачать') + 'Скачать PDF</button></span>'
+  + '</div>'
+  + '<div class="doc">'
+    + '<div class="doc-over">Спецификация · приложение №1 к договору подряда<br>'
+      + '№ 5997878-КАР от 05.09.2026 г.</div>'
+    + '<div class="doc-name">Фахверковая баня <em>«Берлин» 9х5</em></div>'
+    + '<div class="req">' + реквизиты.map(([к,в]) => '<div class="r">'
+        + '<span class="k">' + к + '</span><span class="dots"></span>'
+        + '<span class="val">' + в + '</span></div>').join('') + '</div>'
+    + РАЗДЕЛЫ.map(разделДок).join('')
+    + '<div class="note"><b>Примечание.</b> Инженерные коммуникации считаются по факту '
+      + 'после выезда инженера на участок и в стоимость выше не входят.</div>'
+    + '<div class="sec-h" style="margin-top:30px"><span class="no">13</span>'
+      + '<span class="nm">Визуализация и планировка</span><span class="sum"></span></div>'
+    + '<div class="pics"><div class="pic">визуализация</div><div class="pic">планировка 1 этажа</div></div>'
+    + '<div class="total"><span class="k">Общая стоимость</span>'
+      + '<span class="val">' + рубли(ИТОГО) + '</span>'
+      + '<span class="sub">База ' + рубли(БАЗА) + ' · опции ' + рубли(ИТОГО-БАЗА)
+      + ' · ' + склон(ПОЗИЦИЙ, 'позиция', 'позиции', 'позиций') + '</span></div>'
+    + '<div class="deadline"><b>Цена действует до 14.09.2026.</b> После этой даты '
+      + 'спецификацию пересчитают — стоимость материалов меняется.</div>'
+    + '<div class="cl-foot"><b>Версия от 11.09.2026</b>, подготовил Ефремов Артём · '
+      + '+7 900 123-45-67<br>Вопросы по спецификации — менеджеру; расчёт действует '
+      + 'до указанной даты.</div>'
+  + '</div>';
+}
+
+/* ═══ ОКНО МЕНЕДЖЕРА ═══ */
+const кнопка = (и,имя,гл) => '<button class="tb' + (гл ? '' : '') + '">' + зн(и) + имя + '</button>';
+function окноСсылки() {
+  return '<div class="ovl">'
+  + '<div class="ovl-h"><span class="t">Ссылка клиенту</span>'
+    + '<span class="s">Берлин 9х5 · Иванов И. С.</span></div>'
+  + '<div class="lnk"><div class="box">calculator.baniamsk.ru/<b>' + КОД + '</b></div>'
+    + '<button class="tb">' + зн('копия') + 'Копировать</button></div>'
+  + '<div class="st">'
+    + '<div class="r"><span>' + зн('часы') + '</span>'
+      + '<span>Выдана <b>05.09 в 12:40</b>, версия снимка — <b>11.09 в 14:20</b></span>'
+      + '<span class="w">6 дней назад</span></div>'
+    + '<div class="r hot"><span>' + зн('глаз') + '</span>'
+      + '<span>Клиент открыл <b>2 раза</b>, последний раз вчера в 18:02</span>'
+      + '<span class="w">заходы ближе получаса считаются одним</span></div>'
+    + '<div class="r"><span>' + зн('рубль') + '</span>'
+      + '<span>Спец. цена в снимке действует до <b>14.09</b></span>'
+      + '<span class="w">через 3 дня</span></div>'
+  + '</div>'
+  + '<div class="ovl-acts">'
+    + кнопка('обновить','Обновить — отправить новый расчёт')
+    + кнопка('печать','Открыть как клиент')
+    + '<button class="tb dash">' + зн('отозвать') + 'Отозвать ссылку</button>'
+  + '</div>'
+  + '<div class="warn-box"><b>«Обновить» заменяет снимок.</b> Ссылка остаётся той же, '
+    + 'у клиента по ней появится новый расчёт и дата новой версии. Пока не нажали — '
+    + 'клиент видит ровно то, что отправляли.</div>'
+  + '</div>';
+}
+
+/* ═══ ШАПКА И УВЕДОМЛЕНИЯ ═══ */
+const шапкаКальк = (открыт) => '<div class="hdr">'
+  + ['тема','печать','план','стата','журнал','скрыть','поиск','компл']
+      .map(и => '<button class="hb" title="' + и + '">' + зн(и) + '</button>').join('')
+  + '<button class="hb bell" title="Уведомления">' + зн('колокол')
+    + '<span class="dot"></span></button>'
+  + '<span class="presets">' + зн('пресеты') + 'Пресеты</span>'
+  + '<button class="hb" title="Справка">' + зн('справка') + '</button>'
+  + '<button class="hb" title="Настройки">' + зн('настройки') + '</button>'
++ '</div>' + (открыт ? выпавшие() : '');
+
+function выпавшие() {
+  const строки = [
+    {и:'глаз', н:true, т:'<b>Иванов И. С.</b> открыл спецификацию «Берлин 9х5» — <b>второй раз</b>', к:'вчера в 18:02'},
+    {и:'рубль', н:true, т:'Спец. цена по <b>«Берлин 9х5»</b> истекает <b>14.09</b> — через три дня', к:'сегодня в 09:00'},
+    {и:'правка', н:false, т:'<b>Соколова М.</b> изменила скидку в общем расчёте «Мичиган 16×6»', к:'09.09 в 16:40'},
+  ];
+  const тень = '<div class="ghost">'
+    + [62,88,44,96,70,52,84,58,92,66,48,80,72,90].map(ш =>
+        '<i style="width:' + ш + '%"></i>').join('')
+    + '</div>';
+  return '<div class="under">' + тень + '<div class="notif">'
+    + '<div class="notif-h"><span class="t">Уведомления</span>'
+      + '<span class="a">Отметить прочитанными</span></div>'
+    + строки.map(с => '<div class="notif-i' + (с.н ? ' new' : '') + '">' + зн(с.и)
+        + '<span class="t">' + с.т + '<span class="tm">' + с.к + '</span></span></div>').join('')
+    + '<div class="notif-f">Позже здесь появятся просроченные оплаты и задачи</div>'
+  + '</div></div>';
+}
+
+/* ═══ сборка ═══ */
+document.getElementById('клиентТел').innerHTML   = страницаКлиента();
+document.getElementById('клиентДень').innerHTML  = страницаКлиента();
+document.getElementById('клиентНочь').innerHTML  = страницаКлиента();
+document.getElementById('окноСсылки').innerHTML  = окноСсылки();
+document.getElementById('шапка').innerHTML       = шапкаКальк(false);
+document.getElementById('уведомления').innerHTML = шапкаКальк(true);
+document.getElementById('алфавит').textContent   = АЛФАВИТ;
+document.getElementById('примеры').innerHTML     =
+  Array.from({length:10}, кодСсылки).map(к => '<span>' + к + '</span>').join('');
+</script>
+</body>
+</html>
