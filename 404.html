@@ -31,7 +31,10 @@
   --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5;
   --rule:#dceaeb; --rule2:#bcd9db;
   --acc:#1e6c72; --acc2:#2a8f97; --pale:#a8dde0;
-  --tint:#e4f5f6; --warn:#c06010;
+  --tint:#e4f5f6; --warn:#c06010; --hl:#fff8ec;
+  --strip-bg:#1e6c72; --strip-ink:#fff; --strip-ink2:rgba(255,255,255,.7);
+  --strip-ink3:rgba(255,255,255,.62); --strip-rule:rgba(255,255,255,.18); --strip-disc:#ffa8a8;
+  --shadow:0 1px 2px rgba(18,38,42,.05), 0 12px 40px rgba(18,38,42,.07);
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -39,7 +42,10 @@
     --ink:#e6f3f3; --ink2:#9db6b8; --ink3:#8aa4a6;
     --rule:#224347; --rule2:#2d585d;
     --acc:#8fd6dc; --acc2:#5fc2ca; --pale:#5fc2ca;
-    --tint:#173338; --warn:#e0b070;
+    --tint:#173338; --warn:#e0b070; --hl:#2c2a1d;
+    --strip-bg:#17454a; --strip-ink:#e6f3f3; --strip-ink2:rgba(230,243,243,.72);
+    --strip-ink3:rgba(230,243,243,.6); --strip-rule:rgba(230,243,243,.16); --strip-disc:#ffb3b3;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 40px rgba(0,0,0,.45);
   }
 }
 * { box-sizing: border-box; }
@@ -58,12 +64,15 @@ body {
   padding: 12px clamp(14px, 3vw, 30px);
   background: var(--sheet); border-bottom: 1px solid var(--rule);
 }
-.cl-mark {
-  display: inline-flex; align-items: center; gap: 9px;
-  font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: .78rem;
-  letter-spacing: .06em; color: var(--ink);
+/* Логотип — тот же файл, что в калькуляторе, в двух начертаниях: тёмное на
+   светлой теме, светлое на тёмной. Лежит отдельными картинками, а не в base64:
+   страницу открывают с телефона, и 165 КБ в каждом открытии были бы лишними,
+   а так браузер их кэширует. */
+.cl-logo { height: 20px; width: auto; display: block; }
+.cl-logo.night { display: none; }
+@media (prefers-color-scheme: dark) {
+  .cl-logo.day { display: none; } .cl-logo.night { display: block; }
 }
-.cl-mark svg { width: 22px; height: 13px; color: var(--acc); }
 .cl-bar .right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
 .cl-pdf {
   position: relative; display: inline-flex; align-items: center; gap: 8px;
@@ -75,99 +84,116 @@ body {
 .cl-pdf svg { width: 14px; height: 14px; }
 @media (hover: hover) { .cl-pdf:hover { background: var(--tint); color: var(--acc); } }
 
-/* ── лист ─────────────────────────────────────────────────────────────────── */
-.doc {
-  background: var(--sheet); max-width: 820px; margin: 0 auto;
-  padding: clamp(24px, 5vw, 52px) clamp(16px, 4vw, 44px) 0;
-  min-height: 60vh;
+/* ── ЛИСТ ────────────────────────────────────────────────────────────────
+   Это не «похожий» документ, а тот же самый: разметка и правила сняты с
+   печатного «Бланка» в калькуляторе — те же классы bl-*, кегли, сетка и
+   переносы на телефоне. Клиент обязан видеть ровно то, что менеджер видел
+   перед отправкой и что уйдёт в PDF (Константин, 12.09.2026).
+   Своего у клиента три вещи: тема от устройства, полоса сверху и то, что на
+   печати полоса пропадает, а лист становится дневным.
+   ────────────────────────────────────────────────────────────────────────── */
+.bl-wrap { padding: clamp(16px,4vw,40px) clamp(10px,3vw,26px) 60px; }
+.bl-doc {
+  width: 196mm; max-width: 100%; margin: 0 auto;
+  background: var(--sheet); color: var(--ink);
+  font-size: 9.5pt; line-height: 1.5; font-variant-numeric: tabular-nums;
+  padding: clamp(18px,4vw,34px) clamp(16px,4vw,30px);
+  border-radius: 14px; box-shadow: var(--shadow);
 }
-.doc-over {
-  font-family: 'Unbounded', sans-serif; font-size: .58rem; font-weight: 400;
-  text-transform: uppercase; letter-spacing: .14em; color: var(--acc2);
-  line-height: 1.7;
-}
-.doc-name {
-  font-family: 'Unbounded', sans-serif; font-size: clamp(1.1rem, 3.4vw, 1.5rem);
-  font-weight: 700; color: var(--ink); margin-top: 8px; line-height: 1.25;
-}
-.doc-name em { font-style: normal; color: var(--acc); }
+.bl-doc * { box-sizing: border-box; }
+.bl-logo-doc { height: 26px; width: auto; display: none; margin: 0 0 16px -2px; }
+.bl-eyebrow { font-size:6.8pt; font-weight:500; letter-spacing:.2em; text-transform:uppercase; color:var(--acc2); margin-bottom:7px; }
+.bl-title { font-size:17pt; font-weight:600; letter-spacing:-.02em; line-height:1.2; color:var(--ink); }
+.bl-title .bl-em { color: var(--acc); }
+.bl-hr { height:1px; background:var(--rule); margin:16px 0 0; }
+.bl-req { display:grid; grid-template-columns:1fr 1fr; gap:0 34px; margin-top:2px; }
+.bl-req>div { display:flex; align-items:baseline; gap:10px; padding:7px 0; border-bottom:1px solid var(--rule); }
+.bl-req span { font-size:6.8pt; letter-spacing:.14em; text-transform:uppercase; color:var(--ink3); white-space:nowrap; }
+.bl-req b { margin-left:auto; font-weight:500; font-size:9.5pt; color:var(--ink); text-align:right; }
+.bl-sum { margin:26px 0 4px; padding-bottom:9px; border-bottom:2px solid var(--acc); }
+.bl-total { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; }
+.bl-total-k { font-size:6.8pt; letter-spacing:.2em; text-transform:uppercase; color:var(--ink3); padding-bottom:5px; }
+.bl-total-k i { font-style:normal; text-transform:none; letter-spacing:.02em; white-space:nowrap; }
+.bl-total-v { font-size:21pt; font-weight:600; letter-spacing:-.02em; line-height:1; color:var(--ink); }
+.bl-total-v small { font-size:12pt; font-weight:400; color:var(--ink2); margin-left:4px; }
+.bl-disc { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-top:11px; }
+.bl-disc-k { font-size:6.8pt; letter-spacing:.2em; text-transform:uppercase; color:var(--acc2); padding-bottom:4px; }
+.bl-disc-k i { font-style:normal; text-transform:none; letter-spacing:.02em; color:var(--ink3); white-space:nowrap; }
+.bl-disc-v { font-size:15pt; font-weight:600; letter-spacing:-.02em; line-height:1; color:var(--acc); }
+.bl-disc-v small { font-size:10pt; font-weight:400; color:var(--acc2); margin-left:3px; }
+.bl-disc-sub { margin-top:5px; font-size:7.5pt; color:var(--ink3); text-align:right; }
+/* Снимки — коробка с пропорцией и картинки внутри неё, как в печати: на
+   телефоне они остаются рядом, а не встают друг под друга. */
+.bl-imgs { position:relative; width:100%; margin:18px 0 28px; }
+.bl-imgs img { position:absolute; object-fit:cover; display:block; margin:0; padding:0; border:0; background:var(--tint); }
+.bl-tbl { width:100%; border-collapse:collapse; table-layout:fixed; margin-top:14px; }
+.bl-sec td { padding:22px 0 7px; border-bottom:2px solid var(--acc); vertical-align:baseline; }
+.bl-sec td.bl-sn { font-size:19pt; font-weight:600; color:var(--pale); letter-spacing:-.03em; line-height:1; width:47px; padding-left:7px; }
+.bl-sname { font-size:11pt; font-weight:600; color:var(--ink); letter-spacing:-.01em; }
+.bl-sec td.bl-ssum { font-size:11pt; font-weight:600; text-align:right; color:var(--acc); white-space:nowrap; width:139px; padding-right:7px; }
+.bl-row td { padding:5px 0; border-bottom:1px solid var(--rule); vertical-align:baseline; line-height:1.4; }
+.bl-row.bl-hl td { background: var(--hl); }
+.bl-row td.bl-n { font-size:7.5pt; color:var(--ink3); padding-left:7px; }
+.bl-name { font-size:9.5pt; color:var(--ink); padding-right:14px; }
+.bl-row td.bl-v { text-align:right; white-space:nowrap; padding-right:7px; }
+.bl-v-inc { font-size:8pt; color:var(--acc); letter-spacing:.02em; }
+.bl-v-sum { font-size:9.5pt; color:var(--ink); font-weight:500; }
+.bl-gift { display:inline-block; margin-left:6px; font-size:6.4pt; font-weight:600; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--acc); border:1px solid var(--rule2); border-radius:20px; padding:1px 7px; vertical-align:middle; }
+.bl-note td { background:var(--tint); border-bottom:1px solid var(--rule); padding:6px 0;
+  font-size:8.5pt; color:var(--ink2); line-height:1.4; vertical-align:baseline; }
+.bl-note td.bl-n { padding-left:7px; }
+.bl-strip { margin-top:22px; background:var(--strip-bg); color:var(--strip-ink); border-radius:10px; padding:14px 20px; }
+.bl-strip-top { display:grid; grid-template-columns:auto auto; justify-content:space-between; align-items:baseline; column-gap:24px; }
+.bl-strip-l, .bl-strip-r { display:contents; }
+.bl-strip-l .bl-strip-k { grid-area:1/1; } .bl-strip-v { grid-area:2/1; }
+.bl-strip-r .bl-strip-k { grid-area:1/2; color:var(--strip-ink3); } .bl-strip-disc { grid-area:2/2; }
+.bl-strip-r { text-align:right; }
+.bl-strip-k { font-size:6.6pt; letter-spacing:.14em; text-transform:uppercase; color:var(--strip-ink2); white-space:nowrap; }
+.bl-strip-k i, .bl-strip-disc i { font-style:normal; text-transform:none; letter-spacing:.02em; }
+.bl-strip-v { font-size:17pt; font-weight:600; letter-spacing:-.02em; white-space:nowrap; }
+.bl-strip-disc { font-size:12pt; font-weight:600; letter-spacing:-.02em; color:var(--strip-disc); }
+.bl-strip-sub { margin-top:11px; padding-top:9px; border-top:1px solid var(--strip-rule);
+  font-size:7pt; color:var(--strip-ink3); display:flex; align-items:baseline; justify-content:space-between; gap:4px 16px; flex-wrap:nowrap; }
+.bl-strip-sub>* { flex:0 0 auto; white-space:nowrap; }
+.bl-strip-till { white-space:nowrap; margin-left:auto; }
+.bl-sign { display:flex; gap:52px; margin-top:34px; }
+.bl-sign>div { flex:1; }
+.bl-sign .bl-line { border-bottom:1px solid var(--rule2); height:30px; }
+.bl-sign .bl-who { margin-top:6px; font-size:6.8pt; letter-spacing:.14em; text-transform:uppercase; color:var(--ink3); }
+.bl-sign .bl-fio { font-size:9.5pt; font-weight:500; color:var(--ink); }
+.bl-foot { margin-top:24px; padding-top:11px; border-top:1px solid var(--rule); font-size:7.5pt; line-height:1.65; color:var(--ink3); }
+/* Срок цены и версия — единственное, чего нет у менеджера на листе: клиенту
+   надо знать, до какого числа держится цена и какую версию он смотрит. */
+.bl-till { margin-top:16px; border-left:3px solid var(--acc2); background:var(--tint);
+  border-radius:0 8px 8px 0; padding:11px 14px; font-size:8.5pt; color:var(--ink2); line-height:1.5; }
+.bl-till b { color:var(--acc); font-weight:600; }
+.bl-ver { margin-top:9px; font-size:7.5pt; color:var(--ink3); }
 
-.req { margin-top: 22px; border-top: 1px solid var(--rule); }
-.req .r {
-  display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 10px;
-  padding: 11px 0; border-bottom: 1px solid var(--rule); font-size: .84rem;
+/* ── телефон: те же правила, что у печатного листа ───────────────────────── */
+@media screen and (max-width:700px) {
+  .bl-doc { width:auto; }
+  .bl-req { grid-template-columns:1fr; }
+  .bl-req span { white-space:normal; }
+  .bl-title { font-size:14pt; }
+  .bl-sum { margin-top:20px; }
+  .bl-total-v { font-size:17pt; } .bl-total-v small { font-size:10pt; }
+  .bl-disc-v { font-size:13pt; }
+  .bl-tbl { margin-top:10px; }
+  .bl-sec td { padding:16px 0 6px; }
+  .bl-sec td.bl-sn { font-size:15pt; width:40px; }
+  .bl-sec td.bl-sname { font-size:10pt; }
+  .bl-sec td.bl-ssum { font-size:9pt; width:98px; }
+  .bl-name { padding-right:8px; font-size:9pt; overflow-wrap:break-word; }
+  .bl-strip { padding:12px 12px; }
+  .bl-strip-top { column-gap:10px; }
+  .bl-strip-sub { gap:4px 10px; font-size:6.6pt; flex-direction:column; align-items:flex-start; }
+  .bl-strip-till { margin-left:0; }
+  .bl-strip-k { letter-spacing:.07em; }
+  .bl-strip-v { font-size:14pt; }
+  .bl-strip-disc { font-size:9pt; }
+  .bl-sign { gap:18px; margin-top:26px; }
 }
-.req .k {
-  font-family: 'Unbounded', sans-serif; font-size: .58rem; font-weight: 400;
-  text-transform: uppercase; letter-spacing: .14em; color: var(--ink3); white-space: nowrap;
-}
-.req .dots { border-bottom: 1px dotted var(--rule2); transform: translateY(-3px); }
-.req .val { color: var(--ink); font-weight: 500; text-align: right; }
-
-.sec-h {
-  display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 14px;
-  align-items: baseline; border-bottom: 2px solid var(--acc);
-  padding-bottom: 9px; margin: 30px 0 0;
-}
-.sec-h .no {
-  font-family: 'Unbounded', sans-serif; font-weight: 300;
-  font-size: clamp(1.3rem, 3.4vw, 1.8rem); color: var(--pale); line-height: 1;
-}
-.sec-h .nm { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: .86rem; color: var(--acc); }
-.sec-h .sum { font-size: .86rem; color: var(--ink); white-space: nowrap; }
-.sec-h.is-zero .nm, .sec-h.is-zero .sum { color: var(--ink3); }
-.sec-h.is-zero { border-bottom-color: var(--rule2); }
-
-.pos {
-  display: grid; grid-template-columns: 26px minmax(0,1fr) auto; gap: 12px;
-  align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--rule);
-  font-size: .82rem;
-}
-.pos .n { font-family: 'Unbounded', sans-serif; font-size: .74rem; color: var(--pale); }
-.pos .t { color: var(--ink); min-width: 0; }
-.pos .q { font-size: .76rem; color: var(--ink2); white-space: nowrap; }
-.pos .gift { color: var(--acc); }
-.note {
-  background: var(--tint); font-size: .76rem; color: var(--ink2);
-  padding: 11px 13px; margin-top: 12px; line-height: 1.55;
-}
-.note b { color: var(--acc); font-weight: 500; }
-
-.total {
-  display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 14px;
-  border-top: 2px solid var(--acc); margin-top: 26px; padding-top: 14px; align-items: baseline;
-}
-.total .k {
-  font-family: 'Unbounded', sans-serif; font-size: .66rem; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .12em; color: var(--ink2);
-}
-.total .val {
-  font-family: 'Unbounded', sans-serif; font-size: clamp(1.2rem, 4vw, 1.7rem);
-  color: var(--ink); white-space: nowrap;
-}
-.total .sub { grid-column: 1 / -1; font-size: .76rem; color: var(--ink3); margin-top: 6px; }
-.total .was { color: var(--ink3); text-decoration: line-through; font-weight: 400; font-size: .8em; }
-
-/* Снимки — как в версии для печати: две колонки рядом сразу под итогом,
-   без отдельного номерного заголовка, и на телефоне тоже рядом. */
-.pics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
-.pic {
-  border: 1px solid var(--rule); background: var(--zebra); aspect-ratio: 16/10;
-  display: grid; place-items: center; overflow: hidden; max-width: 100%;
-}
-.pic img { width: 100%; height: 100%; object-fit: contain; }
-
-.deadline {
-  border-left: 3px solid var(--acc2); background: var(--tint);
-  border-radius: 0 10px 10px 0; padding: 12px 14px; margin-top: 18px;
-  font-size: .8rem; color: var(--ink2); line-height: 1.5;
-}
-.deadline b { color: var(--acc); font-weight: 600; }
-.cl-foot {
-  margin-top: 26px; padding: 16px 0 40px; border-top: 1px solid var(--rule);
-  font-size: .74rem; color: var(--ink3); line-height: 1.7;
-}
-.cl-foot b { color: var(--ink2); font-weight: 500; }
 
 /* ── полоска «расчёт обновлён» ────────────────────────────────────────────── */
 .fresh {
@@ -209,13 +235,33 @@ body {
 @keyframes pulse { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1)} }
 @media (prefers-reduced-motion: reduce) { .state .dot { animation: none; opacity: .8; } }
 
+/* ── ПЕЧАТЬ ───────────────────────────────────────────────────────────────
+   Клиент нажимает «Скачать PDF» и получает тот же документ, что менеджер:
+   полосы клиента нет, логотип встаёт на сам лист, поля и разрывы страниц —
+   как в «Бланке», а бумага всегда дневная, даже если телефон в ночной теме.
+   ────────────────────────────────────────────────────────────────────────── */
 @media print {
-  .cl-bar { position: static; border-bottom: 1px solid #ddd; }
-  .cl-pdf, .fresh { display: none !important; }
-  body { background: #fff; }
-  .doc { max-width: none; padding: 0 10mm; }
-  .sec-h { break-after: avoid; }
-  .pos { break-inside: avoid; }
+  :root {
+    --page:#fff; --sheet:#fff; --zebra:#f7fafb;
+    --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5;
+    --rule:#dceaeb; --rule2:#bcd9db;
+    --acc:#1e6c72; --acc2:#2a8f97; --pale:#a8dde0;
+    --tint:#e4f5f6; --warn:#c06010; --hl:#fff8ec;
+    --strip-bg:#1e6c72; --strip-ink:#fff; --strip-ink2:rgba(255,255,255,.7);
+    --strip-ink3:rgba(255,255,255,.62); --strip-rule:rgba(255,255,255,.18); --strip-disc:#ffa8a8;
+  }
+  @page { margin: 18mm 7mm 20mm; }
+  html, body { background:#fff !important; margin:0 !important; padding:0 !important; }
+  .cl-bar, .fresh { display: none !important; }
+  .bl-wrap { padding: 0 !important; }
+  .bl-doc {
+    width:auto; max-width:none; margin:0; padding:0; border-radius:0; box-shadow:none;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .bl-logo-doc { display:block !important; }
+  .bl-till, .bl-ver { display:none; }
+  .bl-sec, .bl-row, .bl-note, .bl-strip { break-inside: avoid; }
+  .bl-sec { break-after: avoid; }
 }
 </style>
 </head>
@@ -293,7 +339,6 @@ function склон(н, о, д, м) {
   var х = н % 100, е = н % 10;
   return н + ' ' + (х > 4 && х < 21 ? м : е === 1 ? о : е > 1 && е < 5 ? д : м);
 }
-var ЛОГО = '<svg viewBox="0 0 60 34" fill="none" aria-hidden="true"><path d="M4 30L30 6l26 24" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 6v24" stroke="currentColor" stroke-width="2" opacity=".45"/></svg>';
 var ЗН_СКАЧАТЬ = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
 
 var ОТЛАДКА = /(^|[?&])debug=1(&|$)/.test(location.search);
@@ -313,52 +358,111 @@ function дата(iso) {
   return isNaN(д) ? '' : д.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
+// Лист собирается той же разметкой, что печатный «Бланк» в калькуляторе:
+// таблица с двузначными номерами разделов, нумерацией «раздел.строка»,
+// «Входит» или ценой у открытых «глазом» и залитыми строками примечаний.
 function разделДок(р, н) {
-  // Раздел с нулевой суммой печатается без цифры — так же, как в бумажном
-  // документе: почему он без цены, объясняет собственное примечание раздела
-  // («считаются по факту»), а не подпись вместо суммы. Клиентская страница —
-  // тот же документ, и расходиться с ним она не должна.
-  var нулевой = !р.сумма;
-  var шапка = '<div class="sec-h' + (нулевой ? ' is-zero' : '') + '">' +
-    '<span class="no">' + н + '</span>' +
-    '<span class="nm">' + экр(р.имя) + '</span>' +
-    '<span class="sum">' + (нулевой ? '' : рубли(р.сумма)) + '</span></div>';
-  var строки = (р.позиции || []).map(function (п, i) {
-    var прав = п.подарок ? '<span class="q gift">в подарок</span>'
-      : (п.ц ? '<span class="q">' + рубли(п.ц) + '</span>' : '<span class="q"></span>');
-    return '<div class="pos"><span class="n">' + (i + 1) + '</span>' +
-      '<span class="t">' + экр(п.т) + '</span>' + прав + '</div>';
-  }).join('');
-  var прим = (р.примечания || []).map(function (т) {
-    return '<div class="note">' + экр(т) + '</div>';
-  }).join('');
-  return шапка + строки + прим;
+  var сумма = р.сумма ? рубли(р.сумма) : '';
+  var строки = '<tr class="bl-sec"><td class="bl-sn">' + (н < 10 ? '0' + н : н) + '</td>' +
+    '<td class="bl-sname">' + экр(р.имя) + '</td>' +
+    '<td class="bl-ssum">' + сумма + '</td></tr>';
+  var ln = 0;
+  (р.позиции || []).forEach(function (п) {
+    ln++;
+    var знак = п.подарок ? '<span class="bl-gift">В подарок</span>' : '';
+    // «Входит» и цена — одна колонка: у позиции либо одно, либо другое,
+    // поэтому пустых столбцов на листе не остаётся. Как в печати.
+    var знач = п.ц
+      ? '<td class="bl-v bl-v-sum">' + рубли(п.ц) + '</td>'
+      : '<td class="bl-v bl-v-inc">Входит</td>';
+    строки += '<tr class="bl-row' + (п.выделено ? ' bl-hl' : '') + '">' +
+      '<td class="bl-n">' + н + '.' + ln + '</td>' +
+      '<td class="bl-name">' + экр(п.т) + знак + '</td>' + знач + '</tr>';
+  });
+  (р.примечания || []).forEach(function (т) {
+    ln++;
+    строки += '<tr class="bl-note"><td class="bl-n">' + н + '.' + ln + '</td>' +
+      '<td class="bl-note-t" colspan="2">' + экр(т) + '</td></tr>';
+  });
+  return строки;
 }
 
-function нарисовать(с, версия, ценаДо) {
-  var реквизиты = [
-    ['Менеджер', с.менеджер], ['Технология', с.технология],
-    ['Заказчик', с.заказчик], ['Толщина утепления', с.утепление],
-    ['Договор №', с.договор], ['Дата', с.датаДоговора]
-  ].filter(function (п) { return п[1]; });
-
-  var приложение = 'Спецификация · приложение №1 к договору подряда' +
-    (с.договор ? '<br>№ ' + экр(с.договор) : '') +
-    (с.датаДоговора ? ' от ' + экр(с.датаДоговора) + ' г.' : '');
-
-  var имя = экр(с.проект).replace(/«([^»]+)»/, '<em>«$1»</em>');
-
-  var снимки = (с.снимки || []).slice(0, 2).map(function (u) {
-    return '<div class="pic"><img src="' + экр(u) + '" alt="" loading="lazy"></div>';
+// Снимки ставятся той же раскладкой, что на листе: коробка с пропорцией
+// общего габарита и картинки в ней процентами. Старые снимки (до 12.09.2026)
+// раскладки не несут — им хватает ряда в две колонки.
+function снимкиДок(с) {
+  var р = с.раскладка || [];
+  if (!р.length) {
+    var адреса = с.снимки || [];
+    if (!адреса.length) return '';
+    var ш = adресаШирина(адреса.length);
+    return '<div class="bl-imgs" style="padding-top:31%">' + адреса.map(function (u, i) {
+      return '<img src="' + экр(u) + '" alt="" loading="lazy" style="left:' +
+        (i * (ш + 2.8)) + '%;top:0;width:' + ш + '%;height:100%">';
+    }).join('') + '</div>';
+  }
+  var лев = Infinity, верх = Infinity, прав = 0, низ = 0;
+  р.forEach(function (и) {
+    лев = Math.min(лев, и.л); верх = Math.min(верх, и.в);
+    прав = Math.max(прав, и.л + и.ш); низ = Math.max(низ, и.в + и.вы);
+  });
+  var Ш = прав - лев, В = низ - верх;
+  if (!(Ш > 0 && В > 0)) return '';
+  var картинки = р.map(function (и) {
+    return '<img src="' + экр(и.src) + '" alt="" loading="lazy" style="left:' +
+      ((и.л - лев) / Ш * 100).toFixed(2) + '%;top:' + ((и.в - верх) / В * 100).toFixed(2) +
+      '%;width:' + (и.ш / Ш * 100).toFixed(2) + '%;height:' + (и.вы / В * 100).toFixed(2) + '%">';
   }).join('');
+  return '<div class="bl-imgs" style="padding-top:' + (В / Ш * 100).toFixed(2) + '%">' +
+    картинки + '</div>';
+}
+function adресаШирина(н) { return н > 1 ? (100 - (н - 1) * 2.8) / н : 100; }
 
-  var подытог = 'Позиций в расчёте — ' + склон(с.позиций || 0, 'позиция', 'позиции', 'позиций');
-  var было = с.доСкидки && с.доСкидки > с.итог
-    ? '<span class="was">' + рубли(с.доСкидки) + '</span> ' : '';
+function нарисовать(с, версия, ценаДо) {
+  var наличные = с.наличные ? '<i> за наличные</i>' : '';
+  var сСкидкой = с.доСкидки && с.доСкидки > с.итог;
+  var доСкидки = сСкидкой ? с.доСкидки : с.итог;
+  var срок = дата(ценаДо) || с.ценаДо || '';
+
+  // Название разбивается на два цвета, как заголовок листа: до кавычек
+  // чернилами, кавычки с именем — акцентом.
+  var имя = экр(с.проект).replace(/^(.*?)(«.*)$/, '$1<span class="bl-em">$2</span>');
+
+  var реквизиты = [['Менеджер', с.менеджер]];
+  if (с.параметры !== false) реквизиты.push(['Технология', с.технология]);
+  реквизиты.push(['Заказчик', с.заказчик]);
+  if (с.параметры !== false) реквизиты.push([с.толщинаКлюч || 'Толщина утепления', с.утепление]);
+  реквизиты.push(['Договор №', с.договор], ['Дата', с.датаДоговора]);
+
+  var шапка = с.шапка || ('Приложение №1 к договору подряда' +
+    (с.договор ? ' № ' + с.договор : '') +
+    (с.датаДоговора ? ' от ' + с.датаДоговора + ' г.' : ''));
+
+  var состав = [];
+  if (с.база) состав.push('База ' + рубли(с.база));
+  if (с.опции) состав.push('опции ' + рубли(с.опции));
+  if (с.позиций) состав.push(склон(с.позиций, 'позиция', 'позиции', 'позиций'));
+
+  var головаСкидки = сСкидкой
+    ? '<div class="bl-disc">' +
+        '<div class="bl-disc-k">Спец. цена −' + экр(с.скидка) + '%' + наличные + '</div>' +
+        '<div class="bl-disc-v">' + рубли(с.итог).replace(' ₽', '') + '<small>₽</small></div>' +
+      '</div>' +
+      '<div class="bl-disc-sub">выгода ' + рубли(с.выгода || (доСкидки - с.итог)) +
+        (срок ? ' · действительна до ' + экр(срок) : '') + '</div>'
+    : '';
+
+  var полоскаСкидки = сСкидкой
+    ? '<div class="bl-strip-r">' +
+        '<div class="bl-strip-k">Спец. цена −' + экр(с.скидка) + '%' + наличные + '</div>' +
+        '<div class="bl-strip-disc">' + рубли(с.итог) + '</div>' +
+      '</div>'
+    : '';
 
   document.getElementById('корень').innerHTML =
     '<div class="cl-bar">' +
-      '<span class="cl-mark">' + ЛОГО + 'БАНЯ МСК</span>' +
+      '<img class="cl-logo day" src="/assets/logo-bmsk-dark.png" alt="Баня-МСК" width="520" height="117">' +
+      '<img class="cl-logo night" src="/assets/logo-bmsk-light.png" alt="Баня-МСК" width="520" height="117">' +
       '<span class="right"><button class="cl-pdf" onclick="window.print()">' +
         ЗН_СКАЧАТЬ + 'Скачать PDF</button></span>' +
     '</div>' +
@@ -366,29 +470,54 @@ function нарисовать(с, версия, ценаДо) {
       '<span>Менеджер обновил расчёт.</span>' +
       '<button onclick="location.reload()">Показать новую версию</button>' +
     '</div>' +
-    '<div class="doc">' +
-      '<div class="doc-over">' + приложение + '</div>' +
-      '<div class="doc-name">' + имя + '</div>' +
-      '<div class="req">' + реквизиты.map(function (п) {
-        return '<div class="r"><span class="k">' + экр(п[0]) + '</span>' +
-          '<span class="dots"></span><span class="val">' + экр(п[1]) + '</span></div>';
+    '<div class="bl-wrap"><div class="bl-doc">' +
+      '<img class="bl-logo-doc" src="/assets/logo-bmsk-dark.png" alt="Баня-МСК" width="520" height="117">' +
+      '<div class="bl-eyebrow">Спецификация · ' + экр(шапка) + '</div>' +
+      '<div class="bl-title">' + имя + '</div>' +
+      '<div class="bl-hr"></div>' +
+      '<div class="bl-req">' + реквизиты.map(function (п) {
+        return '<div>' + (п[1]
+          ? '<span>' + экр(п[0]) + '</span><b>' + экр(п[1]) + '</b>' : '') + '</div>';
       }).join('') + '</div>' +
-      (с.разделы || []).map(function (р, i) { return разделДок(р, i + 1); }).join('') +
-      '<div class="total"><span class="k">Общая стоимость</span>' +
-        '<span class="val">' + было + рубли(с.итог) + '</span>' +
-        '<span class="sub">' + подытог + '</span></div>' +
-      (снимки ? '<div class="pics">' + снимки + '</div>' : '') +
-      (ценаДо || с.ценаДо
-        ? '<div class="deadline"><b>Цена действует до ' + экр(дата(ценаДо) || с.ценаДо) + '.</b> ' +
-          'После этой даты спецификацию пересчитают — стоимость материалов меняется.</div>'
-        : '') +
-      '<div class="cl-foot">' +
-        (версия ? '<b>Версия от ' + экр(дата(версия)) + '</b>' : '') +
-        (с.менеджер ? ', подготовил ' + экр(с.менеджер) : '') +
-        '<br>Вопросы по спецификации — менеджеру.' +
-        (с.подрядчик ? ' ' + экр(с.подрядчик) + '.' : '') +
+      '<div class="bl-sum">' +
+        '<div class="bl-total">' +
+          '<div class="bl-total-k">Общая стоимость' + (сСкидкой ? '' : наличные) + '</div>' +
+          '<div class="bl-total-v">' + рубли(доСкидки).replace(' ₽', '') + '<small>₽</small></div>' +
+        '</div>' + головаСкидки +
       '</div>' +
-    '</div>';
+      снимкиДок(с) +
+      '<table class="bl-tbl"><tbody>' +
+        (с.разделы || []).map(function (р, i) { return разделДок(р, i + 1); }).join('') +
+      '</tbody></table>' +
+      '<div class="bl-strip">' +
+        '<div class="bl-strip-top">' +
+          '<div class="bl-strip-l">' +
+            '<div class="bl-strip-k">Общая стоимость' + (сСкидкой ? '' : наличные) + '</div>' +
+            '<div class="bl-strip-v">' + рубли(доСкидки) + '</div>' +
+          '</div>' + полоскаСкидки +
+        '</div>' +
+        '<div class="bl-strip-sub"><span>' + экр(состав.join(' · ')) + '</span>' +
+          (сСкидкой && срок
+            ? '<span class="bl-strip-till">действительна до ' + экр(срок) + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="bl-sign">' +
+        '<div><div class="bl-line"></div><div class="bl-who">Подрядчик</div>' +
+          '<div class="bl-fio">' + экр(с.подпись || '') + '</div></div>' +
+        '<div><div class="bl-line"></div><div class="bl-who">Заказчик</div>' +
+          '<div class="bl-fio">' + экр(с.заказчикФИО || '') + '</div></div>' +
+      '</div>' +
+      (с.оговорка === false ? '' : '<div class="bl-foot">Наличие одной из опций на ' +
+        'архитектурном решении или планировке (ступени, лестницы, декоративные элементы, ' +
+        'элементы сантехники, других инженерных решений) не подразумевает их обязательное ' +
+        'включение в договор.</div>') +
+      (срок ? '<div class="bl-till"><b>Цена действует до ' + экр(срок) + '.</b> ' +
+        'После этой даты спецификацию пересчитают — стоимость материалов меняется.</div>' : '') +
+      (версия ? '<div class="bl-ver">Версия от ' + экр(дата(версия)) +
+        (с.менеджер ? ', подготовил ' + экр(с.менеджер) : '') +
+        '. Вопросы по спецификации — менеджеру.' +
+        (с.подрядчик ? ' ' + экр(с.подрядчик) + '.' : '') + '</div>' : '') +
+    '</div></div>';
 }
 
 var ВЕРСИЯ = null;
