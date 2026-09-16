@@ -163,13 +163,6 @@ body {
 .bl-sign .bl-who { margin-top:6px; font-size:6.8pt; letter-spacing:.14em; text-transform:uppercase; color:var(--ink3); }
 .bl-sign .bl-fio { font-size:9.5pt; font-weight:500; color:var(--ink); }
 .bl-foot { margin-top:24px; padding-top:11px; border-top:1px solid var(--rule); font-size:7.5pt; line-height:1.65; color:var(--ink3); }
-/* Срок цены и версия — единственное, чего нет у менеджера на листе: клиенту
-   надо знать, до какого числа держится цена и какую версию он смотрит. */
-.bl-till { margin-top:16px; border-left:3px solid var(--acc2); background:var(--tint);
-  border-radius:0 8px 8px 0; padding:11px 14px; font-size:8.5pt; color:var(--ink2); line-height:1.5; }
-.bl-till b { color:var(--acc); font-weight:600; }
-.bl-ver { margin-top:9px; font-size:7.5pt; color:var(--ink3); }
-
 /* ── телефон: те же правила, что у печатного листа ───────────────────────── */
 @media screen and (max-width:700px) {
   .bl-doc { width:auto; }
@@ -259,7 +252,6 @@ body {
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
   .bl-logo-doc { display:block !important; }
-  .bl-till, .bl-ver { display:none; }
   .bl-sec, .bl-row, .bl-note, .bl-strip { break-inside: avoid; }
   .bl-sec { break-after: avoid; }
 }
@@ -418,7 +410,7 @@ function снимкиДок(с) {
 }
 function adресаШирина(н) { return н > 1 ? (100 - (н - 1) * 2.8) / н : 100; }
 
-function нарисовать(с, версия, ценаДо) {
+function нарисовать(с, ценаДо) {
   var наличные = с.наличные ? '<i> за наличные</i>' : '';
   var сСкидкой = с.доСкидки && с.доСкидки > с.итог;
   var доСкидки = сСкидкой ? с.доСкидки : с.итог;
@@ -511,12 +503,6 @@ function нарисовать(с, версия, ценаДо) {
         'архитектурном решении или планировке (ступени, лестницы, декоративные элементы, ' +
         'элементы сантехники, других инженерных решений) не подразумевает их обязательное ' +
         'включение в договор.</div>') +
-      (срок ? '<div class="bl-till"><b>Цена действует до ' + экр(срок) + '.</b> ' +
-        'После этой даты спецификацию пересчитают — стоимость материалов меняется.</div>' : '') +
-      (версия ? '<div class="bl-ver">Версия от ' + экр(дата(версия)) +
-        (с.менеджер ? ', подготовил ' + экр(с.менеджер) : '') +
-        '. Вопросы по спецификации — менеджеру.' +
-        (с.подрядчик ? ' ' + экр(с.подрядчик) + '.' : '') + '</div>' : '') +
     '</div></div>';
 }
 
@@ -548,7 +534,7 @@ function открыть() {
     }
     ВЕРСИЯ = о.snapshot_at;
     document.title = (о.snapshot.проект || 'Спецификация') + ' · Баня-МСК';
-    нарисовать(о.snapshot, о.snapshot_at, о.price_until);
+    нарисовать(о.snapshot, о.price_until);
     if (!ПРЕДПРОСМОТР) зов('client_link_open', { p_code: КОД, p_version: о.snapshot_at, p_fresh: СВЕЖИЙ });
   }).catch(function () {
     состояние('Не удалось открыть', 'Проверьте связь и обновите страницу.', true);
