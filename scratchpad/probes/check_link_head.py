@@ -108,6 +108,23 @@ def сервер():
   const пр = печать.getBoundingClientRect();
   const мойРяд = Object.entries(строки)
     .find(([к]) => Math.abs(+к - Math.round(пр.top / 4) * 4) < 1);
+  // Промежутки внутри каждого ряда верхней строки. Ровный ряд — это когда они
+  // все одинаковые; дыра посреди ряда видна именно здесь, а не в переполнении
+  // и не в расстоянии до ближайшего соседа (у соседа-то зазор нормальный).
+  const ряды = {};
+  [...верх.children].filter(э => э.getClientRects().length).forEach(э => {
+    const r = э.getBoundingClientRect();
+    if (getComputedStyle(э).position === 'absolute') return;   // крестик вне потока
+    const к = Math.round(r.top / 4) * 4;
+    (ряды[к] = ряды[к] || []).push({ кто: э.id || э.className || э.tagName, л: r.left, п: r.right });
+  });
+  const промежутки = Object.values(ряды).map(ряд => {
+    ряд.sort((a, b) => a.л - b.л);
+    const щели = [];
+    for (let и = 1; и < ряд.length; и++) щели.push({ между: ряд[и - 1].кто + '↔' + ряд[и].кто,
+                                                     сколько: ряд[и].л - ряд[и - 1].п });
+    return щели;
+  }).filter(щ => щ.length);
   return {
     естьСтараяКнопка: !!document.getElementById('clientLinkBtn'),
     естьПодписьНизаУведомлений: !!document.querySelector('#bellMenu .nt-f'),
@@ -119,6 +136,7 @@ def сервер():
     панельШ: панель.getBoundingClientRect().width,
     печатьРяд: мойРяд ? мойРяд[1] : [],
     печатьКор: кор(печать),
+    промежутки,
     строкиВерха: Object.keys(строки).length,
     переполнение: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     ошибкиРазметки: [...полоса.querySelectorAll('.cl-head > *')].map(э => ({
@@ -182,12 +200,44 @@ def проверить(страница, окно, ш, в):
     if len(авто) > 1:
         плохо(окно, f"в строке заголовка два margin-left:auto: {авто}")
 
+    # Ряд ровный: промежутки между кнопками одинаковые.
+    for щели in д["промежутки"]:
+        размеры = [щ["сколько"] for щ in щели]
+        самая = max(щели, key=lambda щ: щ["сколько"])
+        if самая["сколько"] > 30 and самая["сколько"] > min(размеры) * 2.5:
+            плохо(окно, f"дыра в ряду кнопок: {самая['сколько']:.0f} px между "
+                        f"{самая['между']} при обычных {min(размеры):.0f} px — ряд кривой")
+
     # «Печать / PDF» — не одна во втором ряду.
     if len(д["печатьРяд"]) < 2:
         плохо(окно, f"«Печать / PDF» стоит в ряду одна: {д['печатьРяд']}")
 
     if д["переполнение"] > 1:
         плохо(окно, f"горизонтальное переполнение страницы {д['переполнение']} px")
+
+    # Списки кнопок панели открываются на экране целиком. Привязка меню к краю
+    # кнопки рассчитывалась на прежний порядок, где «Бланк» стоял у правого
+    # края; распорки больше нет, и проверять это надо мерой, а не памятью.
+    ЗАМЕР = """([к, м]) => {
+      const кн = document.getElementById(к), мн = document.getElementById(м);
+      if (!кн || !мн) return null;
+      кн.click();
+      const r = мн.getBoundingClientRect();
+      кн.click();
+      return { л: r.left, п: r.right, ш: r.width };
+    }"""
+    for кнопка, меню in (("previewEntityBtn", "previewEntityMenu"),
+                         ("printStyleDropBtn", "printStyleDropMenu"),
+                         ("printSectionBtn", "printSectionMenu"),
+                         ("printParamsBtn", "printParamsDropMenu")):
+        вышло = страница.evaluate(ЗАМЕР, [кнопка, меню])
+        страница.wait_for_timeout(60)
+        if not вышло or not вышло["ш"]:
+            continue
+        if вышло["л"] < -1:
+            плохо(окно, f"список «{меню}» уходит за левый край на {-вышло['л']:.0f} px")
+        if вышло["п"] > ш + 1:
+            плохо(окно, f"список «{меню}» уходит за правый край на {вышло['п'] - ш:.0f} px")
 
     # Разворот — только птичкой.
     страница.evaluate("() => переключитьПолосуСсылки(false)")
