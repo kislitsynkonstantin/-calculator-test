@@ -15,26 +15,62 @@
       code: 'adkv8q5j', revoked: false, author_id: 'u-проба', preset_id: '7',
       project_name: 'Фахверковая баня «Берлин» 9×5', client_name: 'Иванов Иван Сергеевич',
       created_at: '2026-09-10T09:00:00Z', snapshot_at: '2026-09-16T10:00:00Z', snapshot: {},
+    }, {
+      code: 'bezpres1', revoked: false, author_id: 'u-проба', preset_id: null,
+      project_name: 'Баня 6×4 без пресета', client_name: '',
+      created_at: '2026-09-14T08:00:00Z', snapshot_at: '2026-09-14T09:00:00Z', snapshot: {},
     }],
+    // Пресет лежит только в облаке: в этом браузере его нет. Так проверяется
+    // длинный путь перехода — достать строку прицельно и открыть.
+    presets: [{ id: '7', user_id: 'u-проба', name: 'Фахверковая баня «Берлин» 9×5',
+                state: {}, updated_at: '2026-09-16T10:00:00Z' }],
     client_link_visits: [
       { code: 'adkv8q5j', seen_at: '2026-09-16T14:22:00Z', version_at: '2026-09-16T10:00:00Z' },
       { code: 'adkv8q5j', seen_at: '2026-09-15T18:03:00Z', version_at: '2026-09-16T10:00:00Z' },
       { code: 'adkv8q5j', seen_at: '2026-09-15T11:40:00Z', version_at: '2026-09-12T08:00:00Z' },
+      // Ссылка без пресета: её строка в уведомлениях открывать нечего.
+      { code: 'bezpres1', seen_at: '2026-09-14T09:10:00Z', version_at: '2026-09-14T09:00:00Z' },
     ],
   };
   window.__RPC = window.__RPC || {};
 
   function ответ(строки) { return { data: строки, error: null, count: строки ? строки.length : 0 }; }
 
+  /* Отборы выполняются по-настоящему. Заглушка, отдающая всю таблицу на любой
+     запрос, показывает пробе не то, что увидит страница: строка по чужому
+     коду попала бы в счёт заходов, а уведомления собрались бы по чужим
+     ссылкам. Ровно на этом проба и молчала бы. */
   function запрос(таблица) {
     var строки = (window.__ТАБЛИЦЫ[таблица] || []).slice();
     var один = false;
     var о = {};
-    ['select', 'insert', 'update', 'upsert', 'delete', 'eq', 'neq', 'in', 'is', 'gt', 'gte',
-     'lt', 'lte', 'like', 'ilike', 'not', 'or', 'filter', 'order', 'limit', 'range',
+    ['select', 'insert', 'update', 'upsert', 'delete', 'is', 'gt', 'gte',
+     'lt', 'lte', 'like', 'ilike', 'not', 'or', 'filter', 'range',
      'contains', 'overlaps', 'match', 'abortSignal'].forEach(function (и) {
       о[и] = function () { return о; };
     });
+    о.eq = function (поле, знач) {
+      строки = строки.filter(function (р) { return String(р[поле]) === String(знач); });
+      return о;
+    };
+    о.neq = function (поле, знач) {
+      строки = строки.filter(function (р) { return String(р[поле]) !== String(знач); });
+      return о;
+    };
+    о.in = function (поле, список) {
+      строки = строки.filter(function (р) { return (список || []).map(String).indexOf(String(р[поле])) >= 0; });
+      return о;
+    };
+    о.order = function (поле, наст) {
+      var вверх = !(наст && наст.ascending === false);
+      строки.sort(function (a, b) {
+        var x = a[поле], y = b[поле];
+        if (x === y) return 0;
+        return (x > y ? 1 : -1) * (вверх ? 1 : -1);
+      });
+      return о;
+    };
+    о.limit = function (н) { строки = строки.slice(0, н); return о; };
     о.single = о.maybeSingle = function () { один = true; return о; };
     о.then = function (принять, отклонить) {
       var р = один ? (строки[0] || null) : строки;
