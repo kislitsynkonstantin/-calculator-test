@@ -13,7 +13,7 @@
   window.__ТАБЛИЦЫ = window.__ТАБЛИЦЫ || {
     client_links: [{
       code: 'adkv8q5j', revoked: false, author_id: 'u-проба', preset_id: '7',
-      project_name: 'Баня 6×4', client_name: '',
+      project_name: 'Фахверковая баня «Берлин» 9×5', client_name: 'Иванов Иван Сергеевич',
       created_at: '2026-09-10T09:00:00Z', snapshot_at: '2026-09-16T10:00:00Z', snapshot: {},
     }],
     client_link_visits: [
