@@ -522,6 +522,19 @@ function нарисовать(с, версия, ценаДо) {
 
 var ВЕРСИЯ = null;
 
+/* Открытие ссылки считается одно на приход. Пришли по ссылке заново — новое
+   открытие; обновили страницу или вернулись в ту же вкладку — то же самое.
+   Признак прихода держим в памяти вкладки: она переживает обновление и
+   умирает вместе с вкладкой, то есть ровно совпадает с «пришли ещё раз».
+   Память может быть закрыта настройками — тогда считаем приход свежим:
+   потерять открытие хуже, чем посчитать обновление вторым заходом. */
+var СВЕЖИЙ = true;
+try {
+  var клЗаход = 'bm_заход_' + КОД;
+  СВЕЖИЙ = !sessionStorage.getItem(клЗаход);
+  sessionStorage.setItem(клЗаход, '1');
+} catch (e) {}
+
 function открыть() {
   зов('client_link_get', { p_code: КОД }).then(function (о) {
     if (!о) { состояние('Не удалось открыть', 'Проверьте связь и обновите страницу.', true); return; }
@@ -536,7 +549,7 @@ function открыть() {
     ВЕРСИЯ = о.snapshot_at;
     document.title = (о.snapshot.проект || 'Спецификация') + ' · Баня-МСК';
     нарисовать(о.snapshot, о.snapshot_at, о.price_until);
-    if (!ПРЕДПРОСМОТР) зов('client_link_seen', { p_code: КОД, p_version: о.snapshot_at });
+    if (!ПРЕДПРОСМОТР) зов('client_link_open', { p_code: КОД, p_version: о.snapshot_at, p_fresh: СВЕЖИЙ });
   }).catch(function () {
     состояние('Не удалось открыть', 'Проверьте связь и обновите страницу.', true);
   });
@@ -555,7 +568,7 @@ document.addEventListener('visibilitychange', function () {
       var п = document.getElementById('полоскаСвежести');
       if (п) п.classList.add('on');
     }
-    if (!ПРЕДПРОСМОТР) зов('client_link_seen', { p_code: КОД, p_version: ВЕРСИЯ });
+    if (!ПРЕДПРОСМОТР) зов('client_link_open', { p_code: КОД, p_version: ВЕРСИЯ, p_fresh: false });
   }).catch(function () { ПРОВЕРЯЕМ = false; });
 });
 
