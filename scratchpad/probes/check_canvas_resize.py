@@ -85,6 +85,61 @@ def сервер():
 }"""
 
 
+# Перенос снимка. Мышью — сразу, пальцем — после удержания: провёл пальцем
+# раньше срока — это листание страницы, и снимок стоять должен на месте.
+ПЕРЕНОС_ПАЛЬЦЕМ = """async ([держать, дх, ду]) => {
+  const снимок = document.querySelector('.canvas-img-item');
+  const r = снимок.getBoundingClientRect();
+  const x = r.left + r.width / 2, y = r.top + r.height / 2;
+  снимок.setPointerCapture = () => {};
+  const шли = (имя, кх, ку, куда) => (куда || снимок).dispatchEvent(new PointerEvent(имя, {
+    bubbles: true, cancelable: true, pointerId: 11, pointerType: 'touch',
+    isPrimary: true, clientX: кх, clientY: ку, buttons: 1,
+  }));
+  const было = { л: parseInt(снимок.style.left) || 0, в: parseInt(снимок.style.top) || 0 };
+  шли('pointerdown', x, y);
+  await new Promise(р => setTimeout(р, держать));
+  шли('pointermove', x + дх, y + ду, document);
+  const взят = снимок.classList.contains('тянут');
+  шли('pointerup', x + дх, y + ду, document);
+  await new Promise(р => setTimeout(р, 60));
+  return { было, стало: { л: parseInt(снимок.style.left) || 0, в: parseInt(снимок.style.top) || 0 },
+           взят, жест: getComputedStyle(снимок).touchAction };
+}"""
+
+ПЕРЕНОС_МЫШЬЮ = """([дх, ду]) => {
+  const снимок = document.querySelector('.canvas-img-item');
+  const r = снимок.getBoundingClientRect();
+  const x = r.left + r.width / 2, y = r.top + r.height / 2;
+  снимок.setPointerCapture = () => {};
+  const шли = (имя, кх, ку, куда) => (куда || снимок).dispatchEvent(new PointerEvent(имя, {
+    bubbles: true, cancelable: true, pointerId: 12, pointerType: 'mouse',
+    isPrimary: true, clientX: кх, clientY: ку, buttons: 1,
+  }));
+  const было = { л: parseInt(снимок.style.left) || 0, в: parseInt(снимок.style.top) || 0 };
+  шли('pointerdown', x, y);
+  шли('pointermove', x + дх, y + ду, document);
+  шли('pointerup', x + дх, y + ду, document);
+  return { было, стало: { л: parseInt(снимок.style.left) || 0, в: parseInt(снимок.style.top) || 0 } };
+}"""
+
+# Выгрузка снимков в облако обязана подменять адрес и на самой странице:
+# снимок для клиентской ссылки собирается из холста, и пока в нём стоит data:,
+# полоска пишет «фото не ушли» при уже уехавших фото.
+ВЫГРУЗКА = """async () => {
+  const ф = [...document.querySelectorAll('.canvas-img-item')].map(э => {
+    const и = э.querySelector('img');
+    return { src: и.src, left: parseInt(э.style.left) || 0, top: parseInt(э.style.top) || 0,
+             width: э.offsetWidth, height: э.offsetHeight };
+  });
+  const доData = ф.filter(и => и.src.startsWith('data:')).length;
+  const адреса = await uploadCanvasToStorage('проба', ф);
+  const после = [...document.querySelectorAll('.canvas-img-item img')].map(и => и.src);
+  return { доData, ушло: адреса.length,
+           осталосьData: после.filter(с => с.startsWith('data:')).length };
+}"""
+
+
 def главная():
     с, порт = сервер()
     with sync_playwright() as pw:
@@ -128,6 +183,48 @@ def главная():
             НАХОДКИ.append(f"поле нажатия уголка {поле['поле']:.0f} px, нужно 44")
         if поле["коробка"] > 30:
             НАХОДКИ.append(f"уголок нарисован {поле['коробка']:.0f} px — вес оплачен размером")
+
+        # ── перенос снимка: мышью сразу, пальцем после удержания ─────────────
+        # Пальцем снимок не двигался вовсе, а «просто отдать палец» нельзя:
+        # снимки занимают весь холст, и страница под ними перестала бы
+        # листаться. Удержание разводит жесты (Константин, 17.09.2026).
+        мышью = стр.evaluate(ПЕРЕНОС_МЫШЬЮ, [60, 40])
+        if abs(мышью["стало"]["л"] - мышью["было"]["л"] - 60) > 4:
+            НАХОДКИ.append(f"мышью снимок не переносится: было {мышью['было']}, "
+                           f"стало {мышью['стало']}")
+
+        листание = стр.evaluate(ПЕРЕНОС_ПАЛЬЦЕМ, [40, 60, 40])   # раньше срока
+        if листание["взят"]:
+            НАХОДКИ.append("палец провёл сразу, а снимок уже в руке — страницу "
+                           "под холстом не пролистать")
+        if листание["стало"] != листание["было"]:
+            НАХОДКИ.append(f"снимок поехал за листанием: {листание['было']} → "
+                           f"{листание['стало']}")
+        if листание["жест"] == "none":
+            НАХОДКИ.append("снимок забрал жест себе вне тяги — холст перестанет листаться")
+
+        держали = стр.evaluate(ПЕРЕНОС_ПАЛЬЦЕМ, [420, 50, 30])   # с удержанием
+        if not держали["взят"]:
+            НАХОДКИ.append("после удержания снимок не поднялся — пальцу нечем "
+                           "отличить взятый снимок от невзятого")
+        if abs(держали["стало"]["л"] - держали["было"]["л"] - 50) > 4:
+            НАХОДКИ.append(f"после удержания снимок не поехал за пальцем: "
+                           f"{держали['было']} → {держали['стало']}")
+        # Отпустили — жест возвращается странице.
+        жестПосле = стр.evaluate("() => getComputedStyle(document.querySelector('.canvas-img-item')).touchAction")
+        if жестПосле == "none":
+            НАХОДКИ.append("после переноса снимок так и держит жест — холст не листается")
+
+        # ── выгруженные фото подменяют адрес и на странице ───────────────────
+        # Иначе снимок для клиентской ссылки видит их как data: и считает
+        # неотправленными: «фото не ушли (2)» при уехавших фото.
+        выгрузка = стр.evaluate(ВЫГРУЗКА)
+        if not выгрузка["доData"]:
+            НАХОДКИ.append("проба не нашла неотправленных снимков — проверять нечего")
+        elif выгрузка["осталосьData"]:
+            НАХОДКИ.append(f"после выгрузки на странице осталось {выгрузка['осталосьData']} "
+                           "картинок как data: — полоска будет писать «фото не ушли» "
+                           "при уехавших фото")
 
         # ── надпись кнопки называет следующее нажатие ────────────────────────
         def надпись():
