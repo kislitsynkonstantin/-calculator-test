@@ -310,13 +310,29 @@ var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6
    смотровая, и переживает обновление. Память умирает вместе с вкладкой —
    значит, чужую вкладку это не задевает. */
 var ПРЕДПРОСМОТР = /(^|[?&])preview=1(&|$)/.test(location.search);
-try {
-  var клПред = 'bm_предпросмотр_' + КОД;
-  if (ПРЕДПРОСМОТР) sessionStorage.setItem(клПред, '1');
-  else ПРЕДПРОСМОТР = !!sessionStorage.getItem(клПред);
-} catch (e) {}
-if (/(^|[?&])preview=1(&|$)/.test(location.search) && history.replaceState) {
-  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+/* Признак смотровой страницы снимается с адреса и хранится в состоянии записи
+   истории — но одного состояния мало. Измерено 17.09.2026: тот же адрес,
+   введённый в строке браузера заново, Chromium кладёт в ту же запись, и
+   состояние переживает такой переход. Именно на этом менеджер и споткнулся:
+   скопировал ссылку кнопкой, открыл у себя — и увидел служебную полосу.
+   Поэтому к состоянию добавлено условие «это перезагрузка». Обновление
+   смотровой страницы остаётся смотровым, набранный или вставленный адрес —
+   обычное открытие, даже в той же вкладке. */
+function этоПерезагрузка() {
+  try {
+    var записи = performance.getEntriesByType && performance.getEntriesByType('navigation');
+    if (записи && записи.length) return записи[0].type === 'reload';
+    // Старые браузеры: отменённый, но работающий способ. Нет и его — считаем,
+    // что это обычный переход: лишняя отметка хуже потерянной.
+    return !!(performance.navigation && performance.navigation.type === 1);
+  } catch (e) { return false; }
+}
+if (ПРЕДПРОСМОТР) {
+  try { history.replaceState({ bmПредпросмотр: true }, '', location.pathname); } catch (e) {}
+} else {
+  try {
+    ПРЕДПРОСМОТР = !!(history.state && history.state.bmПредпросмотр) && этоПерезагрузка();
+  } catch (e) {}
 }
 
 /* Запрос за снимком не кладётся в кэш: POST посредниками не кэшируется, а от
@@ -566,11 +582,16 @@ if (ПРЕДПРОСМОТР) {
 }
 
 var СВЕЖИЙ = true;
-try {
-  var клЗаход = 'bm_заход_' + КОД;
-  СВЕЖИЙ = !sessionStorage.getItem(клЗаход);
-  sessionStorage.setItem(клЗаход, '1');
-} catch (e) {}
+// В предпросмотре отметку не ставим и памяти не трогаем: иначе свой же заход
+// менеджера съедал бы признак прихода, и следующее — настоящее — открытие
+// в этой вкладке считалось бы возвратом, а не приходом.
+if (!ПРЕДПРОСМОТР) {
+  try {
+    var клЗаход = 'bm_заход_' + КОД;
+    СВЕЖИЙ = !sessionStorage.getItem(клЗаход);
+    sessionStorage.setItem(клЗаход, '1');
+  } catch (e) {}
+}
 
 function открыть() {
   зов('client_link_get', { p_code: КОД }).then(function (о) {
