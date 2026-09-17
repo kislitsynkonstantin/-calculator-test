@@ -325,7 +325,100 @@ def проверить(страница, окно, ш, в):
                        f"обновить {о['залито']} — при равной высоте выглядят разными")
     страница.evaluate("(б) => document.body.classList.toggle('ui-blank', !!б)", было_бланком)
 
+    # ── «Параметры» → «Ссылка»: полоску можно убрать совсем ─────────────
+    # Галочка лежит в настройках аккаунта, а не устройства: settings уезжают
+    # в профиль, поэтому проверяется и то, что переключатель их трогает.
     страница.evaluate("() => { window._снимокКлиента = null; нарисоватьПолосуСсылки(); }")
+    пункт = страница.evaluate("""() => {
+      const п = document.getElementById('printParamsLinkItem');
+      if (!п) return null;
+      const г = document.getElementById('printParamsLinkCheck');
+      return { текст: п.textContent.replace(/[✓\\s]+/g, ' ').trim(),
+               галочка: г ? getComputedStyle(г).opacity : null,
+               виден: !!п.getClientRects().length };
+    }""")
+    if not пункт:
+        плохо(окно, "в «Параметрах» нет пункта «Ссылка»")
+    else:
+        if пункт["текст"] != "Ссылка":
+            плохо(окно, f"пункт назван {пункт['текст']!r}, а не «Ссылка»")
+        if пункт["галочка"] != "1":
+            плохо(окно, "галочка «Ссылка» снята при настройке по умолчанию")
+
+        # Пункт добавлен третьим — значит, меню стало длиннее, и его нижний
+        # край мог уйти под обрез окна печати. Мерить высоту мало: важно,
+        # что по пункту попадает нажатие.
+        достаём = страница.evaluate("""() => {
+          togglePrintParamsDrop();
+          const п = document.getElementById('printParamsLinkItem');
+          const r = п.getBoundingClientRect();
+          const под = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+          const итог = { высота: +r.height.toFixed(1), низ: +r.bottom.toFixed(1),
+                         окно: innerHeight, свой: !!(под && п.contains(под)) };
+          togglePrintParamsDrop();
+          return итог;
+        }""")
+        if not достаём["свой"]:
+            плохо(окно, "по пункту «Ссылка» не попадает нажатие — меню выросло "
+                        "и нижний пункт ушёл под обрез")
+        if достаём["низ"] > достаём["окно"]:
+            плохо(окно, f"пункт «Ссылка» на {достаём['низ'] - достаём['окно']:.0f} px "
+                        "ниже края экрана")
+
+        убрали = страница.evaluate("""() => {
+          togglePrintClientLink();
+          const п = document.getElementById('clientLinkBar');
+          const л = document.getElementById('clientLinkRule');
+          let вНастройках = null;
+          try { вНастройках = JSON.parse(localStorage.getItem('appSettings_v1') || '{}').showClientLink; }
+          catch (e) {}
+          return {
+            полоса: getComputedStyle(п).display, линейка: getComputedStyle(л).display,
+            внутри: п.innerHTML.trim().length, развёрнута: п.classList.contains('open'),
+            галочка: getComputedStyle(document.getElementById('printParamsLinkCheck')).opacity,
+            вПамяти: appSettings.showClientLink, вНастройках: вНастройках,
+          };
+        }""")
+        if убрали["полоса"] != "none":
+            плохо(окно, "снятая галочка «Ссылка» не убрала полоску")
+        if убрали["линейка"] != "none":
+            плохо(окно, "полоска убрана, а линейка под ней осталась — в панели висит пустая черта")
+        if убрали["внутри"]:
+            плохо(окно, "убранная полоска осталась в разметке с содержимым")
+        if убрали["развёрнута"]:
+            плохо(окно, "убранная полоска осталась развёрнутой — вернётся раскрытой")
+        if убрали["галочка"] != "0":
+            плохо(окно, "полоску убрали, а галочка в меню осталась стоять")
+        if убрали["вПамяти"] is not False or убрали["вНастройках"] is not False:
+            плохо(окно, f"настройка не записалась: в памяти {убрали['вПамяти']}, "
+                        f"в настройках {убрали['вНастройках']} — на другом устройстве "
+                        "полоска вернётся")
+
+        # Убранная полоска не стоит запроса к базе при открытии панели.
+        ходили = страница.evaluate("""async () => {
+          let ходов = 0;
+          const был = window.загрузитьСсылкуКлиента;
+          window.загрузитьСсылкуКлиента = async () => { ходов++; };
+          await подтянутьСсылкуВПанель();
+          window.загрузитьСсылкуКлиента = был;
+          return ходов;
+        }""")
+        if ходили:
+            плохо(окно, "панель ходит за ссылкой, хотя полоска убрана")
+
+        вернули = страница.evaluate("""async () => {
+          await togglePrintClientLink();
+          const п = document.getElementById('clientLinkBar');
+          return { полоса: getComputedStyle(п).display,
+                   есть: !!п.querySelector('.cl-copy'),
+                   галочка: getComputedStyle(document.getElementById('printParamsLinkCheck')).opacity,
+                   вПамяти: appSettings.showClientLink };
+        }""")
+        if вернули["полоса"] == "none" or not вернули["есть"]:
+            плохо(окно, "галочку вернули, а полоска не появилась")
+        if вернули["галочка"] != "1" or вернули["вПамяти"] is not True:
+            плохо(окно, "галочку вернули, а настройка осталась снятой")
+
 
     # От 768 px все пять кнопок стоят одной строкой. Держится это тремя
     # пикселями запаса, поэтому пусть держит проба, а не надежда: подпись
