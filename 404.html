@@ -110,6 +110,13 @@ body {
 .bl-req>div { display:flex; align-items:baseline; gap:10px; padding:7px 0; border-bottom:1px solid var(--rule); }
 .bl-req span { font-size:6.8pt; letter-spacing:.14em; text-transform:uppercase; color:var(--ink3); white-space:nowrap; }
 .bl-req b { margin-left:auto; font-weight:500; font-size:9.5pt; color:var(--ink); text-align:right; }
+/* Незаполненное поле — это название и место под него, как на листе менеджера.
+   Раньше пустое значение уносило с собой и название: на странице оставалась
+   голая линейка, про которую нечего было понять (Константин, 17.09.2026). */
+.bl-fill { display:block; border-bottom:1px solid var(--rule2); flex:1; max-width:120px; height:11px; margin-left:auto; }
+/* Пустая клетка сетки — распорка для выравнивания колонок, а не строка:
+   своей линейки она не рисует. */
+.bl-req>div:empty { border-bottom:0; }
 .bl-sum { margin:26px 0 4px; padding-bottom:9px; border-bottom:2px solid var(--acc); }
 .bl-total { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; }
 .bl-total-k { font-size:6.8pt; letter-spacing:.2em; text-transform:uppercase; color:var(--ink3); padding-bottom:5px; }
@@ -468,8 +475,8 @@ function нарисовать(с, ценаДо) {
       '<div class="bl-title">' + имя + '</div>' +
       '<div class="bl-hr"></div>' +
       '<div class="bl-req">' + реквизиты.map(function (п) {
-        return '<div>' + (п[1]
-          ? '<span>' + экр(п[0]) + '</span><b>' + экр(п[1]) + '</b>' : '') + '</div>';
+        return '<div><span>' + экр(п[0]) + '</span>' +
+          (п[1] ? '<b>' + экр(п[1]) + '</b>' : '<span class="bl-fill"></span>') + '</div>';
       }).join('') + '</div>' +
       '<div class="bl-sum">' +
         '<div class="bl-total">' +
