@@ -15,6 +15,7 @@
   • эмодзи в доме нет.
 """
 import html
+import os
 import pathlib
 import re
 import sys
@@ -23,7 +24,21 @@ import tempfile
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 import справка  # noqa: E402
 
-ХРОМ = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
+def хром():
+    """Путь к браузеру. Номер сборки в нём меняется при обновлении образа,
+    поэтому вписанный в пробу он однажды перестал бы совпадать. Значение
+    кладёт хук запуска сессии; нет его — находим сами."""
+    из_среды = os.environ.get("BM_CHROMIUM")
+    if из_среды and pathlib.Path(из_среды).exists():
+        return из_среды
+    найденные = sorted(pathlib.Path("/opt/pw-browsers").glob("chromium-*/chrome-linux/chrome"))
+    if not найденные:
+        raise SystemExit("Chromium в /opt/pw-browsers не найден — запусти "
+                         ".claude/hooks/session-start.sh")
+    return str(найденные[-1])
+
+
+ХРОМ = хром()
 ЗНАЧКИ = re.compile("[\U0001F300-\U0001FAFF\u2600-\u27BF]")
 ПРОЗА = 400
 ЖУРНАЛ = 500

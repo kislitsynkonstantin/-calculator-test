@@ -18,6 +18,7 @@
   • никакого горизонтального переполнения.
 """
 import json
+import os
 import pathlib
 import re
 import subprocess
@@ -30,7 +31,21 @@ import functools
 from playwright.sync_api import sync_playwright
 
 КОРЕНЬ = pathlib.Path(__file__).resolve().parent.parent.parent
-ХРОМ = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
+def хром():
+    """Путь к браузеру. Номер сборки в нём меняется при обновлении образа,
+    поэтому вписанный в пробу он однажды перестал бы совпадать. Значение
+    кладёт хук запуска сессии; нет его — находим сами."""
+    из_среды = os.environ.get("BM_CHROMIUM")
+    if из_среды and pathlib.Path(из_среды).exists():
+        return из_среды
+    найденные = sorted(pathlib.Path("/opt/pw-browsers").glob("chromium-*/chrome-linux/chrome"))
+    if not найденные:
+        raise SystemExit("Chromium в /opt/pw-browsers не найден — запусти "
+                         ".claude/hooks/session-start.sh")
+    return str(найденные[-1])
+
+
+ХРОМ = хром()
 ЗАГЛУШКА = (pathlib.Path(__file__).parent / "stub_sb.js").read_text(encoding="utf-8")
 
 
