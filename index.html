@@ -24651,7 +24651,7 @@ function прочитаноДо() {
 function пометитьПрочитанными() {
   try { localStorage.setItem(УВЕД_КЛЮЧ, new Date().toISOString()); } catch (e) {}
   обновитьТочкуКолокольчика();
-  if (document.getElementById('bellMenu')?.style.display === 'block') нарисоватьУведомления();
+  if (окноУведомленийОткрыто()) нарисоватьУведомления();
 }
 
 async function собратьУведомления() {
@@ -24722,7 +24722,7 @@ async function освежитьУведомления(сразу) {
     обновитьТочкуКолокольчика();
     // Окно открыто — перерисовываем и его: иначе свежая отметка появится
     // в точке, а в списке под ней её не будет.
-    if (document.getElementById('bellMenu')?.style.display === 'block') нарисоватьУведомления();
+    if (окноУведомленийОткрыто()) нарисоватьУведомления();
   } finally {
     _уведомленияГрузятся = false;
   }
@@ -24755,7 +24755,7 @@ function нарисоватьУведомления() {
     return д.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) + ' в ' + вр;
   };
   const тело = _уведомления.length
-    ? _уведомления.slice(0, 12).map(у => {
+    ? _уведомления.slice(0, 30).map(у => {
         const новое = !рубеж || new Date(у.когда) > new Date(рубеж);
         // Уведомление — не только весть, но и путь к расчёту: нажали и попали
         // в тот пресет, по которому выдана ссылка (Константин, 16.09.2026).
@@ -24776,10 +24776,13 @@ function нарисоватьУведомления() {
           '</div>';
       }).join('')
     : '<div class="nt-empty">Пока пусто. Здесь появится отметка, что ссылку открыли.</div>';
+  // Список — свой слой, и прокручивается он, а не окно: окно прижато к кнопке
+  // (position:fixed), и всё, что не поместилось на экран, было недостижимо —
+  // страница под ним прокручивается, а окно стоит (Константин, 17.09.2026).
   м.innerHTML =
     '<div class="nt-h"><span class="t">Уведомления</span>' +
       (_уведомления.length ? '<span class="a" onclick="пометитьПрочитанными()">Отметить прочитанными</span>' : '') +
-    '</div>' + тело;
+    '</div><div class="nt-list">' + тело + '</div>';
 }
 
 /* Переход из уведомления в расчёт. Пресет лежит в этом браузере — он приходит
@@ -24814,6 +24817,13 @@ async function открытьПоУведомлению(ид) {
 // (`overflow:hidden`). Выпадающее окно внутри неё видно не было: коробка
 // считалась, текст в ней стоял, а на экране — ничего. Держим окно в конце
 // страницы и ставим по координатам кнопки.
+// Окно уведомлений раскрывается flex-колонкой, а не block: спрашивать у него
+// про 'block' после этого нельзя, потому вопрос один на всех.
+function окноУведомленийОткрыто() {
+  const м = document.getElementById('bellMenu');
+  return !!м && м.style.display !== 'none' && м.style.display !== '';
+}
+
 function поставитьОкноУведомлений() {
   const м = document.getElementById('bellMenu');
   const к = document.getElementById('bellBtn');
@@ -24828,13 +24838,20 @@ function поставитьОкноУведомлений() {
   м.style.left = Math.round(левый) + 'px';
   м.style.right = 'auto';
   м.style.width = ширина + 'px';
+  // Ниже нижнего края экрана окну расти некуда: оно прижато к кнопке и вместе
+  // со страницей не едет. Остаток экрана под кнопкой, минус поле снизу.
+  const остаток = window.innerHeight - r.bottom - 8 - 12;
+  м.style.maxHeight = Math.max(160, Math.round(остаток)) + 'px';
 }
 
 async function переключитьУведомления() {
   const м = document.getElementById('bellMenu'); if (!м) return;
-  if (м.style.display === 'block') { м.style.display = 'none'; return; }
+  if (окноУведомленийОткрыто()) { м.style.display = 'none'; return; }
   поставитьОкноУведомлений();
-  м.style.display = 'block';
+  // Раскладка окна — flex-колонка: шапка стоит, список едет. Встроенный
+  // display:block отменял её, список вырастал во всю длину и нижние
+  // уведомления оказывались за обрезом (Константин, 17.09.2026).
+  м.style.display = 'flex';
   м.innerHTML = '<div class="nt-empty">Смотрим…</div>';
   await собратьУведомления();
   нарисоватьУведомления();
@@ -24845,16 +24862,16 @@ async function переключитьУведомления() {
 // Окно прибито к экрану — при прокрутке и развороте оно обязано ехать за кнопкой.
 window.addEventListener('scroll', () => {
   const м = document.getElementById('bellMenu');
-  if (м && м.style.display === 'block') поставитьОкноУведомлений();
+  if (окноУведомленийОткрыто()) поставитьОкноУведомлений();
 }, { passive: true });
 window.addEventListener('resize', () => {
   const м = document.getElementById('bellMenu');
-  if (м && м.style.display === 'block') поставитьОкноУведомлений();
+  if (окноУведомленийОткрыто()) поставитьОкноУведомлений();
 });
 
 document.addEventListener('click', e => {
   const о = document.getElementById('bellWrap'); const м = document.getElementById('bellMenu');
-  if (!о || !м || м.style.display !== 'block') return;
+  if (!о || !м || !окноУведомленийОткрыто()) return;
   // Окно живёт в конце страницы, а не внутри кнопки: мимо — это мимо обоих.
   if (!о.contains(e.target) && !м.contains(e.target)) м.style.display = 'none';
 });
@@ -38456,6 +38473,14 @@ window.addEventListener('message', function(e) {
     position:fixed; z-index:6000; width:min(360px, calc(100vw - 24px));
     background:var(--card-bg); border:1px solid #e0eced; border-radius:14px;
     box-shadow:0 18px 48px rgba(18,38,42,0.18); overflow:hidden; text-align:left;
+    display:flex; flex-direction:column;
+  }
+  /* Шапка стоит, список едет. Высоту окна ставит поставитьОкноУведомлений():
+     она зависит от того, где кончается кнопка, и в стилях её не написать. */
+  #bellMenu .nt-h { flex:0 0 auto; }
+  #bellMenu .nt-list {
+    flex:1 1 auto; min-height:0; overflow-y:auto;
+    overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
   }
   body.dark #bellMenu { border-color:#22383c; box-shadow:0 18px 48px rgba(0,0,0,0.45); }
   #bellMenu .nt-h {
