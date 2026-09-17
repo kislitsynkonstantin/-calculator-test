@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Повторное нажатие «Авто-расстановки» — как о нём сказать</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --page:#f7fbfb; --sheet:#fff; --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5;
+  --rule:#dceaeb; --rule2:#bcd9db; --acc:#1e6c72; --acc2:#2a8f97; --tint:#e4f5f6;
+}
+body{font-family:'Geologica',system-ui,sans-serif;background:var(--page);color:var(--ink);
+  font-variant-numeric:tabular-nums;-webkit-text-size-adjust:100%;}
+.main{max-width:1060px;margin:0 auto;padding:44px 40px 96px;}
+@media(max-width:720px){.main{padding:24px 16px 72px;}}
+.tag{display:inline-block;font-size:0.58rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.12em;color:var(--acc2);background:var(--tint);border-radius:20px;
+  padding:4px 13px;margin-bottom:14px;}
+h1{font-family:'Unbounded',sans-serif;font-size:1.5rem;font-weight:800;line-height:1.2;
+  letter-spacing:-0.02em;margin-bottom:12px;}
+@media(max-width:720px){h1{font-size:1.15rem;}}
+.lead{font-size:0.95rem;color:var(--ink2);line-height:1.7;max-width:700px;}
+.lead+.lead{margin-top:9px;}
+.lead b{color:var(--ink);font-weight:500;}
+.sec{font-family:'Unbounded',sans-serif;font-size:1rem;font-weight:700;margin:40px 0 4px;
+  letter-spacing:-0.01em;}
+.note{font-size:0.8rem;color:var(--ink3);line-height:1.6;max-width:720px;margin-top:6px;}
+.note b{color:var(--ink2);font-weight:500;}
+.plus{color:#2a8f97;font-weight:500;}
+.minus{color:#c06010;font-weight:500;}
+
+.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:16px;}
+@media(max-width:860px){.pair{grid-template-columns:1fr;}}
+.block{border:1px solid var(--rule);border-radius:10px;overflow:hidden;background:var(--sheet);}
+.block-h{display:flex;align-items:baseline;gap:9px;padding:11px 14px;border-bottom:1px solid var(--rule);}
+.block-t{font-family:'Unbounded',sans-serif;font-size:0.78rem;font-weight:700;}
+.block-s{font-size:0.62rem;color:var(--ink3);margin-left:auto;}
+.stage{padding:14px;}
+
+/* строка кнопок — как в расчёте */
+.row{display:flex;flex-wrap:wrap;gap:8px;position:relative;}
+.b{position:relative;display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 13px;
+  border:1px solid var(--rule2);border-radius:8px;background:var(--sheet);color:var(--acc);
+  font-family:'Geologica',sans-serif;font-size:0.76rem;font-weight:500;cursor:pointer;white-space:nowrap;}
+.b:hover{border-color:var(--acc2);}
+.b svg{width:13px;height:13px;}
+.b.on{background:var(--tint);}
+
+/* снимки */
+.canvas{display:flex;gap:10px;margin-top:12px;}
+.pic{flex:1;aspect-ratio:3/2;border:1px solid var(--rule);border-radius:6px;overflow:hidden;
+  transition:transform .2s ease;}
+.pic svg{display:block;width:100%;height:100%;}
+
+/* всплывающая подсказка под кнопкой */
+.tip{position:absolute;left:0;top:calc(100% + 8px);z-index:5;max-width:280px;
+  background:#0f2a2c;color:#eaf6f6;font-size:0.72rem;line-height:1.45;padding:9px 12px;
+  border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;
+  transform:translateY(5px);}
+.tip.on{opacity:1;transform:translateY(0);}
+
+/* строка подсказки под рядом */
+.hint{margin-top:9px;font-size:0.72rem;color:var(--ink3);line-height:1.5;}
+
+/* ночь */
+.night{--page:#0d1c1f;--sheet:#132528;--ink:#e6f3f3;--ink2:#9db6b8;--ink3:#7d9698;
+  --rule:#224347;--rule2:#2d585d;--acc:#8fd6dc;--acc2:#bfe6e8;--tint:#183437;}
+.night .block,.night .block-h{background:var(--sheet);border-color:var(--rule);}
+.night .b{background:var(--sheet);border-color:var(--rule2);color:var(--acc);}
+.night .pic{border-color:var(--rule);}
+</style>
+</head>
+<body>
+<div class="main">
+  <div class="tag">Макет · 17.09.2026</div>
+  <h1>Повторное нажатие «Авто-расстановки» меняет снимки местами.<br>Как сказать об этом менеджеру</h1>
+  <p class="lead">Возможность есть с самого начала: нажали второй раз — у двух снимков они
+     меняются местами, у трёх и больше очередь сдвигается на один. Работает это, только пока
+     раскладку не трогали руками; подвинули снимок — следующее нажатие снова расставляет.</p>
+  <p class="lead"><b>Сказано об этом уже дважды, и оба раза мимо.</b> В подсказке кнопки
+     (<code>title</code>) — её на телефоне не бывает вовсе, а менеджеры работают с телефона.
+     И в справке — туда заходят, когда уже знают, что искать.</p>
+  <p class="lead">Ниже три способа сказать это в самом расчёте. Кнопки живые: нажимайте.</p>
+
+  <div class="sec">1. Кнопка называет себя</div>
+  <p class="note">После расстановки кнопка читается тем, что сделает следующее нажатие:
+     <b>«Поменять местами»</b> у двух снимков, <b>«Сдвинуть по кругу»</b> у трёх и больше.
+     Тронули снимок — надпись возвращается к «Авто-расстановке», потому что и поведение
+     возвращается к ней же.
+     <span class="plus">Ничего лишнего на экране, работает на телефоне, надпись не объясняет,
+     а просто верна.</span> <span class="minus">Надпись меняется — непривычно первые разы.</span></p>
+  <div class="pair">
+    <div class="block" id="b1d"><div class="block-h"><span class="block-t">День</span><span class="block-s">вариант 1</span></div>
+      <div class="stage"><div class="row">
+        <button class="b" onclick="жать(1,this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="9" height="8" rx="1"/><rect x="13" y="3" width="9" height="8" rx="1"/><rect x="2" y="13" width="9" height="8" rx="1"/><rect x="13" y="13" width="9" height="8" rx="1"/></svg><span>Авто-расстановка</span></button>
+      </div><div class="canvas" id="c1d" onclick="тронуть(1)"></div></div></div>
+    <div class="block night" id="b1n"><div class="block-h"><span class="block-t">Ночь</span><span class="block-s">вариант 1</span></div>
+      <div class="stage"><div class="row">
+        <button class="b" onclick="жать(1,this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="9" height="8" rx="1"/><rect x="13" y="3" width="9" height="8" rx="1"/><rect x="2" y="13" width="9" height="8" rx="1"/><rect x="13" y="13" width="9" height="8" rx="1"/></svg><span>Авто-расстановка</span></button>
+      </div><div class="canvas" id="c1n" onclick="тронуть(1)"></div></div></div>
+  </div>
+
+  <div class="sec">2. Подсказка один раз</div>
+  <p class="note">Первая удачная расстановка — и под кнопкой на пять секунд всплывает
+     «Нажмите ещё раз — снимки поменяются местами». Больше в этом браузере не появляется.
+     <span class="plus">Говорит ровно в ту секунду, когда это можно сделать, и потом не мешает.</span>
+     <span class="minus">Кто пропустил — не узнает; на новом устройстве покажется снова.</span></p>
+  <div class="pair">
+    <div class="block"><div class="block-h"><span class="block-t">День</span><span class="block-s">вариант 2</span></div>
+      <div class="stage"><div class="row">
+        <button class="b" onclick="жать(2,this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="9" height="8" rx="1"/><rect x="13" y="3" width="9" height="8" rx="1"/><rect x="2" y="13" width="9" height="8" rx="1"/><rect x="13" y="13" width="9" height="8" rx="1"/></svg><span>Авто-расстановка</span></button>
+        <div class="tip" id="t2d">Нажмите ещё раз — снимки поменяются местами</div>
+      </div><div class="canvas" id="c2d" onclick="тронуть(2)"></div></div></div>
+    <div class="block night"><div class="block-h"><span class="block-t">Ночь</span><span class="block-s">вариант 2</span></div>
+      <div class="stage"><div class="row">
+        <button class="b" onclick="жать(2,this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="9" height="8" rx="1"/><rect x="13" y="3" width="9" height="8" rx="1"/><rect x="2" y="13" width="9" height="8" rx="1"/><rect x="13" y="13" width="9" height="8" rx="1"/></svg><span>Авто-расстановка</span></button>
+        <div class="tip" id="t2n">Нажмите ещё раз — снимки поменяются местами</div>
+      </div><div class="canvas" id="c2n" onclick="тронуть(2)"></div></div></div>
+  </div>
+
+  <div class="sec">3. Строка подсказки под кнопками</div>
+  <p class="note">Под рядом кнопок стоит мелкая строка и стоит всегда.
+     <span class="plus">Не пропустишь.</span>
+     <span class="minus">Занимает строку навсегда и объясняет то, что элемент мог бы сказать
+     сам: прочитал один раз — дальше это шум. В доме такое правило уже записано.</span></p>
+  <div class="pair">
+    <div class="block"><div class="block-h"><span class="block-t">День</span><span class="block-s">вариант 3</span></div>
+      <div class="stage"><div class="row">
+        <button class="b" onclick="жать(3,this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="9" height="8" rx="1"/><rect x="13" y="3" width="9" height="8" rx="1"/><rect x="2" y="13" width="9" height="8" rx="1"/><rect x="13" y="13" width="9" height="8" rx="1"/></svg><span>Авто-расстановка</span></button>
+      </div><div class="hint">Второе нажатие меняет снимки местами</div>
+      <div class="canvas" id="c3d" onclick="тронуть(3)"></div></div></div>
+    <div class="block night"><div class="block-h"><span class="block-t">Ночь</span><span class="block-s">вариант 3</span></div>
+      <div class="stage"><div class="row">
+        <button class="b" onclick="жать(3,this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="9" height="8" rx="1"/><rect x="13" y="3" width="9" height="8" rx="1"/><rect x="2" y="13" width="9" height="8" rx="1"/><rect x="13" y="13" width="9" height="8" rx="1"/></svg><span>Авто-расстановка</span></button>
+      </div><div class="hint">Второе нажатие меняет снимки местами</div>
+      <div class="canvas" id="c3n" onclick="тронуть(3)"></div></div></div>
+  </div>
+
+  <div class="sec">Что советую</div>
+  <p class="note"><b>Первый.</b> Он единственный ничего не занимает на экране и ничего не
+     объясняет: надпись просто говорит, что сделает нажатие, и говорит правду в каждый
+     момент. Второй — хорош как добавка к первому, если захочется подтолкнуть в первый раз.
+     Третий беру только если нужно, чтобы увидели наверняка и сразу все.</p>
+  <p class="note">Нажмите по снимкам в любом из блоков — это заменяет «подвинул руками»:
+     раскладка считается тронутой, и кнопка возвращается к расстановке.</p>
+</div>
+
+<script>
+// Снимки — план и визуализация, чтобы обмен местами был виден.
+var ПЛАН = '<svg viewBox="0 0 120 80"><rect width="120" height="80" fill="#eef4f5"/>' +
+  '<g stroke="#5b7376" stroke-width="1.6" fill="none">' +
+  '<rect x="14" y="12" width="92" height="56"/><path d="M52 12v56M52 40h54M80 40v28"/></g>' +
+  '<g fill="#8da3a5" font-size="6" font-family="sans-serif"><text x="20" y="26">План</text></g></svg>';
+var ФОТО = '<svg viewBox="0 0 120 80"><rect width="120" height="80" fill="#cfe3e4"/>' +
+  '<path d="M0 62h120v18H0z" fill="#9dc39a"/><path d="M26 58l24-26 24 26z" fill="#6d5a45"/>' +
+  '<rect x="40" y="46" width="20" height="16" fill="#3f5f63"/>' +
+  '<circle cx="96" cy="20" r="9" fill="#f2e9c9"/></svg>';
+
+var состояние = {1:{порядок:[0,1],тронуто:true},2:{порядок:[0,1],тронуто:true,показано:false},
+                 3:{порядок:[0,1],тронуто:true}};
+
+function холсты(н){ return [document.getElementById('c'+н+'d'), document.getElementById('c'+н+'n')].filter(Boolean); }
+function нарисовать(н){
+  var с = состояние[н];
+  холсты(н).forEach(function(х){
+    х.innerHTML = с.порядок.map(function(и){
+      return '<div class="pic">' + (и === 0 ? ПЛАН : ФОТО) + '</div>';
+    }).join('');
+  });
+}
+function надписи(н, текст){
+  холсты(н).forEach(function(х){
+    var к = х.parentElement.querySelector('.b span');
+    if (к) к.textContent = текст;
+    х.parentElement.querySelectorAll('.b').forEach(function(б){ б.classList.toggle('on', текст !== 'Авто-расстановка'); });
+  });
+}
+function жать(н, кнопка){
+  var с = состояние[н];
+  if (!с.тронуто) { с.порядок = [с.порядок[1], с.порядок[0]]; }
+  с.тронуто = false;
+  нарисовать(н);
+  if (н === 1) надписи(1, 'Поменять местами');
+  if (н === 2 && !с.показано) {
+    с.показано = true;
+    ['t2d','t2n'].forEach(function(и){
+      var т = document.getElementById(и);
+      if (!т) return;
+      т.classList.add('on');
+      setTimeout(function(){ т.classList.remove('on'); }, 5000);
+    });
+  }
+}
+function тронуть(н){
+  состояние[н].тронуто = true;
+  if (н === 1) надписи(1, 'Авто-расстановка');
+}
+[1,2,3].forEach(нарисовать);
+</script>
+</body>
+</html>
