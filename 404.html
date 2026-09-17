@@ -301,7 +301,23 @@ if (!КОД) {
 
 var SB = 'https://jogylulfstjsznduirub.supabase.co';
 var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZ3lsdWxmc3Rqc3puZHVpcnViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDQ0NjEsImV4cCI6MjA5MTY4MDQ2MX0.cGkTkrM09ZxV3LH5wwy19ITloykao472WgppimoWiUQ';
+/* Признак предпросмотра приходит в адресе, но в адресе он остаться не может:
+   менеджер открывает страницу кнопкой «Открыть», копирует адрес из строки
+   браузера и отправляет клиенту — и открытия клиента не считались бы никогда,
+   потому что «?preview=1» уехал бы вместе со ссылкой (Константин, 17.09.2026).
+   Поэтому признак сразу снимается с адреса и переносится в память вкладки:
+   строка браузера показывает чистую ссылку, а вкладка помнит, что она
+   смотровая, и переживает обновление. Память умирает вместе с вкладкой —
+   значит, чужую вкладку это не задевает. */
 var ПРЕДПРОСМОТР = /(^|[?&])preview=1(&|$)/.test(location.search);
+try {
+  var клПред = 'bm_предпросмотр_' + КОД;
+  if (ПРЕДПРОСМОТР) sessionStorage.setItem(клПред, '1');
+  else ПРЕДПРОСМОТР = !!sessionStorage.getItem(клПред);
+} catch (e) {}
+if (/(^|[?&])preview=1(&|$)/.test(location.search) && history.replaceState) {
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+}
 
 /* Запрос за снимком не кладётся в кэш: POST посредниками не кэшируется, а от
    кэша браузера защищает cache: 'no-store'.
