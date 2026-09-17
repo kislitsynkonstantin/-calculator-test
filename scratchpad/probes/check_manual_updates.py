@@ -76,8 +76,9 @@ def текст(кусок):
 def главы(м):
     """Куски справки по главам: имя без приставки «ch-» → разметка главы."""
     итог = {}
-    for сп in re.finditer(r'<div class="ch" id="ch-([^"]+)"', м):
-        конец = м.find('<div class="ch" id="', сп.end())
+    for сп in re.finditer(r'<div class="ch[^"]*" id="ch-([^"]+)"', м):
+        конец = re.search(r'<div class="ch[^"]*" id="', м[сп.end():])
+        конец = сп.end() + конец.start() if конец else -1
         итог[сп.group(1)] = м[сп.start():конец if конец > 0 else len(м)]
     return итог
 
