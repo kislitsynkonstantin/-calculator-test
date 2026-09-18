@@ -65,8 +65,16 @@ def хром():
                      r"|друг(?:ому|ого) менеджер")
 
 
+# Портянка держит ход в любой главе, а не только в тех, что правились сейчас:
+# «проверь всю справку, чтобы портянок нигде не было» (Константин, 18.09.2026).
+# Остальные правила — про менеджера в третьем лице, значки, «раньше» — остаются
+# при прежнем делении: они о тексте той работы, которая идёт.
+ПОРТЯНКА = re.compile(r"абзац на \d+ знаков|идут встык")
+
+
 def находка(где, сообщение):
-    (НАХОДКИ if где in СВОИ else ДАВНЕЕ).append(f"[{где}] {сообщение}")
+    своё = где in СВОИ or ПОРТЯНКА.search(сообщение)
+    (НАХОДКИ if своё else ДАВНЕЕ).append(f"[{где}] {сообщение}")
 
 
 def текст(кусок):
@@ -117,18 +125,52 @@ def отбивка(м):
             слипшиеся = стр.evaluate("""(глава) => {
               const гл = document.getElementById('ch-' + глава);
               if (!гл) return [];
-              const п = [...гл.querySelectorAll('p')].filter(э => э.offsetHeight);
+              /* Меряем поток прозы: абзацы, списки и плашки. Карточки шагов,
+                 строки журнала и пункты списка задач разделены линейкой или
+                 подложкой — у них расстояние ноль по замыслу, и требовать от
+                 них отбивки значило бы ловить не портянку, а вёрстку. */
+              const свой = э => {
+                if (!э.offsetHeight) return false;
+                if ((э.textContent || '').trim().length < 40) return false;
+                const т = э.tagName.toLowerCase();
+                return t_ok(т) || э.classList.contains('tip') ||
+                       э.classList.contains('warn') || э.classList.contains('quote');
+                function t_ok(т) { return т === 'p' || т === 'ul' || т === 'ol'; }
+              };
+              const делит = (а, б) => {
+                const са = getComputedStyle(а), сб = getComputedStyle(б);
+                const рамка = з => parseFloat(з) || 0;
+                if (рамка(са.borderBottomWidth) || рамка(сб.borderTopWidth)) return true;
+                const фон = з => z_пусто(з) ? null : з;
+                function z_пусто(з) { return !з || з === 'rgba(0, 0, 0, 0)' || з === 'transparent'; }
+                return !!(фон(са.backgroundColor) || фон(сб.backgroundColor));
+              };
               const плохие = [];
-              for (let i = 1; i < п.length; i++) {
-                if (п[i - 1].nextElementSibling !== п[i]) continue;
-                const щель = п[i].getBoundingClientRect().top - п[i - 1].getBoundingClientRect().bottom;
-                if (щель < 6) плохие.push({ щель: Math.round(щель),
-                  начало: п[i].textContent.trim().slice(0, 40) });
-              }
+              const обойти = узел => {
+                const дети = [...узел.children];
+                let пред = null;
+                дети.forEach(э => {
+                  if (свой(э)) {
+                    if (пред) {
+                      const щель = э.getBoundingClientRect().top - пред.getBoundingClientRect().bottom;
+                      if (щель < 6 && !делит(пред, э)) плохие.push({
+                        щель: Math.round(щель),
+                        что: пред.tagName.toLowerCase() + '+' + э.tagName.toLowerCase(),
+                        начало: э.textContent.trim().slice(0, 40) });
+                    }
+                    пред = э;
+                  } else {
+                    пред = null;
+                  }
+                  обойти(э);
+                });
+              };
+              обойти(гл);
               return плохие;
             }""", глава)
             for с in слипшиеся:
-                находки.append(f"[{глава}] абзацы идут встык ({с['щель']} px): «{с['начало']}…»")
+                находки.append(f"[{глава}] {с['что']}: блоки идут встык ({с['щель']} px) — "
+                               f"«{с['начало']}…»")
         бр.close()
     return находки
 
