@@ -28,7 +28,12 @@ import functools
 
 from playwright.sync_api import sync_playwright
 
-КОРЕНЬ = pathlib.Path(__file__).resolve().parent.parent.parent
+# Обычно проверяется рабочий файл теста. Боевую копию проба тоже умеет:
+# тихая правка уезжает в бой без выпуска, и сверять её надо тем же способом,
+# а не глазами по диффу — BM_ROOT=/путь/к/боевому. Имя латиницей:
+# кириллическое имя переменной оболочка не принимает.
+КОРЕНЬ = pathlib.Path(os.environ.get("BM_ROOT")
+                      or pathlib.Path(__file__).resolve().parent.parent.parent)
 ЗАГЛУШКА = (pathlib.Path(__file__).parent / "stub_sb.js").read_text(encoding="utf-8")
 НАХОДКИ = []
 
