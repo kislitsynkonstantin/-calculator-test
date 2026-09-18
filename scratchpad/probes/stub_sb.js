@@ -44,17 +44,50 @@
     var строки = (window.__ТАБЛИЦЫ[таблица] || []).slice();
     var один = false;
     var о = {};
-    ['select', 'insert', 'update', 'upsert', 'delete', 'is', 'gt', 'gte',
+    ['select', 'insert', 'upsert', 'gt', 'gte',
      'lt', 'lte', 'like', 'ilike', 'not', 'or', 'filter', 'range',
      'contains', 'overlaps', 'match', 'abortSignal'].forEach(function (и) {
       о[и] = function () { return о; };
     });
+    /* `update` и `delete` были заглушками и возвращали себя, ничего не меняя.
+       Проба удаления пресета на такой заглушке показывала бы зелёное при любой
+       ошибке: строка не менялась, и метку удаления искать было негде. Теперь
+       правка запоминается и применяется к тем строкам, что остались после
+       фильтров, — порядок в цепочке именно такой: `update(...).eq(...)`. */
+    var правка = null, стирать = false;
+    о.update = function (значения) { правка = значения || {}; return о; };
+    о.delete = function () { стирать = true; return о; };
+    function применить() {
+      if (правка) {
+        строки.forEach(function (р) {
+          Object.keys(правка).forEach(function (к) { р[к] = правка[к]; });
+        });
+      }
+      if (стирать) {
+        var все = window.__ТАБЛИЦЫ[таблица] || [];
+        строки.forEach(function (р) {
+          var и = все.indexOf(р);
+          if (и >= 0) все.splice(и, 1);
+        });
+      }
+    }
     о.eq = function (поле, знач) {
       строки = строки.filter(function (р) { return String(р[поле]) === String(знач); });
       return о;
     };
     о.neq = function (поле, знач) {
       строки = строки.filter(function (р) { return String(р[поле]) !== String(знач); });
+      return о;
+    };
+    /* `is` заглушкой не был, а страница спрашивает им живые пресеты
+       (`.is('deleted_at', null)`): пропущенный фильтр отдавал бы удалённые
+       строки, и проба показывала бы не то, что увидит человек. */
+    о.is = function (поле, знач) {
+      строки = строки.filter(function (р) {
+        var в = р[поле];
+        if (знач === null) return в === null || в === undefined;
+        return в === знач;
+      });
       return о;
     };
     о.in = function (поле, список) {
@@ -73,6 +106,7 @@
     о.limit = function (н) { строки = строки.slice(0, н); return о; };
     о.single = о.maybeSingle = function () { один = true; return о; };
     о.then = function (принять, отклонить) {
+      применить();
       var р = один ? (строки[0] || null) : строки;
       return Promise.resolve(один ? { data: р, error: null } : ответ(строки)).then(принять, отклонить);
     };
