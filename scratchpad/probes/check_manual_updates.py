@@ -90,6 +90,49 @@ def узлы(кусок):
             for с in re.finditer(образец, кусок, re.S)]
 
 
+def отбивка(м):
+    """Соседние абзацы глав обязаны отделяться друг от друга на вид.
+
+    Правило «абзац — одна мысль» проверялось по знакам, и главы его проходили:
+    абзацы были короткие. А на экране они шли встык — общий сброс снял поля
+    у <p>, и пять абзацев подряд читались сплошной портянкой. Проверять надо
+    отрисовку, а не разметку: разделённый в исходнике текст выглядит слипшимся
+    (Константин, 18.09.2026, снимок главы «Ссылка клиенту» на боевом домене).
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return []
+    временный = pathlib.Path(tempfile.mkdtemp()) / "справка.html"
+    временный.write_text(м, encoding="utf-8")
+    находки = []
+    with sync_playwright() as pw:
+        бр = pw.chromium.launch(executable_path=ХРОМ, args=["--no-sandbox"])
+        стр = бр.new_page(viewport={"width": 390, "height": 900})
+        стр.goto(временный.as_uri(), wait_until="load")
+        стр.wait_for_timeout(500)
+        for глава in главы(м):
+            стр.evaluate("(г) => go(г)", глава)
+            стр.wait_for_timeout(120)
+            слипшиеся = стр.evaluate("""(глава) => {
+              const гл = document.getElementById('ch-' + глава);
+              if (!гл) return [];
+              const п = [...гл.querySelectorAll('p')].filter(э => э.offsetHeight);
+              const плохие = [];
+              for (let i = 1; i < п.length; i++) {
+                if (п[i - 1].nextElementSibling !== п[i]) continue;
+                const щель = п[i].getBoundingClientRect().top - п[i - 1].getBoundingClientRect().bottom;
+                if (щель < 6) плохие.push({ щель: Math.round(щель),
+                  начало: п[i].textContent.trim().slice(0, 40) });
+              }
+              return плохие;
+            }""", глава)
+            for с in слипшиеся:
+                находки.append(f"[{глава}] абзацы идут встык ({с['щель']} px): «{с['начало']}…»")
+        бр.close()
+    return находки
+
+
 def снимки(м):
     """Главы читаются картинкой целиком, а не по найденным строкам.
 
@@ -215,6 +258,7 @@ def главная():
         print("  Законно, если так было в выпущенной версии; про подверсию в скобках —"
               " менеджер её не видел.\n")
 
+    НАХОДКИ.extend(отбивка(м))
     снимки(м)
     if НАХОДКИ:
         print("НАХОДКИ:")
