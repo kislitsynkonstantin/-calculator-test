@@ -44,11 +44,26 @@
     var строки = (window.__ТАБЛИЦЫ[таблица] || []).slice();
     var один = false;
     var о = {};
-    ['select', 'insert', 'upsert', 'gt', 'gte',
+    ['select', 'gt', 'gte',
      'lt', 'lte', 'like', 'ilike', 'not', 'or', 'filter', 'range',
      'contains', 'overlaps', 'match', 'abortSignal'].forEach(function (и) {
       о[и] = function () { return о; };
     });
+    /* `insert` и `upsert` были заглушками и ничего не записывали. Проба,
+       которая смотрит, что строка появилась в базе, на такой заглушке зеленела
+       бы при полностью сломанной записи: возвращается-то «ошибки нет». Теперь
+       строки кладутся в те же таблицы, откуда читаются, — как `update` и
+       `delete`, исправленные раньше по тому же поводу. */
+    var добавить = null, ключСлияния = null;
+    о.insert = function (значения) {
+      добавить = Array.isArray(значения) ? значения.slice() : [значения];
+      return о;
+    };
+    о.upsert = function (значения, наст) {
+      добавить = Array.isArray(значения) ? значения.slice() : [значения];
+      ключСлияния = (наст && наст.onConflict) ? String(наст.onConflict).split(',')[0].trim() : null;
+      return о;
+    };
     /* `update` и `delete` были заглушками и возвращали себя, ничего не меняя.
        Проба удаления пресета на такой заглушке показывала бы зелёное при любой
        ошибке: строка не менялась, и метку удаления искать было негде. Теперь
@@ -58,6 +73,19 @@
     о.update = function (значения) { правка = значения || {}; return о; };
     о.delete = function () { стирать = true; return о; };
     function применить() {
+      if (добавить) {
+        var все = window.__ТАБЛИЦЫ[таблица] || (window.__ТАБЛИЦЫ[таблица] = []);
+        добавить.forEach(function (новая) {
+          var и = -1;
+          if (ключСлияния) {
+            и = все.findIndex(function (р) {
+              return String(р[ключСлияния]) === String(новая[ключСлияния]);
+            });
+          }
+          if (и >= 0) { все[и] = Object.assign({}, все[и], новая); } else { все.push(новая); }
+        });
+        строки = добавить.slice();
+      }
       if (правка) {
         строки.forEach(function (р) {
           Object.keys(правка).forEach(function (к) { р[к] = правка[к]; });
