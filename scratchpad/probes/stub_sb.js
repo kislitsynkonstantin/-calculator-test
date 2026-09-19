@@ -44,10 +44,34 @@
     var строки = (window.__ТАБЛИЦЫ[таблица] || []).slice();
     var один = false;
     var о = {};
-    ['select', 'gt', 'gte',
-     'lt', 'lte', 'like', 'ilike', 'not', 'or', 'filter', 'range',
+    ['select', 'like', 'ilike', 'not', 'or', 'filter',
      'contains', 'overlaps', 'match', 'abortSignal'].forEach(function (и) {
       о[и] = function () { return о; };
+    });
+    /* `range` был пустышкой и отдавал всю таблицу на любую страницу. Постраничный
+       обход на такой заглушке не проверить вовсе: цикл «пока страница полная»
+       никогда не кончается, а ошибка в страницах — что вторая страница повторяет
+       первую или теряется — проходит незамеченной. Теперь режет по-настоящему. */
+    о.range = function (от, до) {
+      строки = строки.slice(Number(от) || 0, (Number(до) || 0) + 1);
+      return о;
+    };
+    /* Сравнения по датам сравнивали как есть: строка с числом сходились по
+       алфавиту, и `gte('created_at', …)` пропускал что попало. Даты сводим к
+       числу, остальное сравниваем как было. */
+    function вес(з) {
+      if (з instanceof Date) return з.getTime();
+      var д = (typeof з === 'string') && /^\d{4}-\d{2}-\d{2}/.test(з) ? Date.parse(з) : NaN;
+      return isNaN(д) ? з : д;
+    }
+    [['gt', function (a, b) { return a > b; }],
+     ['gte', function (a, b) { return a >= b; }],
+     ['lt', function (a, b) { return a < b; }],
+     ['lte', function (a, b) { return a <= b; }]].forEach(function (п) {
+      о[п[0]] = function (поле, знач) {
+        строки = строки.filter(function (р) { return п[1](вес(р[поле]), вес(знач)); });
+        return о;
+      };
     });
     /* `insert` и `upsert` были заглушками и ничего не записывали. Проба,
        которая смотрит, что строка появилась в базе, на такой заглушке зеленела
