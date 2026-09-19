@@ -524,6 +524,26 @@ def проверить_значок(стр):
         if not м or м.get("нет"):
             плохо(f"[{имяТемы}] значка готовых комплектаций нет в списке проектов")
             continue
+        # Тот же список, но со своим проектом: у него есть и звезда, и значок.
+        спросить(стр, """() => {
+          const п = PROJECTS[0];
+          if (п && typeof customProjects !== 'undefined' && !customProjects.includes(п))
+            customProjects.push(п);
+          if (typeof filterProjects === 'function') filterProjects();
+          const о = document.getElementById('projectSelectWrap')
+            || document.querySelector('.custom-select-wrap');
+          if (о) о.classList.add('open');
+        }""")
+        стр.wait_for_timeout(250)
+        проверить_значки(стр, имяТемы)
+        спросить(стр, """() => {
+          const п = PROJECTS[0];
+          if (п && typeof customProjects !== 'undefined') {
+            const и = customProjects.indexOf(п);
+            if (и >= 0) customProjects.splice(и, 1);
+          }
+          if (typeof filterProjects === 'function') filterProjects();
+        }""")
         залит = not (м["прозрачность"] == 0 or len(м["фон"]) < 3)
         if лист:
             if залит:
@@ -689,6 +709,58 @@ def проверить_отметку(стр):
             if not залита:
                 плохо(f"[{имяТемы}] плашка комплектации потеряла жёлтую заливку — "
                       "в «Модерне» она остаётся как была")
+
+
+def проверить_значки(стр, имяТемы):
+    """Звезда своего проекта — слева от значка комплектаций, не наоборот.
+
+    Звезда рисуется псевдоэлементом `::after`, то есть после содержимого, и
+    без явного порядка вставала правее значка. Меряется отрисовка, а не
+    разметка: значок стоит в html, звезда — в стилях, и по исходнику их
+    взаимное положение не прочесть вовсе (Константин, 19.09.2026).
+    """
+    м = спросить(стр, """() => {
+      const строки = [...document.querySelectorAll('.custom-select-dropdown .custom-select-option')];
+      const сназванием = строки.filter(э => э.querySelector('.cso-name'));
+      const из = [];
+      сназванием.forEach(э => {
+        const значок = э.querySelector('.proj-kit-badge');
+        const своя = э.classList.contains('custom-proj');
+        const пз = getComputedStyle(э, '::after');
+        из.push({
+          имя: (э.querySelector('.cso-name') || {}).textContent || '',
+          значок: значок ? Math.round(значок.getBoundingClientRect().left) : null,
+          значокПраво: значок ? Math.round(значок.getBoundingClientRect().right) : null,
+          своя,
+          звездаЕсть: своя && пз.content !== 'none',
+          праваяГраница: Math.round(э.getBoundingClientRect().right)
+                         - Math.round(parseFloat(getComputedStyle(э).paddingRight) || 0),
+        });
+      });
+      return из;
+    }""")
+    if not м:
+        плохо(f"[{имяТемы}] списка проектов нет на экране")
+        return
+    обе = [с for с in м if с["значок"] is not None and с["звездаЕсть"]]
+    if not обе:
+        плохо(f"[{имяТемы}] нет строки, где стоят оба значка — проверять нечего")
+        return
+    for с in обе:
+        # Звезда — псевдоэлемент, своего прямоугольника у неё нет. Но если она
+        # слева от значка, значок кончается у правого края строки; если справа —
+        # между значком и краем остаётся место под неё.
+        зазор = с["праваяГраница"] - с["значокПраво"]
+        if зазор > 6:
+            плохо(f"[{имяТемы}] «{с['имя'].strip()[:28]}»: между значком комплектаций и "
+                  f"краем строки {зазор} px — значит справа стоит звезда, а просили наоборот")
+    # Строка только со значком: он по-прежнему у правого края.
+    одинЗначок = [с for с in м if с["значок"] is not None and not с["звездаЕсть"]]
+    for с in одинЗначок:
+        зазор = с["праваяГраница"] - с["значокПраво"]
+        if зазор > 6:
+            плохо(f"[{имяТемы}] «{с['имя'].strip()[:28]}»: значок комплектаций отошёл от "
+                  f"края на {зазор} px, хотя звезды в строке нет")
 
 
 def главная():
