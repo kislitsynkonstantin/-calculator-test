@@ -11,12 +11,14 @@
     --bl-ink3:#8da3a5; --bl-rule:#dceaeb; --bl-rule2:#bcd9db;
     --bl-acc:#1e6c72; --bl-acc2:#2a8f97; --bl-pale:#a8dde0; --bl-tint:#e4f5f6;
     --bl-gold:#8a6d10; --bl-gold-bg:#fff4d1; --bl-gold-line:#e0ab21;
+    --bl-точка:#ffd60a;
   }
   .ночь{
     --bl-page:#0e1a1c; --bl-sheet:#132528; --bl-ink:#e6f3f3; --bl-ink2:#9db6b8;
     --bl-ink3:#8aa4a6; --bl-rule:#224347; --bl-rule2:#2d585d;
     --bl-acc:#8fd6dc; --bl-acc2:#5fc2ca; --bl-pale:#5fc2ca; --bl-tint:#173338;
     --bl-gold:#f4cf62; --bl-gold-bg:#33280c; --bl-gold-line:#7a6215;
+    --bl-точка:#fff4d1;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'Geologica',system-ui,sans-serif;background:#eef4f4;color:#12262a;
@@ -48,9 +50,11 @@
         background:var(--bl-gold-bg);border:1px solid var(--bl-gold-line);
         border-radius:20px;padding:5px 10px}
 
-  /* ── 1. надзаголовок чернилами акцента ── */
-  .з-1{display:block;font-size:.66rem;font-weight:600;letter-spacing:.18em;
-       text-transform:uppercase;color:var(--bl-acc)}
+  /* ── 1. надзаголовок чернилами акцента + жёлтая точка ── */
+  .з-1{display:inline-flex;align-items:center;gap:6px;font-size:.66rem;font-weight:600;
+       letter-spacing:.18em;text-transform:uppercase;color:var(--bl-acc)}
+  .з-1::before{content:'';width:6px;height:6px;border-radius:50%;flex:0 0 auto;
+       background:var(--bl-точка)}
 
   /* ── 2. левая черта ── */
   .з-2{display:inline-block;font-size:.66rem;font-weight:600;letter-spacing:.14em;
@@ -100,8 +104,9 @@
   </div>
 
   <div class="вариант">
-    <h2>1. Надзаголовок<span class="рек">рекомендую</span></h2>
+    <h2>1. Надзаголовок<span class="рек">поставлено</span></h2>
     <p>Коробки нет вовсе: название комплектации набрано <b>надзаголовком в чернилах акцента</b> — тем же приёмом, что «Стоимость за комплектацию» под ним, только цветом. Читается как выходные данные документа, а не как ярлык, наклеенный поверх.</p>
+    <p>Жёлтый остался — <b>точкой слева</b>, той же, что горит на кнопке «Комплектации», когда комплектация выбрана. Сигнал один, и выглядит он одинаково в двух местах. Надпись при этом остаётся чернилами акцента: жёлтым по белому текст не прочесть, а круглая метка цветом и работает.</p>
   </div>
   <div class="пара">
     <div class="лист">
