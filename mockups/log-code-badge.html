@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Код расчёта в журнале — варианты</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Geologica:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green-dark:#1e6c72; --green-mid:#2a8f97; --green-light:#3db0ba;
+    --green-pale:#a8dde0; --green-bg:#e4f5f6;
+    --black:#111; --gray:#555; --gray-light:#888; --card:#fff;
+    --border:#d4e4e5; --page:#f0fafa;
+  }
+  .ночь{
+    --green-pale:#5fc2ca; --green-bg:#1e3538;
+    --black:#e8f4f5; --gray:#9ab8bc; --gray-light:#6a9098; --card:#1a2a2c;
+    --border:#2a3f42; --page:#111e20;
+    --green-dark:#5fc8d2; --green-mid:#3db0ba;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Geologica',system-ui,sans-serif;background:#eef4f4;color:#12262a;
+       font-variant-numeric:tabular-nums;padding:24px 16px 64px}
+  .обёртка{max-width:1080px;margin:0 auto}
+  h1{font-family:'Unbounded',sans-serif;font-size:1.25rem;font-weight:800;color:#1e6c72;margin-bottom:6px}
+  .вступ{font-size:.86rem;color:#5b7376;max-width:680px;margin-bottom:28px;line-height:1.55}
+  .вариант{border-top:2px solid #1e6c72;padding-top:12px;margin:30px 0 10px}
+  .вариант h2{font-family:'Unbounded',sans-serif;font-size:.86rem;font-weight:700;color:#1e6c72;margin-bottom:4px}
+  .вариант p{font-size:.78rem;color:#5b7376;line-height:1.5;max-width:760px}
+  .вариант p b{color:#12262a;font-weight:600}
+  .рек{display:inline-block;font-size:.6rem;font-weight:700;letter-spacing:.08em;
+       text-transform:uppercase;color:#1e6c72;background:#e4f5f6;border-radius:20px;
+       padding:3px 9px;margin-left:8px;vertical-align:middle}
+  .пара{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media (max-width:820px){.пара{grid-template-columns:1fr}}
+
+  /* ── строка журнала, как в калькуляторе ── */
+  .лента{background:var(--card);color:var(--black);border:1px solid var(--border);
+         padding:6px 14px 10px}
+  .подпись{font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;
+           color:var(--gray-light);padding:8px 0 6px}
+  .al-i{display:flex;gap:10px;align-items:flex-start;padding:10px 0;
+        border-top:1px solid var(--border)}
+  .al-left{flex:1;min-width:0}
+  .al-time{font-size:.72rem;color:var(--gray-light);flex:none;width:42px;padding-top:1px}
+  .al-ava{flex:none;width:26px;height:26px;border-radius:50%;background:var(--green-bg);
+          color:var(--green-dark);font-size:.56rem;font-weight:700;display:flex;
+          align-items:center;justify-content:center;letter-spacing:.02em}
+  .al-text{font-size:.8rem;line-height:1.42}
+  .al-text b{font-weight:600;color:var(--black)}
+  .al-act{color:var(--gray)}
+  .al-obj{color:var(--black)}
+  .al-ctx{display:block;margin-top:3px;font-size:.73rem;color:var(--gray-light)}
+  .al-sum{flex:none;font-size:.8rem;font-weight:600;color:var(--green-dark);white-space:nowrap}
+
+  /* ── 0. как сейчас ── */
+  .к0{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+      letter-spacing:.04em;color:var(--green-dark)}
+
+  /* ── 1. плашка-пилюля ── */
+  .к1{display:inline-flex;align-items:center;gap:5px;
+      font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+      font-size:.7rem;font-weight:600;letter-spacing:.06em;
+      color:var(--green-dark);background:var(--green-bg);
+      border-radius:20px;padding:2px 9px;vertical-align:-1px}
+  .к1 .л{font-family:'Geologica',sans-serif;font-size:.6rem;font-weight:500;
+         letter-spacing:.04em;text-transform:uppercase;opacity:.65}
+
+  /* ── 2. контурная плашка ── */
+  .к2{display:inline-flex;align-items:center;gap:5px;
+      font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+      font-size:.7rem;font-weight:600;letter-spacing:.06em;
+      color:var(--green-dark);border:1px solid var(--green-light);
+      border-radius:6px;padding:1px 8px;vertical-align:-1px}
+  .к2 .л{font-family:'Geologica',sans-serif;font-size:.6rem;font-weight:500;
+         letter-spacing:.04em;text-transform:uppercase;opacity:.6}
+
+  /* ── 3. своя строка ── */
+  .к3-строка{display:flex;align-items:center;gap:7px;margin-top:5px}
+  .к3-л{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-light)}
+  .к3{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+      font-size:.74rem;font-weight:600;letter-spacing:.08em;color:var(--green-dark)}
+  .к3-черта{flex:1;height:1px;background:var(--border)}
+
+  /* ── 4. справа, столбиком под суммой ── */
+  .al-right{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+  .к4{display:inline-flex;align-items:center;gap:5px;
+      font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+      font-size:.68rem;font-weight:600;letter-spacing:.06em;
+      color:var(--green-dark);background:var(--green-bg);
+      border-radius:20px;padding:2px 8px}
+  .к4 .л{font-family:'Geologica',sans-serif;font-size:.58rem;font-weight:500;
+         letter-spacing:.04em;text-transform:uppercase;opacity:.65}
+  .низ{font-size:.78rem;color:#5b7376;line-height:1.6;max-width:760px;margin-top:26px}
+</style>
+</head>
+<body>
+<div class="обёртка">
+  <h1>Код расчёта в журнале — варианты</h1>
+  <p class="вступ">Сейчас код набран теми же чернилами, что и соседи по серой строке, и отличается только моноширинным начертанием — в потоке «пресет … · дата · код 901 974» он теряется, а рядом справа стоит сумма такого же вида. Ниже четыре подачи: каждая показана на живой строке журнала, слева день, справа ночь.</p>
+
+  <div class="вариант">
+    <h2>Как сейчас</h2>
+    <p>Код — часть той же серой строки, тем же цветом, что и остальные чернила акцента.</p>
+  </div>
+  <div class="пара">
+    <div class="лента">
+      <div class="подпись">День</div>
+      <div class="al-i">
+        <span class="al-time">15:11</span>
+        <span class="al-ava">КК</span>
+        <span class="al-left">
+          <span class="al-text"><b>Константин Кислицын</b> <span class="al-act">· Спецификация в теме «Бланк» отправлена на печать</span> <span class="al-obj">Фахверковая баня «Берлин» 9×5</span></span>
+          <span class="al-ctx">пресет «Фахверковая баня «Берлин» 9×5 · 03.09.26» · <span class="к0">код 901 974</span></span>
+        </span>
+        <span class="al-sum">4 513 375 ₽</span>
+      </div>
+    </div>
+    <div class="лента ночь">
+      <div class="подпись">Ночь</div>
+      <div class="al-i">
+        <span class="al-time">15:11</span>
+        <span class="al-ava">КК</span>
+        <span class="al-left">
+          <span class="al-text"><b>Константин Кислицын</b> <span class="al-act">· Спецификация в теме «Бланк» отправлена на печать</span> <span class="al-obj">Фахверковая баня «Берлин» 9×5</span></span>
+          <span class="al-ctx">пресет «Фахверковая баня «Берлин» 9×5 · 03.09.26» · <span class="к0">код 901 974</span></span>
+        </span>
+        <span class="al-sum">4 513 375 ₽</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="вариант">
+    <h2>1. Плашка-пилюля<span class="рек">рекомендую</span></h2>
+    <p>Код в <b>заливке цвета подсветки</b>, скруглённой пилюлей, со словом «код» мелким и приглушённым внутри. Отделяется от текста фоном, а не цветом букв, поэтому не спорит с суммой справа и читается как отдельная сущность — то, что можно взять и перенести.</p>
+  </div>
+  <div class="пара">
+    <div class="лента">
+      <div class="подпись">День</div>
+      <div class="al-i">
+        <span class="al-time">15:11</span>
+        <span class="al-ava">КК</span>
+        <span class="al-left">
+          <span class="al-text"><b>Константин Кислицын</b> <span class="al-act">· Спецификация в теме «Бланк» отправлена на печать</span> <span class="al-obj">Фахверковая баня «Берлин» 9×5</span></span>
+          <span class="al-ctx">пресет «Фахверковая баня «Берлин» 9×5 · 03.09.26» <span class="к1"><span class="л">код</span>901 974</span></span>
+        </span>
+        <span class="al-sum">4 513 375 ₽</span>
+      </div>
+    </div>
+    <div class="лента ночь">
+      <div class="подпись">Ночь</div>
+      <div class="al-i">
+        <span class="al-time">15:11</span>
+        <span class="al-ava">КК</span>
+        <span class="al-left">
+          <span class="al-text"><b>Константин Кислицын</b> <span class="al-act">· Спецификация в теме «Бланк» отправлена на печать</span> <span class="al-obj">Фахверковая баня «Берлин» 9×5</span></span>
+          <span class="al-ctx">пресет «Фахверковая баня «Берлин» 9×5 · 03.09.26» <span class="к1"><span class="л">код</span>901 974</span></span>
+        </span>
+        <span class="al-sum">4 513 375 ₽</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="вариант">
+    <h2>2. Контурная плашка</h2>
+    <p>То же, но <b>рамкой вместо заливки</b> и со скруглением 6 px. Тише первого варианта и ближе к меткам ролей в других окнах. На тёмной теме контур виден слабее заливки.</p>
+  </div>
+  <div class="пара">
+    <div class="лента">
+      <div class="подпись">День</div>
+      <div class="al-i">
+        <span class="al-time">15:11</span>
+        <span class="al-ava">КК</span>
+        <span class="al-left">
+          <span class="al-text"><b>Константин Кислицын</b> <span class="al-act">· Спецификация в теме «Бланк» отправлена на печать</span> <span class="al-obj">Фахверковая баня «Берлин» 9×5</span></span>
+          <span class="al-ctx">пресет «Фахверковая баня «Берлин» 9×5 · 03.09.26» <span class="к2"><span class="л">код</span>901 974</span></span>
+        </span>
+        <span class="al-sum">4 513 375 ₽</span>
+      </div>
+    </div>
+    <div class="лента ночь">
+      <div class="подпись">Ночь</div>
+      <div class="al-i">
+        <span class="al-time">15:11</span>
+        <span class="al-ava">КК</span>
+        <span class="al-left">
+          <span class="al-text"><b>Константин Кислицын</b> <span class="al-act">· Спецификация в теме «Бланк» отправлена на печать</span> <span class="al-obj">Фахверковая баня «Берлин» 9×5</span></span>
+          <span class="al-ctx">пресет «Фахверковая баня «Берлин» 9×5 · 03.09.26» <span class="к2"><span class="л">код</span>901 974</span></span>
+        </span>
+        <span class="al-sum">4 513 375 ₽</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="вариант">
+    <h2>3. Своя строка</h2>
+    <p>Код уходит <b>на отдельную строку под контекстом</b>, с надзаголовком и линейкой до правого края. Заметнее всех, но забирает третью строку у каждого события с кодом — а их в журнале большинство.</p>
+  </div>
+  <div class="пара">
+    <div class="лента">
+      <div class="подпись">День</div>
+      <div class="al-i">
+        <span class="al-time">15:11</span>
+        <span class="al-ava">КК</span>
+        <span class="al-left">
+          <span class="al-text"><b>Константин Кислицын</b> <span class="al-act">· Спецификация в теме «Бланк» отправлена на печать</span> <span class="al-obj">Фахверковая баня «Берлин» 9×5</span></span>
+          <span class="al-ctx">пресет «Фахверковая баня «Берлин» 9×5 · 03.09.26»</span>
+          <span class="к3-строка"><span class="к3-л">код</span><span class="к3">901 974</span><span class="к3-черта"></span></span>
+        </span>
+        <span class="al-sum">4 513 375 ₽</span>
+      </div>
+    </div>
+    <div class="лента ночь">
+      <div class="подпись">Ночь</div>
+      <div class="al-i">
+        <span class="al-time">15:11</span>
+        <span class="al-ava">КК</span>
+        <span class="al-left">
+          <span class="al-text"><b>Константин Кислицын</b> <span class="al-act">· Спецификация в теме «Бланк» отправлена на печать</span> <span class="al-obj">Фахверковая баня «Берлин» 9×5</span></span>
+          <span class="al-ctx">пресет «Фахверковая баня «Берлин» 9×5 · 03.09.26»</span>
+          <span class="к3-строка"><span class="к3-л">код</span><span class="к3">901 974</span><span class="к3-черта"></span></span>
+        </span>
+        <span class="al-sum">4 513 375 ₽</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="вариант">
+    <h2>4. Справа, под суммой</h2>
+    <p>Плашка уходит <b>в правую колонку, под сумму</b>. Коды выстраиваются одним столбцом — удобно, когда их переписывают подряд; зато на телефоне правая колонка узкая, и длинная сумма с плашкой поджимают текст события.</p>
+  </div>
+  <div class="пара">
+    <div class="лента">
+      <div class="подпись">День</div>
+      <div class="al-i">
+        <span class="al-time">15:11</span>
+        <span class="al-ava">КК</span>
+        <span class="al-left">
+          <span class="al-text"><b>Константин Кислицын</b> <span class="al-act">· Спецификация в теме «Бланк» отправлена на печать</span> <span class="al-obj">Фахверковая баня «Берлин» 9×5</span></span>
+          <span class="al-ctx">пресет «Фахверковая баня «Берлин» 9×5 · 03.09.26»</span>
+        </span>
+        <span class="al-right">
+          <span class="al-sum">4 513 375 ₽</span>
+          <span class="к4"><span class="л">код</span>901 974</span>
+        </span>
+      </div>
+    </div>
+    <div class="лента ночь">
+      <div class="подпись">Ночь</div>
+      <div class="al-i">
+        <span class="al-time">15:11</span>
+        <span class="al-ava">КК</span>
+        <span class="al-left">
+          <span class="al-text"><b>Константин Кислицын</b> <span class="al-act">· Спецификация в теме «Бланк» отправлена на печать</span> <span class="al-obj">Фахверковая баня «Берлин» 9×5</span></span>
+          <span class="al-ctx">пресет «Фахверковая баня «Берлин» 9×5 · 03.09.26»</span>
+        </span>
+        <span class="al-right">
+          <span class="al-sum">4 513 375 ₽</span>
+          <span class="к4"><span class="л">код</span>901 974</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <p class="низ">Во всех вариантах цифры остаются моноширинными и разбиты по три — так код переписывают и диктуют. Слово «код» стоит внутри плашки мелким: без него шесть цифр рядом с суммой читаются второй суммой.</p>
+</div>
+</body>
+</html>
