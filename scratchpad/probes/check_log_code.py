@@ -275,8 +275,12 @@ def главная():
               window.showToast = (т) => { window.__тосты.push(String(t_или(т))); };
               function t_или(т) { return т; }
               _activeSharedCode = '778899';
-              _sharedPresets = [{ short_code: '778899', author_id: 'u-чужой',
-                                  is_public: false, locked: false, name: 'Чужой' }];
+              // Расчёт свой: с 19.09.2026 чужой открывается только на просмотр,
+              // записи в базу на нём не бывает вовсе, и отказ базы проверять
+              // там нечем. Мерим то, ради чего проба написана: отказ в записи
+              // виден словами, а не молча.
+              _sharedPresets = [{ short_code: '778899', author_id: 'u-проба',
+                                  is_public: true, locked: false, name: 'Свой общий' }];
               _sbProfile = { role: 'admin', full_name: 'Проба' };
               _collabLastState = {};
               await collabWriteSection('disc');
