@@ -72,9 +72,29 @@
     var правка = null, стирать = false;
     о.update = function (значения) { правка = значения || {}; return о; };
     о.delete = function () { стирать = true; return о; };
+    /* Ключи, по которым таблица в базе объявлена уникальной. Без этого
+       обычная вставка на занятый номер молча клала вторую строку, и проба
+       столкновения кодов зеленела бы при сломанной перевыдаче: в жизни база
+       отвечает 23505, а заглушка — «ошибки нет». */
+    var УНИКАЛЬНО = { preset_links: 'short_code', client_links: 'code', presets: 'id',
+                      app_docs: null };
+    var сбой = null;
     function применить() {
       if (добавить) {
         var все = window.__ТАБЛИЦЫ[таблица] || (window.__ТАБЛИЦЫ[таблица] = []);
+        var уник = УНИКАЛЬНО[таблица];
+        if (уник && !ключСлияния) {
+          var занят = добавить.filter(function (новая) {
+            return все.some(function (р) { return String(р[уник]) === String(новая[уник]); });
+          });
+          if (занят.length) {
+            сбой = { code: '23505', message: 'duplicate key value violates unique constraint "'
+                     + таблица + '_pkey"' };
+            добавить = null;
+            строки = [];
+            return;
+          }
+        }
         добавить.forEach(function (новая) {
           var и = -1;
           if (ключСлияния) {
@@ -133,10 +153,19 @@
     };
     о.limit = function (н) { строки = строки.slice(0, н); return о; };
     о.single = о.maybeSingle = function () { один = true; return о; };
+    /* Задержка сети: `window.__ЗАДЕРЖКА` (мс) заставляет ответ приходить не
+       мгновенно. Нужна пробе, которая меряет, что видно человеку ДО ответа
+       базы, — на мгновенной заглушке «сразу» и «после ответа» неразличимы. */
     о.then = function (принять, отклонить) {
       применить();
       var р = один ? (строки[0] || null) : строки;
-      return Promise.resolve(один ? { data: р, error: null } : ответ(строки)).then(принять, отклонить);
+      var итог = сбой ? { data: null, error: сбой }
+                      : (один ? { data: р, error: null } : ответ(строки));
+      var ждать = Number(window.__ЗАДЕРЖКА || 0);
+      var обещание = ждать > 0
+        ? new Promise(function (д) { setTimeout(function () { д(итог); }, ждать); })
+        : Promise.resolve(итог);
+      return обещание.then(принять, отклонить);
     };
     о.catch = function (ф) { return о.then(null, ф); };
     о.finally = function (ф) { return о.then(ф, ф); };
