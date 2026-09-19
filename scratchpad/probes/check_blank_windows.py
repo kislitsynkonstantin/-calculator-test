@@ -228,6 +228,60 @@ def m_строка(цвет):
     return ", ".join(str(int(з)) for з in (цвет or [])[:3])
 
 
+# ── значок готовых комплектаций в списке проектов ───────────────────────────
+def проверить_значок(стр):
+    """На листе значок стоит сам: без коробки, без заливки, чернилами акцента.
+
+    В «Модерне» он остаётся залитым квадратом с белым знаком — тему не трогали,
+    и проба это держит: правка одной темы не должна тихо менять другую.
+    """
+    for имяТемы, лист in (("бланк", True), ("модерн", False)):
+        тема(стр, "blank" if лист else "modern")
+        м = спросить(стр, """() => {
+          // Значок стоит у проектов с закрытым замком — в пробе замок ставим
+          // сами и пересобираем список, иначе значка нет вовсе.
+          try { _lockedSlugs.add(projectSlug(PROJECTS[0][0])); } catch (e) {}
+          if (typeof filterProjects === 'function') filterProjects();
+          // Список открывается нажатием; в пробе разворачиваем его сами.
+          const обёртка = document.getElementById('projectSelectWrap')
+            || document.querySelector('.custom-select-wrap');
+          if (обёртка) обёртка.classList.add('open');
+          const з = document.querySelector('.custom-select-dropdown .proj-kit-badge');
+          if (!з) return { нет: true };
+          const с = getComputedStyle(з);
+          const svg = з.querySelector('svg');
+          const числа = т => (т.match(/[\\d.]+/g) || []).slice(0, 4).map(Number);
+          return { фон: числа(с.backgroundColor), прозрачность: числа(с.backgroundColor)[3],
+                   цвет: числа(с.color), поля: с.padding,
+                   знак: svg ? Math.round(svg.getBoundingClientRect().width) : 0 };
+        }""")
+        if not м or м.get("нет"):
+            плохо(f"[{имяТемы}] значка готовых комплектаций нет в списке проектов")
+            continue
+        залит = not (м["прозрачность"] == 0 or len(м["фон"]) < 3)
+        if лист:
+            if залит:
+                плохо(f"[{имяТемы}] значок остался с заливкой rgb({m_строка(м['фон'])}) — "
+                      "на листе он стоит сам, без коробки")
+            if м["знак"] < 14:
+                плохо(f"[{имяТемы}] знак мелкий: {м['знак']} px — без коробки он чуть крупнее")
+            if м["поля"].strip() not in ("0px", "0px 0px", "0px 0px 0px 0px"):
+                плохо(f"[{имяТемы}] у значка остались поля коробки: {м['поля']}")
+        else:
+            if not залит:
+                плохо("[модерн] значок потерял заливку — эту тему не трогали")
+        try:
+            стр.locator("#projectSelectWrap .custom-select-dropdown").screenshot(
+                path=str(pathlib.Path(__file__).parent / f"значок-{имяТемы}.png"), timeout=3000)
+        except Exception:
+            pass
+        спросить(стр, """() => {
+          const о = document.getElementById('projectSelectWrap')
+            || document.querySelector('.custom-select-wrap');
+          if (о) о.classList.remove('open');
+        }""")
+
+
 # ── разделы в таблице комплектаций ──────────────────────────────────────────
 def проверить_разделы(стр):
     стр.evaluate("() => { openKompl(); switchKomplTab('table'); }")
@@ -297,6 +351,9 @@ def главная():
             тема(стр, "blank")
             проверить_замок(стр)
             проверить_разделы(стр)
+            спросить(стр, "() => { try { closeKompl(); } catch (e) {} }")
+            проверить_значок(стр)
+            тема(стр, "blank")
             стр.evaluate("() => { try { closeKompl(); } catch (e) {} }")
             проверить_окно_договора(стр)
 
@@ -314,7 +371,8 @@ def главная():
         sys.exit(1)
     print("Чисто: ряд вкладок без наездов и с зазором до линейки, замок переключается "
           "сразу и возвращается при отказе, шапка «Данных для договора» светлая, "
-          "разделы таблицы держатся чертой.")
+          "разделы таблицы держатся чертой, значок комплектаций на листе без коробки "
+          "и с заливкой в «Модерне».")
 
 
 if __name__ == "__main__":
