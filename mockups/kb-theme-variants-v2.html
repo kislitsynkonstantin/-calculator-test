@@ -1,0 +1,1444 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Оформление базы знаний — день и ночь</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700;800&family=Geologica:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   Витрина: четыре оформления одной главы, каждое в дне и ночи.
+
+   Вкладки и переключатель дня с ночью собраны на скрытых переключателях
+   формы. Скрипта в файле нет вовсе: макет уходит отдельным файлом в
+   переписку, а там скрипт может быть выключен — и вкладки не открылись бы.
+
+   У каждого оформления один набор токенов, и ночь переопределяет только их.
+   Поэтому ночной вид не рисуется заново и не может разойтись с дневным.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ═══ ВИТРИНА ════════════════════════════════════════════════════════════ */
+
+body {
+  margin: 0;
+  background: #e9eeee;
+  color: #13282b;
+  font-family: 'Geologica', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Переключатели не убраны с глаз `display:none`: так они перестали бы
+   принимать нажатие клавишами. Их просто не видно. */
+.rb { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+.bar {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: 14px 18px; flex-wrap: wrap;
+  padding: 12px clamp(14px, 3vw, 34px);
+  background: rgba(233, 238, 238, .94);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #d3e0e0;
+}
+.bar-name {
+  font-family: 'Unbounded', system-ui, sans-serif;
+  font-size: .76rem; font-weight: 800; letter-spacing: -.01em; color: #1e6c72;
+}
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab, .mode {
+  padding: 7px 14px;
+  border: 1px solid #d3e0e0; border-radius: 20px;
+  background: #fff;
+  font-size: .72rem; color: #556d70;
+  cursor: pointer; user-select: none;
+}
+.modes { display: flex; gap: 6px; margin-left: auto; }
+.mode { padding: 7px 13px; }
+@media (hover: hover) {
+  .tab:hover, .mode:hover { border-color: #2a8f97; color: #1e6c72; }
+}
+/* Выбранная вкладка залита акцентом — это единственная заливка витрины,
+   и по ней сразу видно, что открыто. */
+#t1:checked ~ .bar .tab:nth-of-type(1),
+#t2:checked ~ .bar .tab:nth-of-type(2),
+#t3:checked ~ .bar .tab:nth-of-type(3),
+#t4:checked ~ .bar .tab:nth-of-type(4),
+#m-day:checked ~ .bar .mode:nth-of-type(1),
+#m-night:checked ~ .bar .mode:nth-of-type(2) {
+  background: #1e6c72; border-color: #1e6c72; color: #fff; font-weight: 600;
+}
+/* Видимая рамка фокуса: по вкладкам ходят и с клавиатуры. */
+.rb:focus-visible + .rb + .rb + .rb ~ .bar .tabs,
+.rb:focus-visible ~ .bar .tabs { outline: 2px solid #2a8f97; outline-offset: 4px; border-radius: 22px; }
+
+.intro { max-width: 780px; padding: 30px clamp(14px, 3vw, 34px) 0; }
+.intro p { margin: 0 0 11px; font-size: .86rem; line-height: 1.72; color: #556d70; }
+.intro p:last-child { margin-bottom: 0; }
+
+.pane { display: none; padding: 26px clamp(14px, 3vw, 34px) 0; }
+#t1:checked ~ .panes .p1,
+#t2:checked ~ .panes .p2,
+#t3:checked ~ .panes .p3,
+#t4:checked ~ .panes .p4 { display: block; }
+
+.cap { margin-bottom: 14px; }
+.cap h2 {
+  margin: 0 0 5px;
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  font-family: 'Unbounded', system-ui, sans-serif;
+  font-size: 1.04rem; font-weight: 700; letter-spacing: -.02em;
+}
+.cap-now {
+  padding: 3px 9px; border: 1px solid #2a8f97; border-radius: 20px;
+  font-family: 'Geologica', system-ui, sans-serif;
+  font-size: .54rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: #1e6c72;
+}
+.cap p { margin: 0; max-width: 660px; font-size: .82rem; line-height: 1.68; color: #556d70; }
+
+.foot {
+  padding: 30px clamp(14px, 3vw, 34px) 54px;
+  font-size: .76rem; line-height: 1.7; color: #8ba1a3;
+}
+
+/* Кадр: рамка нейтральная и тонкая — она отделяет кадр от витрины,
+   а не участвует в оформлении. */
+.v {
+  border: 1px solid #d3e0e0; border-radius: 14px; overflow: hidden;
+  box-shadow: 0 2px 14px rgba(19, 40, 43, .06);
+}
+.v, .v *, .v *::before, .v *::after { box-sizing: border-box; margin: 0; padding: 0; }
+.v svg { display: block; }
+.v a { text-decoration: none; }
+
+/* ═══ 2. «ВЕДОМОСТЬ» ═════════════════════════════════════════════════════
+   Язык печатного листа, слово в слово. Крупный бледный номер раздела, черта
+   в два пикселя под заголовком и над итогом, строки на волосяных линейках,
+   скруглений нет нигде. Заливка в двух местах: номер шага (та же роль, что
+   у галочки на листе) и плашки.
+
+   Лист лежит на столе: поле вокруг — `--pg`, сам лист белый с лёгкой тенью,
+   меню стоит на столе слева и не залито. */
+
+.v-sheet {
+  --pg: #f7fbfb; --sheet: #fff;
+  --ink: #12262a; --ink2: #5b7376; --ink3: #8da3a5;
+  --rule: #dceaeb; --rule2: #bcd9db;
+  --fill: #1e6c72; --on-fill: #fff;
+  --acc-ink: #1e6c72; --acc2: #2a8f97; --pale: #a8dde0; --tint: #e4f5f6;
+  --warm: #8a7060; --warm-bg: #f5f3f0; --warm-ink: #4a3828; --warm-strong: #c06010;
+  font-family: 'Geologica', system-ui, sans-serif; color: var(--ink);
+}
+#m-night:checked ~ .panes .v-sheet {
+  --pg: #0e1a1c; --sheet: #132528;
+  --ink: #e6f3f3; --ink2: #9db6b8; --ink3: #8aa4a6;
+  --rule: #224347; --rule2: #2d585d;
+  --fill: #2a8f97; --on-fill: #08181a;
+  --acc-ink: #8fd6dc; --acc2: #5fc2ca; --pale: #5fc2ca; --tint: #173338;
+  --warm: #7a6050; --warm-bg: #1e1a16; --warm-ink: #c8b8a8; --warm-strong: #e0b070;
+}
+
+.v-sheet .layout { display: flex; background: var(--pg); }
+.v-sheet .sb { width: 208px; flex: none; padding: 24px 0 26px; background: none; }
+.v-sheet .sb-top { padding: 0 22px 16px; border-bottom: 1px solid var(--rule); }
+.v-sheet .sb-logo-badge { font-family: 'Unbounded', sans-serif; font-size: .56rem; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--ink3); }
+.v-sheet .sb-top h1 { margin-top: 10px; font-family: 'Unbounded', sans-serif; font-size: .78rem; font-weight: 700; color: var(--ink); }
+.v-sheet .sb-top p { margin-top: 4px; font-size: .64rem; color: var(--ink3); }
+.v-sheet .sb-group { padding: 15px 22px 4px; font-size: .55rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--ink3); }
+.v-sheet .sb-a {
+  position: relative; display: flex; align-items: center; gap: 9px;
+  padding: 9px 22px; border-bottom: 1px solid var(--rule);
+  font-size: .76rem; color: var(--ink2); cursor: pointer;
+}
+.v-sheet .sb-a svg { flex: none; opacity: .45; }
+/* Открытый раздел помечен как выбранная строка ведомости: полоска у левого
+   края и заливка, гаснущая вправо. Во всю ширину она читалась бы плашкой. */
+.v-sheet .sb-a.on {
+  background: linear-gradient(90deg, var(--tint), transparent 170px);
+  color: var(--ink); font-weight: 600;
+}
+.v-sheet .sb-a.on::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--acc-ink); }
+.v-sheet .sb-a.on svg { opacity: 1; color: var(--acc-ink); }
+@media (hover: hover) { .v-sheet .sb-a:hover { color: var(--acc-ink); } }
+
+.v-sheet .main {
+  flex: 1; min-width: 0; max-width: 860px;
+  margin: 18px 18px 18px 0; padding: 38px clamp(20px, 4vw, 44px) 62px;
+  background: var(--sheet); box-shadow: 0 1px 16px rgba(18, 38, 42, .07);
+}
+#m-night:checked ~ .panes .v-sheet .main { box-shadow: 0 1px 16px rgba(0, 0, 0, .3); }
+
+.v-sheet .tag {
+  display: block; margin-bottom: 9px; padding: 0; background: none; border-radius: 0;
+  font-size: .58rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--ink3);
+}
+.v-sheet .main h2 { font-family: 'Unbounded', sans-serif; font-size: 1.22rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.26; color: var(--ink); }
+.v-sheet .lead { max-width: 660px; margin: 12px 0 0; padding-bottom: 20px; border-bottom: 1px solid var(--rule); font-size: .9rem; line-height: 1.72; color: var(--ink2); }
+
+.v-sheet .sec {
+  display: flex; align-items: baseline; gap: 13px;
+  margin: 32px 0 14px; padding-bottom: 7px; border-bottom: 2px solid var(--acc-ink);
+  font-family: 'Unbounded', sans-serif; font-size: .84rem; font-weight: 700;
+  letter-spacing: -.01em; color: var(--acc-ink);
+}
+/* Междустрочие с запасом: при line-height:1 крупная цифра не помещается
+   в собственную строку и подрезается снизу на пару пикселей. */
+.v-sheet .sec .num { margin: 0; font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 300; line-height: 1.15; color: var(--pale); }
+.v-sheet .main p { font-size: .84rem; line-height: 1.72; color: var(--ink); }
+.v-sheet .main p + p { margin-top: 13px; }
+
+.v-sheet .steps { display: block; margin: 18px 0 22px; }
+.v-sheet .step { display: flex; gap: 14px; padding: 13px 0; border-bottom: 1px solid var(--rule); }
+.v-sheet .step:last-child { border-bottom: none; }
+/* Единственная заливка на листе — та же роль, что у галочки в ведомости. */
+.v-sheet .sn {
+  flex: none; display: flex; align-items: center; justify-content: center;
+  width: 21px; height: 21px; margin-top: 2px; border-radius: 4px;
+  background: var(--fill); color: var(--on-fill);
+  font-family: 'Unbounded', sans-serif; font-size: .6rem; font-weight: 700;
+}
+.v-sheet .sb2 h3 { margin-bottom: 5px; font-family: 'Unbounded', sans-serif; font-size: .78rem; font-weight: 700; color: var(--ink); }
+.v-sheet .sb2 p { font-size: .84rem; line-height: 1.72; color: var(--ink2); }
+.v-sheet .sb2 p + p { margin-top: 7px; }
+
+.v-sheet .tip { margin: 16px 0; padding: 13px 16px; background: var(--tint); border: none; border-radius: 0; font-size: .83rem; line-height: 1.68; color: var(--ink); }
+.v-sheet .tip strong { color: var(--acc-ink); }
+.v-sheet .warn { margin: 16px 0; padding: 13px 16px; background: var(--warm-bg); border: none; border-radius: 0; font-size: .83rem; line-height: 1.68; color: var(--warm-ink); }
+.v-sheet .warn strong { color: var(--warm-strong); }
+/* Врезка подсвечена тем же приёмом, что выбранная строка: заливка уходит
+   вправо в прозрачность, а не стоит плашкой во всю ширину. */
+.v-sheet .quote {
+  margin: 22px 0; padding: 14px 0 14px 17px; border-radius: 0;
+  background: linear-gradient(90deg, var(--tint), transparent 340px);
+  border-left: 2px solid var(--acc-ink);
+  font-style: normal; font-size: .93rem; line-height: 1.68; color: var(--ink);
+}
+
+.v-sheet .tbl { width: 100%; margin: 16px 0 22px; background: none; border: none; border-radius: 0; border-collapse: collapse; }
+.v-sheet .tbl th { padding: 0 14px 7px 0; background: none; border: none; border-bottom: 2px solid var(--acc-ink); font-family: 'Unbounded', sans-serif; font-size: .56rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; text-align: left; color: var(--ink2); }
+.v-sheet .tbl td { padding: 9px 14px 9px 0; border-top: 1px solid var(--rule); font-size: .82rem; line-height: 1.6; vertical-align: top; color: var(--ink); }
+.v-sheet .tbl td:first-child { width: 36%; font-weight: 600; color: var(--acc-ink); }
+@media (hover: hover) { .v-sheet .tbl tbody tr:hover td { background: var(--tint); } }
+
+/* Две колонки разделяет не рамка, а левая линейка правой колонки. */
+.v-sheet .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 22px 0 24px; }
+.v-sheet .gc { padding: 0 24px; background: none; border: none; border-radius: 0; }
+.v-sheet .gc:first-child { padding-left: 0; }
+.v-sheet .gc + .gc { border-left: 1px solid var(--rule); }
+.v-sheet .gc-icon { display: block; width: auto; height: auto; margin-bottom: 8px; background: none; border-radius: 0; color: var(--acc2); }
+.v-sheet .gc h4 { margin-bottom: 5px; font-family: 'Unbounded', sans-serif; font-size: .68rem; font-weight: 700; color: var(--acc-ink); }
+.v-sheet .gc p { font-size: .78rem; line-height: 1.6; color: var(--ink2); }
+
+.v-sheet .next-ch { display: flex; align-items: center; gap: 14px; margin: 30px 0 0; padding: 14px 0 0; background: none; border: none; border-top: 2px solid var(--acc-ink); border-radius: 0; cursor: pointer; }
+.v-sheet .nc-tag { margin-bottom: 3px; font-size: .55rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--ink3); }
+.v-sheet .nc-title { font-size: .92rem; font-weight: 700; color: var(--ink); }
+.v-sheet .nc-arrow { flex: none; color: var(--acc2); transition: transform .15s; }
+@media (hover: hover) { .v-sheet .next-ch:hover .nc-arrow { transform: translateX(4px); } }
+
+/* ═══ 3. «РАЗВОРОТ» ══════════════════════════════════════════════════════
+   Две колонки: заголовки разделов слева, текст справа. Устройство главы
+   видно целиком, не прокручивая её, а колонка текста остаётся узкой.
+
+   Колонки держит сетка, а не разметка: заголовок раздела стоит в первом
+   столбце, и первый абзац за ним встаёт с ним в одну строку сам — очередь
+   заполнения сетки идёт вперёд и назад не возвращается. */
+
+.v-spread {
+  --pg: #f0f6f6; --sheet: #fff;
+  --ink: #111; --ink2: #555; --ink3: #888;
+  --rule: #d4e4e5;
+  --fill: #1e6c72; --on-fill: #fff;
+  --acc-ink: #1e6c72; --acc2: #2a8f97; --acc3: #3db0ba; --tint: #e4f5f6;
+  --warm-bg: #f5f3f0; --warm: #8a7060; --warm-ink: #4a3828; --warm-strong: #c06010;
+  font-family: 'Geologica', system-ui, sans-serif; color: var(--ink);
+}
+#m-night:checked ~ .panes .v-spread {
+  --pg: #111e20; --sheet: #1a2a2c;
+  --ink: #e8f0f1; --ink2: #9ab; --ink3: #678;
+  --rule: #2a3f42;
+  --fill: #1e6c72; --on-fill: #fff;
+  --acc-ink: #5fc8d2; --acc2: #3db0ba; --acc3: #4ecad4; --tint: #1a3034;
+  --warm-bg: #1e1a16; --warm: #7a6050; --warm-ink: #c8b8a8; --warm-strong: #e0b070;
+}
+
+.v-spread .layout { display: flex; background: var(--pg); }
+.v-spread .sb { width: 192px; flex: none; padding-bottom: 24px; background: var(--fill); }
+.v-spread .sb-top { padding: 22px 20px 14px; border-bottom: 1px solid rgba(255, 255, 255, .1); }
+.v-spread .sb-logo-badge { display: inline-block; padding: 4px 8px; background: rgba(255, 255, 255, .15); border-radius: 5px; font-family: 'Unbounded', sans-serif; font-size: .56rem; font-weight: 900; letter-spacing: .03em; color: #fff; }
+.v-spread .sb-top h1 { margin-top: 9px; font-family: 'Unbounded', sans-serif; font-size: .72rem; font-weight: 800; line-height: 1.35; color: #fff; }
+.v-spread .sb-top p { margin-top: 3px; font-size: .63rem; color: rgba(255, 255, 255, .5); }
+.v-spread .sb-nav { padding: 8px 0 0; }
+.v-spread .sb-group { padding: 12px 20px 3px; font-size: .56rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: rgba(255, 255, 255, .38); }
+.v-spread .sb-a { display: flex; align-items: center; gap: 8px; padding: 7px 20px; border-left: 2px solid transparent; font-size: .73rem; color: rgba(255, 255, 255, .72); cursor: pointer; }
+.v-spread .sb-a svg { flex: none; opacity: .65; }
+.v-spread .sb-a.on { background: rgba(255, 255, 255, .12); border-left-color: var(--acc3); color: #fff; font-weight: 600; }
+.v-spread .sb-a.on svg { opacity: 1; }
+@media (hover: hover) { .v-spread .sb-a:hover { background: rgba(255, 255, 255, .07); color: #fff; } }
+
+.v-spread .main {
+  display: grid; grid-template-columns: 240px minmax(0, 1fr);
+  column-gap: clamp(26px, 4vw, 52px); align-items: start;
+  flex: 1; min-width: 0; max-width: 980px;
+  padding: 46px clamp(20px, 4vw, 48px) 86px;
+}
+.v-spread .main > * { grid-column: 2; }
+/* Шапка главы идёт во всю ширину, а не первым столбцом: в столбце она
+   оставляла справа от себя пустое поле в треть кадра — дыра читалась поломкой,
+   а не разворотом. В поле остаются только заголовки разделов, ради них всё
+   и затевалось. */
+.v-spread .tag, .v-spread .main > h2, .v-spread .lead { grid-column: 1 / -1; }
+.v-spread .sec { grid-column: 1; }
+/* Заголовок раздела и первый абзац за ним стоят в одной строке сетки, поэтому
+   отбивка сверху нужна обоим — иначе абзац начинается выше своего заголовка. */
+.v-spread .sec + * { margin-top: 34px; }
+
+/* Метка — пилюля по размеру слова. Ячейка сетки растягивает её во всю
+   ширину, и вместо метки выходит полоса. */
+.v-spread .tag { display: inline-block; justify-self: start; margin-bottom: 11px; padding: 4px 12px; background: var(--tint); border-radius: 20px; font-size: .56rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--acc-ink); }
+.v-spread .main h2 { font-family: 'Unbounded', sans-serif; font-size: 1.3rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.24; color: var(--ink); }
+.v-spread .lead { max-width: 640px; margin: 13px 0 0; padding-top: 14px; border-top: 2px solid var(--acc-ink); font-size: .9rem; line-height: 1.72; color: var(--ink2); }
+
+.v-spread .sec { margin: 34px 0 0; padding-bottom: 8px; border-bottom: 1px solid var(--rule); font-family: 'Unbounded', sans-serif; font-size: .8rem; font-weight: 700; line-height: 1.35; color: var(--acc-ink); }
+.v-spread .sec .num { margin-right: 7px; font-weight: 800; color: var(--acc2); }
+.v-spread .main p { font-size: .87rem; line-height: 1.76; color: var(--ink); }
+.v-spread .main p + p { margin-top: 13px; }
+.v-spread .main > p:first-of-type { margin-top: 0; }
+
+.v-spread .steps { display: flex; flex-direction: column; margin: 18px 0 22px; }
+.v-spread .step { display: flex; gap: 13px; padding: 15px 0; border-bottom: 1px solid var(--rule); }
+.v-spread .step:last-child { border-bottom: none; }
+.v-spread .sn { flex: none; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-top: 2px; border-radius: 50%; background: var(--fill); color: var(--on-fill); font-family: 'Unbounded', sans-serif; font-size: .62rem; font-weight: 700; }
+.v-spread .sb2 h3 { margin-bottom: 5px; font-family: 'Unbounded', sans-serif; font-size: .8rem; font-weight: 700; color: var(--ink); }
+.v-spread .sb2 p { font-size: .85rem; line-height: 1.72; color: var(--ink2); }
+.v-spread .sb2 p + p { margin-top: 7px; }
+
+.v-spread .tip { margin: 15px 0; padding: 12px 16px; background: var(--tint); border: none; border-left: 3px solid var(--acc3); border-radius: 0 9px 9px 0; font-size: .83rem; line-height: 1.66; color: var(--ink); }
+.v-spread .tip strong { color: var(--acc-ink); }
+.v-spread .warn { margin: 15px 0; padding: 12px 16px; background: var(--warm-bg); border: none; border-left: 3px solid var(--warm); border-radius: 0 9px 9px 0; font-size: .83rem; line-height: 1.66; color: var(--warm-ink); }
+.v-spread .warn strong { color: var(--warm-strong); }
+.v-spread .quote { margin: 22px 0; padding: 16px 20px; background: linear-gradient(90deg, var(--tint), transparent 100%); border: none; border-left: 3px solid var(--acc-ink); border-radius: 0 9px 9px 0; font-style: italic; font-size: .92rem; line-height: 1.66; color: var(--ink); }
+
+.v-spread .tbl { width: 100%; margin: 16px 0 22px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; border-collapse: collapse; overflow: hidden; }
+.v-spread .tbl th { padding: 10px 14px; background: var(--tint); border: none; font-family: 'Unbounded', sans-serif; font-size: .6rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; text-align: left; color: var(--acc-ink); }
+.v-spread .tbl td { padding: 9px 14px; border-top: 1px solid var(--rule); font-size: .82rem; vertical-align: top; color: var(--ink); }
+.v-spread .tbl td:first-child { width: 36%; font-weight: 600; color: var(--acc-ink); }
+@media (hover: hover) { .v-spread .tbl tbody tr:hover td { background: var(--tint); } }
+
+.v-spread .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 26px; margin: 22px 0 24px; }
+.v-spread .gc { padding: 13px 0 0; background: none; border: none; border-top: 2px solid var(--acc3); border-radius: 0; }
+.v-spread .gc-icon { display: block; width: auto; height: auto; margin-bottom: 8px; background: none; border-radius: 0; color: var(--acc2); }
+.v-spread .gc h4 { margin-bottom: 4px; font-family: 'Unbounded', sans-serif; font-size: .68rem; font-weight: 700; color: var(--ink); }
+.v-spread .gc p { font-size: .78rem; line-height: 1.6; color: var(--ink2); }
+
+.v-spread .next-ch { display: flex; align-items: center; gap: 14px; margin: 32px 0 0; padding: 15px 0 0; background: none; border: none; border-top: 2px solid var(--acc-ink); border-radius: 0; cursor: pointer; }
+.v-spread .nc-tag { margin-bottom: 3px; font-size: .55rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--acc2); }
+.v-spread .nc-title { font-size: .92rem; font-weight: 700; color: var(--ink); }
+.v-spread .nc-arrow { flex: none; color: var(--acc2); transition: transform .15s; }
+@media (hover: hover) { .v-spread .next-ch:hover .nc-arrow { transform: translateX(4px); } }
+
+/* ═══ 4. «ОСЬ» ═══════════════════════════════════════════════════════════
+   Одна вертикальная черта вдоль всей статьи, и структура нанизана на неё:
+   номер раздела — залитый кружок на оси, номер шага — кружок поменьше там
+   же, плашки отходят от оси вбок. Глава читается одной нитью сверху вниз.
+
+   Ось — та же волосяная линейка «Бланка», только повёрнутая. Ночью она
+   чуть светится: на тёмном поле волосок иначе пропадает. */
+
+.v-axis {
+  --pg: #f7fbfb; --sheet: #fff;
+  --ink: #12262a; --ink2: #5b7376; --ink3: #8da3a5;
+  --rule: #dceaeb; --rule2: #bcd9db;
+  --fill: #1e6c72; --on-fill: #fff;
+  --acc-ink: #1e6c72; --acc2: #2a8f97; --tint: #e4f5f6;
+  --glow: transparent;
+  --warm-bg: #f5f3f0; --warm: #8a7060; --warm-ink: #4a3828; --warm-strong: #c06010;
+  font-family: 'Geologica', system-ui, sans-serif; color: var(--ink);
+}
+#m-night:checked ~ .panes .v-axis {
+  --pg: #0e1a1c; --sheet: #132528;
+  --ink: #e6f3f3; --ink2: #9db6b8; --ink3: #8aa4a6;
+  --rule: #224347; --rule2: #2d585d;
+  --fill: #2a8f97; --on-fill: #08181a;
+  --acc-ink: #8fd6dc; --acc2: #5fc2ca; --tint: #173338;
+  --glow: rgba(143, 214, 220, .22);
+  --warm-bg: #1e1a16; --warm: #7a6050; --warm-ink: #c8b8a8; --warm-strong: #e0b070;
+}
+
+.v-axis .layout { display: flex; background: var(--pg); }
+.v-axis .sb { width: 204px; flex: none; padding: 24px 0 28px; background: none; border-right: 1px solid var(--rule); }
+.v-axis .sb-top { padding: 0 20px 16px; border-bottom: 1px solid var(--rule); }
+.v-axis .sb-logo-badge { font-family: 'Unbounded', sans-serif; font-size: .56rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--acc-ink); }
+.v-axis .sb-top h1 { margin-top: 10px; font-family: 'Unbounded', sans-serif; font-size: .76rem; font-weight: 700; color: var(--ink); }
+.v-axis .sb-top p { margin-top: 3px; font-size: .64rem; color: var(--ink3); }
+.v-axis .sb-nav { padding-top: 6px; }
+.v-axis .sb-group { padding: 14px 20px 4px; font-size: .55rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--ink3); }
+.v-axis .sb-a { display: flex; align-items: center; gap: 9px; padding: 8px 20px; border-left: 2px solid transparent; font-size: .76rem; color: var(--ink2); cursor: pointer; }
+.v-axis .sb-a svg { flex: none; opacity: .45; }
+.v-axis .sb-a.on { border-left-color: var(--acc-ink); color: var(--ink); font-weight: 600; }
+.v-axis .sb-a.on svg { opacity: 1; color: var(--acc-ink); }
+@media (hover: hover) { .v-axis .sb-a:hover { color: var(--acc-ink); } }
+
+.v-axis .main { position: relative; flex: 1; min-width: 0; max-width: 860px; padding: 44px 44px 78px 72px; }
+/* Сама ось. Начинается под меткой главы и кончается перед переходом к
+   следующей: она держит статью, а не рамку кадра. */
+.v-axis .main::before {
+  content: ''; position: absolute; left: 30px; top: 84px; bottom: 96px; width: 1px;
+  background: var(--rule2); box-shadow: 0 0 9px var(--glow);
+}
+
+.v-axis .tag { display: block; margin-bottom: 9px; padding: 0; background: none; border-radius: 0; font-size: .57rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--acc2); }
+.v-axis .main h2 { font-family: 'Unbounded', sans-serif; font-size: 1.24rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.26; color: var(--ink); }
+.v-axis .lead { max-width: 640px; margin: 12px 0 26px; font-size: .9rem; line-height: 1.74; color: var(--ink2); }
+
+.v-axis .sec { position: relative; margin: 34px 0 13px; font-family: 'Unbounded', sans-serif; font-size: .86rem; font-weight: 700; letter-spacing: -.01em; color: var(--ink); }
+/* Номер раздела сидит на оси: кружок 26 px, его середина совпадает с чертой. */
+.v-axis .sec .num {
+  position: absolute; left: -54px; top: -3px; display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; margin: 0; border-radius: 50%;
+  background: var(--fill); color: var(--on-fill);
+  font-size: .62rem; font-weight: 700;
+}
+.v-axis .main p { max-width: 640px; font-size: .85rem; line-height: 1.76; color: var(--ink); }
+.v-axis .main p + p { margin-top: 13px; }
+
+.v-axis .steps { display: block; margin: 18px 0 22px; }
+.v-axis .step { position: relative; display: block; padding: 13px 0; }
+/* Номер шага — кружок поменьше на той же оси и без заливки: заливка занята
+   разделами, и два одинаковых кружка спорили бы за старшинство. Цифра в нём
+   остаётся: пустой кружок читался маркером списка, а не номером шага. */
+.v-axis .sn {
+  position: absolute; left: -50px; top: 13px; display: flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--pg); border: 1.5px solid var(--acc2); color: var(--acc2);
+  font-family: 'Unbounded', sans-serif; font-size: .5rem; font-weight: 700;
+}
+.v-axis .sb2 h3 { margin-bottom: 5px; font-family: 'Unbounded', sans-serif; font-size: .79rem; font-weight: 700; color: var(--ink); }
+.v-axis .sb2 p { max-width: 640px; font-size: .85rem; line-height: 1.74; color: var(--ink2); }
+.v-axis .sb2 p + p { margin-top: 7px; }
+
+/* Плашки отходят от оси вбок: короткая перемычка и заливка без рамки. */
+.v-axis .tip, .v-axis .warn, .v-axis .quote {
+  position: relative; max-width: 660px; margin: 18px 0; padding: 12px 17px;
+  border: none; border-radius: 0 9px 9px 0; font-size: .84rem; line-height: 1.7;
+}
+.v-axis .tip::before, .v-axis .warn::before, .v-axis .quote::before {
+  content: ''; position: absolute; left: -42px; top: 21px; width: 42px; height: 1px; background: var(--rule2);
+}
+.v-axis .tip { background: var(--tint); border-left: 3px solid var(--acc2); color: var(--ink); }
+.v-axis .tip strong { color: var(--acc-ink); }
+.v-axis .warn { background: var(--warm-bg); border-left: 3px solid var(--warm); color: var(--warm-ink); }
+.v-axis .warn strong { color: var(--warm-strong); }
+.v-axis .quote { margin: 24px 0; padding: 15px 20px; background: linear-gradient(90deg, var(--tint), transparent 100%); border-left: 3px solid var(--acc-ink); font-style: normal; font-size: .93rem; color: var(--ink); }
+
+.v-axis .tbl { width: 100%; max-width: 660px; margin: 16px 0 22px; background: none; border: none; border-radius: 0; border-collapse: collapse; }
+.v-axis .tbl th { padding: 0 14px 7px 0; background: none; border: none; border-bottom: 2px solid var(--acc-ink); font-family: 'Unbounded', sans-serif; font-size: .56rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; text-align: left; color: var(--ink2); }
+.v-axis .tbl td { padding: 9px 14px 9px 0; border-top: 1px solid var(--rule); font-size: .82rem; line-height: 1.6; vertical-align: top; color: var(--ink); }
+.v-axis .tbl td:first-child { width: 36%; font-weight: 600; color: var(--acc-ink); }
+@media (hover: hover) { .v-axis .tbl tbody tr:hover td { background: var(--tint); } }
+
+.v-axis .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 26px; max-width: 660px; margin: 22px 0 24px; }
+.v-axis .gc { padding: 12px 0 0; background: none; border: none; border-top: 1px solid var(--rule2); border-radius: 0; }
+.v-axis .gc-icon { display: block; width: auto; height: auto; margin-bottom: 8px; background: none; border-radius: 0; color: var(--acc2); }
+.v-axis .gc h4 { margin-bottom: 4px; font-family: 'Unbounded', sans-serif; font-size: .68rem; font-weight: 700; color: var(--ink); }
+.v-axis .gc p { font-size: .78rem; line-height: 1.6; color: var(--ink2); }
+
+/* Переход к следующей главе стоит под концом оси и закрывает её точкой. */
+.v-axis .next-ch { position: relative; display: flex; align-items: center; gap: 14px; max-width: 660px; margin: 30px 0 0; padding: 15px 0 0; background: none; border: none; border-top: 1px solid var(--rule); border-radius: 0; cursor: pointer; }
+.v-axis .next-ch::before { content: ''; position: absolute; left: -46px; top: 14px; width: 9px; height: 9px; border-radius: 50%; background: var(--acc2); }
+.v-axis .nc-tag { margin-bottom: 3px; font-size: .55rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--ink3); }
+.v-axis .nc-title { font-size: .92rem; font-weight: 700; color: var(--ink); }
+.v-axis .nc-arrow { flex: none; color: var(--acc2); transition: transform .15s; }
+@media (hover: hover) { .v-axis .next-ch:hover .nc-arrow { transform: translateX(4px); } }
+
+/* ═══ 1. НЫНЕШНИЙ СТИЛЬ ═══════════════════════════════════════════════
+   Правила собраны из article.css скилла «Бланк» разбором; руками здесь
+   не правлено ничего. Дневные и ночные значения — из его tokens.css. */
+
+.v-now {
+  --mn-acc:   #1e6c72;
+  --mn-acc-ink: #1e6c72;
+  --mn-acc2:  #2a8f97;
+  --mn-acc3:  #3db0ba;
+  --mn-tint:  #e4f5f6;
+  --mn-ink:   #111;
+  --mn-ink2:  #555;
+  --mn-ink3:  #888;
+  --mn-rule:  #d4e4e5;
+  --mn-card:  #fff;
+  --mn-page:  #f0f6f6;
+  --mn-tip-bg:      #e4f5f6;
+  --mn-tip-border:  #3db0ba;
+  --mn-warn-bg:     #f5f3f0;
+  --mn-warn-border: #8a7060;
+  --mn-warn-text:   #4a3828;
+  --mn-warn-strong: #c06010;
+  --bl-font-head: 'Unbounded', system-ui, sans-serif;
+  --bl-font-body: 'Geologica', system-ui, sans-serif;
+  --bl-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--bl-font-body);
+  color: var(--mn-ink);
+}
+
+#m-night:checked ~ .panes .v-now {
+  --mn-acc:   #1e6c72;
+  --mn-acc-ink: #5fc8d2;
+  --mn-acc2:  #3db0ba;
+  --mn-acc3:  #4ecad4;
+  --mn-tint:  #1a3034;
+  --mn-ink:   #e8f0f1;
+  --mn-ink2:  #9ab;
+  --mn-ink3:  #678;
+  --mn-rule:  #2a3f42;
+  --mn-card:  #1a2a2c;
+  --mn-page:  #111e20;
+  --mn-tip-bg:      #1a3034;
+  --mn-tip-border:  #5fc8d2;
+  --mn-warn-bg:     #1e1a16;
+  --mn-warn-border: #7a6050;
+  --mn-warn-text:   #c8b8a8;
+  --mn-warn-strong: #e0b070;
+}
+
+.v-now .layout { display: flex; min-height: 100vh; background: var(--mn-page); }
+.v-now .sb {
+  width: 192px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--mn-acc);
+}
+.v-now .sb-top { padding: 22px 20px 14px; border-bottom: 1px solid rgba(255,255,255,.1); }
+.v-now .sb-logo { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+.v-now .sb-logo-badge {
+  padding: 4px 8px;
+  background: rgba(255,255,255,.15);
+  border-radius: 5px;
+  font-family: var(--bl-font-head);
+  font-size: .58rem; font-weight: 900;
+  letter-spacing: .03em; color: #fff;
+}
+.v-now .sb-top h1 {
+  font-family: var(--bl-font-head);
+  font-size: .72rem; font-weight: 800;
+  color: #fff; line-height: 1.35; margin: 0;
+}
+.v-now .sb-top p { margin: 3px 0 0; font-size: .63rem; color: rgba(255,255,255,.5); }
+.v-now .sb-nav { flex: 1; padding: 10px 0 24px; }
+.v-now .sb-group {
+  padding: 10px 20px 3px;
+  font-size: .56rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: rgba(255,255,255,.38);
+}
+.v-now .sb-a {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 20px;
+  border-left: 2px solid transparent;
+  font-size: .73rem;
+  color: rgba(255,255,255,.72);
+  cursor: pointer;
+  user-select: none;
+  transition: all .1s;
+}
+.v-now .sb-a:hover { background: rgba(255,255,255,.07); color: #fff; }
+.v-now .sb-a.on {
+  background: rgba(255,255,255,.12);
+  border-left-color: var(--mn-acc3);
+  color: #fff;
+  font-weight: 600;
+}
+.v-now .sb-a svg { flex-shrink: 0; opacity: .65; }
+.v-now .sb-a.on svg { opacity: 1; }
+.v-now .main { flex: 1; min-width: 0; max-width: 880px; padding: 46px 56px 92px; }
+@media (max-width: 720px) {
+.v-now .sb {
+    display: none;
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 200;
+    transform: translateX(-100%);
+    transition: transform .25s;
+  }
+.v-now .sb.mob-open { display: flex; transform: translateX(0); }
+.v-now .mob-backdrop { display: none; position: fixed; inset: 0; z-index: 199; background: rgba(0,0,0,.4); }
+.v-now .mob-backdrop.open { display: block; }
+.v-now .mob-btn {
+    display: flex; align-items: center; justify-content: center;
+    position: fixed; bottom: 20px; right: 20px; z-index: 198;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--mn-acc); color: #fff; border: none; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(30,108,114,.4);
+  }
+.v-now .main { padding: 26px 20px 92px; }
+
+}
+@media (min-width: 721px) {
+.v-now .mob-btn, .v-now .mob-backdrop { display: none; }
+
+}
+.v-now .ch { display: none !important; }
+.v-now .ch.on { display: block !important; }
+.v-now .tag {
+  display: inline-block;
+  margin-bottom: 14px;
+  padding: 4px 13px;
+  background: var(--mn-tint);
+  border-radius: 20px;
+  font-size: .58rem; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--mn-acc2);
+}
+.v-now .main h2 {
+  margin: 0 0 10px;
+  font-family: var(--bl-font-head);
+  font-size: 1.4rem; font-weight: 800;
+  letter-spacing: -.02em; line-height: 1.22;
+  color: var(--mn-ink);
+}
+.v-now .lead {
+  max-width: 660px;
+  margin-bottom: 34px;
+  font-size: .95rem; line-height: 1.7;
+  color: var(--mn-ink2);
+}
+.v-now .lead.sub { margin-bottom: 18px; }
+.v-now .sec {
+  margin: 34px 0 12px;
+  padding: 0; border: none;
+  font-family: var(--bl-font-head);
+  font-size: 1rem; font-weight: 700;
+  letter-spacing: -.01em;
+  color: var(--mn-ink);
+}
+.v-now .sec .num { margin-right: 8px; color: var(--mn-acc2); font-weight: 800; }
+.v-now .main p { font-size: .86rem; line-height: 1.7; color: var(--mn-ink); }
+.v-now .main p + p { margin-top: 14px; }
+.v-now .main ul { margin: 10px 0 14px 20px; padding: 0; }
+.v-now .main li { margin-bottom: 4px; font-size: .84rem; line-height: 1.65; color: var(--mn-ink); }
+.v-now .main li::marker { color: var(--mn-acc2); }
+.v-now .main code {
+  font-family: var(--bl-font-mono);
+  font-size: .88em;
+  color: var(--mn-acc2);
+}
+.v-now .steps { display: flex; flex-direction: column; margin-bottom: 30px; }
+.v-now .step { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--mn-rule); }
+.v-now .step:last-child { border-bottom: none; }
+.v-now .sn {
+  width: 26px; height: 26px;
+  flex-shrink: 0;
+  margin-top: 3px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--mn-acc); color: #fff;
+  border-radius: 50%;
+  font-family: var(--bl-font-head);
+  font-size: .66rem; font-weight: 700;
+}
+.v-now .sn.info { background: var(--mn-acc2); }
+.v-now .sb2 { flex: 1; min-width: 0; }
+.v-now .sb2 h3 {
+  margin: 0 0 6px;
+  font-family: var(--bl-font-head);
+  font-size: .86rem; font-weight: 700;
+  letter-spacing: -.01em; line-height: 1.35;
+  color: var(--mn-ink);
+}
+.v-now .sb2 p { font-size: .86rem; line-height: 1.7; color: var(--mn-ink); }
+.v-now .sb2 p + p { margin-top: 8px; }
+.v-now .tip, .v-now .warn, .v-now .quote {
+  margin: 14px 0;
+  padding: 13px 17px;
+  border-radius: 0 10px 10px 0;
+  font-size: .84rem; line-height: 1.65;
+}
+.v-now .tip {
+  background: var(--mn-tip-bg);
+  border-left: 3px solid var(--mn-tip-border);
+  color: var(--mn-ink);
+}
+.v-now .tip strong { color: var(--mn-acc-ink); }
+.v-now .warn {
+  background: var(--mn-warn-bg);
+  border-left: 3px solid var(--mn-warn-border);
+  color: var(--mn-warn-text);
+}
+.v-now .warn strong { color: var(--mn-warn-strong); }
+.v-now .warn li { color: inherit; }
+.v-now .warn li::marker { color: var(--mn-warn-border); }
+.v-now .quote {
+  padding: 18px 22px;
+  background: linear-gradient(90deg, var(--mn-tint) 0%, transparent 100%);
+  border-left: 3px solid var(--mn-acc);
+  font-style: italic;
+  font-size: .92rem;
+  color: var(--mn-ink);
+}
+.v-now .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+@media (max-width: 540px) {
+.v-now .grid { grid-template-columns: 1fr; }
+
+}
+.v-now .gc {
+  padding: 16px 18px;
+  background: var(--mn-card);
+  border: 1.5px solid var(--mn-rule);
+  border-radius: 14px;
+}
+.v-now .gc-icon {
+  width: 32px; height: 32px;
+  margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--mn-tint);
+  border-radius: 9px;
+  color: var(--mn-acc2);
+}
+.v-now .gc h4 {
+  margin: 0 0 5px;
+  font-family: var(--bl-font-head);
+  font-size: .7rem; font-weight: 700;
+  color: var(--mn-ink);
+}
+.v-now .gc p { font-size: .78rem; line-height: 1.55; color: var(--mn-ink2); }
+.v-now .tbl, .v-now .kt {
+  width: 100%;
+  margin: 14px 0 22px;
+  background: var(--mn-card);
+  border: 1px solid var(--mn-rule);
+  border-radius: 10px;
+  border-collapse: collapse;
+  overflow: hidden;
+}
+.v-now .tbl-wrap { margin: 14px 0 22px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.v-now .tbl-wrap > .tbl { margin: 0; }
+.v-now .tbl th, .v-now .kt th {
+  padding: 11px 14px;
+  background: var(--mn-tint);
+  border: none;
+  font-family: var(--bl-font-head);
+  font-size: .62rem; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase;
+  text-align: left;
+  color: var(--mn-acc-ink);
+}
+.v-now .tbl td, .v-now .kt td {
+  padding: 9px 14px;
+  border-top: 1px solid var(--mn-rule);
+  border-bottom: none;
+  font-size: .82rem;
+  vertical-align: top;
+}
+.v-now .kt td { vertical-align: middle; }
+.v-now .tbl td:first-child { width: 36%; font-weight: 600; color: var(--mn-acc-ink); }
+.v-now .tbl tr, .v-now .kt tr { transition: background .15s ease, color .15s ease; }
+.v-now .tbl tr:hover td, .v-now .kt tr:hover td { background: var(--mn-tint); }
+.v-now .tbl tr:hover td:first-child { color: var(--mn-acc2); }
+.v-now .kt td:last-child { text-align: right; }
+.v-now .kg { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
+.v-now kbd {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 26px;
+  padding: 2px 8px;
+  background: var(--mn-card);
+  border: 1.5px solid var(--mn-rule);
+  border-bottom-width: 2.5px;
+  border-radius: 5px;
+  font-family: var(--bl-font-body);
+  font-size: .68rem; font-weight: 600;
+  color: var(--mn-ink);
+}
+.v-now .cmp {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  margin: 16px 0 22px;
+  background: var(--mn-card);
+  border: 1px solid var(--mn-rule);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.v-now .cmp-h {
+  padding: 11px 14px;
+  background: var(--mn-tint);
+  font-family: var(--bl-font-head);
+  font-size: .66rem; font-weight: 700;
+  letter-spacing: .05em; text-transform: uppercase;
+  color: var(--mn-acc-ink);
+}
+.v-now .cmp-c { padding: 10px 14px; border-top: 1px solid var(--mn-rule); font-size: .82rem; transition: background .15s ease; }
+.v-now .cmp-c.alt { background: var(--mn-tint); color: var(--mn-acc-ink); font-weight: 600; }
+.v-now .cmp-c:hover { background: var(--mn-tint); }
+.v-now .cmp-c.alt:hover { background: var(--mn-acc3); color: #fff; }
+#m-night:checked ~ .panes .v-now .cmp-c.alt:hover { color: #0e1a1c; }
+.v-now .upd { margin: 0 0 36px; }
+.v-now .upd-head {
+  display: flex; align-items: baseline; gap: 11px; flex-wrap: wrap;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--mn-rule);
+}
+.v-now .upd-ver {
+  font-family: var(--bl-font-head);
+  font-size: 1rem; font-weight: 800;
+  letter-spacing: -.01em;
+  color: var(--mn-acc2);
+}
+.v-now .upd-date { font-size: .72rem; color: var(--mn-ink3); }
+.v-now .upd-state {
+  margin-left: auto; align-self: center;
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid var(--mn-rule);
+  border-radius: 20px;
+  font-size: .55rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--mn-ink3); white-space: nowrap;
+}
+.v-now .upd-state.now { background: var(--mn-tint); border-color: var(--mn-acc3); color: var(--mn-acc-ink); }
+.v-now .upd-group {
+  padding: 18px 14px 0;
+  font-size: .56rem; font-weight: 800;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--mn-acc2);
+}
+.v-now .upd-list > .upd-group:first-child { padding-top: 12px; }
+.v-now .upd-item { position: relative; padding: 13px 14px; font-size: .86rem; line-height: 1.7; color: var(--mn-ink); }
+.v-now .upd-item strong { font-weight: 700; color: var(--mn-ink); }
+.v-now .upd-item + .upd-item::before {
+  content: ''; position: absolute;
+  left: 14px; right: 14px; top: 0; height: 1px;
+  background: var(--mn-rule);
+}
+.v-now .upd-group + .upd-item::before { display: none; }
+.v-now .upd-link { color: var(--mn-acc-ink); border-bottom: 1px solid currentColor; border-bottom-color: color-mix(in srgb, currentColor 35%, transparent); cursor: pointer; }
+.v-now .upd-link:hover { border-bottom-color: currentColor; }
+.v-now .tsk { position: relative; margin: 0; padding: 16px 14px; }
+.v-now .tsk + .tsk::before {
+  content: ''; position: absolute;
+  left: 14px; right: 14px; top: 0; height: 1px;
+  background: var(--mn-rule);
+}
+.v-now .tsk-head { display: flex; align-items: baseline; gap: 11px; flex-wrap: wrap; margin-bottom: 9px; }
+.v-now .tsk-num { flex: none; font-family: var(--bl-font-head); font-size: .72rem; font-weight: 700; color: var(--mn-acc2); }
+.v-now .tsk-name {
+  flex: 1 1 220px;
+  font-family: var(--bl-font-head);
+  font-size: .86rem; font-weight: 700;
+  letter-spacing: -.01em; line-height: 1.35;
+  color: var(--mn-ink);
+}
+.v-now .tsk-st {
+  flex: none; margin-left: auto; align-self: center;
+  padding: 3px 10px;
+  border: 1px solid var(--mn-rule);
+  border-radius: 20px;
+  font-size: .55rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--mn-ink3); white-space: nowrap;
+}
+.v-now .tsk-st.now { background: var(--mn-tint); border-color: var(--mn-acc3); color: var(--mn-acc-ink); }
+.v-now .tsk-sub {
+  margin: 16px 0 2px;
+  font-size: .56rem; font-weight: 800;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--mn-acc2);
+}
+.v-now .tsk p { font-size: .84rem; line-height: 1.68; color: var(--mn-ink); }
+.v-now .tsk p + p { margin-top: 7px; }
+.v-now .tsk ul { margin: 9px 0 4px 20px; padding: 0; }
+.v-now .tsk li { margin-bottom: 4px; font-size: .83rem; line-height: 1.6; color: var(--mn-ink); }
+.v-now .tsk li::marker { color: var(--mn-acc2); }
+.v-now .tsk .warn { margin: 14px 0 0; }
+.v-now .next-ch {
+  display: flex; align-items: center; gap: 14px;
+  margin: 34px 0 8px;
+  padding: 16px 22px;
+  background: linear-gradient(90deg, var(--mn-tint) 0%, var(--mn-card) 55%);
+  border: 1.5px solid var(--mn-rule);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+.v-now .next-ch:hover { border-color: var(--mn-acc2); box-shadow: 0 3px 14px rgba(42,143,151,.15); transform: translateX(3px); }
+.v-now .nc-info { flex: 1; min-width: 0; }
+.v-now .nc-tag { margin-bottom: 3px; font-size: .56rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--mn-acc2); }
+.v-now .nc-title { font-size: .92rem; font-weight: 700; letter-spacing: -.01em; line-height: 1.3; color: var(--mn-ink); }
+.v-now .nc-arrow { flex: none; color: var(--mn-acc2); }
+@media (max-width: 640px) {
+.v-now .next-ch { margin-top: 28px; padding: 14px 17px; }
+.v-now .next-ch:hover { transform: none; }
+.v-now .nc-title { font-size: .88rem; }
+
+}
+#m-night:checked ~ .panes .v-now .tag, #m-night:checked ~ .panes .v-now .upd-group, #m-night:checked ~ .panes .v-now .tsk-sub { color: var(--mn-acc3); }
+#m-night:checked ~ .panes .v-now kbd { background: #243a3c; border-color: #3a5558; border-bottom-color: #4a6568; color: var(--mn-ink); }
+
+/* ═══ ПОПРАВКИ КАДРА ═════════════════════════════════════════════════════
+   Правила оформлений приходят выше по файлу, поэтому поправки самой витрины
+   стоят последними: они держат кадр, а не оформление. */
+
+/* Боковое меню на странице липкое и ростом в окно. Внутри кадра окна нет, и
+   столбец обрывался бы посреди статьи цветным огрызком. */
+.v .sb { position: static; height: auto; align-self: stretch; overflow: visible; }
+.v .layout { min-height: 0; }
+/* Стрелка перехода стоит у правого края строки, а не вплотную к названию:
+   приклеенная к тексту, она читается знаком внутри заголовка. */
+.v .nc-info { flex: 1; min-width: 0; }
+
+/* ═══ УЗКОЕ ОКНО ═════════════════════════════════════════════════════════
+   Боковое меню шириной в двести пикселей внутри кадра шириной в триста
+   пятьдесят не живёт ни в одном оформлении, поэтому на телефоне меню у всех
+   становится лентой над статьёй. Это уступка витрины: на самой странице меню
+   выезжает панелью, и так оно и останется.
+
+   У «Разворота» две колонки сходятся в одну, у «Оси» ось подходит ближе к
+   краю: поля на телефоне нет. */
+
+@media (max-width: 900px) {
+  .v .layout { display: block; }
+  .v .sb {
+    display: block; position: static; inset: auto; transform: none;
+    width: auto; height: auto; border-right: none;
+    border-bottom: 1px solid rgba(127, 127, 127, .25);
+  }
+  .v .sb-top { padding: 14px 18px 10px; }
+  .v .sb-nav { display: flex; flex-wrap: wrap; gap: 0 14px; padding: 9px 18px 12px; }
+  /* Надзаголовок группы начинает свою строку: пущенный в общий поток, он
+     доезжает до конца чужой строки и встаёт справа от последнего пункта
+     предыдущей группы — читается случайным словом, а не заголовком. */
+  .v .sb-group { flex-basis: 100%; padding: 0; }
+  .v .sb-a + .sb-group { margin-top: 7px; }
+  .v .sb-a { padding: 6px 0; border-left: none; border-bottom: none; }
+  .v .sb-a.on { border-left: none; background: none; }
+  .v-now .sb-a.on, .v-axis .sb-a.on, .v-spread .sb-a.on { border-bottom: 2px solid currentColor; }
+  .v-sheet .sb-a.on::before { display: none; }
+
+  .v .main { max-width: none; padding: 26px 18px 56px; }
+  .v-sheet .main { margin: 0; box-shadow: none; }
+
+  .v-spread .main { display: block; }
+  .v-spread .lead { margin-bottom: 24px; }
+  .v-spread .sec { margin-top: 28px; }
+
+  .v-axis .main { padding-left: 46px; }
+  .v-axis .main::before { left: 14px; top: 72px; bottom: 80px; }
+  .v-axis .sec .num { left: -45px; }
+  .v-axis .sn { left: -41px; }
+  .v-axis .tip::before, .v-axis .warn::before, .v-axis .quote::before { left: -31px; width: 31px; }
+  .v-axis .next-ch::before { left: -37px; }
+}
+
+@media (max-width: 560px) {
+  .v .grid { grid-template-columns: 1fr; }
+  .v-sheet .grid { gap: 20px 0; }
+  .v-sheet .gc { padding: 0; }
+  .v-sheet .gc + .gc { padding-top: 20px; border-left: none; border-top: 1px solid var(--rule); }
+  .v-spread .grid, .v-axis .grid { gap: 20px; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="show">
+  <input class="rb" type="radio" name="tab" id="t1" checked>
+  <input class="rb" type="radio" name="tab" id="t2">
+  <input class="rb" type="radio" name="tab" id="t3">
+  <input class="rb" type="radio" name="tab" id="t4">
+  <input class="rb" type="radio" name="mode" id="m-day" checked>
+  <input class="rb" type="radio" name="mode" id="m-night">
+
+  <header class="bar">
+    <span class="bar-name">Оформление базы знаний</span>
+    <nav class="tabs">
+    <label class="tab" for="t1">Бланк · статья</label>
+    <label class="tab" for="t2">Ведомость</label>
+    <label class="tab" for="t3">Разворот</label>
+    <label class="tab" for="t4">Ось</label>
+    </nav>
+    <span class="modes">
+      <label class="mode" for="m-day">День</label>
+      <label class="mode" for="m-night">Ночь</label>
+    </span>
+  </header>
+
+  <div class="panes">
+    <div class="intro">
+      <p>Четыре оформления одной и той же главы. Текст и разметка во всех
+      одинаковы — различается только набор правил, поэтому видимое различие
+      и есть различие оформления.</p>
+      <p>Палитра общая с темой «Бланк»: тёмный бирюзово-зелёный <b>#1e6c72</b>
+      и его ступени. Меняются роли цвета — где он заливает, где остаётся
+      чернилами, где становится линейкой. Переключатель справа сверху меняет
+      день и ночь у выбранного оформления.</p>
+    </div>
+
+  <section class="pane p1">
+    <div class="cap">
+      <h2>Бланк · статья<span class="cap-now">как сейчас</span></h2>
+      <p>Нынешний стиль: бирюзовое меню во всю высоту, белые карточки на светлом поле, плашки с левой чертой, кружки у шагов. Взят из скилла как есть — ни одного правила не переписано.</p>
+    </div>
+    <div class="v v-now">
+<div class="layout">
+
+  <aside class="sb">
+    <div class="sb-top">
+      <span class="sb-logo"><span class="sb-logo-badge">БМ</span></span>
+      <h1>База знаний</h1>
+      <p>Образец главы</p>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-group">Начало</div>
+      <a class="sb-a on"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Как устроена глава</a>
+      <a class="sb-a"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Поиск по разделам</a>
+      <a class="sb-a"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 14h5"/></svg>Обозначения и метки</a>
+      <div class="sb-group">Работа</div>
+      <a class="sb-a"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/></svg>Печать и сохранение</a>
+      <a class="sb-a"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg>Что делать, если…</a>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <span class="tag">Как пользоваться</span>
+    <h2>Как устроена глава</h2>
+    <p class="lead">Любая глава собрана из одних и тех же частей: шаги, подсказка,
+    предупреждение, таблица и переход к следующей главе. Здесь они показаны все
+    сразу — на одном и том же тексте, чтобы отличалось только оформление.</p>
+
+    <h3 class="sec"><span class="num">1.</span> С чего начать</h3>
+    <p>Глава открывается с того, ради чего её открыли: правило, а не пересказ
+    того, что элемент говорит сам. Всё, что видно по интерфейсу, в текст не
+    выносится — вместо этого называется последствие и случай, когда работает
+    иначе.</p>
+    <p>Дальше идут шаги. Шаг — это одно действие с понятным итогом, а не
+    перечень всего, что можно сделать на экране.</p>
+
+    <div class="steps">
+      <div class="step">
+        <span class="sn">1</span>
+        <div class="sb2">
+          <h3>Открыть нужный раздел</h3>
+          <p>Разделы стоят в том порядке, в каком с ними работают. Открытый
+          подсвечен в боковом меню, остальные свёрнуты.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="sn">2</span>
+        <div class="sb2">
+          <h3>Найти абзац по названию</h3>
+          <p>Ссылка из журнала обновлений открывает главу и подводит прямо к
+          абзацу, о котором в ней написано.</p>
+          <p>Если абзац перенесли, глава просто открывается сверху — потерять
+          её нельзя.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip"><strong>Короткий путь.</strong> Название главы в журнале
+    обновлений — живая ссылка: нажатие открывает её и подсвечивает нужный абзац.</div>
+
+    <h3 class="sec"><span class="num">2.</span> Что стоит знать</h3>
+    <p>Таблица нужна там, где сравниваются величины или состояния. Под ней
+    всегда стоит абзац, который проговаривает словами, что из неё следует.</p>
+
+    <table class="tbl">
+      <thead><tr><th>Часть главы</th><th>Когда появляется</th></tr></thead>
+      <tbody>
+        <tr><td>Шаги</td><td>Порядок действий с понятным итогом</td></tr>
+        <tr><td>Подсказка</td><td>Короткий путь, о котором не догадаться</td></tr>
+        <tr><td>Предупреждение</td><td>Место, где что-то может пропасть</td></tr>
+      </tbody>
+    </table>
+
+    <p>Из таблицы следует простое: три плашки отвечают на три разных вопроса и
+    поэтому никогда не заменяют друг друга.</p>
+
+    <div class="grid">
+      <div class="gc">
+        <div class="gc-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.6 5.6 6.4.8-4.6 4.4 1.2 6.2L12 17l-5.6 3 1.2-6.2L3 9.4l6.4-.8z"/></svg></div>
+        <h4>Одна мысль — один абзац</h4>
+        <p>Больше четырёхсот знаков — повод посмотреть, где кончается одна
+        мысль и начинается другая.</p>
+      </div>
+      <div class="gc">
+        <div class="gc-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h9"/></svg></div>
+        <h4>Перечисление — списком</h4>
+        <p>Шесть стилей печати подряд в одном абзаце читаются хуже, чем шесть
+        строк.</p>
+      </div>
+    </div>
+
+    <div class="warn"><strong>Что можно потерять.</strong> Глава, открытая
+    поверх расчёта, не мешает работе — но ссылка на макет уводит в новую
+    вкладку, и несохранённый расчёт остаётся в прежней.</div>
+
+    <div class="quote">Справка не пересказывает то, что элемент говорит сам.
+    В неё идёт то, чего по интерфейсу не видно: правило, последствие, случай,
+    когда работает иначе.</div>
+
+    <div class="next-ch">
+      <div class="nc-info">
+        <div class="nc-tag">Следующая глава</div>
+        <div class="nc-title">Обозначения и метки</div>
+      </div>
+      <span class="nc-arrow"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+    </div>
+  </div>
+
+</div>
+    </div>
+  </section>
+  <section class="pane p2">
+    <div class="cap">
+      <h2>Ведомость</h2>
+      <p>Язык печатного листа, слово в слово: крупный бледный номер раздела, черта в два пикселя под заголовком и над итогом, строки на волосяных линейках, скруглений нет нигде. Статья выглядит тем же документом, что уходит клиенту.</p>
+    </div>
+    <div class="v v-sheet">
+<div class="layout">
+
+  <aside class="sb">
+    <div class="sb-top">
+      <span class="sb-logo"><span class="sb-logo-badge">БМ</span></span>
+      <h1>База знаний</h1>
+      <p>Образец главы</p>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-group">Начало</div>
+      <a class="sb-a on"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Как устроена глава</a>
+      <a class="sb-a"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Поиск по разделам</a>
+      <a class="sb-a"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 14h5"/></svg>Обозначения и метки</a>
+      <div class="sb-group">Работа</div>
+      <a class="sb-a"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/></svg>Печать и сохранение</a>
+      <a class="sb-a"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg>Что делать, если…</a>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <span class="tag">Как пользоваться</span>
+    <h2>Как устроена глава</h2>
+    <p class="lead">Любая глава собрана из одних и тех же частей: шаги, подсказка,
+    предупреждение, таблица и переход к следующей главе. Здесь они показаны все
+    сразу — на одном и том же тексте, чтобы отличалось только оформление.</p>
+
+    <h3 class="sec"><span class="num">1.</span> С чего начать</h3>
+    <p>Глава открывается с того, ради чего её открыли: правило, а не пересказ
+    того, что элемент говорит сам. Всё, что видно по интерфейсу, в текст не
+    выносится — вместо этого называется последствие и случай, когда работает
+    иначе.</p>
+    <p>Дальше идут шаги. Шаг — это одно действие с понятным итогом, а не
+    перечень всего, что можно сделать на экране.</p>
+
+    <div class="steps">
+      <div class="step">
+        <span class="sn">1</span>
+        <div class="sb2">
+          <h3>Открыть нужный раздел</h3>
+          <p>Разделы стоят в том порядке, в каком с ними работают. Открытый
+          подсвечен в боковом меню, остальные свёрнуты.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="sn">2</span>
+        <div class="sb2">
+          <h3>Найти абзац по названию</h3>
+          <p>Ссылка из журнала обновлений открывает главу и подводит прямо к
+          абзацу, о котором в ней написано.</p>
+          <p>Если абзац перенесли, глава просто открывается сверху — потерять
+          её нельзя.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip"><strong>Короткий путь.</strong> Название главы в журнале
+    обновлений — живая ссылка: нажатие открывает её и подсвечивает нужный абзац.</div>
+
+    <h3 class="sec"><span class="num">2.</span> Что стоит знать</h3>
+    <p>Таблица нужна там, где сравниваются величины или состояния. Под ней
+    всегда стоит абзац, который проговаривает словами, что из неё следует.</p>
+
+    <table class="tbl">
+      <thead><tr><th>Часть главы</th><th>Когда появляется</th></tr></thead>
+      <tbody>
+        <tr><td>Шаги</td><td>Порядок действий с понятным итогом</td></tr>
+        <tr><td>Подсказка</td><td>Короткий путь, о котором не догадаться</td></tr>
+        <tr><td>Предупреждение</td><td>Место, где что-то может пропасть</td></tr>
+      </tbody>
+    </table>
+
+    <p>Из таблицы следует простое: три плашки отвечают на три разных вопроса и
+    поэтому никогда не заменяют друг друга.</p>
+
+    <div class="grid">
+      <div class="gc">
+        <div class="gc-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.6 5.6 6.4.8-4.6 4.4 1.2 6.2L12 17l-5.6 3 1.2-6.2L3 9.4l6.4-.8z"/></svg></div>
+        <h4>Одна мысль — один абзац</h4>
+        <p>Больше четырёхсот знаков — повод посмотреть, где кончается одна
+        мысль и начинается другая.</p>
+      </div>
+      <div class="gc">
+        <div class="gc-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h9"/></svg></div>
+        <h4>Перечисление — списком</h4>
+        <p>Шесть стилей печати подряд в одном абзаце читаются хуже, чем шесть
+        строк.</p>
+      </div>
+    </div>
+
+    <div class="warn"><strong>Что можно потерять.</strong> Глава, открытая
+    поверх расчёта, не мешает работе — но ссылка на макет уводит в новую
+    вкладку, и несохранённый расчёт остаётся в прежней.</div>
+
+    <div class="quote">Справка не пересказывает то, что элемент говорит сам.
+    В неё идёт то, чего по интерфейсу не видно: правило, последствие, случай,
+    когда работает иначе.</div>
+
+    <div class="next-ch">
+      <div class="nc-info">
+        <div class="nc-tag">Следующая глава</div>
+        <div class="nc-title">Обозначения и метки</div>
+      </div>
+      <span class="nc-arrow"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+    </div>
+  </div>
+
+</div>
+    </div>
+  </section>
+  <section class="pane p3">
+    <div class="cap">
+      <h2>Разворот</h2>
+      <p>Две колонки: заголовки разделов стоят слева, текст идёт справа. Глазу видно устройство главы целиком, не прокручивая её, а колонка текста остаётся узкой и читается как книга.</p>
+    </div>
+    <div class="v v-spread">
+<div class="layout">
+
+  <aside class="sb">
+    <div class="sb-top">
+      <span class="sb-logo"><span class="sb-logo-badge">БМ</span></span>
+      <h1>База знаний</h1>
+      <p>Образец главы</p>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-group">Начало</div>
+      <a class="sb-a on"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Как устроена глава</a>
+      <a class="sb-a"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Поиск по разделам</a>
+      <a class="sb-a"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 14h5"/></svg>Обозначения и метки</a>
+      <div class="sb-group">Работа</div>
+      <a class="sb-a"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/></svg>Печать и сохранение</a>
+      <a class="sb-a"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg>Что делать, если…</a>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <span class="tag">Как пользоваться</span>
+    <h2>Как устроена глава</h2>
+    <p class="lead">Любая глава собрана из одних и тех же частей: шаги, подсказка,
+    предупреждение, таблица и переход к следующей главе. Здесь они показаны все
+    сразу — на одном и том же тексте, чтобы отличалось только оформление.</p>
+
+    <h3 class="sec"><span class="num">1.</span> С чего начать</h3>
+    <p>Глава открывается с того, ради чего её открыли: правило, а не пересказ
+    того, что элемент говорит сам. Всё, что видно по интерфейсу, в текст не
+    выносится — вместо этого называется последствие и случай, когда работает
+    иначе.</p>
+    <p>Дальше идут шаги. Шаг — это одно действие с понятным итогом, а не
+    перечень всего, что можно сделать на экране.</p>
+
+    <div class="steps">
+      <div class="step">
+        <span class="sn">1</span>
+        <div class="sb2">
+          <h3>Открыть нужный раздел</h3>
+          <p>Разделы стоят в том порядке, в каком с ними работают. Открытый
+          подсвечен в боковом меню, остальные свёрнуты.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="sn">2</span>
+        <div class="sb2">
+          <h3>Найти абзац по названию</h3>
+          <p>Ссылка из журнала обновлений открывает главу и подводит прямо к
+          абзацу, о котором в ней написано.</p>
+          <p>Если абзац перенесли, глава просто открывается сверху — потерять
+          её нельзя.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip"><strong>Короткий путь.</strong> Название главы в журнале
+    обновлений — живая ссылка: нажатие открывает её и подсвечивает нужный абзац.</div>
+
+    <h3 class="sec"><span class="num">2.</span> Что стоит знать</h3>
+    <p>Таблица нужна там, где сравниваются величины или состояния. Под ней
+    всегда стоит абзац, который проговаривает словами, что из неё следует.</p>
+
+    <table class="tbl">
+      <thead><tr><th>Часть главы</th><th>Когда появляется</th></tr></thead>
+      <tbody>
+        <tr><td>Шаги</td><td>Порядок действий с понятным итогом</td></tr>
+        <tr><td>Подсказка</td><td>Короткий путь, о котором не догадаться</td></tr>
+        <tr><td>Предупреждение</td><td>Место, где что-то может пропасть</td></tr>
+      </tbody>
+    </table>
+
+    <p>Из таблицы следует простое: три плашки отвечают на три разных вопроса и
+    поэтому никогда не заменяют друг друга.</p>
+
+    <div class="grid">
+      <div class="gc">
+        <div class="gc-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.6 5.6 6.4.8-4.6 4.4 1.2 6.2L12 17l-5.6 3 1.2-6.2L3 9.4l6.4-.8z"/></svg></div>
+        <h4>Одна мысль — один абзац</h4>
+        <p>Больше четырёхсот знаков — повод посмотреть, где кончается одна
+        мысль и начинается другая.</p>
+      </div>
+      <div class="gc">
+        <div class="gc-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h9"/></svg></div>
+        <h4>Перечисление — списком</h4>
+        <p>Шесть стилей печати подряд в одном абзаце читаются хуже, чем шесть
+        строк.</p>
+      </div>
+    </div>
+
+    <div class="warn"><strong>Что можно потерять.</strong> Глава, открытая
+    поверх расчёта, не мешает работе — но ссылка на макет уводит в новую
+    вкладку, и несохранённый расчёт остаётся в прежней.</div>
+
+    <div class="quote">Справка не пересказывает то, что элемент говорит сам.
+    В неё идёт то, чего по интерфейсу не видно: правило, последствие, случай,
+    когда работает иначе.</div>
+
+    <div class="next-ch">
+      <div class="nc-info">
+        <div class="nc-tag">Следующая глава</div>
+        <div class="nc-title">Обозначения и метки</div>
+      </div>
+      <span class="nc-arrow"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+    </div>
+  </div>
+
+</div>
+    </div>
+  </section>
+  <section class="pane p4">
+    <div class="cap">
+      <h2>Ось</h2>
+      <p>Одна вертикальная черта вдоль всей статьи, и вся структура нанизана на неё: номера разделов и шагов сидят прямо на оси, плашки отходят от неё вбок. Глава читается одной нитью сверху вниз.</p>
+    </div>
+    <div class="v v-axis">
+<div class="layout">
+
+  <aside class="sb">
+    <div class="sb-top">
+      <span class="sb-logo"><span class="sb-logo-badge">БМ</span></span>
+      <h1>База знаний</h1>
+      <p>Образец главы</p>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-group">Начало</div>
+      <a class="sb-a on"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Как устроена глава</a>
+      <a class="sb-a"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Поиск по разделам</a>
+      <a class="sb-a"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 14h5"/></svg>Обозначения и метки</a>
+      <div class="sb-group">Работа</div>
+      <a class="sb-a"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/></svg>Печать и сохранение</a>
+      <a class="sb-a"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg>Что делать, если…</a>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <span class="tag">Как пользоваться</span>
+    <h2>Как устроена глава</h2>
+    <p class="lead">Любая глава собрана из одних и тех же частей: шаги, подсказка,
+    предупреждение, таблица и переход к следующей главе. Здесь они показаны все
+    сразу — на одном и том же тексте, чтобы отличалось только оформление.</p>
+
+    <h3 class="sec"><span class="num">1.</span> С чего начать</h3>
+    <p>Глава открывается с того, ради чего её открыли: правило, а не пересказ
+    того, что элемент говорит сам. Всё, что видно по интерфейсу, в текст не
+    выносится — вместо этого называется последствие и случай, когда работает
+    иначе.</p>
+    <p>Дальше идут шаги. Шаг — это одно действие с понятным итогом, а не
+    перечень всего, что можно сделать на экране.</p>
+
+    <div class="steps">
+      <div class="step">
+        <span class="sn">1</span>
+        <div class="sb2">
+          <h3>Открыть нужный раздел</h3>
+          <p>Разделы стоят в том порядке, в каком с ними работают. Открытый
+          подсвечен в боковом меню, остальные свёрнуты.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="sn">2</span>
+        <div class="sb2">
+          <h3>Найти абзац по названию</h3>
+          <p>Ссылка из журнала обновлений открывает главу и подводит прямо к
+          абзацу, о котором в ней написано.</p>
+          <p>Если абзац перенесли, глава просто открывается сверху — потерять
+          её нельзя.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip"><strong>Короткий путь.</strong> Название главы в журнале
+    обновлений — живая ссылка: нажатие открывает её и подсвечивает нужный абзац.</div>
+
+    <h3 class="sec"><span class="num">2.</span> Что стоит знать</h3>
+    <p>Таблица нужна там, где сравниваются величины или состояния. Под ней
+    всегда стоит абзац, который проговаривает словами, что из неё следует.</p>
+
+    <table class="tbl">
+      <thead><tr><th>Часть главы</th><th>Когда появляется</th></tr></thead>
+      <tbody>
+        <tr><td>Шаги</td><td>Порядок действий с понятным итогом</td></tr>
+        <tr><td>Подсказка</td><td>Короткий путь, о котором не догадаться</td></tr>
+        <tr><td>Предупреждение</td><td>Место, где что-то может пропасть</td></tr>
+      </tbody>
+    </table>
+
+    <p>Из таблицы следует простое: три плашки отвечают на три разных вопроса и
+    поэтому никогда не заменяют друг друга.</p>
+
+    <div class="grid">
+      <div class="gc">
+        <div class="gc-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.6 5.6 6.4.8-4.6 4.4 1.2 6.2L12 17l-5.6 3 1.2-6.2L3 9.4l6.4-.8z"/></svg></div>
+        <h4>Одна мысль — один абзац</h4>
+        <p>Больше четырёхсот знаков — повод посмотреть, где кончается одна
+        мысль и начинается другая.</p>
+      </div>
+      <div class="gc">
+        <div class="gc-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h9"/></svg></div>
+        <h4>Перечисление — списком</h4>
+        <p>Шесть стилей печати подряд в одном абзаце читаются хуже, чем шесть
+        строк.</p>
+      </div>
+    </div>
+
+    <div class="warn"><strong>Что можно потерять.</strong> Глава, открытая
+    поверх расчёта, не мешает работе — но ссылка на макет уводит в новую
+    вкладку, и несохранённый расчёт остаётся в прежней.</div>
+
+    <div class="quote">Справка не пересказывает то, что элемент говорит сам.
+    В неё идёт то, чего по интерфейсу не видно: правило, последствие, случай,
+    когда работает иначе.</div>
+
+    <div class="next-ch">
+      <div class="nc-info">
+        <div class="nc-tag">Следующая глава</div>
+        <div class="nc-title">Обозначения и метки</div>
+      </div>
+      <span class="nc-arrow"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+    </div>
+  </div>
+
+</div>
+    </div>
+  </section>
+
+    <p class="foot">Образец главы написан для витрины: настоящих уроков и цифр
+    из расчётов в нём нет. Наведение и нажатие живые — поводите курсором по
+    строкам таблицы, пунктам меню и переходу к следующей главе.</p>
+  </div>
+</div>
+
+</body>
+</html>
