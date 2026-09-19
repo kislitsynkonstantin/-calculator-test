@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Отметка комплектации на листе</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Geologica:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bl-page:#f7fbfb; --bl-sheet:#fff; --bl-ink:#12262a; --bl-ink2:#5b7376;
+    --bl-ink3:#8da3a5; --bl-rule:#dceaeb; --bl-rule2:#bcd9db;
+    --bl-acc:#1e6c72; --bl-acc2:#2a8f97; --bl-pale:#a8dde0; --bl-tint:#e4f5f6;
+    --bl-gold:#8a6d10; --bl-gold-bg:#fff4d1; --bl-gold-line:#e0ab21;
+  }
+  .ночь{
+    --bl-page:#0e1a1c; --bl-sheet:#132528; --bl-ink:#e6f3f3; --bl-ink2:#9db6b8;
+    --bl-ink3:#8aa4a6; --bl-rule:#224347; --bl-rule2:#2d585d;
+    --bl-acc:#8fd6dc; --bl-acc2:#5fc2ca; --bl-pale:#5fc2ca; --bl-tint:#173338;
+    --bl-gold:#f4cf62; --bl-gold-bg:#33280c; --bl-gold-line:#7a6215;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Geologica',system-ui,sans-serif;background:#eef4f4;color:#12262a;
+       font-variant-numeric:tabular-nums;padding:24px 16px 64px}
+  .обёртка{max-width:1080px;margin:0 auto}
+  h1{font-family:'Unbounded',sans-serif;font-size:1.25rem;font-weight:800;color:#1e6c72;margin-bottom:6px}
+  .вступ{font-size:.86rem;color:#5b7376;max-width:640px;margin-bottom:28px;line-height:1.55}
+  .пара{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:34px}
+  @media (max-width:760px){.пара{grid-template-columns:1fr}}
+  .вариант{border-top:2px solid #1e6c72;padding-top:12px;margin-bottom:10px}
+  .вариант h2{font-family:'Unbounded',sans-serif;font-size:.86rem;font-weight:700;color:#1e6c72;margin-bottom:4px}
+  .вариант p{font-size:.78rem;color:#5b7376;line-height:1.5;max-width:720px}
+  .вариант p b{color:#12262a;font-weight:600}
+
+  /* ── лист ── */
+  .лист{background:var(--bl-sheet);color:var(--bl-ink);padding:26px 24px 22px;
+        border:1px solid var(--bl-rule)}
+  .лист .подпись{font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;
+        color:var(--bl-ink3);margin-bottom:14px}
+  .проект{font-size:.78rem;color:var(--bl-ink2);margin:8px 0 12px}
+  .надзаг{font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--bl-ink3);margin-bottom:6px}
+  .сумма{font-family:'Unbounded',sans-serif;font-size:2rem;font-weight:800;color:var(--bl-ink);letter-spacing:-.01em}
+  .разбор{font-size:.74rem;color:var(--bl-ink2);margin-top:8px}
+  .черта{height:2px;background:var(--bl-acc);margin:16px 0 0}
+
+  /* ── как сейчас: жёлтая пилюля ── */
+  .з-жёлтая{display:inline-flex;align-items:center;gap:6px;font-size:.62rem;font-weight:600;
+        letter-spacing:.1em;text-transform:uppercase;color:var(--bl-gold);
+        background:var(--bl-gold-bg);border:1px solid var(--bl-gold-line);
+        border-radius:20px;padding:5px 10px}
+
+  /* ── 1. надзаголовок чернилами акцента ── */
+  .з-1{display:block;font-size:.66rem;font-weight:600;letter-spacing:.18em;
+       text-transform:uppercase;color:var(--bl-acc)}
+
+  /* ── 2. левая черта ── */
+  .з-2{display:inline-block;font-size:.66rem;font-weight:600;letter-spacing:.14em;
+       text-transform:uppercase;color:var(--bl-acc);border-left:2px solid var(--bl-acc);
+       padding-left:9px;line-height:1.35}
+
+  /* ── 3. подчёркнутая строка во всю ширину ── */
+  .з-3{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+       font-size:.66rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+       color:var(--bl-acc);border-bottom:1px solid var(--bl-rule2);padding-bottom:6px}
+  .з-3 .имя{color:var(--bl-ink3);letter-spacing:.14em;font-weight:500}
+
+  .рек{display:inline-block;font-size:.6rem;font-weight:700;letter-spacing:.08em;
+       text-transform:uppercase;color:#1e6c72;background:#e4f5f6;border-radius:20px;
+       padding:3px 9px;margin-left:8px;vertical-align:middle}
+  .низ{font-size:.78rem;color:#5b7376;line-height:1.6;max-width:760px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="обёртка">
+  <h1>Отметка комплектации на листе</h1>
+  <p class="вступ">Жёлтая пилюля пришла из «Модерна», где она лежит на бирюзовой карточке и читается наклейкой. На листе наклеек нет: выделение держится линейкой, левой чертой и чернилами акцента, а заливка оставлена галочке и полоске итога. Ниже три замены — слева день, справа ночь. Сам знак не менялся, менялось только то, как он подан.</p>
+
+  <div class="вариант">
+    <h2>Как сейчас</h2>
+    <p>Кремовая заливка и золотая рамка — единственная цветная наклейка на всём листе.</p>
+  </div>
+  <div class="пара">
+    <div class="лист">
+      <div class="подпись">День</div>
+      <span class="з-жёлтая">Комплектация «Комфорт»</span>
+      <div class="проект">Хай-тек баня «Вирджиния 3»</div>
+      <div class="надзаг">Стоимость за комплектацию</div>
+      <div class="сумма">8 012 568 ₽</div>
+      <div class="разбор">База 3 957 000 ₽ · опции 4 055 568 ₽ · 66 позиций</div>
+      <div class="черта"></div>
+    </div>
+    <div class="лист ночь">
+      <div class="подпись">Ночь</div>
+      <span class="з-жёлтая">Комплектация «Комфорт»</span>
+      <div class="проект">Хай-тек баня «Вирджиния 3»</div>
+      <div class="надзаг">Стоимость за комплектацию</div>
+      <div class="сумма">8 012 568 ₽</div>
+      <div class="разбор">База 3 957 000 ₽ · опции 4 055 568 ₽ · 66 позиций</div>
+      <div class="черта"></div>
+    </div>
+  </div>
+
+  <div class="вариант">
+    <h2>1. Надзаголовок<span class="рек">рекомендую</span></h2>
+    <p>Коробки нет вовсе: название комплектации набрано <b>надзаголовком в чернилах акцента</b> — тем же приёмом, что «Стоимость за комплектацию» под ним, только цветом. Читается как выходные данные документа, а не как ярлык, наклеенный поверх.</p>
+  </div>
+  <div class="пара">
+    <div class="лист">
+      <div class="подпись">День</div>
+      <span class="з-1">Комплектация «Комфорт»</span>
+      <div class="проект">Хай-тек баня «Вирджиния 3»</div>
+      <div class="надзаг">Стоимость за комплектацию</div>
+      <div class="сумма">8 012 568 ₽</div>
+      <div class="разбор">База 3 957 000 ₽ · опции 4 055 568 ₽ · 66 позиций</div>
+      <div class="черта"></div>
+    </div>
+    <div class="лист ночь">
+      <div class="подпись">Ночь</div>
+      <span class="з-1">Комплектация «Комфорт»</span>
+      <div class="проект">Хай-тек баня «Вирджиния 3»</div>
+      <div class="надзаг">Стоимость за комплектацию</div>
+      <div class="сумма">8 012 568 ₽</div>
+      <div class="разбор">База 3 957 000 ₽ · опции 4 055 568 ₽ · 66 позиций</div>
+      <div class="черта"></div>
+    </div>
+  </div>
+
+  <div class="вариант">
+    <h2>2. Левая черта</h2>
+    <p>То же чернилами акцента, но с <b>чертой в два пикселя слева</b> — приём врезки: отметка заметнее надзаголовка и всё равно остаётся частью листа. Сильнее первого варианта, спокойнее пилюли.</p>
+  </div>
+  <div class="пара">
+    <div class="лист">
+      <div class="подпись">День</div>
+      <span class="з-2">Комплектация «Комфорт»</span>
+      <div class="проект">Хай-тек баня «Вирджиния 3»</div>
+      <div class="надзаг">Стоимость за комплектацию</div>
+      <div class="сумма">8 012 568 ₽</div>
+      <div class="разбор">База 3 957 000 ₽ · опции 4 055 568 ₽ · 66 позиций</div>
+      <div class="черта"></div>
+    </div>
+    <div class="лист ночь">
+      <div class="подпись">Ночь</div>
+      <span class="з-2">Комплектация «Комфорт»</span>
+      <div class="проект">Хай-тек баня «Вирджиния 3»</div>
+      <div class="надзаг">Стоимость за комплектацию</div>
+      <div class="сумма">8 012 568 ₽</div>
+      <div class="разбор">База 3 957 000 ₽ · опции 4 055 568 ₽ · 66 позиций</div>
+      <div class="черта"></div>
+    </div>
+  </div>
+
+  <div class="вариант">
+    <h2>3. Строка с линейкой</h2>
+    <p>Отметка занимает <b>всю ширину и подчёркнута линейкой</b>, слева название комплектации, справа — проект. Самый «бумажный» вариант: так в документе подписывают, к чему относится следующий блок. Забирает одну строку у суммы.</p>
+  </div>
+  <div class="пара">
+    <div class="лист">
+      <div class="подпись">День</div>
+      <div class="з-3"><span>Комплектация «Комфорт»</span><span class="имя">66 позиций</span></div>
+      <div class="проект">Хай-тек баня «Вирджиния 3»</div>
+      <div class="надзаг">Стоимость за комплектацию</div>
+      <div class="сумма">8 012 568 ₽</div>
+      <div class="разбор">База 3 957 000 ₽ · опции 4 055 568 ₽ · 66 позиций</div>
+      <div class="черта"></div>
+    </div>
+    <div class="лист ночь">
+      <div class="подпись">Ночь</div>
+      <div class="з-3"><span>Комплектация «Комфорт»</span><span class="имя">66 позиций</span></div>
+      <div class="проект">Хай-тек баня «Вирджиния 3»</div>
+      <div class="надзаг">Стоимость за комплектацию</div>
+      <div class="сумма">8 012 568 ₽</div>
+      <div class="разбор">База 3 957 000 ₽ · опции 4 055 568 ₽ · 66 позиций</div>
+      <div class="черта"></div>
+    </div>
+  </div>
+
+  <p class="низ">В «Модерне» плашка остаётся жёлтой — там она лежит на бирюзовой карточке и работает. Меняется только лист.</p>
+</div>
+</body>
+</html>
