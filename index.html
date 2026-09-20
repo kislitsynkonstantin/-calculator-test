@@ -3639,8 +3639,18 @@ body.dark .pfilter-btn.pfilter-active:hover { background: var(--green-mid); bord
 @media (hover: hover) {
   .tech-chip:hover { border-color: var(--green-mid); color: var(--green-dark); }
 }
-.tech-chip.on { border-color: var(--green-mid); color: var(--green-dark); font-weight: 600; }
-body.dark .tech-chip:hover, body.dark .tech-chip.on { color: var(--green-light); }
+/* Залитая метка — признак того, что список отобран по этой технологии.
+   Заливка та же, что у чипа фильтра наверху: один смысл — один вид. */
+.tech-chip.on {
+  background: var(--green-dark); border-color: var(--green-dark);
+  color: #fff; font-weight: 600;
+}
+body.dark .tech-chip:hover { color: var(--green-light); }
+/* Точка на залитой метке берётся светлой: тёмно-бирюзовая по тёмно-бирюзовой
+   заливке пропадает, а цвет технологии здесь и есть то, ради чего точка. */
+.tech-chip.on .tech-dot.t-frame  { background: #7fd6de; }
+.tech-chip.on .tech-dot.t-glulam { background: #e0b87a; }
+.tech-chip.on .tech-dot.t-stone  { background: #c3ccd1; }
 .tech-dot { width: 6px; height: 6px; border-radius: 50%; flex: 0 0 auto; }
 .tech-dot.t-frame  { background: var(--tech-frame); }
 .tech-dot.t-glulam { background: var(--tech-glulam); }
@@ -7277,9 +7287,17 @@ body.ui-blank #presetPanel .tech-chip {
   font-size: .64rem !important;
 }
 body.ui-blank #presetPanel .tech-chip.on {
+  background: var(--bl-acc) !important;
   border-color: var(--bl-acc) !important;
-  color: var(--bl-acc) !important;
+  color: var(--bl-on-acc) !important;
 }
+/* Ночью акцент «Бланка» светлеет — заливка метки становится светлой, и
+   светлая точка на ней пропадает. Точка идёт тем же путём, что и надпись:
+   на светлой заливке она тёмная. Днём заливка тёмная, и точка остаётся
+   светлой — её задаёт общее правило выше. */
+body.ui-blank.dark #presetPanel .tech-chip.on .tech-dot.t-frame  { background: #10474b; }
+body.ui-blank.dark #presetPanel .tech-chip.on .tech-dot.t-glulam { background: #6b4416; }
+body.ui-blank.dark #presetPanel .tech-chip.on .tech-dot.t-stone  { background: #33424a; }
 body.ui-blank .tfilter-chip {
   border-color: var(--bl-rule2) !important;
   color: var(--bl-ink2) !important;
@@ -10232,8 +10250,13 @@ function рядФильтраТехнологий(откуда, все) {
    отмены одного нажатия пришлось бы тянуться к фильтру наверху. */
 function меткаТехнологии(тех, откуда) {
   const имя = TECH_КОРОТКО[тех] || тех;
-  const выбрана = ТЕХ_ВЫБОР[откуда] && ТЕХ_ВЫБОР[откуда].size === 1
-                  && ТЕХ_ВЫБОР[откуда].has(тех);
+  // Метка залита, пока её технология стоит в фильтре, — сколько бы их ни
+  // было выбрано. Смысл тут не «нажали именно эту», а «список отобран»:
+  // Константин 20.09.2026, со снимком отфильтрованного списка — «когда выбран
+  // фильтр каркас, тоже закрашивай, чтобы понятно было, что фильтр стоит».
+  // Прежде заливки не было вовсе: `on` меняла только цвет рамки и надписи,
+  // и на экране отличить отобранный список от полного было нечем.
+  const выбрана = !!(ТЕХ_ВЫБОР[откуда] && ТЕХ_ВЫБОР[откуда].has(тех));
   return '<button class="tech-chip' + (выбрана ? ' on' : '') + '"'
        + ' onclick="event.stopPropagation();фильтрПоМетке(\'' + откуда + '\',\'' + тех + '\')"'
        + ' title="Показать только «' + имя + '»" aria-pressed="' + !!выбрана + '">'

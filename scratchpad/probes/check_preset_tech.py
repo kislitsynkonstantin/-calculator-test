@@ -95,6 +95,22 @@ from playwright.sync_api import sync_playwright
         метки: true,
         текст: (м.textContent || '').trim(),
         выбрана: м.classList.contains('on'),
+        залита: (() => { const ф = getComputedStyle(м).backgroundColor;
+          const ч = (ф.match(/[\d.]+/g) || []).map(Number);
+          // Прозрачный фон — заливки нет. Так было до 20.09.2026: `on`
+          // меняла цвет рамки и надписи, и отобранный список на экране
+          // не отличался от полного.
+          return !(ч.length >= 4 && ч[3] === 0) && ф !== 'transparent'; })(),
+        точкаНаЗаливке: (() => {
+          const т = м.querySelector('.tech-dot'); if (!т) return null;
+          const цв = с => (getComputedStyle(с).backgroundColor.match(/[\d.]+/g) || [])
+            .slice(0, 3).map(Number);
+          const я = с => { const [r, g, b] = с; if (r === undefined) return 0;
+            const к = v => { v /= 255; return v <= .03928 ? v / 12.92
+              : Math.pow((v + .055) / 1.055, 2.4); };
+            return .2126 * к(r) + .7152 * к(g) + .0722 * к(b); };
+          const a = я(цв(т)), b = я(цв(м));
+          return +(((Math.max(a, b) + .05) / (Math.min(a, b) + .05)).toFixed(2)); })(),
         слеваОтСуммы: мк.right <= цк.left + 1,
         справаОтСуммы: мк.left >= цк.right - 1,
         однаСтрока: Math.abs((мк.top + мк.bottom) / 2 - (цк.top + цк.bottom) / 2) < 14,
@@ -145,6 +161,7 @@ def плохо(т):
   const в = document.getElementById('loginScreen'); if (в) в.style.display='none';
   window._sbProfile = { role: 'admin', full_name: 'Проба' };
   document.body.classList.add('ui-blank');
+  if (window.__ночь) document.body.classList.add('dark');
   selectProjectOption(0);
   await new Promise(r => setTimeout(r, 900));
   // Панель надо открыть: у закрытой нет размеров, и всякая мерка в ней даёт
@@ -263,6 +280,40 @@ def главная():
                     if len(в["карточки"]) != 3:
                         плохо("повторное нажатие по той же метке не вернуло "
                               f"список целиком: осталось {len(в['карточки'])}")
+
+                    # ── Залита ли метка, когда фильтр стоит ──
+                    # Обе темы: ночью акцент «Бланка» светлеет, заливка меняет
+                    # сторону, и светлая точка на ней пропадает. Днём этого не
+                    # видно вовсе — проверка одной темы такую пару пропускает.
+                    for ночь in (False, True):
+                        стр.evaluate("(н) => { window.__ночь = н;"
+                                     " document.body.classList.toggle('dark', н);"
+                                     " всеТехнологии('my');"
+                                     " нажатьЧипТехнологии('my','frame'); }", ночь)
+                        стр.wait_for_timeout(350)
+                        тема = "ночь" if ночь else "день"
+                        в = стр.evaluate(ВИД)
+                        не_залиты = [к["имя"] for к in в["карточки"]
+                                     if not к.get("залита")]
+                        if не_залиты:
+                            плохо(f"[{тема}] фильтр по каркасу стоит, а метки на "
+                                  "карточках не залиты: " + ", ".join(не_залиты)
+                                  + " — по экрану не видно, что список отобран")
+                        for к in в["карточки"]:
+                            о = к.get("точкаНаЗаливке")
+                            if о is not None and о < 1.8:
+                                плохо(f"[{тема}] точка технологии тонет в заливке "
+                                      f"метки ({о}:1) у «{к['имя']}» — цвет "
+                                      "технологии там и нужен")
+                    стр.evaluate("() => { window.__ночь = false;"
+                                 " document.body.classList.remove('dark'); }")
+                    стр.evaluate("() => всеТехнологии('my')")
+                    стр.wait_for_timeout(250)
+                    в = стр.evaluate(ВИД)
+                    залиты = [к["имя"] for к in в["карточки"] if к.get("залита")]
+                    if залиты:
+                        плохо("фильтр снят, а метки остались залитыми: "
+                              + ", ".join(залиты) + " — заливка означает отбор")
 
                     # ── Мультивыбор ──
                     стр.evaluate("() => { нажатьЧипТехнологии('my','frame');"
