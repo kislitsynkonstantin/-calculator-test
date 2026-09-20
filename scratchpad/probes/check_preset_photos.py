@@ -69,6 +69,10 @@ def плохо(т):
     НАХОДКИ.append(т)
 
 
+def не_один(н):
+    return н != 1
+
+
 СЧЁТ = """() => ({
   снимков: document.querySelectorAll('.canvas-img-item').length,
   грязный: typeof _presetDirty !== 'undefined' ? !!_presetDirty : null,
@@ -180,6 +184,74 @@ def главная():
             if в["снимков"]:
                 плохо(f"выбор проекта снят, а на холсте {в['снимков']} снимков — "
                       "расчёта нет, а фотографии от него остались")
+
+            # ── Смена технологии уносит снимки ───────────────────────────────
+            # Технология меняет всё: проект, позиции, цены, дописанное руками.
+            # Расчёт начинается заново — и снимки прежнего в нём такие же
+            # чужие, как чужой проект. В наборе проб для этого есть брусовые
+            # строки: выдуманные, как и каркасные.
+            стр.evaluate("""async (точка) => {
+              const и = PROJECTS.findIndex(p => p && String(p[0]).includes('Проба дом 8'));
+              selectProjectOption(и >= 0 ? и : 0);
+              await new Promise(r => setTimeout(r, 900));
+              canvasAddImage(точка);
+              await new Promise(r => setTimeout(r, 300));
+            }""", ТОЧКА)
+            если = стр.evaluate(СЧЁТ)
+            if не_один(если["снимков"]):
+                плохо(f"перед сменой технологии на холсте {если['снимков']} снимков "
+                      "вместо одного — мерить переход нечем")
+            вышло = стр.evaluate("""async () => {
+              await switchTech('glulam');
+              await new Promise(r => setTimeout(r, 900));
+              return { тех: currentTech,
+                       снимков: document.querySelectorAll('.canvas-img-item').length };
+            }""")
+            if вышло["тех"] != "glulam":
+                плохо("технология не переключилась на брус — "
+                      f"осталась «{вышло['тех']}», переход мерить нечем")
+            elif вышло["снимков"]:
+                плохо(f"сменилась технология, а на холсте {вышло['снимков']} снимков — "
+                      "фотографии каркасного расчёта остались в брусовом")
+
+            # ── Расчёт чужой технологии открывается со своими снимками ───────
+            # Оборотная сторона очистки: восстановление расчёта само меняет
+            # технологию, и очистка, поставленная в `switchTech` без оглядки,
+            # стёрла бы уже разложенные снимки — расчёт открывался бы пустым.
+            # Поэтому мерим не только «чужие ушли», но и «свои пришли».
+            вышло = стр.evaluate("""async (точка) => {
+              const и = PROJECTS.findIndex(p => p && String(p[0]).includes('Брусовая проба'));
+              selectProjectOption(и >= 0 ? и : 0);
+              await new Promise(r => setTimeout(r, 900));
+              canvasAddImage(точка); canvasAddImage(точка);
+              await new Promise(r => setTimeout(r, 300));
+              const все = loadAllPresets();
+              все['брус'] = { id: 'брус', name: 'Брусовый расчёт со снимками',
+                              savedAt: new Date().toISOString(), state: collectState() };
+              localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(все));
+              await switchTech('frame');
+              await new Promise(r => setTimeout(r, 900));
+              const послеСмены = document.querySelectorAll('.canvas-img-item').length;
+              loadPreset('брус');
+              await new Promise(r => setTimeout(r, 3000));
+              return {
+                послеСмены,
+                тех: currentTech,
+                снимков: document.querySelectorAll('.canvas-img-item').length,
+                грязный: typeof _presetDirty !== 'undefined' ? !!_presetDirty : null,
+              };
+            }""", ТОЧКА)
+            if вышло["послеСмены"]:
+                плохо(f"возврат к каркасу оставил {вышло['послеСмены']} снимков "
+                      "брусового расчёта")
+            if вышло["тех"] != "glulam":
+                плохо("открыт брусовый расчёт, а технология осталась "
+                      f"«{вышло['тех']}» — мерить снимки не на чем")
+            elif вышло["снимков"] != 2:
+                плохо(f"брусовый расчёт открыт, а снимков в нём {вышло['снимков']} "
+                      "вместо двух — очистка при смене технологии стёрла свои же")
+            if вышло["грязный"]:
+                плохо("открытие расчёта другой технологии помечено правкой")
 
             if ошибки:
                 плохо("ошибки страницы: " + "; ".join(ошибки)[:220])

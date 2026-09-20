@@ -33,6 +33,40 @@
    "paint_area": 100,
    "roof_area": 110,
    "sort": 2
+  },
+  {
+   "product": "glulam",
+   "slug": "proba-brus-proba-dom",
+   "name": "Брусовая проба 8×8",
+   "price_100": 4200000,
+   "price_150": 4480000,
+   "price_200": 4760000,
+   "floors": "1",
+   "roof_type": "двускатная",
+   "warm": 30,
+   "open_area": 0,
+   "closed_area": 10,
+   "facade_area": 80,
+   "paint_area": 100,
+   "roof_area": 110,
+   "sort": 1
+  },
+  {
+   "product": "glulam",
+   "slug": "proba-brus-proba-dom-2",
+   "name": "Брусовая проба 6×6",
+   "price_100": 4200000,
+   "price_150": 4480000,
+   "price_200": 4760000,
+   "floors": "1",
+   "roof_type": "двускатная",
+   "warm": 30,
+   "open_area": 0,
+   "closed_area": 10,
+   "facade_area": 80,
+   "paint_area": 100,
+   "roof_area": 110,
+   "sort": 2
   }
  ],
  "pricing_sections": [
@@ -74,6 +108,48 @@
   },
   {
    "product": "frame",
+   "section_key": "extra",
+   "pct": 0.029,
+   "fixed": 0
+  },
+  {
+   "product": "glulam",
+   "section_key": "insulation",
+   "pct": 0.05,
+   "fixed": 0
+  },
+  {
+   "product": "glulam",
+   "section_key": "exterior",
+   "pct": 0.072,
+   "fixed": 0
+  },
+  {
+   "product": "glulam",
+   "section_key": "windows",
+   "pct": 0.07,
+   "fixed": 0
+  },
+  {
+   "product": "glulam",
+   "section_key": "roof",
+   "pct": 0.071,
+   "fixed": 0
+  },
+  {
+   "product": "glulam",
+   "section_key": "interior",
+   "pct": 0.121,
+   "fixed": 0
+  },
+  {
+   "product": "glulam",
+   "section_key": "steam_base",
+   "pct": 0.0132,
+   "fixed": 100000
+  },
+  {
+   "product": "glulam",
    "section_key": "extra",
    "pct": 0.029,
    "fixed": 0
@@ -259,6 +335,193 @@
   },
   {
    "product": "frame",
+   "option_id": "r8",
+   "name": "Снегозадержатели",
+   "section": "roof",
+   "included": false,
+   "price": 18000,
+   "formula": null,
+   "status": null,
+   "sort": 16
+  },
+  {
+   "product": "glulam",
+   "option_id": "f1",
+   "name": "Базовая позиция фундамента",
+   "section": "foundation",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 0
+  },
+  {
+   "product": "glulam",
+   "option_id": "fr1",
+   "name": "Базовая позиция каркаса",
+   "section": "frame",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 1
+  },
+  {
+   "product": "glulam",
+   "option_id": "in3",
+   "name": "Утепление пола 150 мм",
+   "section": "insulation",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 2
+  },
+  {
+   "product": "glulam",
+   "option_id": "ex2",
+   "name": "Базовая отделка фасада",
+   "section": "exterior",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 3
+  },
+  {
+   "product": "glulam",
+   "option_id": "w1",
+   "name": "Базовое остекление",
+   "section": "windows",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 4
+  },
+  {
+   "product": "glulam",
+   "option_id": "w2",
+   "name": "Базовая входная дверь",
+   "section": "windows",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 5
+  },
+  {
+   "product": "glulam",
+   "option_id": "r1",
+   "name": "Базовая кровля",
+   "section": "roof",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 6
+  },
+  {
+   "product": "glulam",
+   "option_id": "i1",
+   "name": "Базовая внутренняя отделка",
+   "section": "interior",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 7
+  },
+  {
+   "product": "glulam",
+   "option_id": "s2",
+   "name": "Базовая отделка парной",
+   "section": "steam",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 8
+  },
+  {
+   "product": "glulam",
+   "option_id": "f5",
+   "name": "Свайно-винтовой фундамент",
+   "section": "foundation",
+   "included": false,
+   "price": 200000,
+   "formula": null,
+   "status": null,
+   "sort": 9
+  },
+  {
+   "product": "glulam",
+   "option_id": "f9",
+   "name": "Забивные сваи",
+   "section": "foundation",
+   "included": false,
+   "price": 300000,
+   "formula": null,
+   "status": null,
+   "sort": 10
+  },
+  {
+   "product": "glulam",
+   "option_id": "in6",
+   "name": "Утепление пола 200 мм",
+   "section": "insulation",
+   "included": false,
+   "price": 150000,
+   "formula": null,
+   "status": null,
+   "sort": 11
+  },
+  {
+   "product": "glulam",
+   "option_id": "w10",
+   "name": "Стеклопакет с ламинацией снаружи",
+   "section": "windows",
+   "included": false,
+   "price": 40000,
+   "formula": null,
+   "status": null,
+   "sort": 12
+  },
+  {
+   "product": "glulam",
+   "option_id": "w11",
+   "name": "Стеклопакет с ламинацией снаружи и внутри",
+   "section": "windows",
+   "included": false,
+   "price": 70000,
+   "formula": null,
+   "status": null,
+   "sort": 13
+  },
+  {
+   "product": "glulam",
+   "option_id": "r6",
+   "name": "Водосточная система (пластик)",
+   "section": "roof",
+   "included": false,
+   "price": 45000,
+   "formula": null,
+   "status": null,
+   "sort": 14
+  },
+  {
+   "product": "glulam",
+   "option_id": "r7",
+   "name": "Водосточная система (металл)",
+   "section": "roof",
+   "included": false,
+   "price": 65000,
+   "formula": null,
+   "status": null,
+   "sort": 15
+  },
+  {
+   "product": "glulam",
    "option_id": "r8",
    "name": "Снегозадержатели",
    "section": "roof",
