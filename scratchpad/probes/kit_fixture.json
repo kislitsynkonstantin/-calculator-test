@@ -1,0 +1,323 @@
+{
+ "pricing_projects": [
+  {
+   "product": "frame",
+   "slug": "proba-dom",
+   "name": "Проба дом 8×8",
+   "price_100": 3000000,
+   "price_150": 3200000,
+   "price_200": 3400000,
+   "floors": "1",
+   "roof_type": "двускатная",
+   "warm": 30,
+   "open_area": 0,
+   "closed_area": 10,
+   "facade_area": 80,
+   "paint_area": 100,
+   "roof_area": 110,
+   "sort": 1
+  },
+  {
+   "product": "frame",
+   "slug": "proba-dom-2",
+   "name": "Проба дом 6×6",
+   "price_100": 3000000,
+   "price_150": 3200000,
+   "price_200": 3400000,
+   "floors": "1",
+   "roof_type": "двускатная",
+   "warm": 30,
+   "open_area": 0,
+   "closed_area": 10,
+   "facade_area": 80,
+   "paint_area": 100,
+   "roof_area": 110,
+   "sort": 2
+  }
+ ],
+ "pricing_sections": [
+  {
+   "product": "frame",
+   "section_key": "insulation",
+   "pct": 0.05,
+   "fixed": 0
+  },
+  {
+   "product": "frame",
+   "section_key": "exterior",
+   "pct": 0.072,
+   "fixed": 0
+  },
+  {
+   "product": "frame",
+   "section_key": "windows",
+   "pct": 0.07,
+   "fixed": 0
+  },
+  {
+   "product": "frame",
+   "section_key": "roof",
+   "pct": 0.071,
+   "fixed": 0
+  },
+  {
+   "product": "frame",
+   "section_key": "interior",
+   "pct": 0.121,
+   "fixed": 0
+  },
+  {
+   "product": "frame",
+   "section_key": "steam_base",
+   "pct": 0.0132,
+   "fixed": 100000
+  },
+  {
+   "product": "frame",
+   "section_key": "extra",
+   "pct": 0.029,
+   "fixed": 0
+  }
+ ],
+ "pricing_matrix": [],
+ "pricing_options": [
+  {
+   "product": "frame",
+   "option_id": "f1",
+   "name": "Базовая позиция фундамента",
+   "section": "foundation",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 0
+  },
+  {
+   "product": "frame",
+   "option_id": "fr1",
+   "name": "Базовая позиция каркаса",
+   "section": "frame",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 1
+  },
+  {
+   "product": "frame",
+   "option_id": "in3",
+   "name": "Утепление пола 150 мм",
+   "section": "insulation",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 2
+  },
+  {
+   "product": "frame",
+   "option_id": "ex2",
+   "name": "Базовая отделка фасада",
+   "section": "exterior",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 3
+  },
+  {
+   "product": "frame",
+   "option_id": "w1",
+   "name": "Базовое остекление",
+   "section": "windows",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 4
+  },
+  {
+   "product": "frame",
+   "option_id": "w2",
+   "name": "Базовая входная дверь",
+   "section": "windows",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 5
+  },
+  {
+   "product": "frame",
+   "option_id": "r1",
+   "name": "Базовая кровля",
+   "section": "roof",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 6
+  },
+  {
+   "product": "frame",
+   "option_id": "i1",
+   "name": "Базовая внутренняя отделка",
+   "section": "interior",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 7
+  },
+  {
+   "product": "frame",
+   "option_id": "s2",
+   "name": "Базовая отделка парной",
+   "section": "steam",
+   "included": true,
+   "price": null,
+   "formula": null,
+   "status": null,
+   "sort": 8
+  },
+  {
+   "product": "frame",
+   "option_id": "f5",
+   "name": "Свайно-винтовой фундамент",
+   "section": "foundation",
+   "included": false,
+   "price": 200000,
+   "formula": null,
+   "status": null,
+   "sort": 9
+  },
+  {
+   "product": "frame",
+   "option_id": "f9",
+   "name": "Забивные сваи",
+   "section": "foundation",
+   "included": false,
+   "price": 300000,
+   "formula": null,
+   "status": null,
+   "sort": 10
+  },
+  {
+   "product": "frame",
+   "option_id": "in6",
+   "name": "Утепление пола 200 мм",
+   "section": "insulation",
+   "included": false,
+   "price": 150000,
+   "formula": null,
+   "status": null,
+   "sort": 11
+  },
+  {
+   "product": "frame",
+   "option_id": "w10",
+   "name": "Стеклопакет с ламинацией снаружи",
+   "section": "windows",
+   "included": false,
+   "price": 40000,
+   "formula": null,
+   "status": null,
+   "sort": 12
+  },
+  {
+   "product": "frame",
+   "option_id": "w11",
+   "name": "Стеклопакет с ламинацией снаружи и внутри",
+   "section": "windows",
+   "included": false,
+   "price": 70000,
+   "formula": null,
+   "status": null,
+   "sort": 13
+  },
+  {
+   "product": "frame",
+   "option_id": "r6",
+   "name": "Водосточная система (пластик)",
+   "section": "roof",
+   "included": false,
+   "price": 45000,
+   "formula": null,
+   "status": null,
+   "sort": 14
+  },
+  {
+   "product": "frame",
+   "option_id": "r7",
+   "name": "Водосточная система (металл)",
+   "section": "roof",
+   "included": false,
+   "price": 65000,
+   "formula": null,
+   "status": null,
+   "sort": 15
+  },
+  {
+   "product": "frame",
+   "option_id": "r8",
+   "name": "Снегозадержатели",
+   "section": "roof",
+   "included": false,
+   "price": 18000,
+   "formula": null,
+   "status": null,
+   "sort": 16
+  }
+ ],
+ "project_kits": [
+  {
+   "project_key": "proba-dom-8-8",
+   "name": "Стандарт",
+   "base_off": [
+    "w2",
+    "r1"
+   ],
+   "option_ids": [
+    "f5",
+    "in6",
+    "w10",
+    "r6",
+    "r8"
+   ],
+   "custom_items": [
+    {
+     "id": "cs1",
+     "name": "Ручная позиция",
+     "price": 50000,
+     "section": "interior"
+    }
+   ]
+  },
+  {
+   "project_key": "proba-dom-8-8",
+   "name": "Комфорт",
+   "base_off": [
+    "w2",
+    "r1",
+    "i1"
+   ],
+   "option_ids": [
+    "f5",
+    "in6",
+    "w10",
+    "r7",
+    "r8",
+    "w11",
+    "r6"
+   ],
+   "custom_items": [
+    {
+     "id": "cu1",
+     "name": "Ручная позиция",
+     "price": 80000,
+     "section": "interior"
+    }
+   ]
+  }
+ ]
+}
