@@ -222,6 +222,76 @@ body.dark .tch.on { color: var(--green-pale); }
 .dot-glulam { background: var(--dot-glulam); }
 .dot-stone { background: var(--dot-stone); }
 
+/* ── Широкая плитка: раскладка десктопа ──
+   На широком экране плитка перестраивается: имя занимает первую строку,
+   вторая держит проект и время слева и сумму по правому краю, третья —
+   код слева, «Загрузить» и значки справа. Сумма здесь уже прижата к краю,
+   поэтому «справа от суммы» с телефона сюда не переносится: место рядом
+   с суммой на широком экране — слева от неё. */
+/* Широкая плитка на телефоне не помещается по определению — это и есть
+   раскладка десктопа. Чтобы макет не приобрёл собственную горизонтальную
+   прокрутку целиком (а его открывают и с телефона), полоса прокручивается
+   внутри себя, а страница остаётся по ширине окна. */
+.dsk { max-width: 1180px; }
+@media (max-width: 1000px) {
+  .dsk { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+  .dsk .dcard, .dsk .tf { min-width: 880px; }
+  .dsk .mk-note, .dsk .mk-sub, .dsk .legend { position: sticky; left: 0; max-width: calc(100vw - 28px); }
+}
+.dcard {
+  border: 1px solid var(--line); border-radius: 12px; background: var(--field-bg);
+  padding: 12px 16px; margin-bottom: 10px;
+}
+.dcard-top { display: flex; align-items: center; gap: 8px; }
+.dcard-name { font-size: 0.86rem; font-weight: 600; min-width: 0; }
+.dcard-badge {
+  font-size: 0.58rem; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+  border: 1px solid var(--line); color: var(--gray); margin-left: auto; flex: 0 0 auto;
+}
+.dcard-meta {
+  display: flex; align-items: center; gap: 12px; margin-top: 4px; padding-left: 21px;
+}
+.dcard-project {
+  font-size: 0.72rem; color: var(--gray); min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.dcard-date { font-size: 0.68rem; color: var(--gray-light); white-space: nowrap; margin-left: auto; }
+.dcard-price {
+  font-family: 'Unbounded', sans-serif; font-size: 0.98rem; font-weight: 700;
+  letter-spacing: -0.02em; white-space: nowrap;
+}
+/* Единственное `margin-left:auto` в ряду — у времени. Второе такое же
+   разбросало бы свободное место между ними, и метка повисла бы посреди
+   пустоты, не принадлежа ни сумме, ни времени. */
+.dcard-row {
+  display: flex; align-items: center; gap: 14px; margin-top: 10px;
+  padding: 9px 0 0 21px; border-top: 1px solid var(--line);
+}
+.dcard-code { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; color: var(--gray-light); }
+.dcard-code b {
+  font-family: 'Unbounded', sans-serif; font-size: 0.8rem; font-weight: 700;
+  color: var(--green-mid); letter-spacing: 0.02em;
+}
+body.dark .dcard-code b { color: var(--green-light); }
+.dcard-copy { color: var(--green-mid); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+.dcard-acts { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.dcard-use {
+  font-family: 'Geologica', sans-serif; font-size: 0.76rem; font-weight: 500;
+  padding: 8px 26px; border-radius: 9px; border: 1px solid var(--green-mid);
+  background: none; color: var(--green-dark); cursor: pointer;
+}
+body.dark .dcard-use { color: var(--green-pale); }
+.dcard-act {
+  width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line);
+  background: none; color: var(--gray); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.dcard-pub {
+  font-family: 'Geologica', sans-serif; font-size: 0.72rem; padding: 7px 12px;
+  border-radius: 8px; border: 1px solid var(--line); background: none;
+  color: var(--gray); cursor: pointer;
+}
+
 .legend { font-size: 0.73rem; color: var(--gray-light); margin-top: 9px; line-height: 1.6; }
 .legend b { color: var(--gray); font-weight: 500; }
 .ask {
@@ -238,7 +308,7 @@ body.dark .tch.on { color: var(--green-pale); }
   <div class="mk-head">
     <div>
       <h1>Пресеты: метка технологии и фильтр</h1>
-      <p>Четыре варианта отличаются только местом метки на карточке. Фильтр во всех один и тот же и работает по-настоящему: чипы выбираются вместе, «Все» снимает выбор, нажатие по метке на карточке оставляет одну технологию.</p>
+      <p>Телефон решён — вариант Г. Ниже он же и три места для широкого экрана, где плитка перестраивается и сумма уже прижата к правому краю. Фильтр везде один и тот же и работает по-настоящему: чипы выбираются вместе, «Все» снимает выбор, нажатие по метке на карточке оставляет одну технологию.</p>
     </div>
     <div class="mk-theme">
       <button id="tDark" class="on" onclick="тема('dark')">Тёмная</button>
@@ -246,12 +316,41 @@ body.dark .tch.on { color: var(--green-pale); }
     </div>
   </div>
 
+  <div class="mk-note" style="margin-top:18px;">Десктоп — выбрать место</div>
+  <div class="mk-sub">Широкая плитка перестраивается: имя на первой строке, на второй проект и время слева, сумма по правому краю, на третьей код слева, «Загрузить» и значки справа. Сумма здесь уже у края, поэтому телефонное «справа от суммы» сюда не переносится — рядом с суммой на широком экране значит слева от неё.</div>
+
+  <div class="dsk">
+    <div class="mk-note" style="margin-top:22px;">Д — слева от суммы</div>
+    <div class="mk-sub">Прямой перенос телефонного решения: метка держится суммы, сумма держится края. Время отходит влево и встаёт между проектом и меткой.</div>
+    <div id="dД"></div>
+    <div class="legend">Строка читается одной дугой: что за проект — когда — чем построено — сколько. Метка стоит вплотную к тому числу, ради которого в список и заходят.</div>
+
+    <div class="mk-note" style="margin-top:26px;">Е — в строке имени, слева от «Мой»</div>
+    <div class="mk-sub">Верхняя строка на широком экране полупустая, и метка туда помещается без тесноты. Строка суммы остаётся нетронутой.</div>
+    <div id="dЕ"></div>
+    <div class="legend">Заметнее всего, но метка уезжает от суммы к правому краю имени, и взгляду приходится ходить между строками, чтобы связать технологию с ценой. Плата видна на четырёх карточках: метка идёт следом за именем, а имена разной длины — столбца не выходит, и список так не просмотреть сверху вниз. В Д и Ж метки стоят колонкой.</div>
+
+    <div class="mk-note" style="margin-top:26px;">Ж — в нижней полосе, у кода</div>
+    <div class="mk-sub">Метка идёт третьей строкой, рядом с кодом и «Скопировать», — в той полосе, где живёт вся служебная часть плитки.</div>
+    <div id="dЖ"></div>
+    <div class="legend">Тише всех и дальше всех от суммы. Годится, если метка нужна для фильтра, а не для чтения списка глазами.</div>
+  </div>
+
+  <div class="ask" style="margin-top:22px;">
+    <b>Что решить на десктопе:</b> Д, Е или Ж. Телефон уже решён — Г.
+    Места независимы: на телефоне может стоять одно, на широком экране другое,
+    это две разные раскладки одной и той же плитки.
+  </div>
+
+  <div class="mk-note" style="margin-top:34px;">Телефон — решено</div>
+  <div class="mk-sub">Вариант Г, который ты утвердил. Оставлен здесь для сверки: то же правило, тот же фильтр.</div>
+
   <div class="cols">
     <div>
       <div class="mk-note">Г — справа от суммы, с точкой</div>
-      <div class="mk-sub">Место, которое ты показал. Сумма стоит слева, метка — по правому краю карточки, на той же средней линии. Обе строки выше остаются нетронутыми: имя занимает верхнюю целиком, проект и время — вторую.</div>
+      <div class="mk-sub">Сумма стоит слева, метка — по правому краю карточки, на той же средней линии. Обе строки выше остаются нетронутыми.</div>
       <div class="pp" id="ppГ"></div>
-      <div class="legend">Сумма и метка — два полюса одной строки: взгляд, идущий по левому краю за ценой, метку не обходит, а подбирает на обратном ходу. Строка суммы ради этого стала на 10 px выше — в ней должно уместиться поле нажатия метки, не залезая на «Загрузить».</div>
+      <div class="legend">Строка суммы ради метки стала на 10 px выше — в ней должно уместиться поле нажатия, не залезая на «Загрузить».</div>
     </div>
 
     <div>
@@ -277,7 +376,7 @@ body.dark .tch.on { color: var(--green-pale); }
   </div>
 
   <div class="ask">
-    <b>Что решить:</b> место метки — Г, А, Б или В.
+    <b>Прежние варианты телефона</b> (А, Б, В) оставлены ниже для сверки.
     Отдельно: <b>«Камень» в фильтре</b> показан пунктиром и с нулём — технология в разработке, пресетов на ней нет.
     Оставить её в списке или показывать только те технологии, на которых есть хоть один расчёт?
   </div>
@@ -361,6 +460,9 @@ function метка(панель, тех, сТочкой, выбрана) {
 }
 
 function нарисовать(панель) {
+  // Одна точка входа на обе раскладки: чипы и метки зовут её по имени
+  // панели, а какая это панель — телефонная или широкая — решается здесь.
+  if (typeof ДЕСКТОП !== 'undefined' && ДЕСКТОП[панель]) return нарисоватьДесктоп(панель);
   const н = выбор[панель];
   const видно = ПРЕСЕТЫ.filter(п => !н.size || н.has(п.тех));
   const вид = ПАНЕЛИ[панель];
@@ -427,7 +529,63 @@ function тема(какая) {
   document.getElementById('tLight').classList.toggle('on', какая !== 'dark');
 }
 
+// ── Широкая плитка ──────────────────────────────────────────────────────
+// Места метки на десктопе. Ключ панели совпадает с буквой варианта, чтобы
+// выбор технологии по метке жил у каждой своей — как у телефонных.
+const ДЕСКТОП = { 'Д': 'сумма', 'Е': 'имя', 'Ж': 'код' };
+Object.keys(ДЕСКТОП).forEach(б => { выбор[б] = new Set(); });
+
+function нарисоватьДесктоп(панель) {
+  const место = ДЕСКТОП[панель];
+  const н = выбор[панель];
+  const видно = ПРЕСЕТЫ.filter(п => !н.size || н.has(п.тех));
+  const выбрана = код => н.size === 1 && н.has(код);
+  const где = (п, м) => место === м ? метка(панель, п.тех, true, выбрана(п.тех)) : '';
+
+  const карточки = видно.map(п => `
+    <div class="dcard">
+      <div class="dcard-top">
+        <span class="pcard-star${п.звезда ? '' : ' off'}">${звёздочка(!!п.звезда)}</span>
+        <div class="dcard-name">${п.имя}</div>
+        ${где(п, 'имя')}
+        <span class="dcard-badge">Мой</span>
+      </div>
+      <div class="dcard-meta">
+        <span class="dcard-project">${п.проект}</span>
+        <span class="dcard-date">${п.дата}</span>
+        ${где(п, 'сумма')}
+        <span class="dcard-price">${п.сумма}</span>
+      </div>
+      <div class="dcard-row">
+        <span class="dcard-code">Код <b>${п.код}</b></span>
+        <span class="dcard-copy">${ЗНАЧКИ.копия} Скопировать</span>
+        ${где(п, 'код')}
+        <span class="dcard-acts">
+          <button class="dcard-use">Загрузить</button>
+          <button class="dcard-act">${ЗНАЧКИ.перо}</button>
+          <button class="dcard-act">${ЗНАЧКИ.вниз}</button>
+          <button class="dcard-act">${ЗНАЧКИ.корзина}</button>
+          <button class="dcard-pub">Публ.</button>
+        </span>
+      </div>
+    </div>`).join('');
+
+  const чипы = `<button class="tf-chip${н.size ? '' : ' on'}" onclick="всеТех('${панель}')">Все</button>`
+    + ТЕХНОЛОГИИ.map(т => `
+      <button class="tf-chip${н.has(т.код) ? ' on' : ''}${т.скоро ? ' soon' : ''}"
+              onclick="нажатьЧип('${панель}','${т.код}')">
+        <span class="dot dot-${т.код}"></span>${т.имя}
+        <span class="tf-n">${сколько(т.код)}</span>
+      </button>`).join('');
+
+  document.getElementById('d' + панель).innerHTML = `
+    <div class="tf"><span class="tf-label">Технология</span>${чипы}</div>
+    ${карточки || `<div class="tf-empty">На выбранных технологиях пресетов нет.<br>
+       Нажмите «Все», чтобы вернуть список.</div>`}`;
+}
+
 Object.keys(ПАНЕЛИ).forEach(нарисовать);
+Object.keys(ДЕСКТОП).forEach(нарисовать);
 </script>
 </body>
 </html>
