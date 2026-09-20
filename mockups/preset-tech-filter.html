@@ -19,6 +19,12 @@
   --card-bg: #fff;
   --field-bg: #f7fefe;
   --line: #d4e4e5;
+  /* Точки технологий. На светлом фоне бирюзовая берётся потемнее: у самой
+     светлой на белом всего 2.4:1, и точка пропадает на вытянутой руке.
+     Смысл несёт слово рядом — точка только ускоряет поиск глазами. */
+  --dot-frame: #2a8f97;
+  --dot-glulam: #a9713a;
+  --dot-stone: #6f7c83;
 }
 body.dark {
   --black: #e8f4f5;
@@ -29,6 +35,9 @@ body.dark {
   --card-bg: #1a2a2c;
   --field-bg: #1e3538;
   --line: #2a4a4e;
+  --dot-frame: #3db0ba;
+  --dot-glulam: #c79a5b;
+  --dot-stone: #8d9aa0;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -112,7 +121,9 @@ body.dark .pp-tab.on { color: var(--green-pale); border-bottom-color: var(--gree
   border: 1px solid var(--line); background: none; color: var(--gray);
   position: relative;
 }
-.tf-chip::before { content: ''; position: absolute; inset: -8px -2px; }
+/* Поле нажатия, а не коробка: чип нарисован тем весом, какой держит в
+   иерархии, а под палец подложено невидимое поле до 44 px. */
+.tf-chip::before { content: ''; position: absolute; inset: -9px -2px; }
 .tf-chip:hover { border-color: var(--green-mid); color: var(--green-dark); }
 body.dark .tf-chip:hover { color: var(--green-pale); }
 .tf-chip.on { background: var(--green-dark); border-color: var(--green-dark); color: #fff; font-weight: 600; }
@@ -131,9 +142,12 @@ body.dark .tf-chip:hover { color: var(--green-pale); }
   border: 1px solid var(--line); border-radius: 12px; background: var(--field-bg);
   padding: 10px 12px; margin-bottom: 9px;
 }
-.pcard.fav { border-left: 3px solid #f0a030; }
 .pcard-top { display: flex; align-items: flex-start; gap: 6px; }
+/* Звёздочка стоит у каждой карточки — залитая у избранной, по контуру у
+   прочей. Прятать её у неизбранных нельзя: левый край имён становится
+   рваным, а нажать «в избранное» оказывается негде. */
 .pcard-star { color: #f0a030; flex: 0 0 auto; margin-top: 2px; }
+.pcard-star.off { color: var(--gray-light); }
 .pcard-name { font-size: 0.82rem; font-weight: 600; flex: 1; min-width: 0; line-height: 1.35; }
 .pcard-badge {
   font-size: 0.57rem; font-weight: 700; padding: 2px 7px; border-radius: 20px;
@@ -150,6 +164,18 @@ body.dark .pcard-project { color: var(--green-pale); }
   font-family: 'Unbounded', sans-serif; font-size: 1.02rem; font-weight: 700;
   margin: 8px 0 2px; letter-spacing: -0.02em;
 }
+/* Строка суммы с меткой справа. Ряд нарочно выше самой суммы: поле нажатия
+   метки 45 px должно уместиться в нём целиком, не залезая на «Загрузить»
+   снизу и на строку проекта сверху — иначе промах по краю уводит в чужое
+   действие. Сумма и метка выровнены по средней линии, а не по базовой:
+   у крупной Unbounded и мелкой Geologica базовые линии расходятся заметно. */
+.pcard-priceline {
+  display: flex; align-items: center; gap: 10px;
+  min-height: 36px; margin: 6px 0 0;
+}
+.pcard-priceline .pcard-price { margin: 0; }
+.pcard-priceline .tch { margin-left: auto; padding: 4px 9px; }
+.pcard-priceline .tch::before { inset: -12px -6px; }
 .pcard-actions { display: flex; gap: 5px; align-items: center; margin-top: 8px; }
 .pcard-use {
   flex: 1; font-family: 'Geologica', sans-serif; font-size: 0.76rem; font-weight: 500;
@@ -186,15 +212,15 @@ body.dark .pcard-code b { color: var(--green-light); }
   border: 1px solid var(--line); background: none; color: var(--gray);
   position: relative; white-space: nowrap; flex: 0 0 auto;
 }
-.tch::before { content: ''; position: absolute; inset: -10px -4px; }
+.tch::before { content: ''; position: absolute; inset: -13px -6px; }
 .tch:hover { border-color: var(--green-mid); color: var(--green-dark); }
 body.dark .tch:hover { color: var(--green-pale); }
 .tch.on { border-color: var(--green-mid); color: var(--green-dark); font-weight: 600; }
 body.dark .tch.on { color: var(--green-pale); }
 .dot { width: 6px; height: 6px; border-radius: 50%; flex: 0 0 auto; }
-.dot-frame { background: var(--green-light); }
-.dot-glulam { background: #c79a5b; }
-.dot-stone { background: #8d9aa0; }
+.dot-frame { background: var(--dot-frame); }
+.dot-glulam { background: var(--dot-glulam); }
+.dot-stone { background: var(--dot-stone); }
 
 .legend { font-size: 0.73rem; color: var(--gray-light); margin-top: 9px; line-height: 1.6; }
 .legend b { color: var(--gray); font-weight: 500; }
@@ -212,7 +238,7 @@ body.dark .tch.on { color: var(--green-pale); }
   <div class="mk-head">
     <div>
       <h1>Пресеты: метка технологии и фильтр</h1>
-      <p>Три варианта отличаются только местом метки на карточке. Фильтр во всех один и тот же и работает по-настоящему: чипы выбираются вместе, «Все» снимает выбор, нажатие по метке на карточке оставляет одну технологию.</p>
+      <p>Четыре варианта отличаются только местом метки на карточке. Фильтр во всех один и тот же и работает по-настоящему: чипы выбираются вместе, «Все» снимает выбор, нажатие по метке на карточке оставляет одну технологию.</p>
     </div>
     <div class="mk-theme">
       <button id="tDark" class="on" onclick="тема('dark')">Тёмная</button>
@@ -222,10 +248,17 @@ body.dark .tch.on { color: var(--green-pale); }
 
   <div class="cols">
     <div>
+      <div class="mk-note">Г — справа от суммы, с точкой</div>
+      <div class="mk-sub">Место, которое ты показал. Сумма стоит слева, метка — по правому краю карточки, на той же средней линии. Обе строки выше остаются нетронутыми: имя занимает верхнюю целиком, проект и время — вторую.</div>
+      <div class="pp" id="ppГ"></div>
+      <div class="legend">Сумма и метка — два полюса одной строки: взгляд, идущий по левому краю за ценой, метку не обходит, а подбирает на обратном ходу. Строка суммы ради этого стала на 10 px выше — в ней должно уместиться поле нажатия метки, не залезая на «Загрузить».</div>
+    </div>
+
+    <div>
       <div class="mk-note">А — в строке проекта</div>
       <div class="mk-sub">Метка стоит перед названием проекта, там же, где толщина: технология — такое же свойство расчёта. Верхняя строка с именем не трогается.</div>
       <div class="pp" id="ppA"></div>
-      <div class="legend">Имя пресета занимает верхнюю строку целиком — на телефоне это дороже всего.</div>
+      <div class="legend">Имя пресета занимает верхнюю строку целиком — на телефоне это дороже всего. Плата видна тут же: метка занимает место в строке проекта, и время съезжает на отдельную строку — карточка становится выше.</div>
     </div>
 
     <div>
@@ -239,14 +272,20 @@ body.dark .tch.on { color: var(--green-pale); }
       <div class="mk-note">В — в строке проекта, с точкой</div>
       <div class="mk-sub">То же место, что в А, но у каждой технологии своя точка: бирюзовая — каркас, песочная — брус, серая — камень. Список читается быстрее.</div>
       <div class="pp" id="ppВ"></div>
-      <div class="legend">⚠ В палитру добавляются два цвета, которых в калькуляторе пока нет, — песочный и серый.</div>
+      <div class="legend">⚠ В палитру добавляются два цвета, которых в калькуляторе пока нет, — песочный и серый. На светлой теме оба взяты темнее, чем на тёмной: бирюзовая точка на белом даёт всего 2.4:1 и исчезает на вытянутой руке.</div>
     </div>
   </div>
 
   <div class="ask">
-    <b>Что решить:</b> место метки — А, Б или В; нужна ли точка цветом.
+    <b>Что решить:</b> место метки — Г, А, Б или В.
     Отдельно: <b>«Камень» в фильтре</b> показан пунктиром и с нулём — технология в разработке, пресетов на ней нет.
     Оставить её в списке или показывать только те технологии, на которых есть хоть один расчёт?
+  </div>
+  <div class="ask">
+    <b>Жёлтая полоска слева</b> — не из макета: она стоит в калькуляторе и означает «избранный»,
+    ровно то же, что звёздочка в двух сантиметрах от неё. Здесь я её снял — смотри, не потерялось ли
+    что-нибудь. Зелёная полоска «мой» и «открытый расчёт» — отдельный разговор: они значат то,
+    чего звёздочка не говорит.
   </div>
 </div>
 
@@ -268,7 +307,11 @@ const ПРЕСЕТЫ = [
     дата: '12.09.26 16:03', сумма: '3 880 210 ₽', код: '317 645', тех: 'glulam' },
 ];
 
-const ЗВЕЗДА = '<svg width="13" height="13" viewBox="0 0 24 24" fill="#f0a030" stroke="#f0a030" stroke-width="1.8" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+const звёздочка = (залита) => '<svg width="13" height="13" viewBox="0 0 24 24" fill="'
+  + (залита ? '#f0a030' : 'none') + '" stroke="' + (залита ? '#f0a030' : 'currentColor')
+  + '" stroke-width="1.8" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 '
+  + '17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+const ЗВЕЗДА = звёздочка(true);
 const ЗНАЧКИ = {
   крест: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
   лупа: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
@@ -278,9 +321,17 @@ const ЗНАЧКИ = {
   копия: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
 };
 
+// Четыре варианта отличаются только местом метки и наличием точки.
+const ПАНЕЛИ = {
+  'A': { точка: false, место: 'проект' },
+  'B': { точка: false, место: 'верх'   },
+  'В': { точка: true,  место: 'проект' },
+  'Г': { точка: true,  место: 'сумма'  },
+};
+
 // Выбранные технологии. Пустое множество означает «все»: отдельного
 // состояния «фильтр выключен» не нужно, и «Все» — это просто пустой выбор.
-const выбор = { A: new Set(), B: new Set(), 'В': new Set() };
+const выбор = { 'A': new Set(), 'B': new Set(), 'В': new Set(), 'Г': new Set() };
 
 const имяТех = код => (ТЕХНОЛОГИИ.find(т => т.код === код) || {}).имя || код;
 const сколько = код => ПРЕСЕТЫ.filter(п => п.тех === код).length;
@@ -312,9 +363,11 @@ function метка(панель, тех, сТочкой, выбрана) {
 function нарисовать(панель) {
   const н = выбор[панель];
   const видно = ПРЕСЕТЫ.filter(п => !н.size || н.has(п.тех));
-  const сТочкой = панель === 'В';
-  const сверху = панель === 'B';
+  const вид = ПАНЕЛИ[панель];
+  const сТочкой = вид.точка;
   const выбрана = код => н.size === 1 && н.has(код);
+  const где = (п, место) => вид.место === место
+    ? метка(панель, п.тех, сТочкой, выбрана(п.тех)) : '';
 
   const чипы = `<button class="tf-chip${н.size ? '' : ' on'}" onclick="всеТех('${панель}')">Все</button>`
     + ТЕХНОЛОГИИ.map(т => `
@@ -325,19 +378,22 @@ function нарисовать(панель) {
       </button>`).join('');
 
   const карточки = видно.map(п => `
-    <div class="pcard${п.звезда ? ' fav' : ''}">
+    <div class="pcard">
       <div class="pcard-top">
-        ${п.звезда ? `<span class="pcard-star">${ЗВЕЗДА}</span>` : ''}
+        <span class="pcard-star${п.звезда ? '' : ' off'}">${звёздочка(!!п.звезда)}</span>
         <div class="pcard-name">${п.имя}</div>
-        ${сверху ? метка(панель, п.тех, сТочкой, выбрана(п.тех)) : ''}
+        ${где(п, 'верх')}
         <span class="pcard-badge">Мой</span>
       </div>
       <div class="pcard-meta">
-        ${сверху ? '' : метка(панель, п.тех, сТочкой, выбрана(п.тех))}
+        ${где(п, 'проект')}
         <span class="pcard-project">${п.проект}</span>
         <span class="pcard-date">${п.дата}</span>
       </div>
-      <div class="pcard-price">${п.сумма}</div>
+      <div class="pcard-priceline">
+        <div class="pcard-price">${п.сумма}</div>
+        ${где(п, 'сумма')}
+      </div>
       <div class="pcard-actions">
         <button class="pcard-use">Загрузить</button>
         <button class="pcard-act">${ЗНАЧКИ.перо}</button>
@@ -371,7 +427,7 @@ function тема(какая) {
   document.getElementById('tLight').classList.toggle('on', какая !== 'dark');
 }
 
-['A', 'B', 'В'].forEach(нарисовать);
+Object.keys(ПАНЕЛИ).forEach(нарисовать);
 </script>
 </body>
 </html>
