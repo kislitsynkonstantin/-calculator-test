@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Нижняя полоска — варианты в духе «острова»</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page:#f0fafa; --card:#fff; --ink:#0f1c1d; --ink2:#4a5f61; --ink3:#82999b;
+  --accent:#1e6c72; --accent2:#2a8f97; --line:#cfe9eb; --tint:#e4f5f6;
+  /* Цвета калькулятора: зелёный — «расчёт лежит в базе», серый — «нигде». */
+  --green-dark:#1e6c72; --green-mid:#2a8f97; --green-light:#4cbcc5;
+  --grey-strip:#5b6a6e; --grey-strip-dark:#41504f;
+  /* Остров: почти чёрный, а не чистый чёрный — на тёмном фоне чистый сливается. */
+  --island:#0c1112; --island-soft:rgba(14,20,21,0.82);
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --page:#0b1618; --card:#122528; --ink:#e6f3f3; --ink2:#9db6b8; --ink3:#6d8688;
+  --accent:#4cbcc5; --accent2:#6fd3da; --line:#20444a; --tint:#15343a;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);line-height:1.6;
+  font-family:'Geologica',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:36px 20px 80px}
+.eyebrow{font-size:.68rem;text-transform:uppercase;letter-spacing:.14em;color:var(--accent2);font-weight:500}
+h1{font-family:'Unbounded',sans-serif;font-size:1.5rem;font-weight:700;letter-spacing:-.01em;margin:.25em 0 .4em}
+h2{font-family:'Unbounded',sans-serif;font-size:1.02rem;font-weight:600;margin:0 0 4px}
+p.lead{color:var(--ink2);max-width:64ch;margin:0 0 26px}
+p.note{color:var(--ink2);max-width:62ch;margin:0 0 14px;font-size:.86rem}
+.var{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 20px 24px;margin:0 0 22px}
+.var-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:2px}
+.var-num{font-family:'Unbounded',sans-serif;font-size:.78rem;font-weight:700;color:var(--accent2)}
+.scenes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+@media(max-width:820px){.scenes{grid-template-columns:1fr}}
+/* Сцена — кусок экрана калькулятора: полоска всегда висит над чем-то, и
+   судить её в пустоте бессмысленно. */
+.scene{border-radius:14px;overflow:hidden;border:1px solid var(--line);position:relative;
+  min-height:188px;display:flex;flex-direction:column;justify-content:flex-end;padding:14px 12px 12px}
+.scene.day{background:#f6fbfb}
+.scene.night{background:#0e1a1c}
+.scene-lab{position:absolute;top:10px;left:12px;font-size:.6rem;letter-spacing:.12em;
+  text-transform:uppercase;font-weight:600}
+.scene.day .scene-lab{color:#8da3a5}
+.scene.night .scene-lab{color:#5f7a7c}
+/* Бутафория расчёта под полоской — чтобы видеть контраст на реальном фоне. */
+.rows{position:absolute;left:12px;right:12px;top:34px;display:flex;flex-direction:column;gap:7px}
+.row{height:11px;border-radius:4px}
+.scene.day .row{background:#e3eff0}
+.scene.night .row{background:#1b3235}
+.row.w1{width:82%}.row.w2{width:64%}.row.w3{width:73%}.row.w4{width:55%}
+.total{margin-top:10px;border-radius:10px;padding:9px 12px;display:flex;justify-content:space-between;
+  align-items:center;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase}
+.scene.day .total{background:#1e6c72;color:#cfeff1}
+.scene.night .total{background:#12383c;color:#9fd9dd}
+.total b{font-family:'Unbounded',sans-serif;font-size:.82rem;letter-spacing:0;text-transform:none}
+.strip-slot{position:relative;z-index:2;display:flex;justify-content:center;padding-bottom:8px}
+
+/* ── Общее для всех полосок ─────────────────────────────────────────────── */
+/* Зазор 16 px — не для воздуха: поле нажатия крестика выходит на 9 px в
+   каждую сторону, поле кнопки на 6, и при меньшем зазоре они встречаются, а
+   нажатие у края уходит соседу. */
+.pill{display:inline-flex;align-items:center;gap:16px;max-width:100%;
+  font-family:'Geologica',sans-serif;font-size:.72rem;font-weight:500;line-height:1.2}
+.pill .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill b{font-weight:600}
+.ic{display:inline-flex;align-items:center;flex:none}
+.btn{position:relative;flex:none;border:none;cursor:pointer;white-space:nowrap;
+  font-family:'Geologica',sans-serif;font-size:.68rem;font-weight:600;border-radius:999px;padding:5px 12px}
+.btn::before{content:'';position:absolute;inset:-12px -6px}   /* нажатие 44, вид лёгкий */
+/* Крестик рисуется значком, а нажимается полем 44×44: коробка 26 px плюс
+   невидимые 9 px с каждой стороны. Раздувать сам значок до 44 нельзя — он
+   перевесит текст, ради которого полоска и висит. */
+.x{position:relative;flex:none;width:26px;height:26px;border:none;background:none;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;border-radius:999px}
+.x::before{content:'';position:absolute;inset:-9px}
+
+/* ── 1. Остров: чёрная капсула, состояние — «батарейкой» справа ─────────── */
+.v1{background:var(--island);color:#fff;border-radius:999px;padding:7px 8px 7px 15px;
+  box-shadow:0 6px 22px rgba(0,0,0,.28)}
+.v1 .st{display:inline-flex;align-items:center;gap:6px;flex:none;border-radius:999px;
+  padding:4px 10px;font-size:.66rem;font-weight:600;letter-spacing:.01em}
+.v1 .st.grey{background:rgba(255,255,255,.14);color:#e7eef0}
+.v1 .st.green{background:#34c759;color:#06210f}
+.v1 .btn{background:#fff;color:#0c1112}
+.v1 .x{color:rgba(255,255,255,.62)}
+.v1 .ic{opacity:.8}
+
+/* ── 2. Стекло: тёмное полупрозрачное, цвет — только точкой ─────────────── */
+.v2{background:var(--island-soft);color:#fff;border-radius:999px;padding:8px 10px 8px 14px;
+  backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);
+  box-shadow:0 1px 0 rgba(255,255,255,.16) inset,0 8px 26px rgba(0,0,0,.3)}
+.v2 .dot{width:9px;height:9px;border-radius:999px;flex:none}
+.v2 .dot.grey{background:#9aa6a8;box-shadow:0 0 0 3px rgba(154,166,168,.22)}
+.v2 .dot.green{background:#34c759;box-shadow:0 0 0 3px rgba(52,199,89,.24)}
+.v2 .btn{background:rgba(255,255,255,.18);color:#fff}
+.v2 .x{color:rgba(255,255,255,.6)}
+
+/* ── 3. Цветной остров: тот же цвет, что сейчас, но геометрия островная ─── */
+.v3{border-radius:999px;padding:7px 9px 7px 15px;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.22)}
+.v3.grey{background:var(--grey-strip)}
+.v3.green{background:var(--green-dark)}
+.v3 .btn{background:rgba(255,255,255,.2);color:#fff}
+.v3 .x{color:rgba(255,255,255,.72)}
+.v3 .ic{opacity:.85}
+
+/* ── 4. Двухслойный: чёрная капсула, состояние — цветной пилюлей слева ──── */
+.v4{background:var(--island);color:#fff;border-radius:999px;padding:6px 10px 6px 6px;
+  box-shadow:0 6px 22px rgba(0,0,0,.28)}
+.v4 .tag{display:inline-flex;align-items:center;gap:6px;flex:none;border-radius:999px;
+  padding:5px 11px;font-size:.66rem;font-weight:600}
+.v4 .tag.grey{background:#8a9698;color:#0c1112}
+.v4 .tag.green{background:#34c759;color:#06210f}
+.v4 .btn{background:rgba(255,255,255,.16);color:#fff}
+.v4 .x{color:rgba(255,255,255,.6)}
+
+/* Подпись под сценой — чем вариант отличается на словах. */
+.why{margin:14px 0 0;font-size:.82rem;color:var(--ink2)}
+.why b{color:var(--ink)}
+ul.why-list{margin:8px 0 0;padding:0 0 0 18px;color:var(--ink2);font-size:.82rem}
+ul.why-list li{margin:3px 0}
+footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);color:var(--ink3);font-size:.8rem}
+@media(prefers-reduced-motion:no-preference){
+  .pill{transition:transform .2s ease-out}
+}
+/* Телефон: полоска раскладывается в две строки — имя сверху, состояние и
+   действия снизу. Так она ведёт себя и в работе; одной строкой имя расчёта
+   сжималось бы до одной буквы, и судить было бы не о чем. */
+@media(max-width:820px){
+  .strip-slot{padding-bottom:6px}
+  .pill{flex-wrap:wrap;row-gap:9px;width:100%;border-radius:20px}
+  /* Значок идёт в одной строке с именем, а не над ним: одинокий значок
+     сверху читается обрывком, а не частью полоски. */
+  .pill .ic{order:0}
+  .pill .nm{flex:1 1 60%;order:1}
+  .pill .st,.pill .tag,.pill .dot{order:2}
+  .pill .btn{order:3;margin-left:auto}
+  .pill .x{order:4}
+  .v1,.v3{padding:9px 12px}
+  .v2{padding:10px 12px}
+  .v4{padding:9px 12px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Макет · нижняя полоска</div>
+  <h1>Полоска расчёта в духе «острова»</h1>
+  <p class="lead">Четыре варианта одной и той же пары: серая — расчёт нигде не сохранён,
+     зелёная — открыт общий расчёт и правки уходят в него. Каждый показан на светлом и
+     на тёмном экране, над полоской итога, с теми же кнопками, что в работе.</p>
+
+  <!-- 1 -->
+  <div class="var">
+    <div class="var-head"><span class="var-num">01</span><h2>Остров</h2></div>
+    <p class="note">Капсула почти чёрная в обеих темах, состояние живёт справа отдельной
+       заливкой — как заряд в «острове» Apple. Цвет перестаёт быть фоном и становится значком.</p>
+    <div class="scenes">
+      <div class="scene day"><span class="scene-lab">День · не сохранён</span>
+        <div class="rows"><div class="row w1"></div><div class="row w3"></div><div class="row w2"></div><div class="row w4"></div></div>
+        <div class="strip-slot">
+          <div class="pill v1">
+            <span class="ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></span>
+            <span class="nm">Расчёт не сохранён</span>
+            <span class="st grey">черновик</span>
+            <button class="btn">Сохранить</button>
+            <button class="x" aria-label="Убрать напоминание"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+        </div>
+        <div class="total"><span>Общая стоимость</span><b>6 165 905 ₽</b></div>
+      </div>
+      <div class="scene night"><span class="scene-lab">Ночь · общий расчёт</span>
+        <div class="rows"><div class="row w2"></div><div class="row w1"></div><div class="row w4"></div><div class="row w3"></div></div>
+        <div class="strip-slot">
+          <div class="pill v1">
+            <span class="ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg></span>
+            <span class="nm"><b>Берлин 9×5 · Иванов</b></span>
+            <span class="st green">сохраняется</span>
+            <button class="x" aria-label="В избранные"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+            <button class="btn">Замок</button>
+          </div>
+        </div>
+        <div class="total"><span>Общая стоимость</span><b>6 165 905 ₽</b></div>
+      </div>
+    </div>
+    <ul class="why-list">
+      <li>Одна форма на оба состояния: меняется только заливка справа, а не весь фон.</li>
+      <li>Состояние названо словом — «черновик» и «сохраняется», — поэтому цвет не единственный признак.</li>
+      <li>Белая кнопка внутри чёрного читается как главное действие и не спорит с полоской итога.</li>
+    </ul>
+  </div>
+
+  <!-- 2 -->
+  <div class="var">
+    <div class="var-head"><span class="var-num">02</span><h2>Стекло</h2></div>
+    <p class="note">Тёмное стекло с размытием: под ним просвечивает расчёт, и полоска
+       читается как слой поверх, а не как плашка. Цвет — одна точка.</p>
+    <div class="scenes">
+      <div class="scene day"><span class="scene-lab">День · не сохранён</span>
+        <div class="rows"><div class="row w1"></div><div class="row w3"></div><div class="row w2"></div><div class="row w4"></div></div>
+        <div class="strip-slot">
+          <div class="pill v2">
+            <span class="dot grey"></span>
+            <span class="nm">Расчёт не сохранён</span>
+            <button class="btn">Сохранить</button>
+            <button class="x" aria-label="Убрать напоминание"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+        </div>
+        <div class="total"><span>Общая стоимость</span><b>6 165 905 ₽</b></div>
+      </div>
+      <div class="scene night"><span class="scene-lab">Ночь · общий расчёт</span>
+        <div class="rows"><div class="row w2"></div><div class="row w1"></div><div class="row w4"></div><div class="row w3"></div></div>
+        <div class="strip-slot">
+          <div class="pill v2">
+            <span class="dot green"></span>
+            <span class="nm"><b>Берлин 9×5 · Иванов</b> · правки сохраняются</span>
+            <button class="x" aria-label="В избранные"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+          </div>
+        </div>
+        <div class="total"><span>Общая стоимость</span><b>6 165 905 ₽</b></div>
+      </div>
+    </div>
+    <ul class="why-list">
+      <li>Самый тихий из четырёх: ничего не перекрывает намертво, расчёт виден сквозь полоску.</li>
+      <li>Точка меньше заметна на ходу, чем заливка, — за это и платим спокойствием.</li>
+      <li>Размытие не работает в печати и в старых браузерах: там останется тёмная капсула.</li>
+    </ul>
+  </div>
+
+  <!-- 3 -->
+  <div class="var">
+    <div class="var-head"><span class="var-num">03</span><h2>Цветной остров</h2></div>
+    <p class="note">Ближе всего к нынешнему: цвет остаётся фоном, островной становится геометрия —
+       полный радиус, плотная типографика, мягкая широкая тень.</p>
+    <div class="scenes">
+      <div class="scene day"><span class="scene-lab">День · не сохранён</span>
+        <div class="rows"><div class="row w1"></div><div class="row w3"></div><div class="row w2"></div><div class="row w4"></div></div>
+        <div class="strip-slot">
+          <div class="pill v3 grey">
+            <span class="ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></span>
+            <span class="nm">Расчёт не сохранён</span>
+            <button class="btn">Сохранить</button>
+            <button class="x" aria-label="Убрать напоминание"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+        </div>
+        <div class="total"><span>Общая стоимость</span><b>6 165 905 ₽</b></div>
+      </div>
+      <div class="scene night"><span class="scene-lab">Ночь · общий расчёт</span>
+        <div class="rows"><div class="row w2"></div><div class="row w1"></div><div class="row w4"></div><div class="row w3"></div></div>
+        <div class="strip-slot">
+          <div class="pill v3 green">
+            <span class="ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg></span>
+            <span class="nm"><b>Берлин 9×5 · Иванов</b> · сохраняется</span>
+            <button class="x" aria-label="В избранные"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+          </div>
+        </div>
+        <div class="total"><span>Общая стоимость</span><b>6 165 905 ₽</b></div>
+      </div>
+    </div>
+    <ul class="why-list">
+      <li>Менять в коде почти нечего: радиус, поля, тень и высота — цвета остаются прежние.</li>
+      <li>Зелёная полоска над зелёной полоской итога остаётся спорной парой — это её слабое место.</li>
+      <li>Состояние держится одним цветом, поэтому к нему нужна подпись словом.</li>
+    </ul>
+  </div>
+
+  <!-- 4 -->
+  <div class="var">
+    <div class="var-head"><span class="var-num">04</span><h2>Двухслойный</h2></div>
+    <p class="note">Как «Charging 47 %»: слева цветная пилюля с состоянием, справа — чёрное поле
+       с именем расчёта и действиями. Состояние читается первым, имя вторым.</p>
+    <div class="scenes">
+      <div class="scene day"><span class="scene-lab">День · не сохранён</span>
+        <div class="rows"><div class="row w1"></div><div class="row w3"></div><div class="row w2"></div><div class="row w4"></div></div>
+        <div class="strip-slot">
+          <div class="pill v4">
+            <span class="tag grey">Черновик</span>
+            <span class="nm">нигде не сохранён</span>
+            <button class="btn">Сохранить</button>
+            <button class="x" aria-label="Убрать напоминание"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+        </div>
+        <div class="total"><span>Общая стоимость</span><b>6 165 905 ₽</b></div>
+      </div>
+      <div class="scene night"><span class="scene-lab">Ночь · общий расчёт</span>
+        <div class="rows"><div class="row w2"></div><div class="row w1"></div><div class="row w4"></div><div class="row w3"></div></div>
+        <div class="strip-slot">
+          <div class="pill v4">
+            <span class="tag green">Общий</span>
+            <span class="nm"><b>Берлин 9×5 · Иванов</b></span>
+            <button class="x" aria-label="В избранные"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+            <button class="btn">Замок</button>
+          </div>
+        </div>
+        <div class="total"><span>Общая стоимость</span><b>6 165 905 ₽</b></div>
+      </div>
+    </div>
+    <ul class="why-list">
+      <li>Состояние стоит первым словом и не зависит от того, разглядел ли кто-то цвет.</li>
+      <li>Длинное имя расчёта режется многоточием, а состояние не сжимается никогда.</li>
+      <li>Из четырёх он самый широкий: на узком телефоне уйдёт в две строки.</li>
+    </ul>
+  </div>
+
+  <p class="note"><b>Общее для всех четырёх.</b> Площадь нажатия у кнопки и крестика — 44 px
+     невидимым полем, сама кнопка нарисована легче; состояние названо словом, а не одним цветом;
+     обе темы нарисованы отдельно, а не выведены из одной. Полоска по-прежнему встаёт над
+     полоской итога, а сообщение — над ней.</p>
+
+  <footer>Баня-МСК · макет нижней полоски · 21.09.2026</footer>
+</div>
+</body>
+</html>
