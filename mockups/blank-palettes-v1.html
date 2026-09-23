@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>«Бланк» — варианты палитры</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page:#f7fbfb; --sheet:#fff; --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5;
+  --hair:#e6eeef; --on-acc:#fff; --shadow:0 1px 2px rgba(18,38,42,.05), 0 8px 24px rgba(18,38,42,.06);
+}
+@media screen and (prefers-color-scheme: dark){
+  :root{
+    --page:#0d1b1e; --sheet:#132528; --ink:#e6f3f3; --ink2:#9db6b8; --ink3:#8aa4a6;
+    --hair:#22383b; --on-acc:#08181a; --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+/* палитры — день */
+  .p-teal{ --acc:#1e6c72; --acc2:#2a8f97; --pale:#a8dde0; --tint:#e4f5f6; --rule:#dceaeb; }
+  .p-blue{ --acc:#1f4d8c; --acc2:#2f6ebf; --pale:#a9c2e8; --tint:#e8effb; --rule:#d6dfeb; }
+  .p-pine{ --acc:#1f5c3a; --acc2:#2f8a58; --pale:#a9d9bf; --tint:#e7f5ec; --rule:#d8e8de; }
+  .p-wine{ --acc:#7a2540; --acc2:#a63a5c; --pale:#e3b6c4; --tint:#fceef2; --rule:#eedbe2; }
+  .p-copper{ --acc:#8a4a1f; --acc2:#bd7130; --pale:#e8c19a; --tint:#fcf1e6; --rule:#eee0d0; }
+  .p-indigo{ --acc:#3b3b8f; --acc2:#5a5ac0; --pale:#b9b9e6; --tint:#eeeefb; --rule:#dedef0; }
+  .p-graphite{ --acc:#2f3a42; --acc2:#51646f; --pale:#b9c6cd; --tint:#eef2f4; --rule:#dde5e8; }
+/* палитры — ночь */
+@media screen and (prefers-color-scheme: dark){
+    .p-teal{ --acc:#8fd6dc; --acc2:#5fc2ca; --pale:#5fc2ca; --tint:#173338; --rule:#224347; }
+    .p-blue{ --acc:#8fb6ea; --acc2:#5d93d8; --pale:#5d93d8; --tint:#16233a; --rule:#24334a; }
+    .p-pine{ --acc:#86d6a8; --acc2:#57b77f; --pale:#57b77f; --tint:#14261c; --rule:#22392c; }
+    .p-wine{ --acc:#eda0b6; --acc2:#d1738f; --pale:#d1738f; --tint:#2a1620; --rule:#3d2430; }
+    .p-copper{ --acc:#e9ab74; --acc2:#cf8c4e; --pale:#cf8c4e; --tint:#2a1c11; --rule:#3d2c1c; }
+    .p-indigo{ --acc:#a9a9ec; --acc2:#8181d8; --pale:#8181d8; --tint:#1c1c33; --rule:#2c2c48; }
+    .p-graphite{ --acc:#cbd8de; --acc2:#90a5b0; --pale:#90a5b0; --tint:#1b2227; --rule:#2b363c; }
+}
+*{ box-sizing:border-box; }
+body{ margin:0; padding:28px 18px 60px; background:var(--page); color:var(--ink);
+  font-family:Geologica,system-ui,sans-serif; font-size:15px; line-height:1.45; font-variant-numeric:tabular-nums; }
+.wrap{ max-width:1080px; margin:0 auto; }
+.top h1{ margin:0 0 6px; font-family:Unbounded; font-weight:700; font-size:1.3rem; }
+.top p{ margin:0 0 22px; max-width:660px; font-size:.86rem; color:var(--ink2); }
+.pal{ background:var(--sheet); border-radius:16px; box-shadow:var(--shadow); padding:20px 22px 24px; margin-bottom:18px; }
+.pal__head h2{ margin:0; font-family:Unbounded; font-weight:700; font-size:1rem; color:var(--acc); }
+.pal__head p{ margin:2px 0 14px; font-size:.78rem; color:var(--ink2); }
+.sws{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px; }
+.sw{ width:104px; font-size:.62rem; color:var(--ink3); }
+.sw span{ display:block; height:34px; border-radius:8px; border:1px solid var(--hair); }
+.sw b{ display:block; margin-top:4px; font-size:.64rem; font-weight:600; color:var(--ink2); }
+.sw i{ font-style:normal; }
+.demo{ border-top:1px solid var(--hair); padding-top:16px; }
+.eb{ margin:0; font-size:.62rem; letter-spacing:.18em; text-transform:uppercase; color:var(--ink3); }
+.tt{ margin:3px 0 6px; font-family:Unbounded; font-weight:700; font-size:1.05rem; }
+.tt em{ font-style:normal; color:var(--acc); }
+.lead{ margin:0 0 16px; max-width:620px; font-size:.82rem; color:var(--ink2); }
+.sec{ display:flex; align-items:baseline; gap:12px; padding-bottom:5px; border-bottom:2px solid var(--acc); }
+.sec .no{ font-family:Unbounded; font-weight:800; font-size:1.7rem; line-height:1; color:var(--pale); }
+.sec .nm{ flex:1; font-family:Unbounded; font-weight:600; font-size:.86rem; color:var(--acc); }
+.sec .sum{ font-weight:600; font-size:.86rem; color:var(--acc); }
+.row{ display:grid; grid-template-columns:auto 1fr auto; column-gap:6px; align-items:end;
+  padding:7px 0; border-bottom:1px solid var(--rule); font-size:.8rem; color:var(--ink2); }
+.row .d{ height:0; margin-bottom:4px; border-bottom:1.5px dotted var(--rule); }
+.row .v{ font-weight:600; color:var(--ink); }
+.tip{ margin:12px 0; padding:9px 14px; border-radius:0 10px 10px 0; background:var(--tint);
+  border-left:3px solid var(--acc2); font-size:.8rem; }
+.tip b{ color:var(--acc); }
+.strip{ display:flex; justify-content:space-between; align-items:center; padding:10px 14px;
+  background:var(--acc); color:var(--on-acc); }
+.strip span{ font-family:Unbounded; font-weight:600; font-size:.58rem; letter-spacing:.16em; text-transform:uppercase; }
+.strip b{ font-family:Unbounded; font-weight:700; font-size:.92rem; }
+@media (max-width:640px){ .sw{ width:calc(33.3% - 7px); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>«Бланк» — варианты палитры</h1>
+    <p>Одна и та же страница в семи палитрах: бирюза — рабочие документы, синий — личные (принят в 1.25),
+       остальные пять — на выбор. Меняются только пять токенов; чернила, линейки, шрифты и вёрстка общие.
+       Страница сама переключается между дневной и ночной темой по настройке системы.</p>
+  </div>
+<section class="pal p-teal">
+  <header class="pal__head">
+    <h2>Бирюза</h2>
+    <p>Рабочие документы — текущая палитра темы</p>
+  </header>
+  <div class="sws"><div class="sw"><span style="background:var(--acc)"></span><b>acc</b><i>#1e6c72</i></div><div class="sw"><span style="background:var(--acc2)"></span><b>acc2</b><i>#2a8f97</i></div><div class="sw"><span style="background:var(--pale)"></span><b>pale</b><i>#a8dde0</i></div><div class="sw"><span style="background:var(--tint)"></span><b>tint</b><i>#e4f5f6</i></div><div class="sw"><span style="background:var(--rule)"></span><b>rule</b><i>#dceaeb</i></div></div>
+  <div class="demo">
+    <p class="eb">Тип документа · раздел</p>
+    <h3 class="tt">Название документа <em>и уточнение</em></h3>
+    <p class="lead">Суть одним абзацем — так, чтобы дальше можно было не читать.</p>
+    <div class="sec"><span class="no">01</span><span class="nm">Раздел</span><span class="sum">00–00</span></div>
+    <div class="row"><span class="k">Параметр</span><span class="d"></span><span class="v">значение</span></div>
+    <div class="row"><span class="k">Второй параметр</span><span class="d"></span><span class="v">значение</span></div>
+    <div class="tip"><b>Подсказка.</b> Полезное, но необязательное.</div>
+    <div class="strip"><span>Закладывать в проект</span><b>00–00</b></div>
+  </div>
+</section><section class="pal p-blue">
+  <header class="pal__head">
+    <h2>Синий</h2>
+    <p>Личные документы — принят в версии 1.25</p>
+  </header>
+  <div class="sws"><div class="sw"><span style="background:var(--acc)"></span><b>acc</b><i>#1f4d8c</i></div><div class="sw"><span style="background:var(--acc2)"></span><b>acc2</b><i>#2f6ebf</i></div><div class="sw"><span style="background:var(--pale)"></span><b>pale</b><i>#a9c2e8</i></div><div class="sw"><span style="background:var(--tint)"></span><b>tint</b><i>#e8effb</i></div><div class="sw"><span style="background:var(--rule)"></span><b>rule</b><i>#d6dfeb</i></div></div>
+  <div class="demo">
+    <p class="eb">Тип документа · раздел</p>
+    <h3 class="tt">Название документа <em>и уточнение</em></h3>
+    <p class="lead">Суть одним абзацем — так, чтобы дальше можно было не читать.</p>
+    <div class="sec"><span class="no">01</span><span class="nm">Раздел</span><span class="sum">00–00</span></div>
+    <div class="row"><span class="k">Параметр</span><span class="d"></span><span class="v">значение</span></div>
+    <div class="row"><span class="k">Второй параметр</span><span class="d"></span><span class="v">значение</span></div>
+    <div class="tip"><b>Подсказка.</b> Полезное, но необязательное.</div>
+    <div class="strip"><span>Закладывать в проект</span><b>00–00</b></div>
+  </div>
+</section><section class="pal p-pine">
+  <header class="pal__head">
+    <h2>Хвойный</h2>
+    <p>Тёмно-зелёный: ближе всего к текущему, но теплее и глуше</p>
+  </header>
+  <div class="sws"><div class="sw"><span style="background:var(--acc)"></span><b>acc</b><i>#1f5c3a</i></div><div class="sw"><span style="background:var(--acc2)"></span><b>acc2</b><i>#2f8a58</i></div><div class="sw"><span style="background:var(--pale)"></span><b>pale</b><i>#a9d9bf</i></div><div class="sw"><span style="background:var(--tint)"></span><b>tint</b><i>#e7f5ec</i></div><div class="sw"><span style="background:var(--rule)"></span><b>rule</b><i>#d8e8de</i></div></div>
+  <div class="demo">
+    <p class="eb">Тип документа · раздел</p>
+    <h3 class="tt">Название документа <em>и уточнение</em></h3>
+    <p class="lead">Суть одним абзацем — так, чтобы дальше можно было не читать.</p>
+    <div class="sec"><span class="no">01</span><span class="nm">Раздел</span><span class="sum">00–00</span></div>
+    <div class="row"><span class="k">Параметр</span><span class="d"></span><span class="v">значение</span></div>
+    <div class="row"><span class="k">Второй параметр</span><span class="d"></span><span class="v">значение</span></div>
+    <div class="tip"><b>Подсказка.</b> Полезное, но необязательное.</div>
+    <div class="strip"><span>Закладывать в проект</span><b>00–00</b></div>
+  </div>
+</section><section class="pal p-wine">
+  <header class="pal__head">
+    <h2>Бордо</h2>
+    <p>Винный: строго и заметно, годится для документов с риском</p>
+  </header>
+  <div class="sws"><div class="sw"><span style="background:var(--acc)"></span><b>acc</b><i>#7a2540</i></div><div class="sw"><span style="background:var(--acc2)"></span><b>acc2</b><i>#a63a5c</i></div><div class="sw"><span style="background:var(--pale)"></span><b>pale</b><i>#e3b6c4</i></div><div class="sw"><span style="background:var(--tint)"></span><b>tint</b><i>#fceef2</i></div><div class="sw"><span style="background:var(--rule)"></span><b>rule</b><i>#eedbe2</i></div></div>
+  <div class="demo">
+    <p class="eb">Тип документа · раздел</p>
+    <h3 class="tt">Название документа <em>и уточнение</em></h3>
+    <p class="lead">Суть одним абзацем — так, чтобы дальше можно было не читать.</p>
+    <div class="sec"><span class="no">01</span><span class="nm">Раздел</span><span class="sum">00–00</span></div>
+    <div class="row"><span class="k">Параметр</span><span class="d"></span><span class="v">значение</span></div>
+    <div class="row"><span class="k">Второй параметр</span><span class="d"></span><span class="v">значение</span></div>
+    <div class="tip"><b>Подсказка.</b> Полезное, но необязательное.</div>
+    <div class="strip"><span>Закладывать в проект</span><b>00–00</b></div>
+  </div>
+</section><section class="pal p-copper">
+  <header class="pal__head">
+    <h2>Медь</h2>
+    <p>Тёплая охра: бумажный, «чертёжный» тон</p>
+  </header>
+  <div class="sws"><div class="sw"><span style="background:var(--acc)"></span><b>acc</b><i>#8a4a1f</i></div><div class="sw"><span style="background:var(--acc2)"></span><b>acc2</b><i>#bd7130</i></div><div class="sw"><span style="background:var(--pale)"></span><b>pale</b><i>#e8c19a</i></div><div class="sw"><span style="background:var(--tint)"></span><b>tint</b><i>#fcf1e6</i></div><div class="sw"><span style="background:var(--rule)"></span><b>rule</b><i>#eee0d0</i></div></div>
+  <div class="demo">
+    <p class="eb">Тип документа · раздел</p>
+    <h3 class="tt">Название документа <em>и уточнение</em></h3>
+    <p class="lead">Суть одним абзацем — так, чтобы дальше можно было не читать.</p>
+    <div class="sec"><span class="no">01</span><span class="nm">Раздел</span><span class="sum">00–00</span></div>
+    <div class="row"><span class="k">Параметр</span><span class="d"></span><span class="v">значение</span></div>
+    <div class="row"><span class="k">Второй параметр</span><span class="d"></span><span class="v">значение</span></div>
+    <div class="tip"><b>Подсказка.</b> Полезное, но необязательное.</div>
+    <div class="strip"><span>Закладывать в проект</span><b>00–00</b></div>
+  </div>
+</section><section class="pal p-indigo">
+  <header class="pal__head">
+    <h2>Индиго</h2>
+    <p>Холодный фиолетово-синий: дальше всего от бирюзы</p>
+  </header>
+  <div class="sws"><div class="sw"><span style="background:var(--acc)"></span><b>acc</b><i>#3b3b8f</i></div><div class="sw"><span style="background:var(--acc2)"></span><b>acc2</b><i>#5a5ac0</i></div><div class="sw"><span style="background:var(--pale)"></span><b>pale</b><i>#b9b9e6</i></div><div class="sw"><span style="background:var(--tint)"></span><b>tint</b><i>#eeeefb</i></div><div class="sw"><span style="background:var(--rule)"></span><b>rule</b><i>#dedef0</i></div></div>
+  <div class="demo">
+    <p class="eb">Тип документа · раздел</p>
+    <h3 class="tt">Название документа <em>и уточнение</em></h3>
+    <p class="lead">Суть одним абзацем — так, чтобы дальше можно было не читать.</p>
+    <div class="sec"><span class="no">01</span><span class="nm">Раздел</span><span class="sum">00–00</span></div>
+    <div class="row"><span class="k">Параметр</span><span class="d"></span><span class="v">значение</span></div>
+    <div class="row"><span class="k">Второй параметр</span><span class="d"></span><span class="v">значение</span></div>
+    <div class="tip"><b>Подсказка.</b> Полезное, но необязательное.</div>
+    <div class="strip"><span>Закладывать в проект</span><b>00–00</b></div>
+  </div>
+</section><section class="pal p-graphite">
+  <header class="pal__head">
+    <h2>Графит</h2>
+    <p>Нейтральный, без цвета: акцент держит только контраст</p>
+  </header>
+  <div class="sws"><div class="sw"><span style="background:var(--acc)"></span><b>acc</b><i>#2f3a42</i></div><div class="sw"><span style="background:var(--acc2)"></span><b>acc2</b><i>#51646f</i></div><div class="sw"><span style="background:var(--pale)"></span><b>pale</b><i>#b9c6cd</i></div><div class="sw"><span style="background:var(--tint)"></span><b>tint</b><i>#eef2f4</i></div><div class="sw"><span style="background:var(--rule)"></span><b>rule</b><i>#dde5e8</i></div></div>
+  <div class="demo">
+    <p class="eb">Тип документа · раздел</p>
+    <h3 class="tt">Название документа <em>и уточнение</em></h3>
+    <p class="lead">Суть одним абзацем — так, чтобы дальше можно было не читать.</p>
+    <div class="sec"><span class="no">01</span><span class="nm">Раздел</span><span class="sum">00–00</span></div>
+    <div class="row"><span class="k">Параметр</span><span class="d"></span><span class="v">значение</span></div>
+    <div class="row"><span class="k">Второй параметр</span><span class="d"></span><span class="v">значение</span></div>
+    <div class="tip"><b>Подсказка.</b> Полезное, но необязательное.</div>
+    <div class="strip"><span>Закладывать в проект</span><b>00–00</b></div>
+  </div>
+</section>
+</div>
+</body>
+</html>
