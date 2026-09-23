@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Сортировка проектов в списке — четыре вида</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Токены взяты из самого калькулятора: «Модерн» ночью (body.dark) и «Бланк»
+   днём (body.ui-blank). Ничего не придумано — иначе макет показывал бы вид,
+   которого в теме нет. */
+:root{
+  --page:#f7fbfb; --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5; --card:#fff;
+  --rule:#dceaeb; --acc:#1e6c72; --acc2:#2a8f97; --tint:#e4f5f6; --pale:#a8dde0;
+}
+*{box-sizing:border-box;}
+body{margin:0;padding:26px 16px 70px;background:var(--page);color:var(--ink);
+  font-family:Geologica,system-ui,sans-serif;font-size:15px;line-height:1.45;}
+.wrap{max-width:1080px;margin:0 auto;}
+h1{margin:0 0 6px;font-family:Unbounded,system-ui,sans-serif;font-weight:700;font-size:1.25rem;}
+.lead{margin:0 0 6px;max-width:680px;font-size:.86rem;color:var(--ink2);}
+.hint{margin:0 0 26px;max-width:680px;font-size:.78rem;color:var(--ink3);}
+
+.v{margin-bottom:30px;padding-top:18px;border-top:1px solid var(--rule);}
+.v__no{font-family:Unbounded,system-ui,sans-serif;font-weight:800;font-size:1.5rem;
+  line-height:1;color:var(--pale);}
+.v__head{display:flex;align-items:baseline;gap:12px;}
+.v__name{font-family:Unbounded,system-ui,sans-serif;font-weight:600;font-size:.92rem;color:var(--acc);}
+.v__note{margin:6px 0 16px;max-width:660px;font-size:.8rem;color:var(--ink2);}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;}
+.cell__cap{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink3);margin-bottom:7px;}
+
+/* ── Оболочка списка: повторяет .custom-select-menu калькулятора ────────── */
+.menu{border-radius:10px;overflow:hidden;font-size:.8rem;}
+.menu.den{background:#fff;border:1px solid #d7e7e8;box-shadow:0 8px 28px rgba(18,38,42,.12);}
+.menu.noch{background:#1a2a2c;border:1px solid #2a4a4e;box-shadow:0 8px 28px rgba(0,0,0,.45);}
+.menu.noch{--m-ink:#e8f4f5;--m-ink2:#9ab8bc;--m-ink3:#6a9098;--m-rule:#2a4a4e;
+  --m-acc:#3db0ba;--m-hover:#1e3538;--m-pale:#2a8f97;}
+.menu.den{--m-ink:#12262a;--m-ink2:#5b7376;--m-ink3:#8da3a5;--m-rule:#e6eeef;
+  --m-acc:#1e6c72;--m-hover:#f2f8f9;--m-pale:#a8dde0;}
+.menu *{color:var(--m-ink);}
+.row-toggle{display:flex;align-items:center;gap:9px;padding:9px 14px;
+  border-bottom:1px solid var(--m-rule);}
+/* Переключатель в покое: бледная дорожка, кнопка слева — как в калькуляторе.
+   Бирюзовая дорожка читалась бы включённой, и макет врал бы о состоянии. */
+.sw{position:relative;width:34px;height:18px;border-radius:10px;
+  background:color-mix(in srgb,var(--m-rule) 80%,var(--m-ink3));flex:none;}
+.sw i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;}
+.row-toggle b{font-size:.76rem;font-weight:600;}
+.row-deselect{display:flex;align-items:center;gap:8px;padding:7px 14px;
+  border-bottom:1px solid var(--m-rule);color:var(--m-ink2);font-size:.78rem;}
+.row-deselect .x{opacity:.5;flex:none;}
+.row-deselect .fill{flex:1;}
+.item{display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:.8rem;}
+.item + .item{border-top:1px solid color-mix(in srgb,var(--m-rule) 55%,transparent);}
+.item.on{background:var(--m-hover);font-weight:600;}
+.item .dot{width:6px;height:6px;border-radius:50%;background:var(--m-acc);flex:none;}
+.item .dot.off{background:transparent;}
+.item .badge{margin-left:auto;color:var(--m-ink3);}
+
+/* ── Вид 1: три значка в строке «Снять выбор» ───────────────────────────── */
+.sorts{display:flex;align-items:center;gap:2px;}
+.sbtn{position:relative;display:flex;align-items:center;justify-content:center;
+  width:24px;height:24px;border:0;background:none;padding:0;color:var(--m-ink3);
+  border-radius:6px;cursor:pointer;}
+/* Площадь нажатия — невидимым полем, а не размером значка: раздутая кнопка
+   в этой строке спорила бы с «Снять выбор». */
+.sbtn::before{content:'';position:absolute;inset:-9px -4px;}
+.sbtn.on{color:var(--m-acc);background:var(--m-hover);}
+.sbtn:hover{color:var(--m-acc);}
+
+/* ── Вид 3: строка-подпись ──────────────────────────────────────────────── */
+.row-sort{display:flex;align-items:center;gap:8px;padding:7px 14px;
+  border-bottom:1px solid var(--m-rule);font-size:.76rem;color:var(--m-ink2);}
+.row-sort b{font-weight:600;color:var(--m-ink);}
+.row-sort .chev{margin-left:auto;opacity:.6;}
+
+/* ── Вид 4: сегменты ────────────────────────────────────────────────────── */
+.segs{display:flex;gap:6px;padding:8px 14px;border-bottom:1px solid var(--m-rule);}
+.seg{padding:4px 9px;border-radius:20px;border:1px solid var(--m-rule);
+  font-size:.66rem;letter-spacing:.04em;color:var(--m-ink2);white-space:nowrap;cursor:pointer;}
+.seg.on{border-color:var(--m-acc);color:var(--m-acc);font-weight:600;}
+
+.q{margin-top:34px;padding-top:16px;border-top:2px solid var(--acc);}
+.q h2{margin:0 0 8px;font-family:Unbounded,system-ui,sans-serif;font-weight:600;font-size:.9rem;color:var(--acc);}
+.q ul{margin:0;padding-left:18px;font-size:.82rem;color:var(--ink2);}
+.q li{margin-bottom:6px;}
+@media (prefers-color-scheme: dark){
+  :root{--page:#0e1a1c;--ink:#e6f3f3;--ink2:#9db6b8;--ink3:#8aa4a6;--card:#132528;
+    --rule:#224347;--acc:#8fd6dc;--acc2:#5fc2ca;--tint:#173338;--pale:#5fc2ca;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Сортировка проектов в списке</h1>
+  <p class="lead">Четыре вида одного и того же: как выбрать порядок — по названию,
+    по частоте использования, по умолчанию. Слева «Модерн» ночью — та тема, что на
+    снимке; справа «Бланк» днём.</p>
+  <p class="hint">Список проектов показан кусочком: переключатель комплектаций,
+    строка «Снять выбор» и три первых проекта. Выбранный порядок отмечен.</p>
+
+  <!-- ─────────────────────────── 1 ─────────────────────────── -->
+  <section class="v">
+    <div class="v__head"><span class="v__no">01</span><span class="v__name">Три значка в строке «Снять выбор»</span></div>
+    <p class="v__note">Ничего не добавляется по высоте: значки встают в свободное
+      место той строки, которая уже есть. Выбранный порядок — акцентом, остальные
+      приглушены. Площадь нажатия расширена невидимым полем, сам значок остаётся 24 px.</p>
+    <div class="pair">
+      <div class="cell"><div class="cell__cap">Модерн · ночь</div>
+        <div class="menu noch">
+          <div class="row-toggle"><span class="sw"><i></i></span><b>Только с готовыми комплектациями</b></div>
+          <div class="row-deselect">
+            <svg class="x" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span>Снять выбор</span><span class="fill"></span>
+            <span class="sorts">
+              <button class="sbtn on" title="По названию"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M4 12h7M4 17h4"/><path d="M18 7v12M18 19l-2.5-2.5M18 19l2.5-2.5"/></svg></button>
+              <button class="sbtn" title="По частоте использования"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 19V12M12 19V5M19 19v-9"/></svg></button>
+              <button class="sbtn" title="По умолчанию"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+            </span>
+          </div>
+          <div class="item"><span class="dot off"></span>Фахверковая баня «Бонн» 4х4</div>
+          <div class="item"><span class="dot off"></span>Фахверковая баня «Мюнхен» 6х4</div>
+          <div class="item on"><span class="dot"></span>Фахверковая баня «Берлин» 9х5</div>
+        </div>
+      </div>
+      <div class="cell"><div class="cell__cap">Бланк · день</div>
+        <div class="menu den">
+          <div class="row-toggle"><span class="sw"><i></i></span><b>Только с готовыми комплектациями</b></div>
+          <div class="row-deselect">
+            <svg class="x" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span>Снять выбор</span><span class="fill"></span>
+            <span class="sorts">
+              <button class="sbtn on" title="По названию"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M4 12h7M4 17h4"/><path d="M18 7v12M18 19l-2.5-2.5M18 19l2.5-2.5"/></svg></button>
+              <button class="sbtn" title="По частоте использования"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 19V12M12 19V5M19 19v-9"/></svg></button>
+              <button class="sbtn" title="По умолчанию"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+            </span>
+          </div>
+          <div class="item"><span class="dot off"></span>Фахверковая баня «Бонн» 4х4</div>
+          <div class="item"><span class="dot off"></span>Фахверковая баня «Мюнхен» 6х4</div>
+          <div class="item on"><span class="dot"></span>Фахверковая баня «Берлин» 9х5</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 2 ─────────────────────────── -->
+  <section class="v">
+    <div class="v__head"><span class="v__no">02</span><span class="v__name">Один значок и меню</span></div>
+    <p class="v__note">В строке остаётся один значок сортировки; нажатие открывает три
+      пункта словами, у текущего галочка. Меньше всего шума в самой строке, но за
+      выбором — два нажатия вместо одного.</p>
+    <div class="pair">
+      <div class="cell"><div class="cell__cap">Модерн · ночь · меню открыто</div>
+        <div class="menu noch">
+          <div class="row-toggle"><span class="sw"><i></i></span><b>Только с готовыми комплектациями</b></div>
+          <div class="row-deselect">
+            <svg class="x" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span>Снять выбор</span><span class="fill"></span>
+            <button class="sbtn on" title="Сортировка"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M7 12h10M10 17h4"/></svg></button>
+          </div>
+          <div class="item on"><span class="dot"></span>По названию</div>
+          <div class="item"><span class="dot off"></span>По частоте использования</div>
+          <div class="item"><span class="dot off"></span>По умолчанию</div>
+        </div>
+      </div>
+      <div class="cell"><div class="cell__cap">Бланк · день · меню открыто</div>
+        <div class="menu den">
+          <div class="row-toggle"><span class="sw"><i></i></span><b>Только с готовыми комплектациями</b></div>
+          <div class="row-deselect">
+            <svg class="x" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span>Снять выбор</span><span class="fill"></span>
+            <button class="sbtn on" title="Сортировка"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M7 12h10M10 17h4"/></svg></button>
+          </div>
+          <div class="item on"><span class="dot"></span>По названию</div>
+          <div class="item"><span class="dot off"></span>По частоте использования</div>
+          <div class="item"><span class="dot off"></span>По умолчанию</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 3 ─────────────────────────── -->
+  <section class="v">
+    <div class="v__head"><span class="v__no">03</span><span class="v__name">Строка словами</span></div>
+    <p class="v__note">Отдельная строка под переключателем: «Сортировка: по названию»
+      и стрелка. Порядок назван словом — гадать по значку не нужно, — но список
+      становится на строку ниже, а в нём и так две служебные строки.</p>
+    <div class="pair">
+      <div class="cell"><div class="cell__cap">Модерн · ночь</div>
+        <div class="menu noch">
+          <div class="row-toggle"><span class="sw"><i></i></span><b>Только с готовыми комплектациями</b></div>
+          <div class="row-sort">Сортировка: <b>по названию</b>
+            <svg class="chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+          <div class="row-deselect">
+            <svg class="x" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span>Снять выбор</span></div>
+          <div class="item"><span class="dot off"></span>Фахверковая баня «Бонн» 4х4</div>
+          <div class="item on"><span class="dot"></span>Фахверковая баня «Берлин» 9х5</div>
+        </div>
+      </div>
+      <div class="cell"><div class="cell__cap">Бланк · день</div>
+        <div class="menu den">
+          <div class="row-toggle"><span class="sw"><i></i></span><b>Только с готовыми комплектациями</b></div>
+          <div class="row-sort">Сортировка: <b>по названию</b>
+            <svg class="chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+          <div class="row-deselect">
+            <svg class="x" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span>Снять выбор</span></div>
+          <div class="item"><span class="dot off"></span>Фахверковая баня «Бонн» 4х4</div>
+          <div class="item on"><span class="dot"></span>Фахверковая баня «Берлин» 9х5</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 4 ─────────────────────────── -->
+  <section class="v">
+    <div class="v__head"><span class="v__no">04</span><span class="v__name">Три сегмента</span></div>
+    <p class="v__note">Тот же приём, что у ряда «Технология» в пресетах: три метки,
+      выбранная обведена акцентом. Виден сразу весь выбор, но строка получается
+      плотной — на телефоне метки переносятся на вторую строку.</p>
+    <div class="pair">
+      <div class="cell"><div class="cell__cap">Модерн · ночь</div>
+        <div class="menu noch">
+          <div class="row-toggle"><span class="sw"><i></i></span><b>Только с готовыми комплектациями</b></div>
+          <div class="segs"><span class="seg on">По названию</span><span class="seg">По частоте</span><span class="seg">По умолчанию</span></div>
+          <div class="row-deselect">
+            <svg class="x" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span>Снять выбор</span></div>
+          <div class="item"><span class="dot off"></span>Фахверковая баня «Бонн» 4х4</div>
+          <div class="item on"><span class="dot"></span>Фахверковая баня «Берлин» 9х5</div>
+        </div>
+      </div>
+      <div class="cell"><div class="cell__cap">Бланк · день</div>
+        <div class="menu den">
+          <div class="row-toggle"><span class="sw"><i></i></span><b>Только с готовыми комплектациями</b></div>
+          <div class="segs"><span class="seg on">По названию</span><span class="seg">По частоте</span><span class="seg">По умолчанию</span></div>
+          <div class="row-deselect">
+            <svg class="x" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span>Снять выбор</span></div>
+          <div class="item"><span class="dot off"></span>Фахверковая баня «Бонн» 4х4</div>
+          <div class="item on"><span class="dot"></span>Фахверковая баня «Берлин» 9х5</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="q">
+    <h2>Что решить до работы</h2>
+    <ul>
+      <li><strong>Чья частота.</strong> Свои расчёты или вся компания? Своя ставит
+        наверх то, чем человек работает сам; общая — то, что продаётся чаще всех.</li>
+      <li><strong>Откуда счёт.</strong> В журнале событий у каждой записи стоит проект —
+        считать можно по нему, за выбранный срок. Отдельной таблицы заводить не нужно.</li>
+      <li><strong>За какой срок.</strong> Всё время выводит наверх прошлогодние хиты;
+        последние три месяца — то, что в работе сейчас.</li>
+      <li><strong>Помнится ли выбор.</strong> Порядок — настройка аккаунта, как
+        «Ссылка» и «Автообновление», или каждый раз заново «по умолчанию»?</li>
+      <li><strong>Что такое «по умолчанию».</strong> Сегодня это порядок из базы
+        (столбец <code>sort</code>) — тот, в котором проекты заведены.</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>
