@@ -6,12 +6,123 @@
 <!-- Цвет шапки браузера берётся у устройства: у клиента своего переключателя
      тем нет, и полоса над страницей должна совпадать со страницей. -->
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#132528" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="var(--br-12д)" media="(prefers-color-scheme: dark)">
 <title>Спецификация · Баня-МСК</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231e6c72'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Arial,sans-serif' font-size='9' font-weight='900' fill='white'%3EБМСК%3C/text%3E%3C/svg%3E" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style id="палитра">
+/* ПАЛИТРА:НАЧАЛО — блок пишет scratchpad/палитра.py, руками не править.
+   Каждый фирменный оттенок — одна переменная; имя — светлота в процентах.
+   Смена цвета: python3 scratchpad/палитра.py собрать <тон>. */
+:root{
+  --br-05:#0a1012;
+  --br-07:#08181a;
+  --br-08:#0c1c1f; --br-08-rgb:12,28,31;
+  --br-08а:#0e1a1c;
+  --br-10:#122023; --br-10-rgb:18,32,35;
+  --br-10а:#111e20;
+  --br-11:#0f2427; --br-11-rgb:15,36,39;
+  --br-12:#0e2a2d;
+  --br-12а:#0f2a2c;
+  --br-12б:#102b2d;
+  --br-12в:#12262a; --br-12в-rgb:18,38,42;
+  --br-12г:#13272b;
+  --br-12д:#132528;
+  --br-14:#1a2a2c;
+  --br-15:#143638;
+  --br-15а:#173338;
+  --br-15б:#1a3034;
+  --br-15в:#1a2e30;
+  --br-16:#143c40; --br-16-rgb:20,60,64;
+  --br-16а:#1e3035;
+  --br-17:#1e3538;
+  --br-18:#1e3a3e;
+  --br-18а:#22383c;
+  --br-19:#17454a;
+  --br-19а:#243a3c;
+  --br-20:#105755;
+  --br-20а:#144f54;
+  --br-20б:#24413f;
+  --br-21:#155558;
+  --br-21а:#224347;
+  --br-21б:#2a3f42;
+  --br-24:#2a4a4e;
+  --br-25:#1a5f65;
+  --br-25а:#2e4e52;
+  --br-26:#166f6c;
+  --br-27:#17726f;
+  --br-27а:#2d585d;
+  --br-28:#1e6c72; --br-28-rgb:30,108,114;
+  --br-28а:#41504f;
+  --br-29:#3a5558;
+  --br-35:#4a6568;
+  --br-38:#2a8f97; --br-38-rgb:42,143,151;
+  --br-39:#5b6a6e;
+  --br-41:#5b7376;
+  --br-47:#4a9ea4;
+  --br-48:#3db0ba; --br-48-rgb:61,176,186;
+  --br-50:#5a9ea4;
+  --br-51:#6a9098;
+  --br-55:#7f9799;
+  --br-56:#6ab0b5;
+  --br-56а:#7a9ea4;
+  --br-57:#4ecad4;
+  --br-58:#5fc2ca;
+  --br-60:#5fc8d2;
+  --br-60а:#8aa4a6;
+  --br-60б:#8da3a5;
+  --br-61:#7ab8bc;
+  --br-66:#9ab5b8; --br-66-rgb:154,181,184;
+  --br-66а:#9bb5b7;
+  --br-67:#7fd0d6;
+  --br-67а:#9ab8bc;
+  --br-67б:#9db6b8;
+  --br-68:#7dd8dc;
+  --br-71:#8fd6dc; --br-71-rgb:143,214,220;
+  --br-72:#9dd0d4;
+  --br-74:#a8cdd0;
+  --br-77:#a8dde0; --br-77-rgb:168,221,224;
+  --br-79:#b8d8da;
+  --br-80:#bcd9db;
+  --br-82:#c8d8da;
+  --br-83:#bfe6e8;
+  --br-83а:#c8dfe0;
+  --br-83б:#d0d8d8;
+  --br-85:#c8e8ea; --br-85-rgb:200,232,234;
+  --br-85а:#cde3e4;
+  --br-86:#d4e4e5;
+  --br-87:#cfe9eb;
+  --br-87а:#d0e8ea;
+  --br-87б:#d6e6e7;
+  --br-89:#dceaeb;
+  --br-89а:#dde8e8;
+  --br-90:#ddeef0;
+  --br-90а:#e0eced;
+  --br-91:#dcf0f2; --br-91-rgb:220,240,242;
+  --br-91а:#e0f0f2;
+  --br-92:#e0f4f5;
+  --br-93:#e4f5f6;
+  --br-93а:#e6f2f3;
+  --br-93б:#e6f3f3; --br-93б-rgb:230,243,243;
+  --br-93в:#e7f1f1;
+  --br-93г:#e8f0f1;
+  --br-94:#eaf5f6;
+  --br-94а:#eaf6f6;
+  --br-94б:#e8f4f5;
+  --br-94в:#e8f5f5;
+  --br-95:#eef5f5;
+  --br-95а:#f0f6f6;
+  --br-96:#f0f9fa;
+  --br-96а:#f0fafa;
+  --br-96б:#f2fafa;
+  --br-96в:#f0f9f9;
+  --br-96г:#f2f9f9;
+  --br-98:#f7fefe;
+}
+/* ПАЛИТРА:КОНЕЦ */
+</style>
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
    КЛИЕНТСКАЯ СТРАНИЦА СПЕЦИФИКАЦИИ
@@ -28,23 +139,23 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 :root {
   --page:#f7fbfb; --sheet:#fff; --zebra:#f7fafb;
-  --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5;
-  --rule:#dceaeb; --rule2:#bcd9db;
-  --acc:#1e6c72; --acc2:#2a8f97; --pale:#a8dde0;
-  --tint:#e4f5f6; --warn:#c06010; --hl:#fff8ec;
-  --strip-bg:#1e6c72; --strip-ink:#fff; --strip-ink2:rgba(255,255,255,.7);
+  --ink:var(--br-12в); --ink2:var(--br-41); --ink3:var(--br-60б);
+  --rule:var(--br-89); --rule2:var(--br-80);
+  --acc:var(--br-28); --acc2:var(--br-38); --pale:var(--br-77);
+  --tint:var(--br-93); --warn:#c06010; --hl:#fff8ec;
+  --strip-bg:var(--br-28); --strip-ink:#fff; --strip-ink2:rgba(255,255,255,.7);
   --strip-ink3:rgba(255,255,255,.62); --strip-rule:rgba(255,255,255,.18); --strip-disc:#ffa8a8;
-  --shadow:0 1px 2px rgba(18,38,42,.05), 0 12px 40px rgba(18,38,42,.07);
+  --shadow:0 1px 2px rgba(var(--br-12в-rgb),.05), 0 12px 40px rgba(var(--br-12в-rgb),.07);
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --page:#0e1a1c; --sheet:#132528; --zebra:#173338;
-    --ink:#e6f3f3; --ink2:#9db6b8; --ink3:#8aa4a6;
-    --rule:#224347; --rule2:#2d585d;
-    --acc:#8fd6dc; --acc2:#5fc2ca; --pale:#5fc2ca;
-    --tint:#173338; --warn:#e0b070; --hl:#2c2a1d;
-    --strip-bg:#17454a; --strip-ink:#e6f3f3; --strip-ink2:rgba(230,243,243,.72);
-    --strip-ink3:rgba(230,243,243,.6); --strip-rule:rgba(230,243,243,.16); --strip-disc:#ffb3b3;
+    --page:var(--br-08а); --sheet:var(--br-12д); --zebra:var(--br-15а);
+    --ink:var(--br-93б); --ink2:var(--br-67б); --ink3:var(--br-60а);
+    --rule:var(--br-21а); --rule2:var(--br-27а);
+    --acc:var(--br-71); --acc2:var(--br-58); --pale:var(--br-58);
+    --tint:var(--br-15а); --warn:#e0b070; --hl:#2c2a1d;
+    --strip-bg:var(--br-19); --strip-ink:var(--br-93б); --strip-ink2:rgba(var(--br-93б-rgb),.72);
+    --strip-ink3:rgba(var(--br-93б-rgb),.6); --strip-rule:rgba(var(--br-93б-rgb),.16); --strip-disc:#ffb3b3;
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 40px rgba(0,0,0,.45);
   }
 }
@@ -257,11 +368,11 @@ body {
 @media print {
   :root {
     --page:#fff; --sheet:#fff; --zebra:#f7fafb;
-    --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5;
-    --rule:#dceaeb; --rule2:#bcd9db;
-    --acc:#1e6c72; --acc2:#2a8f97; --pale:#a8dde0;
-    --tint:#e4f5f6; --warn:#c06010; --hl:#fff8ec;
-    --strip-bg:#1e6c72; --strip-ink:#fff; --strip-ink2:rgba(255,255,255,.7);
+    --ink:var(--br-12в); --ink2:var(--br-41); --ink3:var(--br-60б);
+    --rule:var(--br-89); --rule2:var(--br-80);
+    --acc:var(--br-28); --acc2:var(--br-38); --pale:var(--br-77);
+    --tint:var(--br-93); --warn:#c06010; --hl:#fff8ec;
+    --strip-bg:var(--br-28); --strip-ink:#fff; --strip-ink2:rgba(255,255,255,.7);
     --strip-ink3:rgba(255,255,255,.62); --strip-rule:rgba(255,255,255,.18); --strip-disc:#ffa8a8;
   }
   @page { margin: 18mm 7mm 20mm; }

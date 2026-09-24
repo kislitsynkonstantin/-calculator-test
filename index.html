@@ -62,80 +62,191 @@ let _optPricesSlug = null;    // slug the _optPrices cache was loaded for
 let _onlyReadyKits = false;   // dropdown toggle B: show only projects with ready (locked) kits
 let _syncState = 'offline'; // 'offline'(grey) | 'local'(orange) | 'synced'(green) — early to avoid TDZ
 </script>
+<style id="палитра">
+/* ПАЛИТРА:НАЧАЛО — блок пишет scratchpad/палитра.py, руками не править.
+   Каждый фирменный оттенок — одна переменная; имя — светлота в процентах.
+   Смена цвета: python3 scratchpad/палитра.py собрать <тон>. */
+:root{
+  --br-05:#0a1012;
+  --br-07:#08181a;
+  --br-08:#0c1c1f; --br-08-rgb:12,28,31;
+  --br-08а:#0e1a1c;
+  --br-10:#122023; --br-10-rgb:18,32,35;
+  --br-10а:#111e20;
+  --br-11:#0f2427; --br-11-rgb:15,36,39;
+  --br-12:#0e2a2d;
+  --br-12а:#0f2a2c;
+  --br-12б:#102b2d;
+  --br-12в:#12262a; --br-12в-rgb:18,38,42;
+  --br-12г:#13272b;
+  --br-12д:#132528;
+  --br-14:#1a2a2c;
+  --br-15:#143638;
+  --br-15а:#173338;
+  --br-15б:#1a3034;
+  --br-15в:#1a2e30;
+  --br-16:#143c40; --br-16-rgb:20,60,64;
+  --br-16а:#1e3035;
+  --br-17:#1e3538;
+  --br-18:#1e3a3e;
+  --br-18а:#22383c;
+  --br-19:#17454a;
+  --br-19а:#243a3c;
+  --br-20:#105755;
+  --br-20а:#144f54;
+  --br-20б:#24413f;
+  --br-21:#155558;
+  --br-21а:#224347;
+  --br-21б:#2a3f42;
+  --br-24:#2a4a4e;
+  --br-25:#1a5f65;
+  --br-25а:#2e4e52;
+  --br-26:#166f6c;
+  --br-27:#17726f;
+  --br-27а:#2d585d;
+  --br-28:#1e6c72; --br-28-rgb:30,108,114;
+  --br-28а:#41504f;
+  --br-29:#3a5558;
+  --br-35:#4a6568;
+  --br-38:#2a8f97; --br-38-rgb:42,143,151;
+  --br-39:#5b6a6e;
+  --br-41:#5b7376;
+  --br-47:#4a9ea4;
+  --br-48:#3db0ba; --br-48-rgb:61,176,186;
+  --br-50:#5a9ea4;
+  --br-51:#6a9098;
+  --br-55:#7f9799;
+  --br-56:#6ab0b5;
+  --br-56а:#7a9ea4;
+  --br-57:#4ecad4;
+  --br-58:#5fc2ca;
+  --br-60:#5fc8d2;
+  --br-60а:#8aa4a6;
+  --br-60б:#8da3a5;
+  --br-61:#7ab8bc;
+  --br-66:#9ab5b8; --br-66-rgb:154,181,184;
+  --br-66а:#9bb5b7;
+  --br-67:#7fd0d6;
+  --br-67а:#9ab8bc;
+  --br-67б:#9db6b8;
+  --br-68:#7dd8dc;
+  --br-71:#8fd6dc; --br-71-rgb:143,214,220;
+  --br-72:#9dd0d4;
+  --br-74:#a8cdd0;
+  --br-77:#a8dde0; --br-77-rgb:168,221,224;
+  --br-79:#b8d8da;
+  --br-80:#bcd9db;
+  --br-82:#c8d8da;
+  --br-83:#bfe6e8;
+  --br-83а:#c8dfe0;
+  --br-83б:#d0d8d8;
+  --br-85:#c8e8ea; --br-85-rgb:200,232,234;
+  --br-85а:#cde3e4;
+  --br-86:#d4e4e5;
+  --br-87:#cfe9eb;
+  --br-87а:#d0e8ea;
+  --br-87б:#d6e6e7;
+  --br-89:#dceaeb;
+  --br-89а:#dde8e8;
+  --br-90:#ddeef0;
+  --br-90а:#e0eced;
+  --br-91:#dcf0f2; --br-91-rgb:220,240,242;
+  --br-91а:#e0f0f2;
+  --br-92:#e0f4f5;
+  --br-93:#e4f5f6;
+  --br-93а:#e6f2f3;
+  --br-93б:#e6f3f3; --br-93б-rgb:230,243,243;
+  --br-93в:#e7f1f1;
+  --br-93г:#e8f0f1;
+  --br-94:#eaf5f6;
+  --br-94а:#eaf6f6;
+  --br-94б:#e8f4f5;
+  --br-94в:#e8f5f5;
+  --br-95:#eef5f5;
+  --br-95а:#f0f6f6;
+  --br-96:#f0f9fa;
+  --br-96а:#f0fafa;
+  --br-96б:#f2fafa;
+  --br-96в:#f0f9f9;
+  --br-96г:#f2f9f9;
+  --br-98:#f7fefe;
+}
+/* ПАЛИТРА:КОНЕЦ */
+</style>
 <style>
 :root {
-  --green-dark: #1e6c72;
-  --green-mid: #2a8f97;
-  --green-light: #3db0ba;
-  --green-pale: #a8dde0;
-  --green-bg: #e4f5f6;
+  --green-dark: var(--br-28);
+  --green-mid: var(--br-38);
+  --green-light: var(--br-48);
+  --green-pale: var(--br-77);
+  --green-bg: var(--br-93);
   --black: #111;
   --gray: #555;
   --gray-light: #888;
   --white: #fff;
-  --border: #3db0ba;
-  --alt-row: #e4f5f6;
-  --shadow: 0 4px 24px rgba(30,108,114,0.10);
-  --shadow-lg: 0 12px 48px rgba(30,108,114,0.18);
-  --page-bg: #f0fafa;
+  --border: var(--br-48);
+  --alt-row: var(--br-93);
+  --shadow: 0 4px 24px rgba(var(--br-28-rgb),0.10);
+  --shadow-lg: 0 12px 48px rgba(var(--br-28-rgb),0.18);
+  --page-bg: var(--br-96а);
   --card-bg: #fff;
-  --field-bg: #f7fefe;
+  --field-bg: var(--br-98);
   --search-hl: #fff8e0;
   /* Точки технологий на метке пресета и в чипах фильтра. Смысл несёт слово
      рядом — точка только ускоряет просмотр списка глазами. На светлом фоне
      бирюзовая взята потемнее: самая светлая даёт на белом 2.4:1 и пропадает
      на вытянутой руке. */
-  --tech-frame: #2a8f97;
+  --tech-frame: var(--br-38);
   --tech-glulam: #a9713a;
   --tech-stone: #6f7c83;
 }
 body.dark {
-  --black: #e8f4f5;
-  --gray: #9ab8bc;
-  --gray-light: #6a9098;
-  --white: #1a2a2c;
-  --border: #2a8f97;
-  --alt-row: #1e3538;
-  --green-bg: #1e3538;
-  --page-bg: #111e20;
-  --card-bg: #1a2a2c;
-  --field-bg: #1e3538;
+  --black: var(--br-94б);
+  --gray: var(--br-67а);
+  --gray-light: var(--br-51);
+  --white: var(--br-14);
+  --border: var(--br-38);
+  --alt-row: var(--br-17);
+  --green-bg: var(--br-17);
+  --page-bg: var(--br-10а);
+  --card-bg: var(--br-14);
+  --field-bg: var(--br-17);
   --shadow: 0 4px 24px rgba(0,0,0,0.4);
   --search-hl: #2a3a1a;
-  --tech-frame: #3db0ba;
+  --tech-frame: var(--br-48);
   --tech-glulam: #c79a5b;
   --tech-stone: #8d9aa0;
 }
 body.dark { background: var(--page-bg); color: var(--black); }
-body.dark .card { background: var(--card-bg); border-color: #2a4a4e; }
-body.dark .field select, body.dark .field input[type=text], body.dark .field input[type=number], body.dark .field input[type=tel], body.dark .field input[type=email], body.dark .field textarea { background: var(--field-bg); color: var(--black); border-color: #2a4a4e; }
+body.dark .card { background: var(--card-bg); border-color: var(--br-24); }
+body.dark .field select, body.dark .field input[type=text], body.dark .field input[type=number], body.dark .field input[type=tel], body.dark .field input[type=email], body.dark .field textarea { background: var(--field-bg); color: var(--black); border-color: var(--br-24); }
 body.dark select { background: var(--field-bg); color: var(--black); }
 body.dark select option, body.dark select optgroup { background: var(--card-bg); color: var(--black); }
-body.dark .opt-item { background: var(--field-bg); border-color: #2a4a4e; color: #c8e8ea; }
+body.dark .opt-item { background: var(--field-bg); border-color: var(--br-24); color: var(--br-85); }
 body.dark .opt-item:hover,
 body.dark .opt-item.active:hover { background: var(--green-bg); border-color: var(--green-dark); }
-body.dark .opt-name { color: #c8e8ea; }
-body.dark .opt-item.active .opt-name { color: #7dd8dc; }
-body.dark.ui-light .opt-name { color: #c8e8ea; }
-body.dark.ui-light .opt-item.active .opt-name { color: #7dd8dc; }
+body.dark .opt-name { color: var(--br-85); }
+body.dark .opt-item.active .opt-name { color: var(--br-68); }
+body.dark.ui-light .opt-name { color: var(--br-85); }
+body.dark.ui-light .opt-item.active .opt-name { color: var(--br-68); }
 body.dark.ui-light .opt-item:hover,
-body.dark.ui-light .opt-item.active:hover { background: #1e3a3e; }
-body.dark.ui-light .opt-item + .opt-item { border-top-color: #2a4a4e; }
+body.dark.ui-light .opt-item.active:hover { background: var(--br-18); }
+body.dark.ui-light .opt-item + .opt-item { border-top-color: var(--br-24); }
 /* dark + ui-light: header buttons */
 body.dark.ui-light .btn-hide-global {
   background: rgba(0,0,0,0.35);
   border-color: rgba(255,255,255,0.12);
-  color: rgba(200,232,234,0.85);
+  color: rgba(var(--br-85-rgb),0.85);
 }
 body.dark.ui-light .btn-hide-global:hover {
   background: rgba(0,0,0,0.5);
-  color: #c8e8ea;
+  color: var(--br-85);
 }
 body.dark.ui-light { background: var(--page-bg); }
 body.dark.ui-light .card {
   background: var(--card-bg);
   box-shadow: 0 1px 8px rgba(0,0,0,0.3);
-  border: 1px solid #2a4a4e;
+  border: 1px solid var(--br-24);
 }
 body.dark.ui-light .field select,
 body.dark.ui-light .field input[type=text],
@@ -143,17 +254,17 @@ body.dark.ui-light .field input[type=number],
 body.dark.ui-light .field input[type=date] {
   background: var(--field-bg);
   color: var(--black);
-  border-color: #2a4a4e;
+  border-color: var(--br-24);
   color-scheme: dark;
 }
 body.dark.ui-light .custom-select-trigger {
   background: var(--field-bg);
   color: var(--black);
-  border-color: #2a4a4e;
+  border-color: var(--br-24);
 }
 body.dark.ui-light .thick-btn {
   background: var(--field-bg);
-  border-color: #2a4a4e;
+  border-color: var(--br-24);
   color: var(--green-pale);
 }
 body.dark.ui-light .thick-btn.active {
@@ -164,20 +275,20 @@ body.dark.ui-light .thick-btn.active {
 /* dark + ui-light: header card */
 body.dark.ui-light .header {
   background: var(--card-bg);
-  border-color: #2a4a4e;
+  border-color: var(--br-24);
   box-shadow: 0 1px 8px rgba(0,0,0,0.3);
 }
 body.dark.ui-light .header h1 { color: var(--green-pale); }
 body.dark.ui-light .header p { color: var(--gray); }
-body.dark.ui-light .company-tag { background: #1e3538; color: var(--green-pale); }
+body.dark.ui-light .company-tag { background: var(--br-17); color: var(--green-pale); }
 body.dark.ui-light .version-badge { background: none; color: var(--green-pale); }
-body.dark .result-main { color: #e0f4f5; }
+body.dark .result-main { color: var(--br-92); }
 body.dark #komplPanel { background: var(--card-bg); }
-body.dark #komplTable thead th { background: var(--card-bg); border-color: #2a4a4e; }
-body.dark #komplTable tbody tr { border-color: #2a4a4e; }
+body.dark #komplTable thead th { background: var(--card-bg); border-color: var(--br-24); }
+body.dark #komplTable tbody tr { border-color: var(--br-24); }
 body.dark .kopt-row:hover td { background: rgba(255,255,255,0.04); }
-body.dark .result-sub { color: #7dd8dc; }
-body.dark .result-card { background: #143638; }
+body.dark .result-sub { color: var(--br-68); }
+body.dark .result-card { background: var(--br-15); }
 
 /* Custom confirm dialog */
 #confirmDialog {
@@ -250,7 +361,7 @@ body.dark .result-card { background: #143638; }
   bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%) translateY(12px);
-  background: #1e3538;
+  background: var(--br-17);
   color: #fff;
   padding: 10px 18px;
   border-radius: 10px;
@@ -313,12 +424,12 @@ body.dark .bd-name { color: var(--gray); }
 body.dark .bd-discount .bd-name,
 body.dark .bd-discount .bd-pct,
 body.dark .bd-discount .bd-amt { color: #c47a7a !important; }
-body.dark .info-chip { background: #1e3538; border-color: #2a4a4e; color: var(--green-pale); }
-body.dark .two-col .card, body.dark .print-panel { border-color: #2a4a4e; }
-body.dark .search-wrap input, body.dark .add-opt-form .field input, body.dark .custom-project-form .field input, body.dark .edit-project-form .field input { background: var(--field-bg); color: var(--black); border-color: #2a4a4e; }
-body.dark .image-canvas-wrap { background: #1e3538; border-color: #2a4a4e; }
-body.dark .btn-add-opt, body.dark .btn-add-project { border-color: #2a4a4e; color: var(--green-pale); }
-body.dark .add-opt-form, body.dark .custom-project-form, body.dark .edit-project-form { background: #1e3538; border-color: #2a4a4e; }
+body.dark .info-chip { background: var(--br-17); border-color: var(--br-24); color: var(--green-pale); }
+body.dark .two-col .card, body.dark .print-panel { border-color: var(--br-24); }
+body.dark .search-wrap input, body.dark .add-opt-form .field input, body.dark .custom-project-form .field input, body.dark .edit-project-form .field input { background: var(--field-bg); color: var(--black); border-color: var(--br-24); }
+body.dark .image-canvas-wrap { background: var(--br-17); border-color: var(--br-24); }
+body.dark .btn-add-opt, body.dark .btn-add-project { border-color: var(--br-24); color: var(--green-pale); }
+body.dark .add-opt-form, body.dark .custom-project-form, body.dark .edit-project-form { background: var(--br-17); border-color: var(--br-24); }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -401,7 +512,7 @@ body.sticky-active { padding-top: 48px; }
 .header::after { display: none; }
 .company-tag {
   display: inline-block;
-  background: rgba(61,176,186,0.25);
+  background: rgba(var(--br-48-rgb),0.25);
   color: var(--green-pale);
   font-size: 0.68rem;
   font-family: 'Unbounded', sans-serif;
@@ -429,7 +540,7 @@ body.sticky-active { padding-top: 48px; }
   position: absolute;
   top: 32px; right: 40px;
   background: none;
-  color: rgba(220,240,242,0.85);
+  color: rgba(var(--br-91-rgb),0.85);
   font-family: 'Unbounded', sans-serif;
   font-size: 0.6rem;
   padding: 4px 12px;
@@ -442,10 +553,10 @@ body.ui-light .header {
   background: #fff;
   border-bottom: none;
   border-radius: 16px;
-  border: 1px solid #d4e4e5;
+  border: 1px solid var(--br-86);
   padding: 14px 20px 12px;
   margin-bottom: 20px;
-  box-shadow: 0 1px 8px rgba(30,108,114,0.08);
+  box-shadow: 0 1px 8px rgba(var(--br-28-rgb),0.08);
 }
 body.ui-light .company-tag {
   background: var(--green-bg);
@@ -458,18 +569,18 @@ body.ui-light .header h1 {
   color: var(--green-dark);
   letter-spacing: -0.2px;
 }
-body.ui-light .header p { color: #9bb5b7; }
+body.ui-light .header p { color: var(--br-66а); }
 body.ui-light .version-badge {
   background: none;
-  color: #144f54;
+  color: var(--br-20а);
   top: 14px; right: 20px;
 }
 body.ui-light .btn-hide-global {
   background: #f4f9f9;
-  border-color: #c8dfe0;
+  border-color: var(--br-83а);
   color: var(--green-dark);
 }
-body.ui-light .btn-hide-global:hover { background: #e8f4f5; }
+body.ui-light .btn-hide-global:hover { background: var(--br-94б); }
 body.ui-light #headerBtns { border-top: 1px solid #eef3f3; padding-top: 10px; margin-top: 10px; }
 
 /* ── UI LIGHT: page background ── */
@@ -478,7 +589,7 @@ body.ui-light { background: #f0f5f5; }
 /* ── UI LIGHT: cards ── */
 body.ui-light .card {
   border: none;
-  box-shadow: 0 1px 8px rgba(30,108,114,0.08), 0 0 0 1px rgba(30,108,114,0.06);
+  box-shadow: 0 1px 8px rgba(var(--br-28-rgb),0.08), 0 0 0 1px rgba(var(--br-28-rgb),0.06);
 }
 body.ui-light .card-title {
   font-family: 'Geologica', sans-serif;
@@ -487,49 +598,49 @@ body.ui-light .card-title {
   letter-spacing: 0.09em;
   margin-bottom: 16px;
 }
-body.ui-light .card-title .dot { background: #1e6c72; }
+body.ui-light .card-title .dot { background: var(--br-28); }
 
 /* ── UI LIGHT: fields ── */
 body.ui-light .field select,
 body.ui-light .field input[type=text],
 body.ui-light .field input[type=number] {
   background: #f5fafa;
-  border-color: #cde3e4;
+  border-color: var(--br-85а);
 }
 body.ui-light .field input[type=date] {
   background: #f5fafa;
-  border-color: #cde3e4;
+  border-color: var(--br-85а);
 }
 body.ui-light .field select:focus,
-body.ui-light .field input:focus { background: #fff; border-color: #1e6c72; }
-body.ui-light .custom-select-trigger { background: #f5fafa; border-color: #cde3e4; }
+body.ui-light .field input:focus { background: #fff; border-color: var(--br-28); }
+body.ui-light .custom-select-trigger { background: #f5fafa; border-color: var(--br-85а); }
 
 /* ── UI LIGHT: thick-btn ── */
 body.ui-light .thick-btn {
   background: #f5fafa;
-  border-color: #cde3e4;
-  color: #5a9ea4;
+  border-color: var(--br-85а);
+  color: var(--br-50);
 }
-body.ui-light .thick-btn:hover { border-color: #1e6c72; color: #1e6c72; background: #eaf5f6; }
-body.ui-light .thick-btn.active { background: #1e6c72; border-color: #1e6c72; color: #fff; }
+body.ui-light .thick-btn:hover { border-color: var(--br-28); color: var(--br-28); background: var(--br-94); }
+body.ui-light .thick-btn.active { background: var(--br-28); border-color: var(--br-28); color: #fff; }
 
 /* ── UI LIGHT: section header — левая полоса вместо заливки ── */
 body.ui-light .section-header {
   background: #fff;
-  color: #1e6c72;
-  border-left: 4px solid #1e6c72;
+  color: var(--br-28);
+  border-left: 4px solid var(--br-28);
   border-radius: 0 8px 8px 0;
   padding: 10px 14px 10px 12px;
   font-size: 0.91rem;
-  box-shadow: 0 1px 4px rgba(30,108,114,0.06);
+  box-shadow: 0 1px 4px rgba(var(--br-28-rgb),0.06);
 }
-body.ui-light .section-total { color: #2a8f97; font-size: 0.91rem; font-weight: 600; }
+body.ui-light .section-total { color: var(--br-38); font-size: 0.91rem; font-weight: 600; }
 body.dark.ui-light .section-header {
-  background: #1a2e30;
-  color: #7dd8dc;
-  border-left-color: #2a8f97;
+  background: var(--br-15в);
+  color: var(--br-68);
+  border-left-color: var(--br-38);
 }
-body.dark.ui-light .section-total { color: #4a9ea4; }
+body.dark.ui-light .section-total { color: var(--br-47); }
 
 /* ── UI LIGHT: opt-item — без рамок, фон по состоянию ── */
 body.ui-light .opt-item {
@@ -539,7 +650,7 @@ body.ui-light .opt-item {
   padding: 8px 10px;
 }
 body.ui-light .opt-item:hover,
-body.ui-light .opt-item.active:hover { background: #f0f9f9; }
+body.ui-light .opt-item.active:hover { background: var(--br-96в); }
 body.ui-light .opt-item.active {
   background: transparent;
   border: none;
@@ -547,49 +658,49 @@ body.ui-light .opt-item.active {
 /* Тонкий разделитель между строками */
 body.ui-light .opts-list { gap: 2px; }
 body.ui-light .opt-item + .opt-item {
-  border-top: 1px solid #eef5f5;
+  border-top: 1px solid var(--br-95);
 }
 
 /* ── UI LIGHT: checkbox ── */
 body.ui-light .opt-check {
-  border-color: #b8d8da;
+  border-color: var(--br-79);
   background: #fff;
   border-radius: 5px;
 }
 body.ui-light .opt-item.active .opt-check {
-  background: #1e6c72;
-  border-color: #1e6c72;
+  background: var(--br-28);
+  border-color: var(--br-28);
 }
 
 /* ── UI LIGHT: opt text ── */
 body.ui-light .opt-name { color: #222; }
-body.ui-light .opt-item.active .opt-name { color: #1e6c72; }
-body.ui-light .opt-price { color: #2a8f97; }
-body.ui-light .opt-included { color: #7ab8bc; }
+body.ui-light .opt-item.active .opt-name { color: var(--br-28); }
+body.ui-light .opt-price { color: var(--br-38); }
+body.ui-light .opt-included { color: var(--br-61); }
 
 /* ── UI LIGHT: drag handle ── */
-body.ui-light .drag-handle { color: #cde3e4; }
-body.ui-light .drag-handle:hover { color: #6ab0b5; }
+body.ui-light .drag-handle { color: var(--br-85а); }
+body.ui-light .drag-handle:hover { color: var(--br-56); }
 
 /* ── UI LIGHT: note items ── */
 body.ui-light .note-item {
   background: var(--note-bg, #f5fafa);
-  border-left-color: #9dd0d4;
-  color: #7a9ea4;
+  border-left-color: var(--br-72);
+  color: var(--br-56а);
   font-style: normal;
 }
 
 /* ── UI LIGHT: add-opt / add-note buttons ── */
 body.ui-light .btn-add-opt,
 body.ui-light .btn-add-note {
-  border-color: #cde3e4;
-  color: #7ab8bc;
+  border-color: var(--br-85а);
+  color: var(--br-61);
 }
 body.ui-light .btn-add-opt:hover,
 body.ui-light .btn-add-note:hover {
-  border-color: #1e6c72;
-  color: #1e6c72;
-  background: #f0f9f9;
+  border-color: var(--br-28);
+  color: var(--br-28);
+  background: var(--br-96в);
 }
 
 /* ── UI LIGHT: total strip ── */
@@ -597,12 +708,12 @@ body.ui-light .bd-row { font-size: 0.92rem; }
 body.ui-light .bd-pct { font-size: 0.81rem; }
 body.ui-light .bd-total { font-size: 0.99rem; }
 body.ui-light #totalStrip {
-  box-shadow: 0 1px 8px rgba(30,108,114,0.08);
+  box-shadow: 0 1px 8px rgba(var(--br-28-rgb),0.08);
 }
 
 /* ── UI LIGHT: sticky header keeps green ── */
 body.ui-light #headerBtns.sticky {
-  background: #1e6c72;
+  background: var(--br-28);
   top: 0;
   padding-top: max(4px, env(safe-area-inset-top, 4px));
   border-radius: 0;
@@ -643,7 +754,7 @@ body.ui-light #headerBtns.sticky .btn-hide-global {
   padding: 14px;
   border: 1.5px solid var(--green-pale);
   border-radius: 10px;
-  background: #f7fefe;
+  background: var(--br-98);
 }
 .custom-project-form.open { display: flex; }
 .custom-project-form .field { margin-bottom: 0; }
@@ -708,7 +819,7 @@ body.ui-light #headerBtns.sticky .btn-hide-global {
 }
 .custom-project-tag {
   display: inline-block;
-  background: rgba(61,176,186,0.15);
+  background: rgba(var(--br-48-rgb),0.15);
   color: var(--green-dark);
   font-size: 0.68rem;
   font-family: 'Unbounded', sans-serif;
@@ -745,7 +856,7 @@ body.ui-light #headerBtns.sticky .btn-hide-global {
   padding: 14px;
   border: 1.5px solid var(--green-mid);
   border-radius: 10px;
-  background: #f0fafa;
+  background: var(--br-96а);
 }
 .edit-project-form.open { display: flex; }
 .edit-project-form .field { margin-bottom: 0; }
@@ -869,7 +980,7 @@ body.ui-light #headerBtns.sticky .btn-hide-global {
   font-family: 'Geologica', sans-serif;
   font-size: 0.9rem;
   color: var(--black);
-  background: #f7fefe;
+  background: var(--br-98);
   outline: none;
   transition: border 0.15s;
   width: 100%;
@@ -904,7 +1015,7 @@ body.ui-light #headerBtns.sticky .btn-hide-global {
 }
 .field input[type=date]:focus { border-color: var(--green-mid); }
 .field input[type=date].empty { color: var(--gray-light); }
-body.dark .field input[type=date] { background: var(--field-bg); color: var(--black); border-color: #2a4a4e; color-scheme: dark; }
+body.dark .field input[type=date] { background: var(--field-bg); color: var(--black); border-color: var(--br-24); color-scheme: dark; }
 body.dark .field input[type=date].empty { color: var(--gray-light); }
 /* Placeholder option (first empty value) shows lighter */
 #projectSelect option[value=""] {
@@ -916,7 +1027,7 @@ body.dark .field input[type=date].empty { color: var(--gray-light); }
 /* Match count badge in placeholder */
 #projectSelect.has-matches {
   border-color: var(--green-mid);
-  background: color-mix(in srgb, var(--green-light) 8%, #f7fefe);
+  background: color-mix(in srgb, var(--green-light) 8%, var(--br-98));
   font-weight: 600;
   color: var(--green-dark);
 }
@@ -935,7 +1046,7 @@ body.dark .field input[type=date].empty { color: var(--gray-light); }
   font-family: 'Geologica', sans-serif;
   font-size: 0.9rem;
   color: var(--black);
-  background: #f7fefe;
+  background: var(--br-98);
   cursor: pointer;
   transition: border 0.15s;
   min-height: 44px;
@@ -949,7 +1060,7 @@ body.dark .field input[type=date].empty { color: var(--gray-light); }
 }
 .custom-select-wrap.has-matches .custom-select-trigger {
   border-color: var(--green-mid);
-  background: color-mix(in srgb, var(--green-light) 8%, #f7fefe);
+  background: color-mix(in srgb, var(--green-light) 8%, var(--br-98));
 }
 .custom-select-wrap.has-matches #projectSelectLabel {
   color: var(--green-dark);
@@ -988,7 +1099,7 @@ body.dark .field input[type=date].empty { color: var(--gray-light); }
   background: var(--card-bg);
   border: 1.5px solid var(--green-mid);
   border-radius: 10px;
-  box-shadow: 0 8px 32px rgba(30,108,114,0.15);
+  box-shadow: 0 8px 32px rgba(var(--br-28-rgb),0.15);
   z-index: 500;
   max-height: 280px;
   overflow-y: auto;
@@ -1075,10 +1186,10 @@ body.ui-blank .custom-select-option.soon:hover { background: transparent; }
   font-family: 'Geologica', sans-serif;
   font-weight: 500;
 }
-body.dark .custom-select-trigger { background: var(--field-bg); color: var(--black); border-color: #2a4a4e; }
+body.dark .custom-select-trigger { background: var(--field-bg); color: var(--black); border-color: var(--br-24); }
 body.dark .custom-select-trigger:hover,
 body.dark .custom-select-wrap.open .custom-select-trigger { background: var(--card-bg); }
-body.dark .custom-select-dropdown { background: var(--card-bg); border-color: #2a4a4e; box-shadow: 0 8px 32px rgba(0,0,0,0.35); }
+body.dark .custom-select-dropdown { background: var(--card-bg); border-color: var(--br-24); box-shadow: 0 8px 32px rgba(0,0,0,0.35); }
 body.dark .custom-select-option:hover { background: color-mix(in srgb, var(--green-dark) 20%, var(--card-bg)); }
 body.dark .custom-select-option.selected { background: color-mix(in srgb, var(--green-dark) 28%, var(--card-bg)); }
 
@@ -1098,7 +1209,7 @@ body.dark .custom-select-option.selected { background: color-mix(in srgb, var(--
   padding: 9px 6px;
   border-radius: 9px;
   border: 1.5px solid var(--green-pale);
-  background: #f7fefe;
+  background: var(--br-98);
   font-family: 'Unbounded', sans-serif;
   font-size: 0.68rem;
   font-weight: 600;
@@ -1130,7 +1241,7 @@ body.dark .custom-select-option.selected { background: color-mix(in srgb, var(--
   border-radius: 9px;
   cursor: pointer;
   transition: border 0.15s, background 0.15s;
-  background: #f7fefe;
+  background: var(--br-98);
   user-select: none;
   position: relative;
 }
@@ -1253,7 +1364,7 @@ body.ui-blank .krt-knob{background:var(--bl-sheet);}
 .custom-select-option .cso-name{flex:1;min-width:0;}
 .proj-kit-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:8px;background:var(--green-dark);color:#fff;border-radius:6px;padding:3px 7px;}
 .custom-select-option.selected .proj-kit-badge{background:var(--green-dark);color:#fff;box-shadow:0 0 0 1.5px rgba(255,255,255,0.55);}
-body.dark .proj-kit-badge{background:var(--green-light);color:#0e2a2d;}
+body.dark .proj-kit-badge{background:var(--green-light);color:var(--br-12);}
 
 /* ── Ряд вкладок редактора на узком экране ──────────────────────────────────
    Вкладки уровней и две кнопки в одной строке на телефоне не помещаются:
@@ -1329,7 +1440,7 @@ body.dark .kompl-dot { background: #fff4d1; }
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  background: var(--green-pale, #e4f5f6);
+  background: var(--green-pale, var(--br-93));
   border: 1px solid var(--border);
   border-radius: 5px;
   padding: 1px;
@@ -1340,7 +1451,7 @@ body.dark .kompl-dot { background: #fff4d1; }
   height: 18px;
   border: none;
   background: transparent;
-  color: var(--green-dark, #1e6c72);
+  color: var(--green-dark, var(--br-28));
   font-size: 0.95rem;
   font-weight: 700;
   line-height: 1;
@@ -1351,14 +1462,14 @@ body.dark .kompl-dot { background: #fff4d1; }
   justify-content: center;
   transition: background 0.15s;
 }
-.opt-qty-btn:hover { background: rgba(42,143,151,0.18); }
-.opt-qty-btn:active { background: rgba(42,143,151,0.32); }
+.opt-qty-btn:hover { background: rgba(var(--br-38-rgb),0.18); }
+.opt-qty-btn:active { background: rgba(var(--br-38-rgb),0.32); }
 .opt-qty-val {
   min-width: 16px;
   text-align: center;
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--green-dark, #1e6c72);
+  color: var(--green-dark, var(--br-28));
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1400,14 +1511,14 @@ body.hide-prices .opt-margin-indicator { display: none !important; }
   padding: 8px 12px;
   border-radius: 8px;
   background: var(--note-bg, #f0f4f4);
-  border-left: 3px solid var(--note-border, #a8dde0);
+  border-left: 3px solid var(--note-border, var(--br-77));
   margin-bottom: 4px;
   font-size: 0.78rem;
   color: var(--gray);
   font-style: italic;
   line-height: 1.4;
 }
-body.dark .note-item { background: rgba(168,221,224,0.07); color: var(--gray); border-left-color: var(--green-pale); }
+body.dark .note-item { background: rgba(var(--br-77-rgb),0.07); color: var(--gray); border-left-color: var(--green-pale); }
 .note-item-text { flex: 1; }
 .note-item-del {
   background: none; border: none; cursor: pointer; color: var(--gray-light);
@@ -1448,7 +1559,7 @@ body.dark .note-item { background: rgba(168,221,224,0.07); color: var(--gray); b
   padding: 12px 14px;
   border: 1.5px solid var(--green-pale);
   border-radius: 9px;
-  background: #f7fefe;
+  background: var(--br-98);
   gap: 8px;
   flex-direction: column;
 }
@@ -1754,9 +1865,9 @@ body.ui-blank .aop-sep-btn:hover .aop-key { border-color: var(--bl-acc2); color:
 }
 #printSectionMenu button:focus,
 #printSectionMenu label:focus {
-  outline: 2px solid #3db0ba;
+  outline: 2px solid var(--br-48);
   outline-offset: -2px;
-  background: rgba(61,176,186,0.2) !important;
+  background: rgba(var(--br-48-rgb),0.2) !important;
 }
 .reset-all-item:focus { background: rgba(255,80,80,0.18); }
 .reset-all-item { color: #ffa0a0; font-weight: 600; }
@@ -1847,7 +1958,7 @@ body:not(.ui-blank) .kompl-acts > button::before { content: ''; position: absolu
   padding: 10px 20px calc(10px + env(safe-area-inset-bottom, 0px));
   background: var(--green-dark); color: #fff;
   font-family: 'Geologica', sans-serif;
-  box-shadow: 0 -4px 18px rgba(20, 60, 64, 0.18);
+  box-shadow: 0 -4px 18px rgba(var(--br-16-rgb), 0.18);
   transform: translateY(110%);
   transition: transform 0.22s ease;
   pointer-events: none;
@@ -1871,8 +1982,8 @@ body.keyboard-open .total-strip.on {
   pointer-events: none;
 }
 .total-strip { transition: transform 0.22s ease, opacity 0.16s ease; }
-.total-strip.on:active { background: #1a5f65; }
-body.dark .total-strip.on:active { background: #102b2d; }
+.total-strip.on:active { background: var(--br-25); }
+body.dark .total-strip.on:active { background: var(--br-12б); }
 .ts-lab {
   font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase;
   color: rgba(255,255,255,0.7); white-space: nowrap;
@@ -1900,7 +2011,7 @@ body.dark .total-strip.on:active { background: #102b2d; }
 }
 .ts-disc:empty { display: none; }
 /* В ночном режиме карточка итога темнее фирменной — полоска идёт за ней */
-body.dark .total-strip { background: #143638; box-shadow: 0 -4px 18px rgba(0,0,0,0.4); }
+body.dark .total-strip { background: var(--br-15); box-shadow: 0 -4px 18px rgba(0,0,0,0.4); }
 /* Под полоску отдаём место в конце страницы: иначе последние строки
    спецификации упираются в неё, и до их кнопок (глаз, звезда, подарок)
    не дотянуться — прокручивать уже некуда */
@@ -1998,7 +2109,7 @@ body.total-strip-on #sharedModeIndicator { bottom: calc(var(--strip-h, 68px) + 1
 .bd-total .bd-amt { color: var(--green-dark); }
 
 .bd-section-head {
-  background: #f0fafa !important;
+  background: var(--br-96а) !important;
   font-size: 0.77rem;
   font-weight: 600;
   color: var(--green-mid);
@@ -2080,7 +2191,7 @@ hr { border: none; border-top: 1.5px solid var(--green-bg); margin: 4px 0; }
   padding: 10px 14px 10px 36px !important;
   font-family: 'Geologica', sans-serif;
   font-size: 0.9rem;
-  background: #f7fefe;
+  background: var(--br-98);
   outline: none;
   transition: border 0.15s;
   box-sizing: border-box;
@@ -2127,14 +2238,14 @@ hr { border: none; border-top: 1.5px solid var(--green-bg); margin: 4px 0; }
   vertical-align: middle;
   margin-left: 6px;
 }
-.badge-main { background: rgba(30,108,114,0.12); color: var(--green-dark); }
-.badge-finish { background: rgba(61,176,186,0.15); color: var(--green-mid); }
-.badge-eng { background: rgba(168,221,224,0.4); color: #2a8f97; }
+.badge-main { background: rgba(var(--br-28-rgb),0.12); color: var(--green-dark); }
+.badge-finish { background: rgba(var(--br-48-rgb),0.15); color: var(--green-mid); }
+.badge-eng { background: rgba(var(--br-77-rgb),0.4); color: var(--br-38); }
 /* IMAGE CANVAS */
 .image-canvas-wrap {
   width: 100%;
   min-height: 240px;
-  background: #f7fefe;
+  background: var(--br-98);
   border: 2px dashed var(--green-pale);
   border-radius: 12px;
   position: relative;
@@ -2260,7 +2371,7 @@ hr { border: none; border-top: 1.5px solid var(--green-bg); margin: 4px 0; }
   -webkit-backdrop-filter: blur(10px) saturate(1.4);
   backdrop-filter: blur(10px) saturate(1.4);
   color: var(--green-dark);
-  box-shadow: 0 1px 3px rgba(20,60,64,0.14), inset 0 0 0 1px rgba(255,255,255,0.6);
+  box-shadow: 0 1px 3px rgba(var(--br-16-rgb),0.14), inset 0 0 0 1px rgba(255,255,255,0.6);
   transition: background 0.15s, color 0.15s;
 }
 /* Коробка 28 px — цель нажатия 44 берётся невидимым полем, а не размером. */
@@ -2268,11 +2379,11 @@ hr { border: none; border-top: 1.5px solid var(--green-bg); margin: 4px 0; }
 .canvas-img-item .img-delete svg { width: 16px; height: 16px; }
 .canvas-img-item .img-delete:hover { background: rgba(255,255,255,0.9); }
 body.dark .canvas-img-item .img-delete {
-  background: rgba(18,32,35,0.6);
-  color: #cfe9eb;
+  background: rgba(var(--br-10-rgb),0.6);
+  color: var(--br-87);
   box-shadow: 0 1px 3px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.12);
 }
-body.dark .canvas-img-item .img-delete:hover { background: rgba(18,32,35,0.82); color: #fff; }
+body.dark .canvas-img-item .img-delete:hover { background: rgba(var(--br-10-rgb),0.82); color: #fff; }
 .canvas-img-item:hover .img-delete { display: flex; }
 .canvas-img-item .img-label {
   position: absolute; bottom: 0; left: 0; right: 0;
@@ -2303,7 +2414,7 @@ body.dark .canvas-img-item .img-delete:hover { background: rgba(18,32,35,0.82); 
   -webkit-backdrop-filter: blur(10px) saturate(1.4);
   backdrop-filter: blur(10px) saturate(1.4);
   color: var(--green-dark);
-  box-shadow: 0 1px 3px rgba(20,60,64,0.14), inset 0 0 0 1px rgba(255,255,255,0.6);
+  box-shadow: 0 1px 3px rgba(var(--br-16-rgb),0.14), inset 0 0 0 1px rgba(255,255,255,0.6);
   transition: background 0.15s, color 0.15s;
 }
 /* Палец на уголке тянет снимок, а не листает страницу: без этого браузер
@@ -2313,18 +2424,18 @@ body.dark .canvas-img-item .img-delete:hover { background: rgba(18,32,35,0.82); 
 /* Снимок в руке. Удержание пальцем ничем не отзывалось бы, и палец уезжал
    с холста, не зная, взялся снимок или нет. Тень и подъём — весь ответ. */
 .canvas-img-item.тянут {
-  box-shadow: 0 10px 28px rgba(18,38,42,0.35); opacity: 0.94;
+  box-shadow: 0 10px 28px rgba(var(--br-12в-rgb),0.35); opacity: 0.94;
   transform: scale(1.02); cursor: grabbing;
 }
 .canvas-img-item .img-resize::before { content: ''; position: absolute; inset: -9px; }
 .canvas-img-item .img-resize svg { width: 16px; height: 16px; pointer-events: none; }
 .canvas-img-item .img-resize:hover { background: rgba(255,255,255,0.9); }
 body.dark .canvas-img-item .img-resize {
-  background: rgba(18,32,35,0.6);
-  color: #cfe9eb;
+  background: rgba(var(--br-10-rgb),0.6);
+  color: var(--br-87);
   box-shadow: 0 1px 3px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.12);
 }
-body.dark .canvas-img-item .img-resize:hover { background: rgba(18,32,35,0.82); color: #fff; }
+body.dark .canvas-img-item .img-resize:hover { background: rgba(var(--br-10-rgb),0.82); color: #fff; }
 .canvas-img-item:hover .img-resize { display: flex; }
 /* На телефоне наведения нет: без этого крестик и ручку нечем вызвать. */
 @media (hover: none) {
@@ -2357,7 +2468,7 @@ body.dark .canvas-img-item .img-resize:hover { background: rgba(18,32,35,0.82); 
   cursor: pointer; letter-spacing: 0.03em;
   transition: color 0.15s, background 0.15s;
 }
-.preset-tab:hover:not(.preset-tab-active) { color: var(--green-mid); background: #e8f4f5; }
+.preset-tab:hover:not(.preset-tab-active) { color: var(--green-mid); background: var(--br-94б); }
 .preset-tab-active { color: var(--green-dark); border-bottom-color: var(--green-dark); background: var(--card-bg); }
 .preset-filter-btn {
   padding: 5px 9px; border-radius: 7px;
@@ -2366,7 +2477,7 @@ body.dark .canvas-img-item .img-resize:hover { background: rgba(18,32,35,0.82); 
   cursor: pointer; white-space: nowrap;
   transition: background 0.15s, color 0.15s;
 }
-.preset-filter-btn:hover { background: #e0f0f2; color: var(--green-dark); }
+.preset-filter-btn:hover { background: var(--br-91а); color: var(--green-dark); }
 .preset-filter-active { background: var(--green-dark); color: #fff; border-color: var(--green-dark); }
 .preset-section-label {
   padding: 6px 14px 3px; font-size: 0.62rem; font-weight: 700;
@@ -2398,12 +2509,12 @@ body.dark .canvas-img-item .img-resize:hover { background: rgba(18,32,35,0.82); 
 .shared-pcard-actions { display: flex; gap: 5px; margin-top: 6px; padding-left: 17px; align-items: center; }
 .btn-shared-use { flex: 1; padding: 5px 10px; border-radius: 7px; border: none; background: var(--green-dark); color: #fff; font-size: 0.68rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
 .btn-shared-use:hover { background: var(--green-mid); }
-.btn-shared-act { padding: 5px 7px; border-radius: 7px; border: 1px solid #c8dfe0; background: #f4f9f9; color: var(--green-dark); cursor: pointer; display: flex; align-items: center; transition: background 0.15s, color 0.15s; }
+.btn-shared-act { padding: 5px 7px; border-radius: 7px; border: 1px solid var(--br-83а); background: #f4f9f9; color: var(--green-dark); cursor: pointer; display: flex; align-items: center; transition: background 0.15s, color 0.15s; }
 .btn-shared-act:hover { background: var(--green-bg); color: var(--green-dark); }
 .btn-shared-act.danger:hover { background: #fff0ee; color: #c0392b; border-color: #f5c6c6; }
 .btn-retract { padding: 5px 9px; border-radius: 7px; border: 1px solid #f5d9a0; background: #fff3e0; color: #b06000; font-size: 0.65rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: background 0.15s; }
 .btn-retract:hover { background: #ffe8b0; }
-.publish-dropdown-preset { position: absolute; bottom: calc(100% + 4px); right: 0; background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 4px 16px rgba(30,108,114,0.12); min-width: 190px; overflow: hidden; z-index: 200; display: none; }
+.publish-dropdown-preset { position: absolute; bottom: calc(100% + 4px); right: 0; background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 4px 16px rgba(var(--br-28-rgb),0.12); min-width: 190px; overflow: hidden; z-index: 200; display: none; }
 .pub-preset-opt { padding: 10px 13px; font-size: 0.71rem; cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text); transition: background 0.12s; }
 .pub-preset-opt:hover { background: var(--green-bg); }
 .pub-preset-sub { font-size: 0.6rem; color: var(--gray-light); display: block; margin-top: 1px; }
@@ -2416,7 +2527,7 @@ body.dark .canvas-img-item .img-resize:hover { background: rgba(18,32,35,0.82); 
   cursor: pointer;
   padding: 3px 4px;
   border-radius: 5px;
-  color: #a8cdd0;
+  color: var(--br-74);
   opacity: 0.75;
   transition: opacity 0.15s, color 0.15s;
   display: inline-flex;
@@ -2441,27 +2552,27 @@ body.dark .canvas-img-item .img-resize:hover { background: rgba(18,32,35,0.82); 
 body:not(.dark) .opt-info-btn,
 body:not(.dark) .opt-highlight-btn,
 body:not(.dark) .opt-gift-btn,
-body:not(.dark) .opt-fparams-btn { color: #a8cdd0; opacity: 1; }
+body:not(.dark) .opt-fparams-btn { color: var(--br-74); opacity: 1; }
 body:not(.dark) .price-eye-btn {
-  color: #a8cdd0; opacity: 1;
+  color: var(--br-74); opacity: 1;
   border: 1.5px solid transparent;   /* reserve space so any active frame doesn't shift layout */
   border-radius: 7px;
 }
 /* Active eye:
    DAY: highlight by FRAME in the button's own colour (#a8cdd0), colour unchanged. */
 body:not(.dark) .price-eye-btn.active {
-  color: #a8cdd0;
+  color: var(--br-74);
   opacity: 1;
-  border-color: #a8cdd0;
+  border-color: var(--br-74);
 }
-body:not(.dark) .price-eye-btn.active svg { stroke: #a8cdd0; }
+body:not(.dark) .price-eye-btn.active svg { stroke: var(--br-74); }
 /* NIGHT: same frame; colour stays as the resting colour. */
 body.dark .price-eye-btn.active {
   opacity: 1;
   border-color: var(--green-pale);
 }
 body:not(.dark) .opt-gift-btn:not(.on):focus,
-body:not(.dark) .opt-gift-btn:not(.on):active { color: #a8cdd0; opacity: 1; }
+body:not(.dark) .opt-gift-btn:not(.on):active { color: var(--br-74); opacity: 1; }
 /* DAY theme: when toggled ON, highlight & gift change their ICON colour just like
    in the night theme (frame stays #a8cdd0). More specific than the day rest-colour
    override above, so it wins. */
@@ -2473,7 +2584,7 @@ body:not(.dark) .opt-gift-btn.on { color: #c8621a; opacity: 1; }
   display: inline-flex; align-items: center; justify-content: center;
   width: 22px; height: 22px; border: none; background: none;
   cursor: pointer; border-radius: 5px; flex-shrink: 0;
-  color: #d0e8ea; opacity: 0.5;
+  color: var(--br-87а); opacity: 0.5;
   transition: color 0.12s, opacity 0.12s, background 0.12s;
 }
 .opt-highlight-btn:hover { color: #f5a623; opacity: 1; background: #fff8ec; }
@@ -2491,13 +2602,13 @@ body.dark.ui-light .opt-item.highlighted { background: #2e2200 !important; }
   display: inline-flex; align-items: center; justify-content: center;
   width: 22px; height: 22px; border: none; background: none;
   cursor: pointer; border-radius: 5px; flex-shrink: 0;
-  color: #d0e8ea; opacity: 0.5;
+  color: var(--br-87а); opacity: 0.5;
   transition: color 0.12s, opacity 0.12s, background 0.12s;
 }
 .opt-gift-btn:hover { color: #c8621a; opacity: 1; background: #fff3e0; }
 .opt-gift-btn.on { color: #c8621a; opacity: 1; }
 .opt-gift-btn:not(.on):focus,
-.opt-gift-btn:not(.on):active { color: #d0e8ea; opacity: 0.5; background: none; }
+.opt-gift-btn:not(.on):active { color: var(--br-87а); opacity: 0.5; background: none; }
 .opt-gift-badge {
   display: inline-block; background: #fff3e0; color: #c8621a;
   font-size: 0.58rem; font-weight: 700; letter-spacing: 0.05em;
@@ -2521,8 +2632,8 @@ body.dark.ui-light .opt-item.highlighted { background: #2e2200 !important; }
 }
 #exclTooltip {
   position: fixed;
-  background: #1a2a2c;
-  color: #e8f4f5;
+  background: var(--br-14);
+  color: var(--br-94б);
   font-size: 0.68rem;
   font-family: 'Geologica', sans-serif;
   font-weight: 400;
@@ -2547,7 +2658,7 @@ body.dark.ui-light .opt-item.highlighted { background: #2e2200 !important; }
   border-radius: 12px;
   border: 1px solid var(--border);
   overflow: hidden;
-  box-shadow: 0 1px 8px rgba(30,108,114,0.08);
+  box-shadow: 0 1px 8px rgba(var(--br-28-rgb),0.08);
 }
 .pp-contract-header {
   background: var(--green-dark);
@@ -2627,31 +2738,31 @@ body.dark #stTabAcc[data-active="1"] { color: #fff !important; border-bottom-col
 
 body.dark .ptab-active { color: #fff !important; border-bottom-color: #fff !important; }
 body.dark .ptab:hover:not(.ptab-active) { color: var(--green-pale); }
-body.dark .ptoolbar-btn { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.15); color: rgba(200,232,234,0.85); }
+body.dark .ptoolbar-btn { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.15); color: rgba(var(--br-85-rgb),0.85); }
 body.dark .ptoolbar-btn:hover { background: rgba(255,255,255,0.13); color: #fff; border-color: rgba(255,255,255,0.25); }
 body.dark .ptoolbar-primary { background: var(--green-mid); border-color: var(--green-mid); color: #fff; }
 body.dark .ptoolbar-primary:hover { background: var(--green-dark); }
 body.dark .shared-pcard { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); }
 body.dark .shared-pcard:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
-body.dark .shared-pcard-name { color: #e8f4f5; }
+body.dark .shared-pcard-name { color: var(--br-94б); }
 body.dark .shared-pcard-project { color: var(--gray-light); }
 body.dark .shared-pcard-price { color: var(--green-pale); }
 body.dark .shared-author-name { color: var(--gray-light); }
-body.dark .shared-author-date { color: rgba(154,181,184,0.7); }
-body.dark .shared-author-av { background: rgba(42,143,151,0.3); color: var(--green-pale); }
-body.dark .psection-label { color: rgba(154,181,184,0.7); }
+body.dark .shared-author-date { color: rgba(var(--br-66-rgb),0.7); }
+body.dark .shared-author-av { background: rgba(var(--br-38-rgb),0.3); color: var(--green-pale); }
+body.dark .psection-label { color: rgba(var(--br-66-rgb),0.7); }
 body.dark .psection-starred { color: rgba(176,120,0,0.9); }
-body.dark .btn-shared-act { background: rgba(255,255,255,0.07) !important; border-color: rgba(255,255,255,0.12) !important; color: rgba(200,232,234,0.85) !important; }
-body.dark .pcard-act { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: rgba(200,232,234,0.85); }
+body.dark .btn-shared-act { background: rgba(255,255,255,0.07) !important; border-color: rgba(255,255,255,0.12) !important; color: rgba(var(--br-85-rgb),0.85) !important; }
+body.dark .pcard-act { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: rgba(var(--br-85-rgb),0.85); }
 body.dark .pcard-act:hover { background: rgba(255,255,255,0.15); color: #fff; }
-body.dark .pcard-publish { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: rgba(200,232,234,0.85); }
+body.dark .pcard-publish { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: rgba(var(--br-85-rgb),0.85); }
 body.dark .pcard-publish:hover { background: rgba(255,255,255,0.15); color: #fff; }
 body.dark .pcard-retract { background: rgba(176,96,0,0.2); border-color: rgba(176,96,0,0.4); color: #ffb84d; }
-body.dark .btn-shared-act { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: rgba(200,232,234,0.85); }
+body.dark .btn-shared-act { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: rgba(var(--br-85-rgb),0.85); }
 body.dark .btn-shared-act:hover { background: rgba(255,255,255,0.15); color: #fff; }
 body.dark .btn-retract { background: rgba(176,96,0,0.2); border-color: rgba(176,96,0,0.4); color: #ffb84d; }
 body.dark .psearch-wrap input { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: #fff; }
-body.dark .pfilter-btn { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: rgba(200,232,234,0.85); }
+body.dark .pfilter-btn { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: rgba(var(--br-85-rgb),0.85); }
 body.dark .pfilter-active { background: var(--green-mid); border-color: var(--green-mid); color: #fff; }
 
 /* CONDITIONAL MODE TOGGLE */
@@ -2689,7 +2800,7 @@ body.dark .cmode-btn.active { background: var(--green-dark); color: #fff; }
   align-items: center;
   gap: 3px;
   margin-top: 3px;
-  background: rgba(61,176,186,0.06);
+  background: rgba(var(--br-48-rgb),0.06);
   border: 1.5px dashed var(--green-pale);
   border-radius: 6px;
   padding: 3px 8px 3px 7px;
@@ -2709,8 +2820,8 @@ body.dark .cmode-btn.active { background: var(--green-dark); color: #fff; }
 /* Попытка отметить позицию без суммы: поле мигает и подтягивает к себе взгляд.
    Цвет — тот же зелёный, что у самого поля: это не ошибка, а «сначала сюда». */
 @keyframes порНадо {
-  0%, 100% { border-color: var(--green-pale); background: rgba(61,176,186,0.06); }
-  30%, 70% { border-color: var(--green-mid); background: rgba(61,176,186,0.20); }
+  0%, 100% { border-color: var(--green-pale); background: rgba(var(--br-48-rgb),0.06); }
+  30%, 70% { border-color: var(--green-mid); background: rgba(var(--br-48-rgb),0.20); }
 }
 .price-on-request-wrap.por-need {
   animation: порНадо 0.8s ease-in-out 2;
@@ -2719,7 +2830,7 @@ body.dark .cmode-btn.active { background: var(--green-dark); color: #fff; }
 .price-on-request-wrap:hover,
 .opt-item.por-focused .price-on-request-wrap {
   border-color: var(--green-mid);
-  background: rgba(61,176,186,0.1);
+  background: rgba(var(--br-48-rgb),0.1);
 }
 .price-on-request-input {
   border: none;
@@ -2779,7 +2890,7 @@ body.dark .cmode-btn.active { background: var(--green-dark); color: #fff; }
   overflow: hidden;
   transition: width 0.25s cubic-bezier(0.4,0,0.2,1);
   background: var(--card-bg, #fff);
-  box-shadow: -4px 0 28px rgba(30,108,114,0.18);
+  box-shadow: -4px 0 28px rgba(var(--br-28-rgb),0.18);
   border-radius: 10px 0 0 10px;
   border: 1px solid transparent;
 }
@@ -2859,7 +2970,7 @@ body.ui-blank .st-fold-n { color: var(--bl-ink3); }
   z-index: 2;
   background: var(--card-bg);
 }
-body.dark #settingsBox > div:nth-child(2) { border-bottom-color: #2a4a4e; }
+body.dark #settingsBox > div:nth-child(2) { border-bottom-color: var(--br-24); }
 .st-row {
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--green-bg);
@@ -3162,7 +3273,7 @@ body.ui-light #employeesList > div > div:last-child > select { padding-left: 8px
    подтверждение там, где нажали. */
 .cl-toast {
   position:absolute; left:50%; transform:translate(-50%,6px); top:calc(100% + 8px);
-  background:#0f2a2c; color:#eaf6f6; font-family:'Geologica',sans-serif; font-weight:400;
+  background:var(--br-12а); color:var(--br-94а); font-family:'Geologica',sans-serif; font-weight:400;
   font-size:0.72rem; white-space:nowrap; padding:7px 12px; border-radius:8px;
   opacity:0; pointer-events:none; z-index:30;
   transition:opacity 0.18s ease, transform 0.18s ease;
@@ -3334,15 +3445,15 @@ body.ui-light #employeesList > div > div:last-child > select { padding-left: 8px
   -webkit-backdrop-filter: blur(10px) saturate(1.4);
   backdrop-filter: blur(10px) saturate(1.4);
   color: var(--green-dark);
-  box-shadow: 0 1px 3px rgba(20,60,64,0.14), inset 0 0 0 1px rgba(255,255,255,0.6);
+  box-shadow: 0 1px 3px rgba(var(--br-16-rgb),0.14), inset 0 0 0 1px rgba(255,255,255,0.6);
 }
 .ovl-x.floating:hover { background: rgba(255,255,255,0.9); color: var(--green-dark); }
 body.dark .ovl-x.floating {
-  background: rgba(18,32,35,0.6);
-  color: #cfe9eb;
+  background: rgba(var(--br-10-rgb),0.6);
+  color: var(--br-87);
   box-shadow: 0 1px 3px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.12);
 }
-body.dark .ovl-x.floating:hover { background: rgba(18,32,35,0.82); color: #fff; }
+body.dark .ovl-x.floating:hover { background: rgba(var(--br-10-rgb),0.82); color: #fff; }
 
 /* ── Окно поиска по опциям ──
    Строка поиска, фильтр-чипы, список группами по разделам и нижняя строка
@@ -3395,7 +3506,7 @@ body.dark .ovl-x.floating:hover { background: rgba(18,32,35,0.82); color: #fff; 
 .ops-chk { grid-column: 1; grid-row: 1; margin: 3px 0 0; width: 15px; height: 15px;
   accent-color: var(--green-mid); cursor: pointer; flex-shrink: 0; }
 .ops-name { grid-column: 2; grid-row: 1; font-size: 0.78rem; line-height: 1.4; color: var(--black); min-width: 0; }
-.ops-name mark { background: rgba(61,176,186,0.25); border-radius: 2px; padding: 0 1px; color: inherit; }
+.ops-name mark { background: rgba(var(--br-48-rgb),0.25); border-radius: 2px; padding: 0 1px; color: inherit; }
 .ops-price { grid-column: 3; grid-row: 1; font-size: 0.74rem; font-weight: 600; color: var(--green-mid);
   white-space: nowrap; text-align: right; }
 .ops-meta { grid-column: 2 / 5; grid-row: 2; display: flex; align-items: center; gap: 10px;
@@ -3495,7 +3606,7 @@ body.dark .ovl-x.floating:hover { background: rgba(18,32,35,0.82); color: #fff; 
   position: relative;
   display: flex; align-items: center; gap: 5px;
   padding: 6px 11px; border-radius: 8px;
-  border: 1px solid #c8dfe0; background: #f4f9f9;
+  border: 1px solid var(--br-83а); background: #f4f9f9;
   color: var(--green-dark); font-size: 0.7rem; font-weight: 600;
   cursor: pointer; white-space: nowrap; flex-shrink: 0;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
@@ -3505,7 +3616,7 @@ body.dark .ovl-x.floating:hover { background: rgba(18,32,35,0.82); color: #fff; 
    сколько отступ полосы, чтобы прокрутка его не срезала) и по 3 в стороны —
    половину зазора в 6 px. */
 .ptoolbar-btn::before { content: ''; position: absolute; inset: -6px -3px; }
-.ptoolbar-btn:hover { background: #e0f0f2; color: var(--green-dark); border-color: var(--green-pale); }
+.ptoolbar-btn:hover { background: var(--br-91а); color: var(--green-dark); border-color: var(--green-pale); }
 .ptoolbar-primary { background: var(--green-dark); color: #fff; border-color: var(--green-dark); }
 .ptoolbar-primary:hover { background: var(--green-mid); }
 
@@ -3536,7 +3647,7 @@ body.dark .ovl-x.floating:hover { background: rgba(18,32,35,0.82); color: #fff; 
   transition: background 0.15s, color 0.15s;
   font-family: 'Geologica', sans-serif;
 }
-.pfilter-btn:hover { background: #e0f0f2; color: var(--green-dark); }
+.pfilter-btn:hover { background: var(--br-91а); color: var(--green-dark); }
 .pfilter-active { background: var(--green-dark); color: #fff; border-color: var(--green-dark); }
 /* Наведение перебивало отметку выбранного: `.pfilter-btn:hover` весит столько
    же, сколько `.pfilter-active`, и стоит в файле ниже. На мыши сразу после
@@ -3578,7 +3689,7 @@ body.dark .pfilter-btn.pfilter-active:hover { background: var(--green-mid); bord
   padding: 9px 10px 9px 12px;
   transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
-.pcard:hover { border-color: var(--green-mid); background: var(--green-bg); box-shadow: 0 2px 8px rgba(30,108,114,0.07); }
+.pcard:hover { border-color: var(--green-mid); background: var(--green-bg); box-shadow: 0 2px 8px rgba(var(--br-28-rgb),0.07); }
 .pcard.pcard-mine { border-left: 3px solid var(--green-mid); padding-left: 10px; }
 .pcard.pcard-fav  { border-left: 3px solid #f0a030; padding-left: 10px; }
 .pcard.pcard-active { background: color-mix(in srgb,var(--green-light) 12%,var(--card-bg)); border-left: 3px solid var(--green-mid); padding-left: 10px; }
@@ -3716,25 +3827,25 @@ body.dark .tfilter-chip.on { color: var(--green-light); }
 .pcard-act-group { display: flex; gap: 3px; }
 .pcard-act {
   padding: 5px 7px; border-radius: 7px;
-  border: 1px solid #c8dfe0; background: #f4f9f9;
+  border: 1px solid var(--br-83а); background: #f4f9f9;
   color: var(--green-dark); cursor: pointer;
   display: flex; align-items: center;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
   position: relative;
 }
-.pcard-act:hover { background: #ddeef0; color: var(--green-dark); border-color: var(--green-mid); }
+.pcard-act:hover { background: var(--br-90); color: var(--green-dark); border-color: var(--green-mid); }
 .pcard-act.danger:hover { background: #fff0ee; color: #c0392b; border-color: #f5c6c6; }
 .pcard-act[title]:hover::after {
   content: attr(title);
   position: absolute; bottom: calc(100% + 5px); left: 50%;
   transform: translateX(-50%);
-  background: #1a2e30; color: #fff; font-size: 0.59rem; white-space: nowrap;
+  background: var(--br-15в); color: #fff; font-size: 0.59rem; white-space: nowrap;
   padding: 3px 7px; border-radius: 5px; pointer-events: none; z-index: 300;
 }
 .pcard-publish-wrap { position: relative; }
 .pcard-publish {
   padding: 5px 9px; border-radius: 7px;
-  border: 1px solid #c8dfe0; background: #f4f9f9;
+  border: 1px solid var(--br-83а); background: #f4f9f9;
   color: var(--green-dark); font-size: 0.68rem; font-weight: 500;
   cursor: pointer; display: flex; align-items: center; gap: 4px;
   font-family: 'Geologica', sans-serif;
@@ -3756,7 +3867,7 @@ body.dark .tfilter-chip.on { color: var(--green-light); }
 .pub-dd {
   position: absolute; bottom: calc(100% + 4px); right: 0;
   background: var(--card-bg); border: 1px solid var(--border);
-  border-radius: 10px; box-shadow: 0 4px 16px rgba(30,108,114,0.14);
+  border-radius: 10px; box-shadow: 0 4px 16px rgba(var(--br-28-rgb),0.14);
   min-width: 192px; overflow: hidden; z-index: 200; display: none;
 }
 .pub-dd-opt {
@@ -3862,7 +3973,7 @@ body.dark .opt-formula-badge { background: rgba(214,130,32,0.22); color: #ff9c4a
   display: inline-flex; align-items: center; justify-content: center;
   width: 22px; height: 22px; border: none; background: none;
   cursor: pointer; border-radius: 5px; flex-shrink: 0;
-  color: #d0e8ea; opacity: 0.6;
+  color: var(--br-87а); opacity: 0.6;
   transition: color 0.12s, opacity 0.12s, background 0.12s;
 }
 .opt-fparams-btn:hover { color: var(--green-mid); opacity: 1; background: var(--green-bg); }
@@ -3876,9 +3987,9 @@ body.dark .opt-formula-badge { background: rgba(214,130,32,0.22); color: #ff9c4a
   border: 1.5px solid transparent;
   border-radius: 7px;
 }
-.opt-highlight-btn.on { border-color: #a8cdd0; }
-.opt-gift-btn.on { border-color: #a8cdd0; }
-.opt-fparams-btn.open { border-color: #a8cdd0; }
+.opt-highlight-btn.on { border-color: var(--br-74); }
+.opt-gift-btn.on { border-color: var(--br-74); }
+.opt-fparams-btn.open { border-color: var(--br-74); }
 .opt-fparams-panel {
   margin-top: 10px; padding: 10px 12px;
   background: rgba(0,0,0,0.02);
@@ -3893,14 +4004,14 @@ body.dark .opt-fparams-comment { border-top-color: rgba(255,255,255,0.12); }
 .opt-fparams-label { font-size: 0.7rem; color: var(--gray); flex: 1; min-width: 130px; }
 .opt-fparams-input {
   font-family: 'Geologica', sans-serif; font-size: 0.74rem;
-  padding: 4px 8px; border: 1px solid #c8dfe0; border-radius: 6px;
+  padding: 4px 8px; border: 1px solid var(--br-83а); border-radius: 6px;
   background: var(--field-bg); color: var(--black);
   outline: none; width: 80px; text-align: right;
 }
 .opt-fparams-input:focus { border-color: var(--green-mid); }
 .opt-fparams-suffix { font-size: 0.7rem; color: var(--gray-light); margin-left: -4px; }
 .opt-fparams-reset {
-  background: none; border: 1px solid #c8dfe0; border-radius: 5px;
+  background: none; border: 1px solid var(--br-83а); border-radius: 5px;
   padding: 2px 7px; font-size: 0.62rem; cursor: pointer;
   color: var(--gray); font-family: 'Geologica', sans-serif;
 }
@@ -3908,10 +4019,10 @@ body.dark .opt-fparams-comment { border-top-color: rgba(255,255,255,0.12); }
 .opt-fparams-comment {
   font-size: 0.7rem; color: var(--text);
   line-height: 1.5; padding-top: 6px;
-  border-top: 1px solid #c8dfe0;
+  border-top: 1px solid var(--br-83а);
 }
 .opt-fparams-formula {
-  background: rgba(42,143,151,0.06);
+  background: rgba(var(--br-38-rgb),0.06);
   border-left: 3px solid var(--green-mid);
   padding: 6px 10px; border-radius: 5px;
   font-size: 0.66rem; color: var(--gray);
@@ -3957,7 +4068,7 @@ body.dark .opt-info-popover { box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
 .btn-copy-link { display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--green-dark);font-size:0.65rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.15s;font-family:'Geologica',sans-serif;flex-shrink:0; }
 .btn-copy-link:hover { background:var(--green-bg); }
 .btn-copy-link.copied { background:var(--green-dark);color:#fff;border-color:var(--green-dark); }
-body.dark .pcard-code-row { background:rgba(61,176,186,0.06); }
+body.dark .pcard-code-row { background:rgba(var(--br-48-rgb),0.06); }
 body.dark .btn-copy-link { background:var(--field-bg);border-color:var(--border); }
 
 body.dark #presetBox { background: var(--card-bg); }
@@ -3981,34 +4092,34 @@ body.ui-blank {
   --bl-page:#f7fbfb;      /* поле вокруг листа */
   --bl-sheet:#fff;        /* лист */
   --bl-zebra:#f7fafb;     /* наведение на строку */
-  --bl-ink:#12262a;       /* основные чернила */
-  --bl-ink2:#5b7376;      /* второстепенные */
-  --bl-ink3:#8da3a5;      /* подписи */
-  --bl-rule:#dceaeb;      /* волосяная линейка */
-  --bl-rule2:#bcd9db;     /* линейка потолще */
-  --bl-acc:#1e6c72;       /* чернила акцента */
-  --bl-acc2:#2a8f97;
-  --bl-pale:#a8dde0;      /* номер раздела */
-  --bl-tint:#e4f5f6;      /* подсветка выбранной строки */
-  --bl-fill:#1e6c72;      /* заливка под белым: галочка */
+  --bl-ink:var(--br-12в);       /* основные чернила */
+  --bl-ink2:var(--br-41);      /* второстепенные */
+  --bl-ink3:var(--br-60б);      /* подписи */
+  --bl-rule:var(--br-89);      /* волосяная линейка */
+  --bl-rule2:var(--br-80);     /* линейка потолще */
+  --bl-acc:var(--br-28);       /* чернила акцента */
+  --bl-acc2:var(--br-38);
+  --bl-pale:var(--br-77);      /* номер раздела */
+  --bl-tint:var(--br-93);      /* подсветка выбранной строки */
+  --bl-fill:var(--br-28);      /* заливка под белым: галочка */
   background: var(--bl-page);
   color: var(--bl-ink);
   font-variant-numeric: tabular-nums;
 }
 body.ui-blank.dark {
-  --bl-page:#0e1a1c;
-  --bl-sheet:#132528;
-  --bl-zebra:#173338;
-  --bl-ink:#e6f3f3;
-  --bl-ink2:#9db6b8;
-  --bl-ink3:#8aa4a6;
-  --bl-rule:#224347;
-  --bl-rule2:#2d585d;
-  --bl-acc:#8fd6dc;
-  --bl-acc2:#5fc2ca;
-  --bl-pale:#5fc2ca;
-  --bl-tint:#173338;
-  --bl-fill:#2a8f97;
+  --bl-page:var(--br-08а);
+  --bl-sheet:var(--br-12д);
+  --bl-zebra:var(--br-15а);
+  --bl-ink:var(--br-93б);
+  --bl-ink2:var(--br-67б);
+  --bl-ink3:var(--br-60а);
+  --bl-rule:var(--br-21а);
+  --bl-rule2:var(--br-27а);
+  --bl-acc:var(--br-71);
+  --bl-acc2:var(--br-58);
+  --bl-pale:var(--br-58);
+  --bl-tint:var(--br-15а);
+  --bl-fill:var(--br-38);
 }
 
 /* ── Экран входа ─────────────────────────────────────────────────────────
@@ -4016,8 +4127,8 @@ body.ui-blank.dark {
    унаследованы от body.ui-blank: при «Модерне» те переменные пусты, и экран
    остался бы без цветов. Ночь ловится по body.dark, как и везде. */
 #loginScreen {
-  --lg-page:#f7fbfb; --lg-sheet:#fff; --lg-ink:#12262a; --lg-ink2:#5b7376; --lg-ink3:#8da3a5;
-  --lg-rule:#dceaeb; --lg-rule2:#bcd9db; --lg-acc:#1e6c72; --lg-acc2:#2a8f97; --lg-tint:#e4f5f6;
+  --lg-page:#f7fbfb; --lg-sheet:#fff; --lg-ink:var(--br-12в); --lg-ink2:var(--br-41); --lg-ink3:var(--br-60б);
+  --lg-rule:var(--br-89); --lg-rule2:var(--br-80); --lg-acc:var(--br-28); --lg-acc2:var(--br-38); --lg-tint:var(--br-93);
   --lg-err-bg:#fdf1f0; --lg-err:#c0392b; --lg-ok-bg:#f0fff4; --lg-ok:#276749;
   display:none; position:fixed; inset:0; z-index:9000;
   background:var(--lg-page); color:var(--lg-ink);
@@ -4025,8 +4136,8 @@ body.ui-blank.dark {
   font-family:'Geologica',system-ui,sans-serif; font-variant-numeric:tabular-nums;
 }
 body.dark #loginScreen {
-  --lg-page:#0e1a1c; --lg-sheet:#132528; --lg-ink:#e6f3f3; --lg-ink2:#9db6b8; --lg-ink3:#8aa4a6;
-  --lg-rule:#224347; --lg-rule2:#2d585d; --lg-acc:#8fd6dc; --lg-acc2:#5fc2ca; --lg-tint:#173338;
+  --lg-page:var(--br-08а); --lg-sheet:var(--br-12д); --lg-ink:var(--br-93б); --lg-ink2:var(--br-67б); --lg-ink3:var(--br-60а);
+  --lg-rule:var(--br-21а); --lg-rule2:var(--br-27а); --lg-acc:var(--br-71); --lg-acc2:var(--br-58); --lg-tint:var(--br-15а);
   --lg-err-bg:#2a1a1a; --lg-err:#f0a49b; --lg-ok-bg:#162c22; --lg-ok:#8fd6a8;
 }
 /* Верхняя строка листа: кнопка темы слева, номер версии справа. Обе стояли
@@ -4057,7 +4168,7 @@ body.dark #loginScreen {
 @media (max-width:760px) { #loginScreen .lg-stage { padding:26px 14px; } }
 #loginScreen .lg-paper {
   width:100%; max-width:420px; background:var(--lg-sheet); padding:44px 40px 38px;
-  box-shadow:0 1px 0 var(--lg-rule), 0 22px 50px rgba(18,38,42,.10);
+  box-shadow:0 1px 0 var(--lg-rule), 0 22px 50px rgba(var(--br-12в-rgb),.10);
 }
 body.dark #loginScreen .lg-paper { box-shadow:0 1px 0 var(--lg-rule), 0 22px 50px rgba(0,0,0,.45); }
 @media (max-width:520px) { #loginScreen .lg-paper { padding:30px 22px 26px; } }
@@ -4109,7 +4220,7 @@ body.dark #loginScreen .lg-paper { box-shadow:0 1px 0 var(--lg-rule), 0 22px 50p
   font-family:'Geologica',sans-serif; font-size:.78rem; font-weight:600;
   letter-spacing:.08em; text-transform:uppercase; cursor:pointer;
 }
-body.dark #loginScreen .lg-go { color:#08181a; }
+body.dark #loginScreen .lg-go { color:var(--br-07); }
 #loginScreen .lg-go:hover { background:var(--lg-acc2); border-color:var(--lg-acc2); }
 #loginScreen .lg-go:disabled {
   background:none; color:var(--lg-ink3); border-color:var(--lg-rule2); cursor:default;
@@ -4136,7 +4247,7 @@ body.ui-blank .page-wrap {
   body.ui-blank .page-wrap {
     margin-top: 24px;
     margin-bottom: 24px;
-    box-shadow: 0 1px 0 var(--bl-rule), 0 24px 60px rgba(18,38,42,.07);
+    box-shadow: 0 1px 0 var(--bl-rule), 0 24px 60px rgba(var(--br-12в-rgb),.07);
   }
   body.ui-blank.dark .page-wrap { box-shadow: 0 1px 0 var(--bl-rule), 0 24px 60px rgba(0,0,0,.4); }
 }
@@ -4232,7 +4343,7 @@ body.ui-blank #headerBtns.sticky {
   margin-top: 0;
   border-top: 0;
   border-bottom: 1px solid var(--bl-rule2);
-  box-shadow: 0 8px 20px rgba(15,36,39,.10);
+  box-shadow: 0 8px 20px rgba(var(--br-11-rgb),.10);
   padding-top: max(6px, env(safe-area-inset-top, 6px));
 }
 body.ui-blank.dark #headerBtns.sticky { box-shadow: 0 8px 20px rgba(0,0,0,.5); }
@@ -4285,7 +4396,7 @@ body.ui-blank .card-title {
   border-bottom: 2px solid var(--bl-acc);
   margin-bottom: 14px;
 }
-body.ui-blank.dark .card-title { color: #bfe6e8; border-bottom-color: var(--bl-acc); }
+body.ui-blank.dark .card-title { color: var(--br-83); border-bottom-color: var(--bl-acc); }
 body.ui-blank .card-title .dot { display: none; }
 
 /* ── Поля: подпись слева, подчёркнутое место для ответа ──────────────────
@@ -4807,7 +4918,7 @@ body.ui-blank .side-nav-panel {
   border: 1px solid var(--bl-rule);
   border-right: 0;
   border-radius: 10px 0 0 10px;
-  box-shadow: 0 18px 48px rgba(18,38,42,.10);
+  box-shadow: 0 18px 48px rgba(var(--br-12в-rgb),.10);
 }
 body.ui-blank.dark .side-nav-panel { box-shadow: 0 18px 48px rgba(0,0,0,.45); }
 body.ui-blank .side-nav.open .side-nav-panel { width: 286px; border-color: var(--bl-rule); }
@@ -5119,7 +5230,7 @@ body.ui-blank #imageCanvasCard .card-title {
   letter-spacing: .01em !important;
   color: var(--bl-acc) !important;
 }
-body.ui-blank.dark #imageCanvasCard .card-title { color: #bfe6e8 !important; }
+body.ui-blank.dark #imageCanvasCard .card-title { color: var(--br-83) !important; }
 body.ui-blank #imageCanvasCard .card-title .dot { display: none !important; }
 
 /* Раздел — часть листа, а не карточка: рамку и заливку снимаем, строки идут
@@ -5276,7 +5387,7 @@ body.ui-blank .canvas-img-item .img-delete:hover,
 body.ui-blank .canvas-img-item .img-resize:hover {
   color: var(--bl-ink); border-color: var(--bl-rule2); background: var(--bl-sheet);
 }
-body.ui-blank .canvas-img-item { box-shadow: 0 2px 10px rgba(18,38,42,.18); }
+body.ui-blank .canvas-img-item { box-shadow: 0 2px 10px rgba(var(--br-12в-rgb),.18); }
 /* Кнопки над полем — тем же контуром, что и остальные «добавить» */
 body.ui-blank .btn-canvas-add,
 body.ui-blank .btn-canvas-clear {
@@ -5368,7 +5479,7 @@ body.ui-blank .btn-confirm-edit {
   border-radius: 8px;
 }
 body.ui-blank.dark .btn-confirm-project,
-body.ui-blank.dark .btn-confirm-edit { color: #0e1a1c; }
+body.ui-blank.dark .btn-confirm-edit { color: var(--br-08а); }
 body.ui-blank .btn-cancel-project,
 body.ui-blank .btn-cancel-edit,
 body.ui-blank .btn-reset-edit,
@@ -5470,7 +5581,7 @@ body.ui-blank #discountUntilDate::-webkit-calendar-picker-indicator:hover { opac
    ═══════════════════════════════════════════════════════════════════════════ */
 body.ui-blank #paymentPlanOverlay {
   --bl-warn:#c0392b; --bl-warn-bg:#fdf1f0; --bl-hold:#b06a12;
-  background: rgba(12,28,31,.42);
+  background: rgba(var(--br-08-rgb),.42);
   padding: 16px;
 }
 body.ui-blank.dark #paymentPlanOverlay {
@@ -5481,7 +5592,7 @@ body.ui-blank #ppPanel {
   background: var(--bl-sheet);
   color: var(--bl-ink);
   border-radius: 14px;
-  box-shadow: 0 18px 50px rgba(18,38,42,.13);
+  box-shadow: 0 18px 50px rgba(var(--br-12в-rgb),.13);
   position: relative;
   overflow: hidden;
 }
@@ -5874,7 +5985,7 @@ body.ui-blank .pp-foot-btn.primary {
   color: #fff;
   font-weight: 600;
 }
-body.ui-blank.dark .pp-foot-btn.primary { color: #08181a; }
+body.ui-blank.dark .pp-foot-btn.primary { color: var(--br-07); }
 
 /* ── Телефон ── */
 @media (max-width: 480px) {
@@ -6049,7 +6160,7 @@ body.ui-blank .pp-cm-tag { display: none !important; }
 /* Кнопка глубины в шапке журнала: во включённом состоянии подсвечена, как
    выбранный период, — иначе по одной подписи не понять, что показ расширен. */
 .al-hbtn.al-hbtn-on{background:var(--green-bg);border-color:var(--green-mid);color:var(--green-dark);}
-body.dark .al-hbtn.al-hbtn-on{background:rgba(42,143,151,0.22);border-color:#3db0ba;color:#c8e8ea;}
+body.dark .al-hbtn.al-hbtn-on{background:rgba(var(--br-38-rgb),0.22);border-color:var(--br-48);color:var(--br-85);}
 body.ui-blank .al-hbtn.al-hbtn-on{background:var(--bl-tint);border-color:var(--bl-acc2);color:var(--bl-acc);}
 /* Приписка к номеру: показываем её рядом с названием, чтобы менеджер видел,
    что уйдёт в документ, ещё при наборе названия. Вес служебный — моноширинный
@@ -6075,7 +6186,7 @@ body.ui-blank > .pp-cm-chip {
   border: 1.5px solid var(--bl-acc2) !important;
   border-radius: 9px !important;
   color: var(--bl-ink) !important;
-  box-shadow: 0 10px 26px rgba(18,38,42,.28) !important;
+  box-shadow: 0 10px 26px rgba(var(--br-12в-rgb),.28) !important;
 }
 body.ui-blank #paymentPlanBody > button[onclick^="ppCmAdd"] {
   border: 1px dashed var(--bl-rule2) !important;
@@ -6136,7 +6247,7 @@ body.ui-blank #ppColorPicker {
   background: var(--bl-sheet) !important;
   border: 1px solid var(--bl-rule2) !important;
   border-radius: 11px !important;
-  box-shadow: 0 14px 34px rgba(18,38,42,.18) !important;
+  box-shadow: 0 14px 34px rgba(var(--br-12в-rgb),.18) !important;
 }
 body.ui-blank.dark #ppColorPicker { box-shadow: 0 14px 34px rgba(0,0,0,.55) !important; }
 body.ui-blank #ppColorPicker > div:first-child { color: var(--bl-ink3) !important; }
@@ -6147,12 +6258,12 @@ body.ui-blank #ppColorPicker > button { min-height: 42px; color: var(--bl-ink2) 
    Само содержимое живёт в отдельном документе внутри iframe и оформляется
    там же (сообщение 'ui'). Здесь — только обвязка окна: лист, шапка, крестик.
    ══════════════════════════════════════════════════════════════════════════ */
-body.ui-blank #statsOverlay { background: rgba(18,38,42,.45) !important; padding: 14px !important; }
+body.ui-blank #statsOverlay { background: rgba(var(--br-12в-rgb),.45) !important; padding: 14px !important; }
 body.ui-blank.dark #statsOverlay { background: rgba(0,0,0,.6) !important; }
 body.ui-blank #statsPanel {
   background: var(--bl-sheet) !important;
   border-radius: 14px !important;
-  box-shadow: 0 18px 50px rgba(18,38,42,.13) !important;
+  box-shadow: 0 18px 50px rgba(var(--br-12в-rgb),.13) !important;
   min-height: calc(100vh - 28px) !important;
 }
 body.ui-blank.dark #statsPanel { box-shadow: 0 18px 50px rgba(0,0,0,.5) !important; }
@@ -6202,14 +6313,14 @@ body.ui-blank #statsFrame { min-height: calc(100vh - 100px) !important; }
    элементы вкладки «Аккаунт» несут инлайновые стили, поэтому часть правил
    вынужденно с !important и опирается на структуру, а не на классы.
    ══════════════════════════════════════════════════════════════════════════ */
-body.ui-blank #settingsPanel { background: rgba(18,38,42,.45); padding: 14px; }
+body.ui-blank #settingsPanel { background: rgba(var(--br-12в-rgb),.45); padding: 14px; }
 body.ui-blank.dark #settingsPanel { background: rgba(0,0,0,.6); }
 /* Фон, радиус и высота заданы окну инлайном, поэтому здесь !important:
    без него окно в «Бланке» оставалось цвета «Модерна». */
 body.ui-blank #settingsBox {
   background: var(--bl-sheet) !important;
   border-radius: 14px !important;
-  box-shadow: 0 18px 50px rgba(18,38,42,.13) !important;
+  box-shadow: 0 18px 50px rgba(var(--br-12в-rgb),.13) !important;
   max-height: calc(100vh - 28px) !important;
 }
 body.ui-blank.dark #settingsBox { box-shadow: 0 18px 50px rgba(0,0,0,.5) !important; }
@@ -6335,7 +6446,7 @@ body.ui-blank .st-theme-btn.active {
   border-color: var(--bl-acc);
   color: var(--bl-sheet);
 }
-body.ui-blank.dark .st-theme-btn.active { color: #08181a; }
+body.ui-blank.dark .st-theme-btn.active { color: var(--br-07); }
 body.ui-blank .st-theme-btn.soon { border-style: dashed; color: var(--bl-ink3); }
 body.ui-blank .st-theme-btn.soon:hover { border-color: var(--bl-rule2); color: var(--bl-ink3); }
 
@@ -6348,7 +6459,7 @@ body.ui-blank .st-toggle::after { content: ''; position: absolute; inset: -11px;
 body.ui-blank .st-toggle-slider { background: var(--bl-rule2); }
 body.ui-blank .st-toggle-slider::before { background: var(--bl-sheet); }
 body.ui-blank .st-toggle input:checked + .st-toggle-slider { background: var(--bl-acc); }
-body.ui-blank.dark .st-toggle-slider::before { background: #08181a; }
+body.ui-blank.dark .st-toggle-slider::before { background: var(--br-07); }
 
 /* ── Числовые поля ── */
 body.ui-blank .st-number {
@@ -6412,7 +6523,7 @@ body.ui-blank #settingsBody button[style*="background:var(--green-dark)"] {
   border: 1px solid var(--bl-acc) !important;
   color: var(--bl-sheet) !important;
 }
-body.ui-blank.dark #settingsBody button[style*="background:var(--green-dark)"] { color: #08181a !important; }
+body.ui-blank.dark #settingsBody button[style*="background:var(--green-dark)"] { color: var(--br-07) !important; }
 body.ui-blank #settingsBody button[style*="#c44"] {
   background: none !important;
   border: 1px solid #d08a86 !important;
@@ -6507,11 +6618,11 @@ body.ui-blank #employeesList span[data-role] {
 }
 body.ui-blank #employeesList span[data-role="admin"]      { color: #7d5ba6 !important; }
 body.ui-blank #employeesList span[data-role="editor"]     { color: #3a6ea5 !important; }
-body.ui-blank #employeesList span[data-role="specialist"] { color: #1e6c72 !important; }
+body.ui-blank #employeesList span[data-role="specialist"] { color: var(--br-28) !important; }
 body.ui-blank #employeesList span[data-role="manager"]    { color: #4a7c3f !important; }
 body.ui-blank.dark #employeesList span[data-role="admin"]      { color: #b79bd8 !important; }
 body.ui-blank.dark #employeesList span[data-role="editor"]     { color: #8ab4dd !important; }
-body.ui-blank.dark #employeesList span[data-role="specialist"] { color: #7fd0d6 !important; }
+body.ui-blank.dark #employeesList span[data-role="specialist"] { color: var(--br-67) !important; }
 body.ui-blank.dark #employeesList span[data-role="manager"]    { color: #9dc78f !important; }
 /* «Сохранить» в каждой карточке — пять залитых прямоугольников подряд на
    листе. Действие рядовое и включается только после смены роли, поэтому
@@ -6532,12 +6643,12 @@ body.ui-blank #employeesList > button {
 
 /* Окно подтверждения удаления живёт вне окна настроек, поэтому общие правила
    тела до него не доходят — у него свой набор. */
-body.ui-blank #deleteEmpOverlay { background: rgba(18,38,42,.45) !important; }
+body.ui-blank #deleteEmpOverlay { background: rgba(var(--br-12в-rgb),.45) !important; }
 body.ui-blank.dark #deleteEmpOverlay { background: rgba(0,0,0,.6) !important; }
 body.ui-blank #deleteEmpOverlay > div {
   background: var(--bl-sheet) !important;
   border-radius: 14px !important;
-  box-shadow: 0 18px 50px rgba(18,38,42,.13) !important;
+  box-shadow: 0 18px 50px rgba(var(--br-12в-rgb),.13) !important;
   color: var(--bl-ink) !important;
 }
 body.ui-blank.dark #deleteEmpOverlay > div { box-shadow: 0 18px 50px rgba(0,0,0,.5) !important; }
@@ -6664,7 +6775,7 @@ body.ui-blank #resetDropdownMenu {
   background: var(--bl-sheet);
   border: 1px solid var(--bl-rule2);
   border-radius: 12px;
-  box-shadow: 0 14px 40px rgba(18,38,42,.14);
+  box-shadow: 0 14px 40px rgba(var(--br-12в-rgb),.14);
   padding: 6px 0;
   min-width: 248px;
 }
@@ -6704,12 +6815,12 @@ body.ui-blank.dark .reset-all-item:hover { background: rgba(232,134,124,.12); }
    Тот же лист, что у остальных окон: шапка документа с чертой, волосяные
    линейки между строками, фильтр текстом с подчёркиванием у выбранного.
    ══════════════════════════════════════════════════════════════════════════ */
-body.ui-blank #optSearchOverlay { background: rgba(18,38,42,.45); }
+body.ui-blank #optSearchOverlay { background: rgba(var(--br-12в-rgb),.45); }
 body.ui-blank.dark #optSearchOverlay { background: rgba(0,0,0,.6); }
 body.ui-blank #optSearchPanel {
   background: var(--bl-sheet) !important;
   border-radius: 14px !important;
-  box-shadow: 0 18px 50px rgba(18,38,42,.13) !important;
+  box-shadow: 0 18px 50px rgba(var(--br-12в-rgb),.13) !important;
 }
 body.ui-blank.dark #optSearchPanel { box-shadow: 0 18px 50px rgba(0,0,0,.5) !important; }
 
@@ -6829,12 +6940,12 @@ body.ui-blank .ops-foot b { color: var(--bl-ink); }
 /* Отступ сверху окну задаёт JS (`overlayTopOffset`), чтобы в «Модерне» окно
    не накрывало шапку. В «Бланке» окна — лист поверх страницы, как платёжный
    план, поэтому отступ здесь свой и высота листа считается от него. */
-body.ui-blank #presetPanel { background: rgba(18,38,42,.45); padding: 14px !important; }
+body.ui-blank #presetPanel { background: rgba(var(--br-12в-rgb),.45); padding: 14px !important; }
 body.ui-blank.dark #presetPanel { background: rgba(0,0,0,.6); }
 body.ui-blank #presetBox {
   background: var(--bl-sheet);
   border-radius: 14px;
-  box-shadow: 0 18px 50px rgba(18,38,42,.13);
+  box-shadow: 0 18px 50px rgba(var(--br-12в-rgb),.13);
   max-width: 600px;
   height: calc(100vh - 28px);
 }
@@ -7211,7 +7322,7 @@ body.ui-blank .btn-copy-link.copied {
   color: var(--bl-acc) !important;
   font-weight: 700 !important;
 }
-body.ui-blank.dark .btn-copy-link.copied { color: #08181a !important; }
+body.ui-blank.dark .btn-copy-link.copied { color: var(--br-07) !important; }
 
 /* ══════════════════════════════════════════════════════════════════════════
    КАРТОЧКА-ПЛИТКА (макет presets-blank-v3-tile, согласован 23.08.2026)
@@ -7426,7 +7537,7 @@ body.ui-blank .publish-dropdown-preset {
   background: var(--bl-sheet) !important;
   border: 1px solid var(--bl-rule2) !important;
   border-radius: 11px !important;
-  box-shadow: 0 14px 34px rgba(18,38,42,.18) !important;
+  box-shadow: 0 14px 34px rgba(var(--br-12в-rgb),.18) !important;
 }
 body.ui-blank.dark .publish-dropdown-preset { box-shadow: 0 14px 34px rgba(0,0,0,.55) !important; }
 body.ui-blank .pub-preset-opt { color: var(--bl-ink) !important; min-height: 44px; }
@@ -7458,13 +7569,13 @@ body.ui-blank #komplOverlay {
   --green-mid: var(--bl-acc2);
   --green-light: var(--bl-acc2);
   --green-pale: var(--bl-pale);
-  background: rgba(18,38,42,.45) !important;
+  background: rgba(var(--br-12в-rgb),.45) !important;
 }
 body.ui-blank.dark #komplOverlay { background: rgba(0,0,0,.6) !important; }
 body.ui-blank #komplPanel {
   background: var(--bl-sheet) !important;
   border-radius: 14px 14px 0 0 !important;
-  box-shadow: 0 -8px 40px rgba(18,38,42,.14) !important;
+  box-shadow: 0 -8px 40px rgba(var(--br-12в-rgb),.14) !important;
 }
 body.ui-blank.dark #komplPanel { box-shadow: 0 -8px 40px rgba(0,0,0,.5) !important; }
 
@@ -7631,7 +7742,7 @@ body.ui-blank #komplTabContent_table button[onclick*="printKompl"] {
   position: relative;
 }
 body.ui-blank #komplHideEmptyBtn[style*="--green-dark"] { border-color: var(--bl-acc) !important; }
-body.ui-blank.dark #komplHideEmptyBtn[style*="--green-dark"] { color: #08181a !important; }
+body.ui-blank.dark #komplHideEmptyBtn[style*="--green-dark"] { color: var(--br-07) !important; }
 /* Ряд кнопок стоит с зазором 6 px, поэтому поля нажатия берут по 3 px в
    стороны: 3 + 3 ровно укладывается в зазор, и соседи не крадут углы. */
 body.ui-blank #komplHideEmptyBtn::before,
@@ -7645,7 +7756,7 @@ body.ui-blank #komplApplyBtn {
   min-height: 36px;
   position: relative;
 }
-body.ui-blank.dark #komplApplyBtn { color: #08181a !important; }
+body.ui-blank.dark #komplApplyBtn { color: var(--br-07) !important; }
 body.ui-blank #komplApplyBtn::before { content: ''; position: absolute; inset: -5px -3px; }
 
 /* ── Таблица ── */
@@ -7863,7 +7974,7 @@ body.ui-blank #kedCustomForm button[onclick*="saveKedCustomForm"] {
   border: 1px solid var(--bl-acc) !important;
   color: var(--bl-sheet) !important;
 }
-body.ui-blank.dark #kedCustomForm button[onclick*="saveKedCustomForm"] { color: #08181a !important; }
+body.ui-blank.dark #kedCustomForm button[onclick*="saveKedCustomForm"] { color: var(--br-07) !important; }
 
 /* ══════════════════════════════════════════════════════════════════════════
    ДИАЛОГ «КОПИРОВАТЬ ИЗ…»
@@ -7881,14 +7992,14 @@ body.ui-blank #komplCopyOverlay {
   --gray-light: var(--bl-ink3);
   --green-dark: var(--bl-acc);
   --green-mid: var(--bl-acc2);
-  background: rgba(18,38,42,.45) !important;
+  background: rgba(var(--br-12в-rgb),.45) !important;
 }
 body.ui-blank.dark #komplCopyOverlay { background: rgba(0,0,0,.6) !important; }
 body.ui-blank #komplCopyOverlay > div {
   background: var(--bl-sheet) !important;
   border: 1px solid var(--bl-rule) !important;
   border-radius: 14px !important;
-  box-shadow: 0 18px 50px rgba(18,38,42,.16) !important;
+  box-shadow: 0 18px 50px rgba(var(--br-12в-rgb),.16) !important;
 }
 body.ui-blank.dark #komplCopyOverlay > div { box-shadow: 0 18px 50px rgba(0,0,0,.55) !important; }
 body.ui-blank #komplCopyOverlay .ovl-head {
@@ -7958,7 +8069,7 @@ body.ui-blank #komplCopyOverlay button[onclick*="'merge'"] {
   border: 1px solid var(--bl-acc) !important;
   color: var(--bl-sheet) !important;
 }
-body.ui-blank.dark #komplCopyOverlay button[onclick*="'merge'"] { color: #08181a !important; }
+body.ui-blank.dark #komplCopyOverlay button[onclick*="'merge'"] { color: var(--br-07) !important; }
 
 /* ── Узкий экран: редактор в один столбец ── */
 /* Редактор собран из двух колонок — список опций и сводка в 250 px. На
@@ -8026,14 +8137,14 @@ body.ui-blank.dark #komplCopyOverlay button[onclick*="'merge'"] { color: #08181a
    Разметка и поведение не тронуты: всё оформление задано инлайном, поэтому
    правила вынужденно с !important.
    ══════════════════════════════════════════════════════════════════════════ */
-body.ui-blank #printOverlay { background: rgba(18,38,42,.45) !important; }
+body.ui-blank #printOverlay { background: rgba(var(--br-12в-rgb),.45) !important; }
 body.ui-blank.dark #printOverlay { background: rgba(0,0,0,.6) !important; }
 
 body.ui-blank #printToolbar {
   background: var(--bl-sheet) !important;
   border: 1px solid var(--bl-rule) !important;
   border-radius: 14px !important;
-  box-shadow: 0 10px 30px rgba(18,38,42,.10);
+  box-shadow: 0 10px 30px rgba(var(--br-12в-rgb),.10);
   color: var(--bl-ink);
 }
 body.ui-blank.dark #printToolbar { box-shadow: 0 10px 30px rgba(0,0,0,.45); }
@@ -8064,9 +8175,9 @@ body.ui-blank #printToolbar #previewEntityBtn {
   border-color: var(--bl-acc) !important;
   color: var(--bl-sheet) !important;
 }
-body.ui-blank.dark #printToolbar #previewEntityBtn { color: #08181a !important; }
+body.ui-blank.dark #printToolbar #previewEntityBtn { color: var(--br-07) !important; }
 body.ui-blank #printToolbar #previewEntityBtn:hover { background: var(--bl-acc2) !important; border-color: var(--bl-acc2) !important; color: var(--bl-sheet) !important; }
-body.ui-blank.dark #printToolbar #previewEntityBtn:hover { color: #08181a !important; }
+body.ui-blank.dark #printToolbar #previewEntityBtn:hover { color: var(--br-07) !important; }
 
 /* Выпадающие меню — лист с рамкой, как везде в «Бланке». */
 body.ui-blank #previewEntityMenu,
@@ -8076,7 +8187,7 @@ body.ui-blank #printParamsDropMenu {
   background: var(--bl-sheet) !important;
   border: 1px solid var(--bl-rule2) !important;
   border-radius: 11px !important;
-  box-shadow: 0 14px 34px rgba(18,38,42,.18) !important;
+  box-shadow: 0 14px 34px rgba(var(--br-12в-rgb),.18) !important;
 }
 body.ui-blank.dark #previewEntityMenu,
 body.ui-blank.dark #printStyleDropMenu,
@@ -8099,12 +8210,12 @@ body.ui-blank #printStyleDropMenu button.active > span:first-child { background:
 /* Выбранный стиль печати виден строкой целиком: одной точки мало — в тёмной
    теме она тонет, и меню выглядит так, будто ничего не выбрано. */
 body.ui-blank #printStyleDropMenu button.active {
-  background: rgba(30,108,114,.10) !important;
+  background: rgba(var(--br-28-rgb),.10) !important;
   color: var(--bl-acc) !important;
   font-weight: 600 !important;
   box-shadow: inset 3px 0 0 var(--bl-acc);
 }
-body.ui-blank.dark #printStyleDropMenu button.active { background: rgba(143,214,220,.16) !important; }
+body.ui-blank.dark #printStyleDropMenu button.active { background: rgba(var(--br-71-rgb),.16) !important; }
 /* Тема «Модерн»: меню на тёмно-бирюзовом, поэтому подсветка светлая. Правило
    с !important, потому что у кнопок стоит инлайновый background:none, который
    обычную заливку перебивает; и с :not(.ui-blank), чтобы не спорить с правилом
@@ -8177,7 +8288,7 @@ body.ui-blank #printSectionCheckList input { accent-color: var(--bl-acc) !import
 body.ui-blank #clientLinkBar .cl-head { border-bottom-color: var(--bl-acc) !important; }
 body.ui-blank #clientLinkRule { background: var(--bl-rule) !important; }
 body.ui-blank #clientLinkBar .cl-t { color: var(--bl-acc) !important; }
-body.ui-blank.dark #clientLinkBar .cl-t { color: #bfe6e8 !important; }
+body.ui-blank.dark #clientLinkBar .cl-t { color: var(--br-83) !important; }
 body.ui-blank #clientLinkBar .cl-sub { color: var(--bl-ink2) !important; }
 body.ui-blank #clientLinkBar .cl-sub b { color: var(--bl-ink) !important; }
 body.ui-blank #clientLinkBar .cl-sub .old { color: var(--bl-warn, #c06010) !important; }
@@ -8266,15 +8377,15 @@ body.ui-blank .pcard-rename-ok {
   min-height: 32px;
 }
 body.ui-blank .pcard-rename-ok::before { content: ''; position: absolute; inset: -6px; }
-body.ui-blank.dark .pcard-rename-ok { color: #08181a !important; }
+body.ui-blank.dark .pcard-rename-ok { color: var(--br-07) !important; }
 
 /* ── Подтверждение удаления — открывается прямо отсюда ── */
-body.ui-blank #confirmDialog { background: rgba(18,38,42,.45); }
+body.ui-blank #confirmDialog { background: rgba(var(--br-12в-rgb),.45); }
 body.ui-blank.dark #confirmDialog { background: rgba(0,0,0,.6); }
 body.ui-blank #confirmDialogBox {
   background: var(--bl-sheet);
   border-radius: 14px;
-  box-shadow: 0 18px 50px rgba(18,38,42,.13);
+  box-shadow: 0 18px 50px rgba(var(--br-12в-rgb),.13);
 }
 body.ui-blank.dark #confirmDialogBox { box-shadow: 0 18px 50px rgba(0,0,0,.5); }
 /* Красный кружок под значком — наклейка на бланке. Тревогу несёт сам знак
@@ -8580,16 +8691,16 @@ body.ui-blank #confirmDialogOk { background: #c0392b; }
       </div>
 
     </div>
-    <div style="padding:14px 22px 18px;border-top:1px solid #e0eced;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div style="padding:14px 22px 18px;border-top:1px solid var(--br-90а);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
       <div style="display:flex;align-items:center;gap:12px;">
-        <button onclick="confirmClearContractData()" title="Очистить все поля" style="background:transparent;color:var(--gray);border:1.5px solid #d6e6e7;padding:8px 14px;border-radius:8px;font-family:inherit;font-size:0.8rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+        <button onclick="confirmClearContractData()" title="Очистить все поля" style="background:transparent;color:var(--gray);border:1.5px solid var(--br-87б);padding:8px 14px;border-radius:8px;font-family:inherit;font-size:0.8rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
           Очистить
         </button>
         <span id="cdModalFooterStatus" style="font-size:0.78rem;color:var(--gray);"></span>
       </div>
       <div style="display:flex;gap:8px;">
-        <button onclick="closeContractDataModal()" style="background:transparent;color:var(--gray);border:1.5px solid #d6e6e7;padding:8px 16px;border-radius:8px;font-family:inherit;font-size:0.82rem;cursor:pointer;">Закрыть</button>
+        <button onclick="closeContractDataModal()" style="background:transparent;color:var(--gray);border:1.5px solid var(--br-87б);padding:8px 16px;border-radius:8px;font-family:inherit;font-size:0.82rem;cursor:pointer;">Закрыть</button>
         <button onclick="saveContractData();closeContractDataModal();" style="background:var(--green-dark);color:#fff;border:none;padding:9px 18px;border-radius:8px;font-family:inherit;font-size:0.82rem;font-weight:600;cursor:pointer;">Сохранить</button>
       </div>
     </div>
@@ -8609,10 +8720,10 @@ body.ui-blank #confirmDialogOk { background: #c0392b; }
       <ul id="cvMissingList" style="background:#fff4d1;border-left:3px solid #e0b234;border-radius:0 8px 8px 0;padding:12px 14px 12px 28px;margin:8px 0 12px;list-style:none;"></ul>
       <p style="font-size:0.78rem;color:var(--gray);">Незаполненные поля будут оставлены в виде шаблонных плейсхолдеров. Рекомендуется заполнить все.</p>
     </div>
-    <div style="padding:14px 22px 18px;border-top:1px solid #e0eced;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-      <button id="cvDownloadAnywayBtn" onclick="cvDownloadAnyway()" style="background:transparent;color:var(--gray);border:1.5px solid #d6e6e7;padding:8px 14px;border-radius:8px;font-family:inherit;font-size:0.8rem;cursor:pointer;">Скачать как есть</button>
+    <div style="padding:14px 22px 18px;border-top:1px solid var(--br-90а);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+      <button id="cvDownloadAnywayBtn" onclick="cvDownloadAnyway()" style="background:transparent;color:var(--gray);border:1.5px solid var(--br-87б);padding:8px 14px;border-radius:8px;font-family:inherit;font-size:0.8rem;cursor:pointer;">Скачать как есть</button>
       <div style="display:flex;gap:8px;">
-        <button onclick="closeContractValDialog()" style="background:transparent;color:var(--gray);border:1.5px solid #d6e6e7;padding:8px 14px;border-radius:8px;font-family:inherit;font-size:0.8rem;cursor:pointer;">Отмена</button>
+        <button onclick="closeContractValDialog()" style="background:transparent;color:var(--gray);border:1.5px solid var(--br-87б);padding:8px 14px;border-radius:8px;font-family:inherit;font-size:0.8rem;cursor:pointer;">Отмена</button>
         <button onclick="closeContractValDialog();openContractDataModal();" style="background:var(--green-dark);color:#fff;border:none;padding:9px 16px;border-radius:8px;font-family:inherit;font-size:0.8rem;font-weight:600;cursor:pointer;">Открыть реквизиты</button>
       </div>
     </div>
@@ -8632,10 +8743,10 @@ body.ui-blank #confirmDialogOk { background: #c0392b; }
       <button class="ovl-x" onclick="closeContractPreview()" title="Закрыть" aria-label="Закрыть"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div id="contractPreviewBody" style="padding:20px 22px;max-height:calc(100vh - 200px);overflow-y:auto;"></div>
-    <div style="padding:14px 22px 18px;border-top:1px solid #e0eced;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div style="padding:14px 22px 18px;border-top:1px solid var(--br-90а);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
       <span id="contractPreviewFilename" style="font-size:0.78rem;color:var(--gray);word-break:break-all;"></span>
       <div style="display:flex;gap:8px;">
-        <button onclick="closeContractPreview()" style="background:transparent;color:var(--gray);border:1.5px solid #d6e6e7;padding:8px 14px;border-radius:8px;font-family:inherit;font-size:0.8rem;cursor:pointer;">Отмена</button>
+        <button onclick="closeContractPreview()" style="background:transparent;color:var(--gray);border:1.5px solid var(--br-87б);padding:8px 14px;border-radius:8px;font-family:inherit;font-size:0.8rem;cursor:pointer;">Отмена</button>
         <button id="contractPreviewDlBtn" onclick="downloadContractFromPreview()" style="background:var(--green-dark);color:#fff;border:none;padding:9px 16px;border-radius:8px;font-family:inherit;font-size:0.8rem;font-weight:600;cursor:pointer;">Скачать</button>
       </div>
     </div>
@@ -9071,7 +9182,7 @@ body.ui-blank #confirmDialogOk { background: #c0392b; }
       <!-- Controls -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;gap:3px;background:var(--green-bg);border-radius:8px;padding:3px;">
-          <button id="kvtab_all" onclick="setKomplView('all',this)" style="padding:4px 10px;border-radius:6px;border:none;font-family:'Geologica',sans-serif;font-size:0.68rem;font-weight:600;cursor:pointer;background:var(--card-bg);color:var(--green-dark);box-shadow:0 1px 4px rgba(30,108,114,0.1);">Все опции</button>
+          <button id="kvtab_all" onclick="setKomplView('all',this)" style="padding:4px 10px;border-radius:6px;border:none;font-family:'Geologica',sans-serif;font-size:0.68rem;font-weight:600;cursor:pointer;background:var(--card-bg);color:var(--green-dark);box-shadow:0 1px 4px rgba(var(--br-28-rgb),0.1);">Все опции</button>
           <button id="kvtab_diff" onclick="setKomplView('diff',this)" style="padding:4px 10px;border-radius:6px;border:none;font-family:'Geologica',sans-serif;font-size:0.68rem;font-weight:500;cursor:pointer;background:transparent;color:var(--gray);">Только различия</button>
           <button id="kvtab_extra" onclick="setKomplView('extra',this)" style="padding:4px 10px;border-radius:6px;border:none;font-family:'Geologica',sans-serif;font-size:0.68rem;font-weight:500;cursor:pointer;background:transparent;color:var(--gray);">Только доп.</button>
         </div>
@@ -9533,7 +9644,7 @@ body.ui-blank #confirmDialogOk { background: #c0392b; }
       </div>
     </div>
     <!-- Contract Data button + status pill -->
-    <div class="contract-data-row" style="display:flex;align-items:center;gap:10px;margin-top:6px;padding-top:14px;border-top:1px dashed #d6e6e7;">
+    <div class="contract-data-row" style="display:flex;align-items:center;gap:10px;margin-top:6px;padding-top:14px;border-top:1px dashed var(--br-87б);">
       <button id="btnContractData" class="btn-contract-data" onclick="openContractDataModal()" style="display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:1.5px solid var(--green-mid);background:transparent;color:var(--green-dark);border-radius:9px;font-family:inherit;font-size:0.78rem;font-weight:600;cursor:pointer;transition:background 0.15s, border-color 0.15s;flex-shrink:0;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         Данные для договора
@@ -9555,7 +9666,7 @@ body.ui-blank #confirmDialogOk { background: #c0392b; }
           <span id="techSelectLabel">Каркас</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" id="techSelectArrow" style="flex-shrink:0;opacity:0.5;transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="custom-select-dropdown" id="techSelectDropdown" style="position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:100;background:var(--card-bg);border:1.5px solid var(--green-pale);border-radius:9px;box-shadow:0 8px 24px rgba(30,108,114,0.12);display:none;overflow:hidden;">
+        <div class="custom-select-dropdown" id="techSelectDropdown" style="position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:100;background:var(--card-bg);border:1.5px solid var(--green-pale);border-radius:9px;box-shadow:0 8px 24px rgba(var(--br-28-rgb),0.12);display:none;overflow:hidden;">
           <div class="custom-select-option selected" data-tech="frame" onclick="selectTech('Каркас')">Каркас</div>
           <div class="custom-select-option" data-tech="glulam" onclick="selectTech('Клеёный брус')">Клеёный брус</div>
           <div class="custom-select-option soon" data-tech="stone" onclick="selectTech('Камень')">Камень<span class="cso-soon">В разработке</span></div>
@@ -9621,13 +9732,13 @@ body.ui-blank #confirmDialogOk { background: #c0392b; }
         <div class="result-label disc-lab" id="discPctLab" onclick="переключитьГлавноеПолеСкидки('процент')"
           title="Сделать процент главным: сумма скидки будет пересчитываться" style="margin:0;">Спец. цена</div>
         <div style="display:flex;align-items:center;gap:4px;">
-          <span style="color:rgba(168,221,224,0.7);font-size:0.72rem;">−</span>
+          <span style="color:rgba(var(--br-77-rgb),0.7);font-size:0.72rem;">−</span>
           <input id="discountPctInput" type="number" value="0" min="0" max="50" step="0.5"
             oninput="calc();if(typeof collabSectionChanged==='function')collabSectionChanged('disc')"
             onfocus="window._скидкаБыла=this.value"
             onchange="logDiscountChange(this.value)"
             style="width:48px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#fff;font-family:'Geologica',sans-serif;font-size:0.82rem;text-align:center;padding:3px 6px;outline:none;">
-          <span style="color:rgba(168,221,224,0.7);font-size:0.72rem;">%</span>
+          <span style="color:rgba(var(--br-77-rgb),0.7);font-size:0.72rem;">%</span>
         </div>
       </div>
       <div class="discount-amount" id="discountDisplay">0 ₽</div>
@@ -9642,18 +9753,18 @@ body.ui-blank #confirmDialogOk { background: #c0392b; }
           onfocus="window._скидкаБыла=(document.getElementById('discountPctInput')||{}).value"
           onblur="экономияЗакончена()"
           style="width:calc(9ch + 16px);background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#fff;font-family:'Geologica',sans-serif;font-size:0.75rem;text-align:right;padding:3px 7px;outline:none;">
-        <span class="disc-saved-cur" style="font-size:0.7rem;color:rgba(168,221,224,0.7);">₽</span>
+        <span class="disc-saved-cur" style="font-size:0.7rem;color:rgba(var(--br-77-rgb),0.7);">₽</span>
         <!-- «за наличные» стоит после суммы скидки, а не в строке процента:
              условие относится к самой скидке, и читается оно там, где она
              названа суммой. Перенесено по просьбе Константина 02.09.2026. -->
         <label id="cashDiscountLabel" style="display:flex;align-items:center;gap:5px;cursor:pointer;margin-left:6px;">
           <input type="checkbox" id="cashDiscountCheck" onchange="calc();logCashToggle(this.checked);if(typeof collabSectionChanged==='function')collabSectionChanged('disc')"
-            style="width:14px;height:14px;accent-color:#3db0ba;cursor:pointer;flex-shrink:0;">
-          <span style="font-size:0.68rem;color:rgba(168,221,224,0.85);white-space:nowrap;">за наличные</span>
+            style="width:14px;height:14px;accent-color:var(--br-48);cursor:pointer;flex-shrink:0;">
+          <span style="font-size:0.68rem;color:rgba(var(--br-77-rgb),0.85);white-space:nowrap;">за наличные</span>
         </label>
       </div>
       <div style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <span style="font-size:0.65rem;color:rgba(168,221,224,0.7);text-transform:uppercase;letter-spacing:0.08em;white-space:nowrap;">Действительна до</span>
+        <span style="font-size:0.65rem;color:rgba(var(--br-77-rgb),0.7);text-transform:uppercase;letter-spacing:0.08em;white-space:nowrap;">Действительна до</span>
         <input type="date" id="discountUntilDate" onfocus="_срокБыл=this.value" oninput="calc();if(typeof collabSectionChanged==='function')collabSectionChanged('disc')" onchange="calc();logDiscountUntil(this.value);if(typeof collabSectionChanged==='function')collabSectionChanged('disc')"
           style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#fff;font-family:'Geologica',sans-serif;font-size:0.75rem;padding:3px 8px;outline:none;cursor:pointer;color-scheme:dark;">
       </div>
@@ -11389,7 +11500,7 @@ function confirmCustomProject() {
     const btn = document.getElementById('cpBtnCopy');
     if (btn) {
       btn.style.transition = 'box-shadow 0.2s';
-      btn.style.boxShadow = '0 0 0 3px rgba(30,108,114,0.4)';
+      btn.style.boxShadow = '0 0 0 3px rgba(var(--br-28-rgb),0.4)';
       setTimeout(() => { btn.style.boxShadow = ''; }, 1200);
       btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -13367,7 +13478,7 @@ function initDragItem(item, list) {
       pointer-events: none;
       z-index: 9999;
       border-radius: 9px;
-      box-shadow: 0 6px 24px rgba(30,108,114,0.25);
+      box-shadow: 0 6px 24px rgba(var(--br-28-rgb),0.25);
       background: var(--white);
     `;
     document.body.appendChild(manualDragGhost);
@@ -16793,16 +16904,16 @@ function buildPrintDoc() {
 
     tableRows += плотныйЗаголовок
       ? `<tr><td colspan="4" style="padding:14px 0 4px 0;">
-           <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #1e6c72;padding-bottom:5px;">
-             <span style="font-weight:700;font-size:${плотныйЗаголовок?'10.5pt':'13pt'};color:#1e6c72;letter-spacing:0.01em;">${sectionNum}. ${SECTION_NAMES[sec.key]}</span>
-             <span style="font-weight:700;font-size:${плотныйЗаголовок?'10.5pt':'13pt'};color:#1e6c72;">${(!printHideSectionTotals && sTotal > 0) ? fmtP(sTotal) : ''}</span>
+           <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--br-28);padding-bottom:5px;">
+             <span style="font-weight:700;font-size:${плотныйЗаголовок?'10.5pt':'13pt'};color:var(--br-28);letter-spacing:0.01em;">${sectionNum}. ${SECTION_NAMES[sec.key]}</span>
+             <span style="font-weight:700;font-size:${плотныйЗаголовок?'10.5pt':'13pt'};color:var(--br-28);">${(!printHideSectionTotals && sTotal > 0) ? fmtP(sTotal) : ''}</span>
            </div>
          </td></tr>`
       : `<tr>
-          <td style="padding:8px 6px 4px 0;font-weight:bold;font-size:11pt;border-bottom:2px solid #1e6c72;color:#000;white-space:nowrap;">${sectionNum}.</td>
-          <td style="padding:8px 4px 4px 0;font-weight:bold;font-size:11pt;border-bottom:2px solid #1e6c72;">${SECTION_NAMES[sec.key]}</td>
-          <td style="padding:8px 0 4px 0;border-bottom:2px solid #1e6c72;"></td>
-          <td style="padding:8px 0 4px 0;font-weight:bold;font-size:11pt;text-align:right;border-bottom:2px solid #1e6c72;white-space:nowrap;">${(!printHideSectionTotals && sTotal > 0) ? fmtP(sTotal) : ''}</td>
+          <td style="padding:8px 6px 4px 0;font-weight:bold;font-size:11pt;border-bottom:2px solid var(--br-28);color:#000;white-space:nowrap;">${sectionNum}.</td>
+          <td style="padding:8px 4px 4px 0;font-weight:bold;font-size:11pt;border-bottom:2px solid var(--br-28);">${SECTION_NAMES[sec.key]}</td>
+          <td style="padding:8px 0 4px 0;border-bottom:2px solid var(--br-28);"></td>
+          <td style="padding:8px 0 4px 0;font-weight:bold;font-size:11pt;text-align:right;border-bottom:2px solid var(--br-28);white-space:nowrap;">${(!printHideSectionTotals && sTotal > 0) ? fmtP(sTotal) : ''}</td>
         </tr>`;
 
     let lineNum = 0;
@@ -16926,7 +17037,7 @@ function buildPrintDoc() {
   // Color of the applied kit (match by name in KITS); used for the kit label color in print.
   let _kitColor = '#000';
   try { const _kc = (typeof KITS !== 'undefined') ? KITS.find(k => k.name === _kitName) : null; if (_kc && _kc.color) _kitColor = _kc.color; } catch (e) {}
-  if (_kitColor === 'var(--green-dark)') _kitColor = '#1e6c72'; // resolve CSS var for the print document
+  if (_kitColor === 'var(--green-dark)') _kitColor = 'var(--br-28)'; // resolve CSS var for the print document
   // Total caption: when a kit is applied, the whole label becomes «Стоимость за
   // комплектацию «Name»» in the kit color. When no kit, it stays «Общая стоимость» in
   // the theme's own default color. One builder, parameterized per theme.
@@ -16939,7 +17050,7 @@ function buildPrintDoc() {
       : `<span style="color:${defaultColor};${extraStyle||''}">Общая стоимость</span>`;
   // Per-theme captions (default color matches each theme's original «Общая стоимость»).
   const _totalCaption     = _totalCaptionFor('#111');                 // Classic / Cards-light / Modern
-  const _totalCaptionArch = _totalCaptionFor('#1e6c72');              // Architect (teal)
+  const _totalCaptionArch = _totalCaptionFor('var(--br-28)');              // Architect (teal)
   // Cards (dark header): white default; kit name in translucent white to stay legible on dark.
   const _totalCaptionLight = _kitName
     ? `<span style="color:rgba(255,255,255,0.92);text-transform:none;letter-spacing:normal;">Стоимость комплектации «${_kitName}»${_kitDiscNote}</span>`
@@ -16951,7 +17062,7 @@ function buildPrintDoc() {
 
   // Architect header: eyebrow + large project name + right meta + tech strip with green lines
   const architectHeader = `
-    <div style="position:relative;padding-left:8px;border-left:5px solid #1e6c72;margin-bottom:32px;">
+    <div style="position:relative;padding-left:8px;border-left:5px solid var(--br-28);margin-bottom:32px;">
       <div class="pp-head" style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:24px;">
         <div style="flex:1 1 260px;min-width:0;">
           ${printLogoHtml}
@@ -17154,8 +17265,8 @@ function buildPrintDoc() {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-.bl-doc{--s:#fff;--zebra:#f7fafb;--ink:#12262a;--ink2:#5b7376;--ink3:#8da3a5;
-  --rule:#dceaeb;--rule2:#bcd9db;--acc:#1e6c72;--acc2:#2a8f97;--pale:#a8dde0;--tint:#e4f5f6;
+.bl-doc{--s:#fff;--zebra:#f7fafb;--ink:var(--br-12в);--ink2:var(--br-41);--ink3:var(--br-60б);
+  --rule:var(--br-89);--rule2:var(--br-80);--acc:var(--br-28);--acc2:var(--br-38);--pale:var(--br-77);--tint:var(--br-93);
   background:var(--s);color:var(--ink);font-family:'Geologica',system-ui,sans-serif;
   font-size:9.5pt;line-height:1.5;font-variant-numeric:tabular-nums;
   -webkit-print-color-adjust:exact;print-color-adjust:exact;}
@@ -17604,8 +17715,8 @@ function buildPrintDoc() {
 <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* Значения цвета сняты пипеткой с присланного PDF, без пересчёта. */
-.rs-doc{--acc:#17726f;--acc-l:#166f6c;--acc-d:#105755;
-  --ink:#1b2320;--ink2:#6b7a78;--rule:#dde4e3;--head:#f0f5f4;--total:#e7f1f1;
+.rs-doc{--acc:var(--br-27);--acc-l:var(--br-26);--acc-d:var(--br-20);
+  --ink:#1b2320;--ink2:#6b7a78;--rule:#dde4e3;--head:#f0f5f4;--total:var(--br-93в);
   --plus:#1d793c;--minus:#b3251d;
   /* Свой белый фон обязателен: без него лист прозрачен и держится только на
      том, что окно предпросмотра под ним белое. «Бланк» красит себя сам, и
@@ -17896,8 +18007,8 @@ table.rs-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
           rowsHtml += `<div style="display:flex;align-items:baseline;padding:4px 0;border-bottom:1px solid #f5f5f5;${cHl ? 'background:#fff8ec;' : ''}">
             <span style="font-size:8pt;color:#ccc;width:32px;flex-shrink:0;">${cardSecNum}.${lineNum}</span>
             <span style="font-size:9.5pt;color:#333;flex:1;padding-right:10px;">${opt.name}${cGiftBadge}</span>
-            <span style="font-size:9.5pt;color:#1e6c72;font-weight:400;width:28px;text-align:center;flex-shrink:0;">Да</span>
-            <span style="font-size:9pt;font-weight:600;color:#1e6c72;white-space:nowrap;min-width:80px;text-align:right;">${priceStr}</span>
+            <span style="font-size:9.5pt;color:var(--br-28);font-weight:400;width:28px;text-align:center;flex-shrink:0;">Да</span>
+            <span style="font-size:9pt;font-weight:600;color:var(--br-28);white-space:nowrap;min-width:80px;text-align:right;">${priceStr}</span>
           </div>`;
         } else {
           const co = entry.co;
@@ -17906,8 +18017,8 @@ table.rs-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
           rowsHtml += `<div style="display:flex;align-items:baseline;padding:4px 0;border-bottom:1px solid #f5f5f5;${ccHl ? 'background:#fff8ec;' : ''}">
             <span style="font-size:8pt;color:#ccc;width:32px;flex-shrink:0;">${cardSecNum}.${lineNum}</span>
             <span style="font-size:9.5pt;color:#333;flex:1;padding-right:10px;">${co.name}</span>
-            <span style="font-size:9.5pt;color:#1e6c72;font-weight:400;width:28px;text-align:center;flex-shrink:0;">Да</span>
-            <span style="font-size:9pt;font-weight:600;color:#1e6c72;white-space:nowrap;min-width:80px;text-align:right;">${priceStr}</span>
+            <span style="font-size:9.5pt;color:var(--br-28);font-weight:400;width:28px;text-align:center;flex-shrink:0;">Да</span>
+            <span style="font-size:9pt;font-weight:600;color:var(--br-28);white-space:nowrap;min-width:80px;text-align:right;">${priceStr}</span>
           </div>`;
         }
       });
@@ -17931,11 +18042,11 @@ table.rs-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
       });
 
       cardSections += `
-        <div style="background:#fff;border-radius:14px;border:1px solid #dde8e8;margin-bottom:10px;overflow:hidden;font-family:${HN};">
-          <div style="display:flex;align-items:center;padding:13px 20px 13px 0;border-left:4px solid #1e6c72;padding-left:14px;gap:8px;">
-            <span style="font-size:8.5pt;font-weight:700;color:#1e6c72;width:26px;flex-shrink:0;">${cardSecNum}.</span>
+        <div style="background:#fff;border-radius:14px;border:1px solid var(--br-89а);margin-bottom:10px;overflow:hidden;font-family:${HN};">
+          <div style="display:flex;align-items:center;padding:13px 20px 13px 0;border-left:4px solid var(--br-28);padding-left:14px;gap:8px;">
+            <span style="font-size:8.5pt;font-weight:700;color:var(--br-28);width:26px;flex-shrink:0;">${cardSecNum}.</span>
             <span style="font-size:10.5pt;font-weight:800;color:#111;flex:1;">${SECTION_NAMES[sec.key]}</span>
-            <span style="font-size:10pt;font-weight:700;color:#1e6c72;padding-right:4px;">${(!printHideSectionTotals && sTotal > 0) ? fmtP(sTotal) : ''}</span>
+            <span style="font-size:10pt;font-weight:700;color:var(--br-28);padding-right:4px;">${(!printHideSectionTotals && sTotal > 0) ? fmtP(sTotal) : ''}</span>
           </div>
           <div style="padding:0 20px 10px 20px;">${rowsHtml}</div>
         </div>`;
@@ -17945,9 +18056,9 @@ table.rs-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
       <div style="font-family:${HN};">
 
         <!-- Header card -->
-        <div class="pp-head" style="background:#fff;border-radius:14px;border:1px solid #dde8e8;padding:28px 32px;margin-bottom:12px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:24px;">
+        <div class="pp-head" style="background:#fff;border-radius:14px;border:1px solid var(--br-89а);padding:28px 32px;margin-bottom:12px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:24px;">
           <div style="flex:1 1 240px;min-width:0;">
-            ${printLogoHtml}<div style="display:inline-block;background:#e8f5f5;color:#1e6c72;font-size:7.5pt;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:10px;margin-left:-4px;">Спецификация</div>
+            ${printLogoHtml}<div style="display:inline-block;background:var(--br-94в);color:var(--br-28);font-size:7.5pt;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:10px;margin-left:-4px;">Спецификация</div>
             <div style="font-size:15pt;font-weight:800;color:#111;line-height:1.2;margin-bottom:4px;">${selectedProject[0]}</div>
             <div style="font-size:9pt;color:#aaa;">${contractHeader}</div>
           </div>
@@ -17960,10 +18071,10 @@ table.rs-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
         </div>
 
         <!-- Tech card -->
-        ${printShowParams ? `<div style="background:#fff;border-radius:14px;border:1px solid #dde8e8;padding:14px 32px;margin-bottom:12px;display:flex;flex-wrap:wrap;row-gap:12px;gap:0;" class="pp-strip"><div class="pp-cell" style="flex:1 1 130px;min-width:0;padding-right:20px;border-right:1px solid #eef3f3;margin-right:20px;"><div style="font-size:7pt;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:2px;">Технология</div><div style="font-size:10pt;font-weight:700;color:#222;">${techLabel}</div></div><div class="pp-cell" style="flex:1 1 130px;min-width:0;padding-right:20px;border-right:1px solid #eef3f3;margin-right:20px;"><div style="font-size:7pt;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:2px;">Утепление</div><div style="font-size:10pt;font-weight:700;color:#222;">${thickLabels[currentThickness]}</div></div><div class="pp-cell" style="flex:1 1 130px;min-width:0;padding-right:20px;border-right:1px solid #eef3f3;margin-right:20px;"><div style="font-size:7pt;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:2px;">Кровля</div><div style="font-size:10pt;font-weight:700;color:#222;">${roofLabel}</div></div><div class="pp-cell" style="flex:1 1 130px;min-width:0;"><div style="font-size:7pt;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:2px;">Позиций в расчёте</div><div style="font-size:10pt;font-weight:700;color:#222;">${printPositions}</div></div></div>` : ""}
+        ${printShowParams ? `<div style="background:#fff;border-radius:14px;border:1px solid var(--br-89а);padding:14px 32px;margin-bottom:12px;display:flex;flex-wrap:wrap;row-gap:12px;gap:0;" class="pp-strip"><div class="pp-cell" style="flex:1 1 130px;min-width:0;padding-right:20px;border-right:1px solid #eef3f3;margin-right:20px;"><div style="font-size:7pt;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:2px;">Технология</div><div style="font-size:10pt;font-weight:700;color:#222;">${techLabel}</div></div><div class="pp-cell" style="flex:1 1 130px;min-width:0;padding-right:20px;border-right:1px solid #eef3f3;margin-right:20px;"><div style="font-size:7pt;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:2px;">Утепление</div><div style="font-size:10pt;font-weight:700;color:#222;">${thickLabels[currentThickness]}</div></div><div class="pp-cell" style="flex:1 1 130px;min-width:0;padding-right:20px;border-right:1px solid #eef3f3;margin-right:20px;"><div style="font-size:7pt;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:2px;">Кровля</div><div style="font-size:10pt;font-weight:700;color:#222;">${roofLabel}</div></div><div class="pp-cell" style="flex:1 1 130px;min-width:0;"><div style="font-size:7pt;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:2px;">Позиций в расчёте</div><div style="font-size:10pt;font-weight:700;color:#222;">${printPositions}</div></div></div>` : ""}
 
         <!-- Total card — green -->
-        <div style="background:#1e6c72;border-radius:14px;border:1px solid #155558;padding:18px 32px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="background:var(--br-28);border-radius:14px;border:1px solid var(--br-21);padding:18px 32px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
           <div>
             <div style="font-size:8pt;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:2px;">${_totalCaptionLight}</div>
             <div style="font-size:15pt;font-weight:800;color:#fff;">${fmtP(totalAfterKit)} руб.</div>
@@ -17979,7 +18090,7 @@ table.rs-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
         ${cardSections}
 
         <!-- Footer card -->
-        <div style="background:#fff;border-radius:14px;border:1px solid #dde8e8;padding:22px 32px;margin-top:8px;">
+        <div style="background:#fff;border-radius:14px;border:1px solid var(--br-89а);padding:22px 32px;margin-top:8px;">
           <div style="display:flex;justify-content:space-between;gap:60px;">
             <div style="flex:1;">
               <div style="border-bottom:1px solid #ddd;height:28px;margin-bottom:4px;"></div>
@@ -18084,7 +18195,7 @@ table.rs-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
 <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-:root{--ink:#1a1916;--ink-mid:#2e2c28;--ink-soft:#5a5850;--ink-ghost:#9a9890;--rule:#e2e0da;--teal:#1e6c72;--teal-mid:#2a8f97;--bg:#f8f7f4;--red:#b84030;}
+:root{--ink:#1a1916;--ink-mid:#2e2c28;--ink-soft:#5a5850;--ink-ghost:#9a9890;--rule:#e2e0da;--teal:var(--br-28);--teal-mid:var(--br-38);--bg:#f8f7f4;--red:#b84030;}
 body{background:var(--bg);font-family:'Jost',sans-serif;padding:48px 40px;min-height:100vh;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 @media print{body{padding:0;}@page{margin:18mm 16mm;}}
 .doc{width:100%;max-width:760px;margin:0 auto;position:relative;}
@@ -18127,7 +18238,7 @@ hr{border:none;border-top:1px solid var(--rule);margin:0;}
 .opt-p{text-align:right;font-family:'Cormorant',serif;font-size:11pt;font-weight:400;color:var(--ink);white-space:nowrap;width:100px;}
 .note-row td{padding:3px 0;border-bottom:none;}
 .note-text{font-family:'Jost',sans-serif;font-size:7.5pt;font-weight:300;color:var(--ink-ghost);font-style:italic;letter-spacing:0.03em;}
-.hl-row td{background:rgba(30,108,114,0.03);}
+.hl-row td{background:rgba(var(--br-28-rgb),0.03);}
 .grand-row td{padding:10px 0 0 0;border-top:2px solid var(--ink);}
 .grand-label{font-family:'Jost',sans-serif;font-size:6.5pt;font-weight:400;letter-spacing:0.26em;text-transform:uppercase;color:var(--ink-soft);}
 .grand-val{font-family:'Cormorant',serif;font-size:15pt;font-weight:500;color:var(--ink);white-space:nowrap;text-align:right;letter-spacing:0.02em;}
@@ -18179,7 +18290,7 @@ ${(typeof appSettings === 'undefined' || appSettings.showDisclaimer) ? '<div cla
 
     document.getElementById('printDoc').innerHTML = `<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500;600&display=swap" rel="stylesheet"><style>
 *{margin:0;padding:0;box-sizing:border-box;}
-:root{--ink:#1a1916;--ink-mid:#2e2c28;--ink-soft:#5a5850;--ink-ghost:#9a9890;--rule:#e2e0da;--teal:#1e6c72;--teal-mid:#2a8f97;--red:#b84030;}
+:root{--ink:#1a1916;--ink-mid:#2e2c28;--ink-soft:#5a5850;--ink-ghost:#9a9890;--rule:#e2e0da;--teal:var(--br-28);--teal-mid:var(--br-38);--red:#b84030;}
 .lux-wrap{background:#fff;font-family:'Jost',sans-serif;padding:0;width:100%;}
 .doc-top-rule{width:100%;height:2px;background:var(--teal);display:block;margin-bottom:48px;}
 .masthead{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:44px;}
@@ -18301,9 +18412,9 @@ ${(typeof appSettings === 'undefined' || appSettings.showDisclaimer) ? '<div cla
       </colgroup>
       ${tableRows}
       <tr>
-        <td colspan="2" style="padding:8px 0;font-weight:bold;font-size:11pt;border-top:2px solid #1e6c72;">Общая стоимость</td>
-        <td style="border-top:2px solid #1e6c72;"></td>
-        <td style="padding:8px 0;border-top:2px solid #1e6c72;text-align:right;">
+        <td colspan="2" style="padding:8px 0;font-weight:bold;font-size:11pt;border-top:2px solid var(--br-28);">Общая стоимость</td>
+        <td style="border-top:2px solid var(--br-28);"></td>
+        <td style="padding:8px 0;border-top:2px solid var(--br-28);text-align:right;">
           <span style="font-weight:bold;font-size:11pt;border:2.5px solid #000;padding:3px 10px;white-space:nowrap;">${fmtP(totalAfterKit)}</span>
         </td>
       </tr>
@@ -18373,7 +18484,7 @@ function printByContracts() {
       docEl.querySelectorAll('.bl-strip').forEach(э => э.classList.remove('is-stack-top', 'is-stack-sub'));
       const pageBreak = ci > 0 ? '<div style="page-break-before:always;margin-top:0;"></div>' : '';
       combinedHTML += pageBreak +
-        `<div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:8pt;color:#2a8f97;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:14px;padding-bottom:6px;border-bottom:2px solid #a8dde0;">${c.name}</div>` +
+        `<div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:8pt;color:var(--br-38);font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:14px;padding-bottom:6px;border-bottom:2px solid var(--br-77);">${c.name}</div>` +
         docEl.innerHTML;
     }
   });
@@ -18382,7 +18493,7 @@ function printByContracts() {
   printActiveSections = origSections;
   buildPrintDoc();
 
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  win.document.write(сПалитрой(`<!DOCTYPE html><html><head><meta charset="UTF-8">
     <meta name="format-detection" content="telephone=no">
     <title>${getPrintTitle()}</title>
     <style>
@@ -18392,7 +18503,7 @@ function printByContracts() {
     </style>
   </head><body>${combinedHTML}
 
-</body></html>`);
+</body></html>`));
   win.document.close();
   win.focus();
   setTimeout(() => { win.print(); }, 400);
@@ -18431,7 +18542,7 @@ function printFromPreview() {
   try { подогнатьПолоскуИтога(docEl); } catch (e) {}
   const win = window.open('', '_blank', 'width=900,height=700');
   if (!win) { alert('Разрешите всплывающие окна для этой страницы'); return; }
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  win.document.write(сПалитрой(`<!DOCTYPE html><html><head><meta charset="UTF-8">
     <meta name="format-detection" content="telephone=no">
     <title>${getPrintTitle()}</title>
     <style>
@@ -18442,7 +18553,7 @@ function printFromPreview() {
         @page { margin: 15mm 15mm 15mm 15mm; }
       }
     </style>
-  </head><body>${content}</body></html>`);
+  </head><body>${content}</body></html>`));
   win.document.close();
   win.focus();
   setTimeout(() => { win.print(); }, 400);
@@ -18893,7 +19004,7 @@ function cmStartDrag(chip, x, y) {
   cmGhostOffX = x - rect.left;
   cmGhostOffY = y - rect.top;
   cmGhost = chip.cloneNode(true);
-  cmGhost.style.cssText = `position:fixed;pointer-events:none;z-index:9999;opacity:0.92;box-shadow:0 6px 20px rgba(30,108,114,0.25);border-color:var(--green-mid);background:#fff;width:${rect.width}px;left:${x-cmGhostOffX}px;top:${y-cmGhostOffY}px;`;
+  cmGhost.style.cssText = `position:fixed;pointer-events:none;z-index:9999;opacity:0.92;box-shadow:0 6px 20px rgba(var(--br-28-rgb),0.25);border-color:var(--green-mid);background:#fff;width:${rect.width}px;left:${x-cmGhostOffX}px;top:${y-cmGhostOffY}px;`;
   document.body.appendChild(cmGhost);
   chip.style.opacity = '0.3';
 }
@@ -20020,7 +20131,7 @@ html, body {
 
 /* === COLORS === */
 :root {
-  --brand: #1e6c72;
+  --brand: var(--br-28);
   --muted: #666666;
 }
 
@@ -20227,12 +20338,12 @@ ol.lettered > li::before {
 }
 .pay-table th {
   font-weight: 700;
-  border-bottom: 2.25pt solid #1e6c72;
+  border-bottom: 2.25pt solid var(--br-28);
   padding-bottom: 6pt;
   padding-top: 0;
 }
 .pay-table tr:last-child td {
-  border-bottom: 2.25pt solid #1e6c72;
+  border-bottom: 2.25pt solid var(--br-28);
   padding-bottom: 6pt;
 }
 
@@ -20959,7 +21070,7 @@ function printContractKar() {
 
   const doc = iframe.contentDocument || iframe.contentWindow.document;
   doc.open();
-  doc.write(html);
+  doc.write(сПалитрой(html));
   doc.close();
 
   // Set print filename via document title
@@ -21107,7 +21218,7 @@ function renderContractPreviewKarDom() {
   // Write fresh HTML and auto-resize iframe to fit content
   const doc = frame.contentDocument || frame.contentWindow.document;
   doc.open();
-  doc.write(html);
+  doc.write(сПалитрой(html));
   doc.close();
 
   // Resize iframe to its content height after layout
@@ -21496,7 +21607,7 @@ function ppStartDrag(handle, x, y) {
   ppDragOffX = x - rect.left;
   ppDragOffY = y - rect.top;
   ppDragGhost = row.cloneNode(true);
-  ppDragGhost.style.cssText = `position:fixed;pointer-events:none;z-index:9999;width:${rect.width}px;left:${x-ppDragOffX}px;top:${y-ppDragOffY}px;opacity:0.85;box-shadow:0 4px 16px rgba(30,108,114,0.3);background:var(--card-bg);border-radius:6px;`;
+  ppDragGhost.style.cssText = `position:fixed;pointer-events:none;z-index:9999;width:${rect.width}px;left:${x-ppDragOffX}px;top:${y-ppDragOffY}px;opacity:0.85;box-shadow:0 4px 16px rgba(var(--br-28-rgb),0.3);background:var(--card-bg);border-radius:6px;`;
   document.body.appendChild(ppDragGhost);
   row.style.opacity = '0.3';
 }
@@ -21824,14 +21935,14 @@ function printPaymentPlan() {
   let html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <style>
     body{font-family:Arial,sans-serif;font-size:10pt;color:#111;margin:20mm;}
-    h1{font-size:13pt;color:#1e6c72;margin-bottom:4px;}
+    h1{font-size:13pt;color:var(--br-28);margin-bottom:4px;}
     .meta{font-size:8.5pt;color:#888;margin-bottom:18px;}
     .contract{margin-bottom:24px;}
-    .ct{font-size:11pt;font-weight:bold;color:#1e6c72;border-bottom:2px solid #1e6c72;padding-bottom:4px;margin-bottom:8px;display:flex;justify-content:space-between;}
+    .ct{font-size:11pt;font-weight:bold;color:var(--br-28);border-bottom:2px solid var(--br-28);padding-bottom:4px;margin-bottom:8px;display:flex;justify-content:space-between;}
     table{width:100%;border-collapse:collapse;font-size:9.5pt;}
-    td{padding:5px 6px;border-bottom:1px solid #e4f5f6;}
-    tr.final td{border-bottom:none;font-weight:bold;color:#1e6c72;background:#e4f5f6;}
-    .num{color:#888;width:24px;}.amt{text-align:right;white-space:nowrap;}.pct{text-align:center;width:50px;color:#2a8f97;}
+    td{padding:5px 6px;border-bottom:1px solid var(--br-93);}
+    tr.final td{border-bottom:none;font-weight:bold;color:var(--br-28);background:var(--br-93);}
+    .num{color:#888;width:24px;}.amt{text-align:right;white-space:nowrap;}.pct{text-align:center;width:50px;color:var(--br-38);}
   </style></head><body>
   <h1>Платёжный план</h1>
   <div class="meta">Проект: ${proj} · Менеджер: ${manager} · Заказчик: ${client}</div>`;
@@ -21853,7 +21964,7 @@ function printPaymentPlan() {
   });
 
   html += '</body></html>';
-  const blob = new Blob([html], {type:'text/html'});
+  const blob = new Blob([сПалитрой(html)], {type:'text/html'});
   const url = URL.createObjectURL(blob);
   const w = window.open(url, '_blank');
   if (w) { w.onload = () => { w.print(); URL.revokeObjectURL(url); }; }
@@ -21993,7 +22104,7 @@ function ppCmStart(chip,x,y) {
   const r = chip.getBoundingClientRect();
   ppCmOffX=x-r.left; ppCmOffY=y-r.top;
   ppCmGhost = chip.cloneNode(true);
-  ppCmGhost.style.cssText = `position:fixed;pointer-events:none;z-index:9999;opacity:0;box-shadow:0 6px 20px rgba(30,108,114,0.25);border-color:var(--green-mid);background:#fff;width:${r.width}px;left:${x-ppCmOffX}px;top:${y-ppCmOffY}px;display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:8px;border:1.5px solid var(--green-mid);font-size:0.73rem;`;
+  ppCmGhost.style.cssText = `position:fixed;pointer-events:none;z-index:9999;opacity:0;box-shadow:0 6px 20px rgba(var(--br-28-rgb),0.25);border-color:var(--green-mid);background:#fff;width:${r.width}px;left:${x-ppCmOffX}px;top:${y-ppCmOffY}px;display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:8px;border:1.5px solid var(--green-mid);font-size:0.73rem;`;
   document.body.appendChild(ppCmGhost);
   chip.style.opacity = '0.3';
 }
@@ -29863,7 +29974,7 @@ function renderSharedList() {
         ${isMine ? `<button class="btn-retract" onclick="retractPreset('${sc}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Отозвать</button>` : ''}
 
 
-        ${!isMine && isAdmin ? `<button class="btn-shared-act danger" style="border:1px solid #c8dfe0;background:#f4f9f9;" title="Снять с публикации" onclick="adminRemoveShared('${sc}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>` : ''}
+        ${!isMine && isAdmin ? `<button class="btn-shared-act danger" style="border:1px solid var(--br-83а);background:#f4f9f9;" title="Снять с публикации" onclick="adminRemoveShared('${sc}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>` : ''}
       </div>
       ${sp.short_code ? `<div class="pcard-code-row">
         <span class="pcard-code-label">Код</span>
@@ -31825,7 +31936,7 @@ async function saveGroupsForCurrentProject() {
 let KITS = [
   { key: 'econom',   name: 'Тёплый контур', desc: 'Без отделки внутри',         color: '#8f8275',          tint: 'rgba(143,130,117,0.08)'   },
   { key: 'standart', name: 'Стандарт',       desc: 'Расширенная комплектация',   color: '#4a9d6f',           tint: 'rgba(74,157,111,0.05)'  },
-  { key: 'comfort',  name: 'Комфорт',        desc: 'Премиум-материалы',          color: 'var(--green-dark)', tint: 'rgba(30,108,114,0.05)'  },
+  { key: 'comfort',  name: 'Комфорт',        desc: 'Премиум-материалы',          color: 'var(--green-dark)', tint: 'rgba(var(--br-28-rgb),0.05)'  },
   { key: 'premium',  name: 'Премиум',        desc: 'Максимальная комплектация',  color: '#4a5568',           tint: 'rgba(74,85,104,0.05)'   },
 ];
 // Helper: display name for a kit key (falls back to the key itself).
@@ -31841,7 +31952,7 @@ function kitColor(key) {
 // Helper: column tint (rgba) for a kit key — used for selected-column highlight.
 function kitTint(key) {
   const k = KITS.find(x => x.key === key);
-  return k && k.tint ? k.tint : 'rgba(30,108,114,0.05)';
+  return k && k.tint ? k.tint : 'rgba(var(--br-28-rgb),0.05)';
 }
 // Helper: ordered list of kit keys (drop-in for the hardcoded kitKeys()).
 function kitKeys() { return KITS.map(k => k.key); }
@@ -32324,7 +32435,7 @@ function renderKitPills() {
   if (!host) return;
   host.innerHTML = KITS.map(k => {
     const isSel = k.key === komplSelected;
-    return `<div id="kpill_${k.key}" class="komplPill ${k.key}" onclick="komplSelPreset('${k.key}',this)" style="flex:1;min-width:120px;padding:10px 14px;border-radius:10px;border:2px solid ${isSel?k.color:'var(--border)'};background:var(--card-bg);cursor:pointer;position:relative;${isSel?'box-shadow:0 4px 12px rgba(30,108,114,0.15);':''}transition:all 0.15s;">
+    return `<div id="kpill_${k.key}" class="komplPill ${k.key}" onclick="komplSelPreset('${k.key}',this)" style="flex:1;min-width:120px;padding:10px 14px;border-radius:10px;border:2px solid ${isSel?k.color:'var(--border)'};background:var(--card-bg);cursor:pointer;position:relative;${isSel?'box-shadow:0 4px 12px rgba(var(--br-28-rgb),0.15);':''}transition:all 0.15s;">
       <div style="font-family:'Unbounded',sans-serif;font-size:0.62rem;font-weight:700;color:${k.color};margin-bottom:2px;">${k.name}</div>
       <div style="font-size:0.62rem;color:var(--gray-light);line-height:1.3;margin-bottom:5px;" id="kpill_${k.key}_desc">${k.desc || ''}</div>
       <div style="font-family:'Unbounded',sans-serif;font-size:0.72rem;font-weight:800;color:${k.color};" id="kpill_${k.key}_price">—</div>
@@ -32365,7 +32476,7 @@ function komplSelPreset(preset, el) {
     const colors = { econom:'#8f8275', standart:'#4a9d6f', comfort:'var(--green-dark)', premium:'#4a5568' };
     if (k === preset) {
       pill.style.borderColor = kitColor(k);
-      pill.style.boxShadow = '0 4px 12px rgba(30,108,114,0.15)';
+      pill.style.boxShadow = '0 4px 12px rgba(var(--br-28-rgb),0.15)';
       if (check) check.style.display = 'flex';
     } else {
       pill.style.borderColor = 'var(--border)';
@@ -32414,7 +32525,7 @@ function setKomplView(mode, el) {
     btn.style.background = isActive ? 'var(--card-bg)' : 'transparent';
     btn.style.color = isActive ? 'var(--green-dark)' : 'var(--gray)';
     btn.style.fontWeight = isActive ? '600' : '500';
-    btn.style.boxShadow = isActive ? '0 1px 4px rgba(30,108,114,0.1)' : 'none';
+    btn.style.boxShadow = isActive ? '0 1px 4px rgba(var(--br-28-rgb),0.1)' : 'none';
   });
   renderKomplTable();
 }
@@ -32760,7 +32871,7 @@ function renderKedGroups() {
         } else {
           priceStr = price ? ' <span style="font-size:0.6rem;color:var(--gray-light);">+ ' + fmt(price) + ' ₽</span>' : '';
         }
-        const starColor = isBase ? '#f5a623' : '#d0d8d8';
+        const starColor = isBase ? '#f5a623' : 'var(--br-83б)';
         html += `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:0.72rem;color:var(--black);">
           <button onclick="setGroupBaseOption('${g.id}','${optId}')" title="${isBase ? 'Базовая опция (нажмите чтобы снять)' : 'Сделать базовой (обязательной)'}" style="background:none;border:none;cursor:pointer;padding:0;line-height:1;flex-shrink:0;color:${starColor};">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="${isBase?'#f5a623':'none'}" stroke="${starColor}" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -33287,20 +33398,20 @@ function printKompl() {
     th{padding:5px 6px;border-bottom:2px solid #ccc;font-size:8pt;text-align:center;}
     th:first-child{text-align:left;}
     td{padding:5px 6px;border-bottom:1px solid #eee;font-size:8.5pt;vertical-align:middle;}
-    .sec{background:#f0f6f6;font-weight:700;font-size:7.5pt;text-transform:uppercase;letter-spacing:0.05em;color:#1e6c72;border-top:1.5px solid #ccc;}
+    .sec{background:var(--br-95а);font-weight:700;font-size:7.5pt;text-transform:uppercase;letter-spacing:0.05em;color:var(--br-28);border-top:1.5px solid #ccc;}
     .base{color:#222;}
-    .check{color:#1e6c72;font-weight:bold;}
+    .check{color:var(--br-28);font-weight:bold;}
     .sur{font-size:7.5pt;background:#fff5e0;padding:1px 5px;border-radius:3px;}
     .inc{font-size:7.5pt;background:#eaf5ef;padding:1px 5px;border-radius:3px;color:#4a9d6f;}
-    .price-row{background:#f0f6f6;font-weight:700;}
+    .price-row{background:var(--br-95а);font-weight:700;}
   
 .login-dark-btn {
   display: inline-flex; align-items: center; justify-content: center;
-  background: #f4f9f9; border: 1px solid #c8dfe0; color: var(--green-dark);
+  background: #f4f9f9; border: 1px solid var(--br-83а); color: var(--green-dark);
   border-radius: 8px; padding: 6px 10px; cursor: pointer;
   transition: background 0.15s, color 0.15s; box-sizing: border-box;
 }
-.login-dark-btn:hover { background: #e8f4f5; }
+.login-dark-btn:hover { background: var(--br-94б); }
 body.dark .login-dark-btn {
   background: rgba(255,255,255,0.13); border-color: rgba(255,255,255,0.22);
   color: rgba(255,255,255,0.8);
@@ -33421,7 +33532,7 @@ body.dark .login-dark-btn:hover { background: rgba(255,255,255,0.22); color: #ff
     if (!p || typeof KIT_DISCOUNT_PCT !== 'number' || KIT_DISCOUNT_PCT <= 0) return `<td align="center">—</td>`;
     const d = Math.round(p * (1 - KIT_DISCOUNT_PCT / 100));
     let col = k.color;
-    if (col === 'var(--green-dark)') col = '#1e6c72';
+    if (col === 'var(--green-dark)') col = 'var(--br-28)';
     return `<td align="center" style="color:${col};font-weight:700;">${d.toLocaleString('ru-RU')} ₽</td>`;
   }).join('');
   if (typeof KIT_DISCOUNT_PCT === 'number' && KIT_DISCOUNT_PCT > 0) {
@@ -33429,7 +33540,7 @@ body.dark .login-dark-btn:hover { background: rgba(255,255,255,0.22); color: #ff
   }
 
   html += '</tbody></table></body></html>';
-  const blob = new Blob([html], {type:'text/html'});
+  const blob = new Blob([сПалитрой(html)], {type:'text/html'});
   const url = URL.createObjectURL(blob);
   const w = window.open(url, '_blank');
   if (w) { w.onload = () => { w.print(); URL.revokeObjectURL(url); }; }
@@ -33506,7 +33617,7 @@ function renderKitTabs() {
   if (!host) return;
   host.innerHTML = KITS.map(k => {
     const isActive = k.key === komplKedTab;
-    return `<button id="kedTab_${k.key}" class="ked-tab${isActive ? ' is-active' : ''}" onclick="switchKedTab('${k.key}',this)" style="font-family:'Geologica',sans-serif;font-size:0.72rem;font-weight:${isActive?'600':'500'};background:none;border:none;border-bottom:2px solid ${isActive?'var(--green-dark)':'transparent'};cursor:pointer;padding:8px 14px 9px;color:${isActive?'var(--green-dark)':'var(--gray)'};margin-bottom:-1px;white-space:nowrap;">${k.name} <span id="ked_cnt_${k.key}" style="display:inline-block;background:rgba(30,108,114,0.1);border-radius:8px;padding:0px 5px;font-size:0.58rem;font-weight:700;color:var(--green-dark);"></span></button>`;
+    return `<button id="kedTab_${k.key}" class="ked-tab${isActive ? ' is-active' : ''}" onclick="switchKedTab('${k.key}',this)" style="font-family:'Geologica',sans-serif;font-size:0.72rem;font-weight:${isActive?'600':'500'};background:none;border:none;border-bottom:2px solid ${isActive?'var(--green-dark)':'transparent'};cursor:pointer;padding:8px 14px 9px;color:${isActive?'var(--green-dark)':'var(--gray)'};margin-bottom:-1px;white-space:nowrap;">${k.name} <span id="ked_cnt_${k.key}" style="display:inline-block;background:rgba(var(--br-28-rgb),0.1);border-radius:8px;padding:0px 5px;font-size:0.58rem;font-weight:700;color:var(--green-dark);"></span></button>`;
   }).join('');
 }
 
@@ -33541,7 +33652,7 @@ function kedToggleCustom(id) {
 // Helper: build a single manual-item row in the editor left list
 function _buildKedManualRow(ci) {
   const isChecked = !!(ci.kitChecked && ci.kitChecked[komplKedTab] === true);
-  return `<div style="display:flex;align-items:center;gap:9px;padding:6px 14px;background:rgba(61,176,186,0.06);cursor:pointer;" onclick="kedToggleCustom('${ci.id}')">
+  return `<div style="display:flex;align-items:center;gap:9px;padding:6px 14px;background:rgba(var(--br-48-rgb),0.06);cursor:pointer;" onclick="kedToggleCustom('${ci.id}')">
     <div style="width:15px;height:15px;border-radius:3px;border:1.5px solid ${isChecked?'var(--green-dark)':'var(--border)'};background:${isChecked?'var(--green-dark)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.1s;">
       ${isChecked ? '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
     </div>
@@ -34110,9 +34221,9 @@ function renderKomplCopySourceList(q) {
   }
   listEl.innerHTML = filtered.map(({ s, i }) => {
     const isCurrent = s.group === 'current';
-    const bg = isCurrent ? 'background:rgba(30,108,114,0.05);' : '';
-    const hover = isCurrent ? "this.style.background='rgba(30,108,114,0.12)'" : "this.style.background='var(--green-bg)'";
-    const out = isCurrent ? "this.style.background='rgba(30,108,114,0.05)'" : "this.style.background=''";
+    const bg = isCurrent ? 'background:rgba(var(--br-28-rgb),0.05);' : '';
+    const hover = isCurrent ? "this.style.background='rgba(var(--br-28-rgb),0.12)'" : "this.style.background='var(--green-bg)'";
+    const out = isCurrent ? "this.style.background='rgba(var(--br-28-rgb),0.05)'" : "this.style.background=''";
     const borderL = isCurrent ? 'border-left:3px solid var(--green-dark);' : 'border-left:3px solid transparent;';
     return `
         <div onclick="onKomplCopyPickSource(${i})" style="padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;${bg}${borderL}" onmouseover="${hover}" onmouseout="${out}">
@@ -35038,15 +35149,35 @@ function предзагрузитьСправку() {
 
 // Пока документа нет, окно не стоит пустым: в кадре лежит строчка о том, что
 // происходит. Пустое белое окно неотличимо от поломки.
+// Документы, которые калькулятор собирает сам и открывает отдельно, — окно
+// печати, договор, график платежей, печать комплектаций, справка, — живут
+// в своём окне или кадре, и переменных палитры из этой страницы там нет. Без
+// них всё, что взято из палитры, стало бы в таком документе бесцветным. Блок
+// кладётся в начало документа целиком — тот же, что на странице, поэтому
+// смена палитры доходит и туда.
+function сПалитрой(html) {
+  const блок = document.getElementById('палитра');
+  if (!блок || typeof html !== 'string' || !html) return html;
+  const стиль = '<style>' + блок.textContent + '</style>';
+  const голова = /<head[^>]*>/i.exec(html);
+  if (голова) {
+    const к = голова.index + голова[0].length;
+    return html.slice(0, к) + стиль + html.slice(к);
+  }
+  const тип = /^\s*<!doctype[^>]*>/i.exec(html);
+  if (тип) return тип[0] + стиль + html.slice(тип[0].length);
+  return стиль + html;
+}
+
 function заглушкаСправки(текст) {
   const тёмная = document.body.classList.contains('dark');
-  return '<!doctype html><meta charset="utf-8">' +
+  return сПалитрой('<!doctype html><meta charset="utf-8">' +
     '<div style="display:flex;align-items:center;justify-content:center;height:100vh;' +
     'margin:0;padding:24px;text-align:center;line-height:1.6;' +
     "font-family:'Geologica',system-ui,sans-serif;font-size:14px;" +
-    'background:' + (тёмная ? '#111e20' : '#f0f6f6') + ';' +
+    'background:' + (тёмная ? 'var(--br-10а)' : 'var(--br-95а)') + ';' +
     'color:' + (тёмная ? '#9ab' : '#555') + '">' +
-    '<div>' + текст + '</div></div>';
+    '<div>' + текст + '</div></div>');
 }
 
 async function openManual() {
@@ -35065,7 +35196,7 @@ async function openManual() {
       'Справку не удалось загрузить.<br><br>Проверьте интернет и откройте её ещё раз.');
     return;
   }
-  frame.srcdoc = html;
+  frame.srcdoc = сПалитрой(html);
   setTimeout(function() {
     if (frame.contentWindow) {
       try { frame.contentWindow.postMessage({type:'darkMode', dark: document.body.classList.contains('dark')}, '*'); } catch(e) {}
@@ -35593,23 +35724,23 @@ window.addEventListener('message', function(e) {
 });
 </script>
 <div id="guideOverlay" style="display:none;position:fixed;inset:0;z-index:5050;background:rgba(0,0,0,0.55);overflow-x:hidden;overflow-y:auto;padding:12px 0 0;">
-  <div id="guidePanel" style="width:100%;max-width:1000px;margin:0 auto;background:var(--page-bg,#f0f9fa);box-shadow:0 8px 48px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;border-radius:16px 16px 0 0;min-height:calc(100vh - 12px);position:relative;">
-    <div id="guideLoader" style="position:absolute;inset:0;background:var(--page-bg,#f0f9fa);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:2;transition:opacity 0.25s;">
-      <div style="width:36px;height:36px;border:3px solid rgba(42,143,151,0.2);border-top-color:#2a8f97;border-radius:50%;animation:guideSpin 0.85s linear infinite;"></div>
+  <div id="guidePanel" style="width:100%;max-width:1000px;margin:0 auto;background:var(--page-bg,var(--br-96));box-shadow:0 8px 48px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;border-radius:16px 16px 0 0;min-height:calc(100vh - 12px);position:relative;">
+    <div id="guideLoader" style="position:absolute;inset:0;background:var(--page-bg,var(--br-96));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:2;transition:opacity 0.25s;">
+      <div style="width:36px;height:36px;border:3px solid rgba(var(--br-38-rgb),0.2);border-top-color:var(--br-38);border-radius:50%;animation:guideSpin 0.85s linear infinite;"></div>
       <div style="font-size:0.72rem;color:rgba(0,0,0,0.55);font-family:'Geologica',sans-serif;letter-spacing:0.02em;">Загрузка базы знаний…</div>
     </div>
     <iframe id="guideFrame" src="" style="border:none;width:100%;flex:1;min-height:100vh;border-radius:16px;position:relative;z-index:1;"></iframe>
   </div>
 </div>
-<style>@keyframes guideSpin{to{transform:rotate(360deg);}}body.dark #guideLoader{background:#0a1012;}body.dark #guideLoader div:last-child{color:rgba(255,255,255,0.6);}</style>
+<style>@keyframes guideSpin{to{transform:rotate(360deg);}}body.dark #guideLoader{background:var(--br-05);}body.dark #guideLoader div:last-child{color:rgba(255,255,255,0.6);}</style>
 
 <style>
   /* Выпадающее окно колокольчика. Прижато к правому краю кнопки: слева от него
      шапка, и раскрываться туда некуда. */
   #bellMenu {
     position:fixed; z-index:6000; width:min(360px, calc(100vw - 24px));
-    background:var(--card-bg); border:1px solid #e0eced; border-radius:14px;
-    box-shadow:0 18px 48px rgba(18,38,42,0.18); overflow:hidden; text-align:left;
+    background:var(--card-bg); border:1px solid var(--br-90а); border-radius:14px;
+    box-shadow:0 18px 48px rgba(var(--br-12в-rgb),0.18); overflow:hidden; text-align:left;
     display:flex; flex-direction:column;
   }
   /* Шапка стоит, список едет. Высоту окна ставит поставитьОкноУведомлений():
@@ -35619,7 +35750,7 @@ window.addEventListener('message', function(e) {
     flex:1 1 auto; min-height:0; overflow-y:auto;
     overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
   }
-  body.dark #bellMenu { border-color:#22383c; box-shadow:0 18px 48px rgba(0,0,0,0.45); }
+  body.dark #bellMenu { border-color:var(--br-18а); box-shadow:0 18px 48px rgba(0,0,0,0.45); }
   #bellMenu .nt-h {
     display:flex; align-items:baseline; gap:12px; padding:12px 15px 10px;
     border-bottom:2px solid var(--green-dark);
@@ -35628,19 +35759,19 @@ window.addEventListener('message', function(e) {
     font-family:'Unbounded',sans-serif; font-size:0.62rem; font-weight:600;
     text-transform:uppercase; letter-spacing:0.12em; color:var(--green-dark);
   }
-  body.dark #bellMenu .nt-h .t { color:#8fd6dc; }
-  body.dark #bellMenu .nt-h { border-bottom-color:#8fd6dc; }
+  body.dark #bellMenu .nt-h .t { color:var(--br-71); }
+  body.dark #bellMenu .nt-h { border-bottom-color:var(--br-71); }
   #bellMenu .nt-h .a { margin-left:auto; font-size:0.72rem; color:var(--gray); cursor:pointer; }
   #bellMenu .nt-i {
     display:grid; grid-template-columns:18px minmax(0,1fr); gap:11px;
     padding:11px 15px; border-bottom:1px solid #eef3f3; font-size:0.8rem;
   }
-  body.dark #bellMenu .nt-i { border-bottom-color:#22383c; }
+  body.dark #bellMenu .nt-i { border-bottom-color:var(--br-18а); }
   #bellMenu .nt-i svg { width:15px; height:15px; color:var(--gray); margin-top:2px; }
   #bellMenu .nt-i.new { border-left:3px solid var(--green-dark); padding-left:12px; }
   #bellMenu .nt-i.new svg { color:var(--green-dark); }
-  body.dark #bellMenu .nt-i.new { border-left-color:#8fd6dc; }
-  body.dark #bellMenu .nt-i.new svg { color:#8fd6dc; }
+  body.dark #bellMenu .nt-i.new { border-left-color:var(--br-71); }
+  body.dark #bellMenu .nt-i.new svg { color:var(--br-71); }
   #bellMenu .nt-i .t { color:var(--gray); line-height:1.5; }
   #bellMenu .nt-i .t b { color:var(--black); font-weight:500; }
   #bellMenu .nt-i .tm { display:block; font-size:0.7rem; color:var(--gray); opacity:0.8; margin-top:4px; }
@@ -35654,12 +35785,12 @@ window.addEventListener('message', function(e) {
      тремя — шеврон стоит в своей, а не подпирает текст. */
   #bellMenu .nt-i.go { grid-template-columns:18px minmax(0,1fr) 14px; cursor:pointer; }
   #bellMenu .nt-i.go:hover, #bellMenu .nt-i.go:focus-visible {
-    background:var(--light-bg, #f2f9f9); outline:none;
+    background:var(--light-bg, var(--br-96г)); outline:none;
   }
-  body.dark #bellMenu .nt-i.go:hover, body.dark #bellMenu .nt-i.go:focus-visible { background:#13272b; }
+  body.dark #bellMenu .nt-i.go:hover, body.dark #bellMenu .nt-i.go:focus-visible { background:var(--br-12г); }
   #bellMenu .nt-i .nt-go { width:14px; height:14px; color:var(--gray); align-self:center; opacity:0.75; }
   #bellMenu .nt-i.go:hover .nt-go { color:var(--green-dark); opacity:1; }
-  body.dark #bellMenu .nt-i.go:hover .nt-go { color:#8fd6dc; }
+  body.dark #bellMenu .nt-i.go:hover .nt-go { color:var(--br-71); }
   #bellMenu .nt-empty {
     padding:14px 15px; font-size:0.74rem; color:var(--gray); text-align:center;
   }
@@ -35714,7 +35845,7 @@ window.addEventListener('message', function(e) {
    вкладок читается как граница, а двенадцать подряд в ленте превращают список
    в полосатый коврик и спорят с текстом. Структурные линии (счётчики,
    фильтры) остаются на --border — иерархия линий этим и держится. */
-#actionLogPanel{--al-rule:rgba(61,176,186,.35);
+#actionLogPanel{--al-rule:rgba(var(--br-48-rgb),.35);
   width:100%;max-width:1000px;margin:0 auto;background:var(--card-bg);
   box-shadow:0 8px 48px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;
   border-radius:16px;min-height:calc(100vh - 20px);}
@@ -35790,7 +35921,7 @@ window.addEventListener('message', function(e) {
 .al-sel-menu{position:absolute;top:calc(100% + 6px);left:0;z-index:20;min-width:250px;
   max-width:min(320px,90vw);max-height:min(78vh,520px);overflow-y:auto;padding:6px;
   background:var(--card-bg);border:1px solid var(--border);border-radius:10px;
-  box-shadow:0 10px 30px rgba(20,60,64,0.18);}
+  box-shadow:0 10px 30px rgba(var(--br-16-rgb),0.18);}
 .al-opt{position:relative;display:flex;align-items:center;gap:10px;width:100%;
   padding:9px 10px;border:none;border-radius:8px;background:none;color:var(--gray);
   font-family:'Geologica',sans-serif;font-size:0.76rem;text-align:left;cursor:pointer;
@@ -35835,11 +35966,11 @@ window.addEventListener('message', function(e) {
    проект, но не сохранил ещё пресет. Как напоминание сохранить, чтобы
    случайно не закрыл». */
 .save-ind{position:fixed;bottom:16px;left:0;right:0;margin:0 auto;width:max-content;z-index:799;
-  background:#5b6a6e;color:#fff;padding:7px 16px;border-radius:20px;
+  background:var(--br-39);color:#fff;padding:7px 16px;border-radius:20px;
   font-family:'Geologica',sans-serif;font-size:0.72rem;font-weight:600;
   display:flex;align-items:center;gap:14px;box-shadow:0 4px 16px rgba(0,0,0,0.2);
   max-width:calc(100vw - 24px);}
-body.dark .save-ind{background:#41504f;}
+body.dark .save-ind{background:var(--br-28а);}
 body.ui-blank .save-ind{border-radius:14px;}
 .save-ind .sv-ico{display:inline-flex;align-items:center;flex:none;opacity:.85;}
 .save-ind .sv-txt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -36049,35 +36180,35 @@ body.ui-blank .al-dmore-btn{color:var(--bl-ink2);}
   .al-c b{font-size:1.1rem;}
 }
 /* ── Тёмный «Модерн» ── */
-body.dark.ui-light #actionLogPanel{background:var(--card-bg);--al-rule:#24413f;}
-body.dark.ui-light .al-chip{border-color:#2a4a4e;color:#9ab;}
-body.dark.ui-light .al-chip.on{background:rgba(42,143,151,0.22);border-color:#3db0ba;color:#c8e8ea;}
-body.dark.ui-light .al-counts,body.dark.ui-light .al-filters{border-color:#2a4a4e;}
-body.dark.ui-light .al-row:hover{background:rgba(42,143,151,0.12);}
-body.dark.ui-light .al-who{background:rgba(42,143,151,0.22);color:#8fd6dc;}
-body.dark.ui-light .al-c b,body.dark.ui-light .al-sum{color:#8fd6dc;}
-body.dark.ui-light .al-flab,body.dark.ui-light .al-foot{color:#7f9799;}
-body.dark.ui-light .al-sel{border-color:#2a4a4e;color:#e6f2f3;}
-body.dark.ui-light .al-sel-menu{background:#12262a;border-color:#2a4a4e;
+body.dark.ui-light #actionLogPanel{background:var(--card-bg);--al-rule:var(--br-20б);}
+body.dark.ui-light .al-chip{border-color:var(--br-24);color:#9ab;}
+body.dark.ui-light .al-chip.on{background:rgba(var(--br-38-rgb),0.22);border-color:var(--br-48);color:var(--br-85);}
+body.dark.ui-light .al-counts,body.dark.ui-light .al-filters{border-color:var(--br-24);}
+body.dark.ui-light .al-row:hover{background:rgba(var(--br-38-rgb),0.12);}
+body.dark.ui-light .al-who{background:rgba(var(--br-38-rgb),0.22);color:var(--br-71);}
+body.dark.ui-light .al-c b,body.dark.ui-light .al-sum{color:var(--br-71);}
+body.dark.ui-light .al-flab,body.dark.ui-light .al-foot{color:var(--br-55);}
+body.dark.ui-light .al-sel{border-color:var(--br-24);color:var(--br-93а);}
+body.dark.ui-light .al-sel-menu{background:var(--br-12в);border-color:var(--br-24);
   box-shadow:0 10px 30px rgba(0,0,0,0.5);}
 body.dark.ui-light .al-opt{color:#9ab;}
-body.dark.ui-light .al-opt:hover{background:rgba(42,143,151,0.16);color:#c8e8ea;}
-body.dark.ui-light .al-opt.on{color:#c8e8ea;}
-body.dark.ui-light .al-obox{border-color:#2a4a4e;}
-body.dark.ui-light .al-opt.on .al-obox{background:#2a8f97;border-color:#2a8f97;}
-body.dark.ui-light .al-osep{background:#2a4a4e;}
-body.dark.ui-light .al-orow:hover{background:rgba(42,143,151,0.16);}
-body.dark.ui-light .al-orow.on .al-opt{color:#c8e8ea;}
-body.dark.ui-light .al-pin{color:#7f9799;}
-body.dark.ui-light .al-pin:hover{color:#c8e8ea;background:rgba(42,143,151,0.16);}
-body.dark.ui-light .al-pin.on{color:#8fd6dc;}
-body.dark.ui-light .al-range-lab,body.dark.ui-light .al-range-dash{color:#7f9799;}
-body.dark.ui-light .al-range-row input{border-color:#2a4a4e;color:#e6f2f3;
+body.dark.ui-light .al-opt:hover{background:rgba(var(--br-38-rgb),0.16);color:var(--br-85);}
+body.dark.ui-light .al-opt.on{color:var(--br-85);}
+body.dark.ui-light .al-obox{border-color:var(--br-24);}
+body.dark.ui-light .al-opt.on .al-obox{background:var(--br-38);border-color:var(--br-38);}
+body.dark.ui-light .al-osep{background:var(--br-24);}
+body.dark.ui-light .al-orow:hover{background:rgba(var(--br-38-rgb),0.16);}
+body.dark.ui-light .al-orow.on .al-opt{color:var(--br-85);}
+body.dark.ui-light .al-pin{color:var(--br-55);}
+body.dark.ui-light .al-pin:hover{color:var(--br-85);background:rgba(var(--br-38-rgb),0.16);}
+body.dark.ui-light .al-pin.on{color:var(--br-71);}
+body.dark.ui-light .al-range-lab,body.dark.ui-light .al-range-dash{color:var(--br-55);}
+body.dark.ui-light .al-range-row input{border-color:var(--br-24);color:var(--br-93а);
   color-scheme:dark;}
-body.dark.ui-light .al-range-go{background:#2a8f97;border-color:#2a8f97;}
+body.dark.ui-light .al-range-go{background:var(--br-38);border-color:var(--br-38);}
 /* ── Тема «Бланк»: своя палитра и свой характер — без Unbounded ── */
 body.ui-blank #actionLogPanel{background:var(--bl-sheet);border-radius:16px;
-  box-shadow:0 8px 40px rgba(15,36,39,.18);--al-rule:var(--bl-rule);}
+  box-shadow:0 8px 40px rgba(var(--br-11-rgb),.18);--al-rule:var(--bl-rule);}
 /* Шапка «Бланка» — тот же приём, что у настроек и аналитики: не полоса, а
    лист с заголовком и линейкой акцентом под ним, крестик отдельной кнопкой
    в углу. Значок в заголовке снимаем: в «Бланке» заголовки без значков. */
@@ -36112,13 +36243,13 @@ body.ui-blank .al-sel:hover{border-color:var(--bl-acc2);}
 body.ui-blank .al-sel.open{border-color:var(--bl-acc);}
 body.ui-blank .al-sel-chev{color:var(--bl-ink3);}
 body.ui-blank .al-sel-menu{background:var(--bl-sheet);border-color:var(--bl-rule2);
-  box-shadow:0 10px 30px rgba(15,36,39,.16);}
+  box-shadow:0 10px 30px rgba(var(--br-11-rgb),.16);}
 body.ui-blank .al-opt{color:var(--bl-ink2);}
 body.ui-blank .al-opt:hover{background:var(--bl-tint);color:var(--bl-acc);}
 body.ui-blank .al-opt.on{color:var(--bl-ink);}
 body.ui-blank .al-obox{border-color:var(--bl-rule2);}
 body.ui-blank .al-opt.on .al-obox{background:var(--bl-acc);border-color:var(--bl-acc);}
-body.ui-blank.dark .al-opt.on .al-obox::after{border-color:#08181a;}
+body.ui-blank.dark .al-opt.on .al-obox::after{border-color:var(--br-07);}
 body.ui-blank .al-osep{background:var(--bl-rule);}
 body.ui-blank .al-ome{color:var(--bl-ink3);}
 body.ui-blank .al-orow:hover{background:var(--bl-tint);}
@@ -36131,7 +36262,7 @@ body.ui-blank .al-range-row input{border-color:var(--bl-rule2);color:var(--bl-in
 body.ui-blank .al-range-row input:focus{border-color:var(--bl-acc2);}
 body.ui-blank.dark .al-range-row input{color-scheme:dark;}
 body.ui-blank .al-range-go{background:var(--bl-acc);border-color:var(--bl-acc);color:var(--bl-sheet);}
-body.ui-blank.dark .al-range-go{color:#08181a;}
+body.ui-blank.dark .al-range-go{color:var(--br-07);}
 body.ui-blank .al-range-go:hover{background:var(--bl-acc2);border-color:var(--bl-acc2);}
 body.ui-blank .al-counts,body.ui-blank .al-filters{border-color:var(--bl-rule);}
 body.ui-blank .al-c b{font-family:'Geologica',sans-serif;font-weight:600;letter-spacing:-.02em;color:var(--bl-acc);}
@@ -36149,7 +36280,7 @@ body.ui-blank .al-chip::before{inset:-6px -3px;}
 body.ui-blank .al-chip:hover{border-color:var(--bl-acc2);color:var(--bl-acc);}
 body.ui-blank .al-chip.on{background:var(--bl-acc);border-color:var(--bl-acc);
   color:var(--bl-sheet);font-weight:600;}
-body.ui-blank.dark .al-chip.on{color:#08181a;}
+body.ui-blank.dark .al-chip.on{color:var(--br-07);}
 /* Кружок с инициалами — тоже круг, и по той же причине в «Бланке» он квадрат
    со скруглением: круглых форм в теме нет. */
 body.ui-blank .al-who{border-radius:8px;}
