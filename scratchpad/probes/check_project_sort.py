@@ -16,8 +16,9 @@
     память браузера;
   • второе нажатие по выбранному значку разворачивает порядок, нажатие по
     другому начинает с прямого; направление тоже уходит в профиль;
-  • после нажатия всплывает подпись порядка с направлением, целиком внутри
-    списка, и через пару секунд гаснет;
+  • после нажатия название порядка с направлением встаёт в строку «Снять
+    выбор», не обрезано и не касается значков, гаснет само, а нажатие по
+    нему убирает его раньше и проект не снимает;
   • кавычка в начале названия не ставит проект впереди всех;
   • частота — сколько раз менеджер выбирал проект (Константин: «частоту
     проектов определяй по тому, как менеджер часто его выбирал»): выбор в
@@ -60,9 +61,9 @@ from playwright.sync_api import sync_playwright
 ПО_УМОЛЧАНИЮ = [ЭССЕН, БЕРЛИН, ВИГО, ААХЕН, БОНН]
 ПО_НАЗВАНИЮ = [ААХЕН, БЕРЛИН, БОНН, ЭССЕН, ВИГО]
 ПО_ЧАСТОТЕ = [ВИГО, БЕРЛИН, ЭССЕН, ААХЕН, БОНН]
-ПОДПИСИ = {("name", False): "По названию · А → Я", ("name", True): "По названию · Я → А",
-           ("freq", False): "По частоте · сначала частые", ("freq", True): "По частоте · сначала редкие",
-           ("default", False): "Как в базе", ("default", True): "Как в базе · в обратном порядке"}
+ПОДПИСИ = {("name", False): "По алфавиту: А → Я", ("name", True): "По алфавиту: Я → А",
+           ("freq", False): "Сначала частые", ("freq", True): "Сначала редкие",
+           ("default", False): "Как в базе", ("default", True): "Как в базе, наоборот"}
 
 
 def проект(имя, порядок):
@@ -139,13 +140,16 @@ def плохо(т):
 }"""
 
 ПОДПИСЬ = """() => {
-  const кн = document.querySelector('#projectSelectDropdown .cs-sbtn.show');
-  if (!кн) return null;
-  const т = кн.querySelector('.cs-tip'), тр = т.getBoundingClientRect();
-  const сп = document.getElementById('projectSelectDropdown').getBoundingClientRect();
-  return { код: кн.dataset.sort, текст: т.textContent, видна: getComputedStyle(т).opacity === '1',
-           внутри: тр.left >= сп.left - 0.5 && тр.right <= сп.right + 0.5 && тр.top >= сп.top - 0.5 && тр.bottom <= сп.bottom + 0.5,
-           вОкне: тр.left >= 0 && тр.right <= document.documentElement.clientWidth };
+  const м = document.querySelector('#projectSelectDropdown .cs-sortname');
+  if (!м || !м.classList.contains('show')) return null;
+  const р = м.getBoundingClientRect();
+  const ряд = м.closest('.cs-sortrow').getBoundingClientRect();
+  const значок = м.closest('.cs-sortrow').querySelector('.cs-sbtn').getBoundingClientRect();
+  return { текст: м.textContent, видна: getComputedStyle(м).opacity === '1',
+           обрезана: м.scrollWidth > м.clientWidth + 1,
+           внутри: р.left >= ряд.left - 0.5 && р.right <= ряд.right + 0.5 && р.top >= ряд.top - 0.5 && р.bottom <= ряд.bottom + 0.5,
+           доЗначка: Math.round(значок.left - р.right),
+           x: Math.round(р.left + р.width / 2), y: Math.round(р.top + р.height / 2) };
 }"""
 
 ДНЕЙ = """(имя) => {
@@ -216,18 +220,34 @@ def проверить(стр, где):
         п = стр.evaluate(ПОДПИСЬ)
         if not п or п["текст"] != ПОДПИСИ[(код, True)] or not п["видна"]:
             плохо(f"[{где}] после разворота «{код}» подпись {п}")
-        elif not п["внутри"] or not п["вОкне"]:
-            плохо(f"[{где}] подпись «{п['текст']}» выходит за край списка или окна")
+        elif not п["внутри"] or п["обрезана"]:
+            плохо(f"[{где}] название «{п['текст']}» обрезано или выходит из строки")
+        elif п["доЗначка"] < 4:
+            плохо(f"[{где}] название «{п['текст']}» прижато к значкам ({п['доЗначка']} px)")
     нажать(стр, "name")
     if стр.evaluate("() => !!appSettings.projectSortDesc"):
         плохо(f"[{где}] переход на другой порядок сохранил обратное направление")
     п = стр.evaluate(ПОДПИСЬ)
     if not п or п["текст"] != ПОДПИСИ[("name", False)]:
         плохо(f"[{где}] подпись прямого порядка по названию: {п}")
-    стр.wait_for_timeout(2300)
+    стр.wait_for_timeout(1700)
+    if стр.evaluate(ПОДПИСЬ):
+        плохо(f"[{где}] название порядка не погасло само")
+    # нажатие по названию убирает его раньше и проект не снимает — проверяем
+    # с выбранным проектом, иначе под названием нет «Снять выбор»
+    стр.evaluate("async (имя) => { selectProjectOption(filteredProjects.findIndex(p => p[0] === имя)); await new Promise(r => setTimeout(r, 500)); }", БЕРЛИН)
+    нажать(стр, "freq")
     п = стр.evaluate(ПОДПИСЬ)
-    if п and п["видна"]:
-        плохо(f"[{где}] подпись не погасла через две секунды")
+    проект_до = стр.evaluate("() => selectedProject && selectedProject[0]")
+    if п:
+        стр.mouse.click(п["x"], п["y"]); стр.wait_for_timeout(250)
+        if стр.evaluate(ПОДПИСЬ):
+            плохо(f"[{где}] нажатие по названию его не убрало")
+        if not проект_до or стр.evaluate("() => selectedProject && selectedProject[0]") != проект_до:
+            плохо(f"[{где}] нажатие по названию сняло выбранный проект")
+        if not стр.evaluate(ОТКРЫТ):
+            плохо(f"[{где}] нажатие по названию закрыло список")
+    нажать(стр, "name")
     нажать(стр, "default")
 
     # ── палец и вес ──
