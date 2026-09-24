@@ -26,6 +26,7 @@
   .p-copper{ --acc:#8a4a1f; --acc2:#bd7130; --pale:#e8c19a; --tint:#fcf1e6; --rule:#eee0d0; }
   .p-indigo{ --acc:#3b3b8f; --acc2:#5a5ac0; --pale:#b9b9e6; --tint:#eeeefb; --rule:#dedef0; }
   .p-graphite{ --acc:#2f3a42; --acc2:#51646f; --pale:#b9c6cd; --tint:#eef2f4; --rule:#dde5e8; }
+  .p-titan{ --acc:#5b5348; --acc2:#8a7a66; --pale:#d6cbbd; --tint:#f4f1ec; --rule:#e6e0d8; }
 /* палитры — ночь */
 @media screen and (prefers-color-scheme: dark){
     .p-teal{ --acc:#8fd6dc; --acc2:#5fc2ca; --pale:#5fc2ca; --tint:#173338; --rule:#224347; }
@@ -35,6 +36,7 @@
     .p-copper{ --acc:#e9ab74; --acc2:#cf8c4e; --pale:#cf8c4e; --tint:#2a1c11; --rule:#3d2c1c; }
     .p-indigo{ --acc:#a9a9ec; --acc2:#8181d8; --pale:#8181d8; --tint:#1c1c33; --rule:#2c2c48; }
     .p-graphite{ --acc:#cbd8de; --acc2:#90a5b0; --pale:#90a5b0; --tint:#1b2227; --rule:#2b363c; }
+    .p-titan{ --acc:#e6dccd; --acc2:#b8a78f; --pale:#b8a78f; --tint:#25221e; --rule:#38332d; }
 }
 *{ box-sizing:border-box; }
 body{ margin:0; padding:28px 18px 60px; background:var(--page); color:var(--ink);
@@ -77,8 +79,8 @@ body{ margin:0; padding:28px 18px 60px; background:var(--page); color:var(--ink)
 <div class="wrap">
   <div class="top">
     <h1>«Бланк» — варианты палитры</h1>
-    <p>Одна и та же страница в семи палитрах: бирюза — рабочие документы, синий — личные (принят в 1.25),
-       остальные пять — на выбор. Меняются только пять токенов; чернила, линейки, шрифты и вёрстка общие.
+    <p>Одна и та же страница в восьми палитрах: бирюза — рабочие документы, синий — личные (принят в 1.25),
+       остальные шесть — на выбор. Меняются только пять токенов; чернила, линейки, шрифты и вёрстка общие.
        Страница сама переключается между дневной и ночной темой по настройке системы.</p>
   </div>
 <section class="pal p-teal">
@@ -183,6 +185,22 @@ body{ margin:0; padding:28px 18px 60px; background:var(--page); color:var(--ink)
     <p>Нейтральный, без цвета: акцент держит только контраст</p>
   </header>
   <div class="sws"><div class="sw"><span style="background:var(--acc)"></span><b>acc</b><i>#2f3a42</i></div><div class="sw"><span style="background:var(--acc2)"></span><b>acc2</b><i>#51646f</i></div><div class="sw"><span style="background:var(--pale)"></span><b>pale</b><i>#b9c6cd</i></div><div class="sw"><span style="background:var(--tint)"></span><b>tint</b><i>#eef2f4</i></div><div class="sw"><span style="background:var(--rule)"></span><b>rule</b><i>#dde5e8</i></div></div>
+  <div class="demo">
+    <p class="eb">Тип документа · раздел</p>
+    <h3 class="tt">Название документа <em>и уточнение</em></h3>
+    <p class="lead">Суть одним абзацем — так, чтобы дальше можно было не читать.</p>
+    <div class="sec"><span class="no">01</span><span class="nm">Раздел</span><span class="sum">00–00</span></div>
+    <div class="row"><span class="k">Параметр</span><span class="d"></span><span class="v">значение</span></div>
+    <div class="row"><span class="k">Второй параметр</span><span class="d"></span><span class="v">значение</span></div>
+    <div class="tip"><b>Подсказка.</b> Полезное, но необязательное.</div>
+    <div class="strip"><span>Закладывать в проект</span><b>00–00</b></div>
+  </div>
+</section><section class="pal p-titan">
+  <header class="pal__head">
+    <h2>Титан</h2>
+    <p>Тёплый серо-бежевый, как обои последнего обновления Apple: шампань на светлом, бронза в заголовках</p>
+  </header>
+  <div class="sws"><div class="sw"><span style="background:var(--acc)"></span><b>acc</b><i>#5b5348</i></div><div class="sw"><span style="background:var(--acc2)"></span><b>acc2</b><i>#8a7a66</i></div><div class="sw"><span style="background:var(--pale)"></span><b>pale</b><i>#d6cbbd</i></div><div class="sw"><span style="background:var(--tint)"></span><b>tint</b><i>#f4f1ec</i></div><div class="sw"><span style="background:var(--rule)"></span><b>rule</b><i>#e6e0d8</i></div></div>
   <div class="demo">
     <p class="eb">Тип документа · раздел</p>
     <h3 class="tt">Название документа <em>и уточнение</em></h3>
