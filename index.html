@@ -10483,6 +10483,22 @@ const TECH_THICK_LABEL = { frame: 'Толщина утепления', glulam: '
 
 // Каркасные наборы — снимок того, что лежит в файле
 const FRAME_OPTIONS  = OPTIONS.slice();
+
+// ── Поштучные позиции без формулы ──
+// Цена в каталоге — за одну штуку, количество ставит менеджер счётчиком на
+// карточке, как у колпака Flow Vilpe. Константин 24.09.2026: «сделай выбор
+// количества межкомнатных дверей, как Flow Vilpe менять количество».
+// Признак живёт здесь, а не в каталоге цен: каталог общий с боевым доменом, и
+// правка там включила бы счётчик на боевом раньше выпуска. Цена за дверь в
+// каталоге не тронута — итог считается как цена × количество.
+const ПОШТУЧНЫЕ = { w15: { qtyUnit: 'дверь' } };
+function пометитьПоштучные() {
+  OPTIONS.forEach(o => {
+    const п = ПОШТУЧНЫЕ[o.id];
+    if (п && !o.formula) o.formula = { qtyOption: true, qtyUnit: п.qtyUnit, defaultQty: 1, поштучно: true };
+  });
+}
+пометитьПоштучные();
 const FRAME_SECTIONS = SECTIONS.slice();
 const FRAME_NOTES    = (() => { const o = {}; Object.keys(SECTION_NOTES)
   .forEach(k => { o[k] = SECTION_NOTES[k].slice(); }); return o; })();
@@ -12389,6 +12405,7 @@ const ЕДИНИЦЫ_КОЛИЧЕСТВА = {
   'шт.':    ['шт.', 'шт.', 'шт.'],
   'месяц':  ['месяц', 'месяца', 'месяцев'],
   'сутки':  ['сутки', 'суток', 'суток'],
+  'дверь':  ['дверь', 'двери', 'дверей'],
 };
 
 function единицаПриЧисле(число, формы) {
@@ -12409,8 +12426,12 @@ function refreshQtyName(optId) {
              || ЕДИНИЦЫ_КОЛИЧЕСТВА['шт.'];
   // Заменяется последняя скобка с числом: «(1 шт.)», «(1 месяц)». Целимся
   // в конец имени, чтобы не задеть скобку вроде «(D108/L2500)» в середине.
-  const newName = opt._origName.replace(/\(\s*\d+\s*[^)]*\)\s*$/,
-    '(' + qty + ' ' + единицаПриЧисле(qty, формы) + ')');
+  const единица = единицаПриЧисле(qty, формы);
+  // «…, за 1 дверь» — цена на карточке за всё количество, поэтому число
+  // меняется и здесь: «за 3 двери».
+  const newName = /\(\s*\d+\s*[^)]*\)\s*$/.test(opt._origName)
+    ? opt._origName.replace(/\(\s*\d+\s*[^)]*\)\s*$/, '(' + qty + ' ' + единица + ')')
+    : opt._origName.replace(/(за\s+)\d+\s+\S+\s*$/, '$1' + qty + ' ' + единица);
   opt.name = newName;
   const lbl = document.querySelector(`#lbl_${optId} .opt-name`);
   if (lbl) lbl.textContent = newName;
@@ -12645,7 +12666,13 @@ const NOTE_AUTOHIDE = [
   // Константин 20.09.2026: «выбираем террасу — скрывается примечание по ней».
   { section: 'paint',
     note: 'Покраска террасы не входит в базовую комплектацию',
-    options: ['p18', 'p7'] }
+    options: ['p18', 'p7'] },
+  // Межкомнатные двери выбраны — «двери в базовую комплектацию не входят»
+  // спорит с расчётом. Константин 24.09.2026: «когда выбираем межкомнатные
+  // двери, то примечание должно активировать глаз, что двери не входят».
+  { section: 'windows',
+    note: 'Межкомнатные двери в базовую комплектацию не входят',
+    options: ['w15'] }
 ];
 
 // Правило срабатывает на переломе состояния опции, а не постоянно: иначе оно
@@ -13332,7 +13359,11 @@ function startEditMatrixPrice(optId, e) {
   const priceEl = document.getElementById('optprice_' + optId);
   const editBtn = document.getElementById('editpricebtn_' + optId);
   if (!priceEl) return;
-  const currentVal = getOptPrice(OPTIONS.find(o => o.id === optId)) || 0;
+  // У поштучной позиции на карточке цена за всё количество, а правится и
+  // хранится цена за штуку — иначе при трёх дверях сумма умножилась бы дважды.
+  const оп = OPTIONS.find(o => o.id === optId);
+  const штук = оп && оп.formula?.поштучно ? getOptQty(оп) : 1;
+  const currentVal = (getOptPrice(оп) || 0) / штук;
   priceEl.innerHTML = `<input type="text" value="${currentVal ? Math.round(currentVal).toLocaleString('ru-RU') : ''}" placeholder="0" inputmode="numeric" style="font-size:0.78rem;border:1px solid var(--green-mid);border-radius:5px;padding:2px 6px;background:var(--field-bg);color:var(--black);font-family:'Geologica',sans-serif;width:80px;outline:none;" id="editMatrixPrice_${optId}" oninput="fmtInput(this)" onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter'){saveEditMatrixPrice('${optId}');} if(event.key==='Escape'){cancelEditMatrixPrice('${optId}', ${currentVal});}">`;
   const input = document.getElementById('editMatrixPrice_' + optId);
   if (input) { input.focus(); input.select(); }
@@ -14610,15 +14641,19 @@ function getOptPrice(opt) {
   if (opt.status === 'formula' && opt.formula) {
     return calcFormulaPrice(opt, selectedProject);  // returns null if no area / no margin
   }
+  let цена = null;
   if (selectedProject) {
     // Check session overrides first
     const mo = matrixOverrides.get(selectedProject);
-    if (mo && mo[opt.id] != null) return mo[opt.id];
-    // Then PRICE_MATRIX
     const pm = PRICE_MATRIX[selectedProject[0]];
-    if (pm && pm[opt.id] != null) return pm[opt.id];
+    if (mo && mo[opt.id] != null) цена = mo[opt.id];
+    // Then PRICE_MATRIX
+    else if (pm && pm[opt.id] != null) цена = pm[opt.id];
   }
-  return opt.price || null;
+  if (цена == null) цена = opt.price || null;
+  // Поштучная позиция: в каталоге и в правке карандашом — цена за штуку.
+  if (цена && opt.formula?.поштучно) цена = цена * getOptQty(opt);
+  return цена;
 }
 
 /* Цена опции так, как её берёт итог: подарок — ноль, а у опции без цены в
@@ -25021,12 +25056,10 @@ function restoreState(state) {
         ? o._origName.replace('укрывная краска', 'лессирующая краска')
         : o._origName.replace('лессирующая краска', 'укрывная краска');
     }
-    if (o.formula?.qtyOption) {
-      if (!o._origName) o._origName = o.name;
-      const ov = formulaOverrides[o.id] || {};
-      const qty = (ov.area != null && +ov.area > 0) ? +ov.area : (o.formula.defaultQty || 1);
-      o.name = o._origName.replace(/\(\d+\s*шт\.\)/, `(${qty} шт.)`);
-    }
+    // Имя с количеством — той же функцией, что и счётчик на карточке: здесь
+    // стоял свой разбор «(N шт.)», и месяцы аренды генератора после открытия
+    // расчёта оставались с прежним числом.
+    if (o.formula?.qtyOption) { try { refreshQtyName(o.id); } catch (e) {} }
   });
 
   // Determine option pricing mode: explicit from state, or auto-detect for old presets
@@ -35637,6 +35670,7 @@ function applyTechData(product) {
       if (st) o.status = st; else delete o.status;
     });
   }
+  пометитьПоштучные();
 
   // Проекты — кортежем, как раньше
   PROJECTS.length = 0;
