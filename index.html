@@ -64,6 +64,7 @@ let _syncState = 'offline'; // 'offline'(grey) | 'local'(orange) | 'synced'(gree
 </script>
 <style id="палитра">
 /* ПАЛИТРА:НАЧАЛО — блок пишет scratchpad/палитра.py, руками не править.
+   Тон: эталон.
    Каждый фирменный оттенок — одна переменная; имя — светлота в процентах.
    Смена цвета: python3 scratchpad/палитра.py собрать <тон>. */
 :root{
@@ -10990,7 +10991,7 @@ function populateProjectSelect(filter = '') {
   if (_sbUser) {
     html += `<div class="kit-ready-toggle" onclick="toggleOnlyReadyKits(event)" title="Показать только проекты с готовыми комплектациями">
       <span class="krt-switch${_onlyReadyKits ? ' on' : ''}"><span class="krt-knob"></span></span>
-      <span class="krt-label">Только с готовыми комплектациями</span>
+      <span class="krt-label">С готовыми комплектациями</span>
     </div>`;
   }
 
