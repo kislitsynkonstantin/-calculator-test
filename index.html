@@ -1203,17 +1203,20 @@ body.ui-blank .cs-sortcap { color: var(--bl-ink3); }
 .cs-sbtn svg { transition: transform .15s; }
 .cs-sbtn.desc[data-sort="name"] svg, .cs-sbtn.desc[data-sort="default"] svg { transform: scaleY(-1); }
 .cs-sbtn.desc[data-sort="freq"] svg { transform: scaleX(-1); }
-/* Название порядка — поверх строки «Снять выбор», слева от значков. Ширина
-   значков с промежутками 88 px, поле строки справа 12, зазор 6: название
-   кончается за 8 px до первого значка. */
+/* Название порядка — прямо под значками, выровнено по их правому краю
+   (Константин 24.09.2026: «лучше прям под иконками сортировки сделай
+   подпись»). Встаёт поверх начала списка ненадолго, поэтому залито фоном
+   карточки и приподнято тенью: сквозь него не читаются названия проектов.
+   Правое поле строки 12 px — ровно правый край последнего значка. */
 .cs-sortrow { position: relative; }
-.cs-sortname { position: absolute; left: 4px; top: 4px; bottom: 4px; right: 114px;
-  display: flex; align-items: center; padding: 0 10px; border-radius: 6px; white-space: nowrap;
+.cs-sortname { position: absolute; top: calc(100% + 4px); right: 12px; z-index: 3;
+  padding: 4px 9px; border-radius: 6px; white-space: nowrap;
   background: var(--green-bg); color: var(--green-dark); font-size: .74rem; font-weight: 600;
-  opacity: 0; pointer-events: none; cursor: pointer; transition: opacity .2s; }
-.cs-sortname.show { opacity: 1; pointer-events: auto; }
-body.dark .cs-sortname { color: var(--green-light); }
-body.ui-blank .cs-sortname { background: var(--bl-tint); color: var(--bl-acc); }
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--green-dark) 18%, transparent), 0 4px 12px rgba(0,0,0,.12);
+  opacity: 0; transform: translateY(-3px); pointer-events: none; cursor: pointer; transition: opacity .2s, transform .2s; }
+.cs-sortname.show { opacity: 1; transform: none; pointer-events: auto; }
+body.dark .cs-sortname { color: var(--green-light); box-shadow: 0 0 0 1px color-mix(in srgb, var(--green-light) 22%, transparent), 0 4px 12px rgba(0,0,0,.4); }
+body.ui-blank .cs-sortname { background: var(--bl-tint); color: var(--bl-acc); box-shadow: 0 0 0 1px var(--bl-rule2), 0 4px 12px rgba(0,0,0,.10); }
 @media (prefers-reduced-motion: reduce) { .cs-sortname, .cs-sbtn svg { transition: none; } }
 .custom-select-count {
   display: flex;
@@ -10887,11 +10890,10 @@ function значкиПорядкаПроектов() {
     }).join('') + '</span>';
 }
 
-// Название порядка встаёт в строку «Снять выбор», поверх неё, и гаснет само
+// Название порядка встаёт прямо под значками и гаснет само
 // через 1,2 секунды; нажатие по нему убирает раньше. Константин 24.09.2026:
 // «когда меняешь сортировку, вот тут можно аккуратно подсвечивать её название.
 // По нажатию на название сортировки оно исчезает… а так планово само гаснет».
-// Под значком подпись висела поверх первых проектов списка.
 const НАЗВАНИЕ_ПОРЯДКА_МС = 1200;
 let _подписьПорядкаТаймер = null;
 function _названиеПорядка() { return document.querySelector('#projectSelectDropdown .cs-sortname'); }
@@ -10904,8 +10906,8 @@ function показатьНазваниеПорядка(текст, надолг
   if (!надолго) _подписьПорядкаТаймер = setTimeout(() => скрытьНазваниеПорядка(), НАЗВАНИЕ_ПОРЯДКА_МС);
 }
 function скрытьНазваниеПорядка(событие) {
-  // Под названием лежит «Снять выбор»: нажатие не должно дойти ни до него,
-  // ни до обработчика «нажатие мимо списка».
+  // Под названием лежит первый проект списка: нажатие не должно дойти ни
+  // до него, ни до обработчика «нажатие мимо списка».
   if (событие) { событие.stopPropagation(); событие.preventDefault(); }
   if (_подписьПорядкаТаймер) { clearTimeout(_подписьПорядкаТаймер); _подписьПорядкаТаймер = null; }
   const м = _названиеПорядка();
