@@ -27515,9 +27515,9 @@ function alРисовать() {
       }
     }
     const строки = подробности
-      .map(р => '<div class="al-d"><span class="al-dk">' + alЭкран(р.k) + '</span>' +
+      .map(р => '<div class="al-d"><span class="al-dk">' + alЭкран(р.k) + '</span><span class="al-dv">' +
         (р.a ? '<span class="al-da">' + alЭкран(р.a) + '</span><span class="al-ar">→</span>' : '') +
-        значение(р.b, р.k) + '</div>').join('');
+        значение(р.b, р.k) + '</span></div>').join('');
     // Птичка только там, где есть что раскрыть. У события без подробностей она
     // обещала вторую половину, которой нет, и строка выглядела сломанной.
     // Вместе с птичкой уходят и подсветка при наведении, и палец на курсоре.
@@ -36272,6 +36272,20 @@ body.total-strip-on .save-ind{bottom:calc(var(--strip-h, 68px) + 10px);}
    строку, и стрелка вместе с ним уезжала на собственную строку, разрывая
    «было → стало» на три этажа. */
 .al-dk{color:var(--gray-light);min-width:130px;}
+/* Значение — отдельной обёрткой: на компьютере подробности выстроены сеткой,
+   и «было → стало» со списком должны занимать одну её клетку. */
+.al-dv{display:flex;align-items:baseline;gap:9px;min-width:0;}
+/* На компьютере колонка подписей шириной ровно в самую длинную подпись этого
+   события, а не 130 px на всех: короткие «Добавлены» и «Итог» оставляли до
+   значений восемьдесят пикселей пустоты (Константин, 24.09.2026: «зачем такой
+   интервал?»). Значения при этом по-прежнему стоят одной колонкой. */
+@media (min-width:641px){
+  .al-row.open .al-more{display:grid;grid-template-columns:max-content minmax(0,1fr);
+    column-gap:14px;align-items:baseline;}
+  .al-d{display:contents;}
+  .al-dk,.al-dv{padding:3px 0;}
+  .al-dk{min-width:0;}
+}
 .al-ar{color:var(--gray-light);}
 .al-da{color:var(--gray);text-decoration:line-through;}
 .al-db{color:var(--black);font-weight:600;}
