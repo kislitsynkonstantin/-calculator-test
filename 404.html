@@ -8,16 +8,123 @@
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="var(--br-12д)" media="(prefers-color-scheme: dark)">
 <title>Спецификация · Баня-МСК</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231e4172'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Arial,sans-serif' font-size='9' font-weight='900' fill='white'%3EБМСК%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231e6c72'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Arial,sans-serif' font-size='9' font-weight='900' fill='white'%3EБМСК%3C/text%3E%3C/svg%3E" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style id="палитра">
 /* ПАЛИТРА:НАЧАЛО — блок пишет scratchpad/палитра.py, руками не править.
-   Тон: 215.
+   Тон: эталон.
    Каждый фирменный оттенок — одна переменная; имя — светлота в процентах.
    Смена цвета: python3 scratchpad/палитра.py собрать <тон>. */
 :root{
+  --br-05:#0a1012;
+  --br-07:#08181a;
+  --br-08:#0c1c1f; --br-08-rgb:12,28,31;
+  --br-08а:#0e1a1c;
+  --br-10:#122023; --br-10-rgb:18,32,35;
+  --br-10а:#111e20;
+  --br-11:#0f2427; --br-11-rgb:15,36,39;
+  --br-12:#0e2a2d;
+  --br-12а:#0f2a2c;
+  --br-12б:#102b2d;
+  --br-12в:#12262a; --br-12в-rgb:18,38,42;
+  --br-12г:#13272b;
+  --br-12д:#132528;
+  --br-14:#1a2a2c;
+  --br-15:#143638;
+  --br-15а:#173338;
+  --br-15б:#1a3034;
+  --br-15в:#1a2e30;
+  --br-16:#143c40; --br-16-rgb:20,60,64;
+  --br-16а:#1e3035;
+  --br-17:#1e3538;
+  --br-18:#1e3a3e;
+  --br-18а:#22383c;
+  --br-19:#17454a;
+  --br-19а:#243a3c;
+  --br-20:#105755;
+  --br-20а:#144f54;
+  --br-20б:#24413f;
+  --br-21:#155558;
+  --br-21а:#224347;
+  --br-21б:#2a3f42;
+  --br-24:#2a4a4e;
+  --br-25:#1a5f65;
+  --br-25а:#2e4e52;
+  --br-26:#166f6c;
+  --br-27:#17726f;
+  --br-27а:#2d585d;
+  --br-28:#1e6c72; --br-28-rgb:30,108,114;
+  --br-28а:#41504f;
+  --br-29:#3a5558;
+  --br-35:#4a6568;
+  --br-38:#2a8f97; --br-38-rgb:42,143,151;
+  --br-39:#5b6a6e;
+  --br-41:#5b7376;
+  --br-47:#4a9ea4;
+  --br-48:#3db0ba; --br-48-rgb:61,176,186;
+  --br-50:#5a9ea4;
+  --br-51:#6a9098;
+  --br-55:#7f9799;
+  --br-56:#6ab0b5;
+  --br-56а:#7a9ea4;
+  --br-57:#4ecad4;
+  --br-58:#5fc2ca;
+  --br-60:#5fc8d2;
+  --br-60а:#8aa4a6;
+  --br-60б:#8da3a5;
+  --br-61:#7ab8bc;
+  --br-66:#9ab5b8; --br-66-rgb:154,181,184;
+  --br-66а:#9bb5b7;
+  --br-67:#7fd0d6;
+  --br-67а:#9ab8bc;
+  --br-67б:#9db6b8;
+  --br-68:#7dd8dc;
+  --br-71:#8fd6dc; --br-71-rgb:143,214,220;
+  --br-72:#9dd0d4;
+  --br-74:#a8cdd0;
+  --br-77:#a8dde0; --br-77-rgb:168,221,224;
+  --br-79:#b8d8da;
+  --br-80:#bcd9db;
+  --br-82:#c8d8da;
+  --br-83:#bfe6e8;
+  --br-83а:#c8dfe0;
+  --br-83б:#d0d8d8;
+  --br-85:#c8e8ea; --br-85-rgb:200,232,234;
+  --br-85а:#cde3e4;
+  --br-86:#d4e4e5;
+  --br-87:#cfe9eb;
+  --br-87а:#d0e8ea;
+  --br-87б:#d6e6e7;
+  --br-89:#dceaeb;
+  --br-89а:#dde8e8;
+  --br-90:#ddeef0;
+  --br-90а:#e0eced;
+  --br-91:#dcf0f2; --br-91-rgb:220,240,242;
+  --br-91а:#e0f0f2;
+  --br-92:#e0f4f5;
+  --br-93:#e4f5f6;
+  --br-93а:#e6f2f3;
+  --br-93б:#e6f3f3; --br-93б-rgb:230,243,243;
+  --br-93в:#e7f1f1;
+  --br-93г:#e8f0f1;
+  --br-94:#eaf5f6;
+  --br-94а:#eaf6f6;
+  --br-94б:#e8f4f5;
+  --br-94в:#e8f5f5;
+  --br-95:#eef5f5;
+  --br-95а:#f0f6f6;
+  --br-96:#f0f9fa;
+  --br-96а:#f0fafa;
+  --br-96б:#f2fafa;
+  --br-96в:#f0f9f9;
+  --br-96г:#f2f9f9;
+  --br-98:#f7fefe;
+}
+/* ПАЛИТРА:КОНЕЦ */
+/* ТОНЫ:НАЧАЛО — блок пишет scratchpad/палитра.py тоны, руками не править. */
+:root[data-tone="blue"]{
   --br-05:#0a0c12;
   --br-07:#080f1a;
   --br-08:#0c121f; --br-08-rgb:12,18,31;
@@ -122,7 +229,7 @@
   --br-96г:#f2f5f9;
   --br-98:#f7fafe;
 }
-/* ПАЛИТРА:КОНЕЦ */
+/* ТОНЫ:КОНЕЦ */
 </style>
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -566,7 +673,16 @@ function снимкиДок(с) {
 }
 function adресаШирина(н) { return н > 1 ? (100 - (н - 1) * 2.8) / н : 100; }
 
+// Цвет оформления того, кто выдал ссылку. Палитра тона лежит в странице
+// вторым блоком и включается признаком на корне; логотипы тона — файлами
+// рядом с основными. Незнакомый тон — бирюза: лист не ломается.
+function логотип(вид, тон) {
+  return '/assets/logo-bmsk-' + вид + (тон ? '-' + тон : '') + '.png';
+}
 function нарисовать(с, ценаДо) {
+  var тон = с.тон === 'blue' ? 'blue' : '';
+  if (тон) document.documentElement.setAttribute('data-tone', тон);
+  else document.documentElement.removeAttribute('data-tone');
   var наличные = с.наличные ? '<i> за наличные</i>' : '';
   var сСкидкой = с.доСкидки && с.доСкидки > с.итог;
   var доСкидки = сСкидкой ? с.доСкидки : с.итог;
@@ -609,8 +725,8 @@ function нарисовать(с, ценаДо) {
 
   document.getElementById('корень').innerHTML =
     '<div class="cl-bar">' +
-      '<img class="cl-logo day" src="/assets/logo-bmsk-dark.png" alt="Баня-МСК" width="520" height="117">' +
-      '<img class="cl-logo night" src="/assets/logo-bmsk-light.png" alt="Баня-МСК" width="520" height="117">' +
+      '<img class="cl-logo day" src="' + логотип('dark', тон) + '" alt="Баня-МСК" width="520" height="117">' +
+      '<img class="cl-logo night" src="' + логотип('light', тон) + '" alt="Баня-МСК" width="520" height="117">' +
       '<span class="right"><button class="cl-pdf" onclick="window.print()">' +
         ЗН_СКАЧАТЬ + 'Скачать PDF</button></span>' +
     '</div>' +
@@ -619,7 +735,7 @@ function нарисовать(с, ценаДо) {
       '<button onclick="location.reload()">Показать новую версию</button>' +
     '</div>' +
     '<div class="bl-wrap"><div class="bl-doc">' +
-      '<img class="bl-logo-doc" src="/assets/logo-bmsk-dark.png" alt="Баня-МСК" width="520" height="117">' +
+      '<img class="bl-logo-doc" src="' + логотип('dark', тон) + '" alt="Баня-МСК" width="520" height="117">' +
       '<div class="bl-eyebrow">Спецификация · ' + экр(шапка) + '</div>' +
       '<div class="bl-title">' + имя + '</div>' +
       '<div class="bl-hr"></div>' +
