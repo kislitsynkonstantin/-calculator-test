@@ -7838,7 +7838,7 @@ body.ui-blank #kedTabsHost button.is-active span {
 }
 body.ui-blank #kedSeedBtn,
 body.ui-blank #kedCopyBtn,
-body.ui-blank #kedOptsPanel button[onclick*="openKedCustomForm"] {
+body.ui-blank #kedOptsPanel button[onclick="openKedCustomForm()"] {
   border: 1px solid var(--bl-rule2) !important;
   border-radius: 8px !important;
   background: none !important;
@@ -7848,10 +7848,20 @@ body.ui-blank #kedOptsPanel button[onclick*="openKedCustomForm"] {
 }
 body.ui-blank #kedSeedBtn::before,
 body.ui-blank #kedCopyBtn::before,
-body.ui-blank #kedOptsPanel button[onclick*="openKedCustomForm"]::before { content: ''; position: absolute; inset: -5px -4px; }
+body.ui-blank #kedOptsPanel button[onclick="openKedCustomForm()"]::before { content: ''; position: absolute; inset: -5px -4px; }
 body.ui-blank #kedSeedBtn:hover,
 body.ui-blank #kedCopyBtn:hover,
-body.ui-blank #kedOptsPanel button[onclick*="openKedCustomForm"]:hover { border-color: var(--bl-acc2) !important; color: var(--bl-acc) !important; }
+body.ui-blank #kedOptsPanel button[onclick="openKedCustomForm()"]:hover { border-color: var(--bl-acc2) !important; color: var(--bl-acc) !important; }
+/* Правка и удаление в строке ручной опции — значки, а не кнопки в рамке.
+   Правило для «+ Ручная» раньше ловило их тоже (тот же обработчик, только с
+   номером опции), и у опции в две строки рамка вытягивалась в столбик
+   (Константин 24.09.2026, снимком). Палец ловит невидимое поле: 8 px вверх
+   и вниз — строки идут с шагом 30 px, и поле шире залезло бы на значок
+   соседней строки, — 4 px вбок, половина промежутка до соседнего значка. */
+#kedOptsList button[onclick*="openKedCustomForm('"],
+#kedOptsList button[onclick*="deleteKedCustom('"] { position: relative; z-index: 1; }
+#kedOptsList button[onclick*="openKedCustomForm('"]::before,
+#kedOptsList button[onclick*="deleteKedCustom('"]::before { content: ''; position: absolute; inset: -8px -4px; }
 body.ui-blank #kedSearch {
   background: none !important;
   border: 1px solid var(--bl-rule2) !important;
