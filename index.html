@@ -4270,6 +4270,49 @@ body.dark #loginScreen .lg-go { color:var(--br-07); }
 #loginScreen .lg-go:disabled {
   background:none; color:var(--lg-ink3); border-color:var(--lg-rule2); cursor:default;
 }
+/* Вход — вид 01 и 04 макета login-v3 (Константин 24.09.2026, снимками:
+   «первичный и повторный ввод вот так»).
+   Ожидание: кнопка остаётся залитой и читаемой — знак вращения, слова, бегущая
+   полоска по нижнему краю; поля приглушены, чтобы их не правили на ходу.
+   Прежде кнопка в ожидании гасла до серой рамки и выглядела выключенной. */
+#loginScreen .lg-go { position:relative; overflow:hidden;
+  display:flex; align-items:center; justify-content:center; gap:9px; }
+/* Курсор после нажатия остаётся над кнопкой: без этого ожидание шло бы
+   цветом наведения, светлее покоя. */
+#loginScreen .lg-go.wait, #loginScreen .lg-go.wait:hover { cursor:progress; background:var(--lg-acc); border-color:var(--lg-acc); }
+#loginScreen .lg-go.wait::after { content:''; position:absolute; left:0; bottom:0; height:3px; width:34%;
+  background:currentColor; opacity:.55; animation:lgБег 1.3s ease-in-out infinite; }
+#loginScreen .lg-spin { width:13px; height:13px; border-radius:50%; border:2px solid currentColor;
+  border-right-color:transparent; animation:lgКруг .8s linear infinite; flex:none; }
+@keyframes lgБег { 0% { transform:translateX(-100%); } 100% { transform:translateX(300%); } }
+@keyframes lgКруг { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce) { #loginScreen .lg-go.wait::after, #loginScreen .lg-spin { animation:none; } }
+#loginScreen .lg-paper.locked .lg-wrap input,
+#loginScreen .lg-paper.locked .lg-who { color:var(--lg-ink3); }
+#loginScreen .lg-paper.locked .lg-eye,
+#loginScreen .lg-paper.locked .lg-who-ch,
+#loginScreen .lg-paper.locked .lg-forgot button { pointer-events:none; opacity:.5; }
+/* «Долго» и «нет сети» — спокойная плашка, не красная: это не ошибка пароля. */
+#loginScreen .lg-note { margin-top:18px; padding:9px 12px; font-size:.74rem; line-height:1.45;
+  background:var(--lg-tint); color:var(--lg-ink2); }
+#loginScreen .lg-note b { color:var(--lg-ink); font-weight:600; }
+/* Повторный вход: устройство помнит, кто входил последним, — вместо поля
+   почты строка с именем и «Сменить». */
+#loginScreen .lg-who { display:flex; align-items:center; gap:12px; padding:14px 0 12px;
+  border-bottom:1px solid var(--lg-rule); color:var(--lg-ink); }
+#loginScreen .lg-who-av { width:34px; height:34px; border-radius:50%; flex:none;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--lg-tint); color:var(--lg-acc); font-size:.7rem; font-weight:600; letter-spacing:.04em; }
+body.dark #loginScreen .lg-who-av { color:var(--lg-acc); }
+#loginScreen .lg-who-m { min-width:0; font-size:.86rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#loginScreen .lg-who-m small { display:block; font-size:.66rem; color:var(--lg-ink3);
+  overflow:hidden; text-overflow:ellipsis; }
+#loginScreen .lg-who-ch { position:relative; margin-left:auto; flex:none; background:none; border:0; padding:0 0 1px;
+  font-family:inherit; font-size:.72rem; color:var(--lg-ink2); border-bottom:1px solid var(--lg-rule2); cursor:pointer; }
+#loginScreen .lg-who-ch::before { content:''; position:absolute; inset:-14px -10px; }
+@media (hover:hover) { #loginScreen .lg-who-ch:hover { color:var(--lg-acc); border-bottom-color:var(--lg-acc2); } }
+#loginScreen.repeat #loginEmailFld { display:none; }
+#loginScreen:not(.repeat) .lg-who { display:none; }
 #loginScreen .lg-forgot { margin-top:14px; text-align:center; }
 #loginScreen .lg-forgot button {
   position:relative; background:none; border:none; cursor:pointer;
@@ -8591,10 +8634,15 @@ body.ui-blank #confirmDialogOk { background: #c0392b; }
       <h2 class="lg-title">Калькулятор спецификаций</h2>
       <div class="lg-sub">Расчёт стоимости проектов</div>
       <div class="lg-rule"></div>
-      <div class="lg-fld">
+      <div class="lg-who" id="loginWho">
+        <span class="lg-who-av" id="loginWhoAv" aria-hidden="true"></span>
+        <span class="lg-who-m"><span id="loginWhoName"></span><small id="loginWhoEmail"></small></span>
+        <button type="button" class="lg-who-ch" onclick="входСменить()">Сменить</button>
+      </div>
+      <div class="lg-fld" id="loginEmailFld">
         <label for="loginEmail">Email</label>
         <div class="lg-wrap">
-          <input id="loginEmail" type="email" placeholder="manager@bania-msk.ru" autocomplete="email"
+          <input id="loginEmail" type="email" placeholder="manager@bania-msk.ru" autocomplete="username"
             onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
         </div>
       </div>
@@ -8608,6 +8656,7 @@ body.ui-blank #confirmDialogOk { background: #c0392b; }
           </button>
         </div>
       </div>
+      <div id="loginNote" class="lg-note" style="display:none;"></div>
       <div id="loginError" class="lg-msg" style="display:none;"></div>
       <button id="loginBtn" class="lg-go" onclick="loginSubmit()">Войти</button>
       <div class="lg-forgot">
@@ -35243,6 +35292,7 @@ function showLoginScreen() {
   // Логотип и значок темы ставятся здесь: в разметке у картинки пустой src,
   // а какой из двух логотипов нужен, известно только по текущей теме.
   try { updateLoginLogo(); updateLoginThemeIcon(); } catch (e) {}
+  try { входПоказатьКто(); _входСеть(); } catch (e) {}
 }
 
 // Луна днём, солнце ночью — те же контуры, что у кнопки темы в шапке.
@@ -35268,37 +35318,138 @@ function hideLoginScreen() {
   document.body.style.overflow = '';
 }
 
+// ── Вход: вид 01 и 04 макета login-v3 ────────────────────────────────────
+// Константин 24.09.2026: «первичный и повторный ввод вот так» — живое
+// ожидание при первом входе и короткий вход с именем при повторном.
+// Правила, общие для обоих:
+//  • ожидание ограничено ВХОД_ТЕРПЕНИЕ_МС — дальше плашка словами и повтор;
+//    прежде вход без ответа ждал бесконечно, и кнопка просто крутилась;
+//  • кнопка не застревает: любой исход, включая сбой посреди запроса,
+//    возвращает её в «Войти» — прежде оборвавшийся запрос оставлял её
+//    выключенной до перезагрузки страницы;
+//  • нет сети — сказано сразу, до нажатия, а не через 15 секунд ожидания.
+const ВХОД_ТЕРПЕНИЕ_МС = 15000;
+const ВХОД_ПАМЯТЬ = 'bm_last_login';
+let _входПопытка = 0, _входТаймер = null;
+
+function _входКнопка(вид) {
+  const btn = document.getElementById('loginBtn');
+  const лист = document.querySelector('#loginScreen .lg-paper');
+  if (!btn) return;
+  btn.classList.toggle('wait', вид === 'ждём');
+  btn.setAttribute('aria-busy', вид === 'ждём' ? 'true' : 'false');
+  // Прописные ставит CSS (text-transform), поэтому в тексте обычный регистр.
+  btn.innerHTML = вид === 'ждём' ? '<span class="lg-spin" aria-hidden="true"></span>Проверяем…'
+    : вид === 'ещё' ? 'Попробовать ещё раз' : 'Войти';
+  if (лист) лист.classList.toggle('locked', вид === 'ждём');
+  ['loginEmail', 'loginPassword'].forEach(id => { const п = document.getElementById(id); if (п) п.readOnly = вид === 'ждём'; });
+}
+
+function _входПлашка(html) {
+  const н = document.getElementById('loginNote');
+  if (!н) return;
+  н.innerHTML = html || '';
+  н.style.display = html ? 'block' : 'none';
+}
+
+function _входСеть() {
+  // Пока идёт ожидание, плашку держит оно; «нет сети» говорится в покое.
+  if (document.getElementById('loginBtn')?.classList.contains('wait')) return;
+  if (navigator.onLine === false) {
+    _входПлашка('<b>Нет связи с интернетом.</b> Вход не получится, пока телефон или компьютер офлайн.');
+  } else if ((document.getElementById('loginNote')?.innerHTML || '').includes('Нет связи')) {
+    _входПлашка('');
+  }
+}
+window.addEventListener('online', _входСеть);
+window.addEventListener('offline', _входСеть);
+
+// Кто входил последним — только на этом устройстве, в памяти браузера.
+function входЗапомнить(email, имя) {
+  try {
+    const было = JSON.parse(localStorage.getItem(ВХОД_ПАМЯТЬ) || 'null') || {};
+    const стало = { email: email || было.email || '', имя: имя || (email && email !== было.email ? '' : было.имя) || '' };
+    if (стало.email) localStorage.setItem(ВХОД_ПАМЯТЬ, JSON.stringify(стало));
+  } catch (e) {}
+}
+function _входПомнит() {
+  try { const з = JSON.parse(localStorage.getItem(ВХОД_ПАМЯТЬ) || 'null'); return з && з.email ? з : null; } catch (e) { return null; }
+}
+function входПоказатьКто() {
+  const экран = document.getElementById('loginScreen');
+  const з = _входПомнит();
+  if (!экран) return;
+  экран.classList.toggle('repeat', !!з);
+  if (!з) return;
+  const имя = з.имя || з.email;
+  const буквы = (з.имя || з.email).split(/[\s@._-]+/).filter(Boolean).slice(0, 2).map(с => с[0]).join('').toUpperCase();
+  document.getElementById('loginWhoAv').textContent = буквы;
+  document.getElementById('loginWhoName').textContent = имя;
+  document.getElementById('loginWhoEmail').textContent = з.имя ? з.email : '';
+  const поле = document.getElementById('loginEmail');
+  if (поле) поле.value = з.email;
+}
+function входСменить() {
+  try { localStorage.removeItem(ВХОД_ПАМЯТЬ); } catch (e) {}
+  const экран = document.getElementById('loginScreen');
+  if (экран) экран.classList.remove('repeat');
+  const поле = document.getElementById('loginEmail');
+  if (поле) { поле.value = ''; поле.focus(); }
+  const пароль = document.getElementById('loginPassword');
+  if (пароль) пароль.value = '';
+}
+
 async function loginSubmit() {
+  const btn = document.getElementById('loginBtn');
+  if (btn && btn.classList.contains('wait')) return;
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
   const errEl = document.getElementById('loginError');
-  const btn = document.getElementById('loginBtn');
   errEl.style.display = 'none';
   // Ответ «письмо отправлено» помечается классом ok. Снимаем его на каждой
   // ошибке: иначе она осталась бы зелёной от прошлого сброса пароля.
   errEl.classList.remove('ok');
+  _входПлашка('');
   if (!email || !password) {
     errEl.textContent = 'Введите email и пароль';
     errEl.style.display = 'block';
     return;
   }
-  btn.disabled = true;
-  // Прописные ставит CSS (text-transform), поэтому в тексте обычный регистр:
-  // иначе регистр применялся бы дважды и в коде оставалась бы путаница.
-  btn.textContent = 'Вход…';
-  const { error } = await _sb.auth.signInWithPassword({ email, password });
-  btn.disabled = false;
-  btn.textContent = 'Войти';
-  if (error) {
-    let msg = error.message;
-    if (msg === 'Invalid login credentials') msg = 'Неверный email или пароль';
-    else if (msg === 'Load failed' || msg.includes('fetch') || msg.includes('network') || msg.includes('Failed to fetch')) {
-      msg = 'Нет соединения — сервер недоступен.';
-    }
-    else if (msg.includes('Email not confirmed')) msg = 'Email не подтверждён. Проверьте почту.';
-    errEl.textContent = msg;
-    errEl.style.display = 'block';
+  if (navigator.onLine === false) { _входСеть(); return; }
+  const попытка = ++_входПопытка;
+  _входКнопка('ждём');
+  clearTimeout(_входТаймер);
+  _входТаймер = setTimeout(() => {
+    if (попытка !== _входПопытка) return;
+    // Запрос не отменяется: придёт ответ позже — вход состоится сам.
+    _входПопытка++;
+    _входКнопка('ещё');
+    _входПлашка('<b>Сервер отвечает дольше обычного.</b> Скорее всего, слабая связь — пароль при этом верный или нет, ещё неизвестно.');
+  }, ВХОД_ТЕРПЕНИЕ_МС);
+  let error = null;
+  try {
+    ({ error } = await _sb.auth.signInWithPassword({ email, password }));
+  } catch (e) {
+    error = e || { message: 'network' };
   }
+  // Ответ пришёл после «долго» или после нового нажатия — он устарел: исход
+  // показывает уже следующая попытка.
+  if (попытка !== _входПопытка) {
+    if (!error) { _входПлашка(''); _входКнопка('покой'); входЗапомнить(email); }
+    return;
+  }
+  clearTimeout(_входТаймер);
+  _входКнопка('покой');
+  if (!error) { входЗапомнить(email); return; }
+  let msg = String(error.message || '');
+  if (msg === 'Invalid login credentials') msg = 'Неверный email или пароль';
+  else if (msg === 'Load failed' || msg.includes('fetch') || msg.includes('network') || msg.includes('Failed to fetch')) {
+    msg = 'Нет соединения — сервер недоступен.';
+  }
+  else if (msg.includes('Email not confirmed')) msg = 'Email не подтверждён. Проверьте почту.';
+  else if (!msg) msg = 'Вход не удался. Попробуйте ещё раз.';
+  errEl.textContent = msg;
+  errEl.style.display = 'block';
 }
 
 
@@ -36032,6 +36183,8 @@ async function loadSbProfile() {
     const { data } = await _sb.from('profiles').select('role,first_name,last_name,app_settings,avatar_url,updates_seen').eq('id', _sbUser.id).single();
     if (data) data.full_name = [data.first_name, data.last_name].filter(Boolean).join(' ');
     window._sbProfile = data;
+    // Имя для короткого повторного входа: устройство запомнит, кто входил.
+    try { if (data && data.full_name && _sbUser.email) входЗапомнить(_sbUser.email, data.full_name); } catch (e) {}
     if (data && data.app_settings && typeof data.app_settings === 'object') {
       const тронуты = слитьНастройкиИзПрофиля(data.app_settings);
       // Тема — настройка устройства: аккаунт её не навязывает. Иначе выбор,
