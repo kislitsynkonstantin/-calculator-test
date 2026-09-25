@@ -3,3 +3,6 @@ scratchpad/__pycache__/
 scratchpad/probes/__pycache__/
 
 .claude/settings.local.json
+
+# Одноразовое согласие на опасный инструмент базы (см. auto-approve.py)
+.claude/hooks/.согласие
