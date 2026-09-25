@@ -17,7 +17,12 @@
     правый нижний угол листа: «код 123 456», 3,5 pt, светло-серым;
   • печать уже сохранённого берёт его код и нового пресета не заводит;
   • штамп на листе внутри страницы, у правого нижнего края, и мельче любого
-    текста листа.
+    текста листа;
+  • тот же код стоит на листе предпросмотра — во всех шести стилях, на 390 и
+    1440 px, в правом нижнем углу, не наезжая на текст; открытие
+    предпросмотра несохранённого расчёта код уже даёт (Константин,
+    25.09.2026: «не вижу код пресета в версии для печати»); в окно печати
+    штамп предпросмотра не уходит, печать по договорам код несёт.
 
     python3 check_print_code.py
 """
@@ -142,8 +147,73 @@ def главная():
                         плохо(f"штамп не мельче текста листа: {ш['fs']} px при самом мелком {ш['мин']} px")
                     print(f"  штамп: {ш['fs']:.2f} px (самый мелкий текст листа {ш['мин']:.2f}), от края {ш['справа']:.0f}/{ш['снизу']:.0f} px")
                 л.close()
+            if any("spec-code-stamp-view" in л for л in р["листы"]):
+                плохо("в окно печати ушёл и штамп предпросмотра — код стоит дважды")
             if ошибки:
                 плохо("ошибки страницы: " + "; ".join(ошибки)[:200])
+            стр.close()
+
+            # 3. Лист предпросмотра: код в правом нижнем углу во всех стилях,
+            #    на телефоне и на широком экране; открытие несохранённого
+            #    расчёта код уже даёт.
+            for ширина in (390, 1440):
+                стр, ошибки = страница(бр, порт)
+                стр.set_viewport_size({"width": ширина, "height": 900})
+                стр.wait_for_timeout(200)
+                р = стр.evaluate("""async () => {
+                  const до = Object.keys(loadAllPresets()).length;
+                  openPrintPreview();
+                  await new Promise(r => setTimeout(r, 120));
+                  const код = _активныйПресетКод(), после = Object.keys(loadAllPresets()).length;
+                  const итог = {};
+                  for (const стиль of ['blank', 'modern', 'classic', 'architect', 'cards', 'luxury']) {
+                    setPrintStyle(стиль, true);
+                    await new Promise(r => setTimeout(r, 120));
+                    const лист = document.getElementById('printDoc');
+                    const ш = лист.querySelectorAll('.spec-code-stamp-view');
+                    if (ш.length !== 1) { итог[стиль] = { сколько: ш.length }; continue; }
+                    const r = ш[0].getBoundingClientRect(), л = лист.getBoundingClientRect();
+                    // Что стоит на листе ниже штампа или заходит на него.
+                    const наложение = [...лист.querySelectorAll('*')].filter(x => x !== ш[0] && !x.contains(ш[0])
+                      && [...x.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())).some(x => {
+                        const q = x.getBoundingClientRect();
+                        return q.width && q.height && q.left < r.right && q.right > r.left && q.top < r.bottom && q.bottom > r.top; });
+                    итог[стиль] = { сколько: 1, текст: ш[0].textContent, справа: л.right - r.right, снизу: л.bottom - r.bottom,
+                      fs: parseFloat(getComputedStyle(ш[0]).fontSize), видим: getComputedStyle(ш[0]).display !== 'none' && r.width > 0,
+                      наложение };
+                  }
+                  return { до, после, код, итог }; }""")
+                ждём = f"код {str(р['код'])[:3]} {str(р['код'])[3:]}"
+                if not р["код"] or р["после"] != р["до"] + 1:
+                    плохо(f"{ширина} px: открытие предпросмотра несохранённого расчёта не дало кода")
+                for стиль, и in р["итог"].items():
+                    где = f"{ширина} px, стиль {стиль}"
+                    if и["сколько"] != 1:
+                        плохо(f"{где}: штампов на листе {и['сколько']}")
+                        continue
+                    if и["текст"] != ждём or not и["видим"]:
+                        плохо(f"{где}: на листе «{и['текст']}», ждали «{ждём}»")
+                    if not (0 <= и["справа"] <= 30 and 0 <= и["снизу"] <= 20):
+                        плохо(f"{где}: штамп не в правом нижнем углу листа: {и['справа']:.0f}/{и['снизу']:.0f} px")
+                    if и["fs"] > 5:
+                        плохо(f"{где}: штамп крупнее 5 px ({и['fs']:.2f})")
+                    if и["наложение"]:
+                        плохо(f"{где}: штамп наезжает на текст листа")
+                print(f"  предпросмотр {ширина} px: «{ждём}» в {sum(1 for и in р['итог'].values() if и['сколько'] == 1)} стилях из 6")
+                if ширина == 1440:
+                    т = стр.evaluate("""() => { window.__листы.length = 0; printByContracts();
+                      return window.__листы.map(л => л.html); }""")
+                    if not т or ждём not in т[0]:
+                        плохо("печать по договорам без кода")
+                    elif т[0].count(ждём) != 1:
+                        плохо(f"печать по договорам: код стоит {т[0].count(ждём)} раз")
+                    стр.set_viewport_size({"width": 1440, "height": 900})
+                    стр.evaluate("() => { setPrintStyle('blank', true); document.getElementById('printDoc').scrollIntoView({block: 'end'}); }")
+                    стр.wait_for_timeout(300)
+                    стр.screenshot(path=str(ЗДЕСЬ / "снимок-код-предпросмотр-1440.png"))
+                if ошибки:
+                    плохо(f"{ширина} px: ошибки страницы: " + "; ".join(ошибки)[:200])
+                стр.close()
             бр.close()
     finally:
         с.shutdown()

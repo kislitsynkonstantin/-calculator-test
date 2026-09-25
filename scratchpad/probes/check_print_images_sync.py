@@ -76,7 +76,9 @@ def плохо(т):
 # Что видно на экране, а не что лежит в переменной. В листе считаем только
 # свои снимки: там есть и логотип, и он в документе всегда — подсчёт всех
 # картинок подряд никогда не давал бы нуля, и проверка была бы вечно зелёной.
+ФОТО = "?stored-photo"
 ВИД = """(картинка) => {
+  const ФОТО_В_ХРАНИЛИЩЕ = '?stored-photo';
   const кн = document.getElementById('btnTogglePrintImages');
   const гл = document.getElementById('printParamsImagesCheck');
   const пункт = document.getElementById('printParamsImagesItem');
@@ -86,7 +88,7 @@ def плохо(т):
     тусклая: кн ? (getComputedStyle(кн).opacity !== '1') : null,
     галочка: гл ? getComputedStyle(гл).opacity === '1' : null,
     пунктВиден: пункт ? getComputedStyle(пункт).display !== 'none' : null,
-    снимковВЛисте: лист ? [...лист.querySelectorAll('img')]\n        .filter(и => и.getAttribute('src') === картинка).length : null,
+    снимковВЛисте: лист ? [...лист.querySelectorAll('img')]\n        .filter(и => и.getAttribute('src') === картинка || (и.getAttribute('src') || '').endsWith(ФОТО_В_ХРАНИЛИЩЕ)).length : null,
   };
 }"""
 
@@ -101,6 +103,15 @@ def главная():
             стр.on("pageerror", lambda e: ошибки.append(str(e)))
             стр.add_init_script(ЗАГЛУШКА)
             стр.add_init_script(ТАБЛИЦЫ_JS)
+            # Снимки уходят в хранилище, как только расчёт сохранён пресетом, а
+            # с (34) это случается уже при открытии окна печати. Заглушка отдаёт
+            # за них адрес логотипа — того самого, что в листе всегда, — и счёт
+            # по адресу их бы не нашёл. Здесь у них свой адрес, опознаваемый.
+            стр.add_init_script("""(function () { const с = window.supabase.createClient;
+              window.supabase.createClient = function () { const к = с.apply(this, arguments); const хр = к.storage.from;
+                к.storage.from = function () { const о = хр.apply(this, arguments);
+                  о.getPublicUrl = () => ({ data: { publicUrl: '/assets/logo-bmsk-dark.png' + ФОТО_В_ХРАНИЛИЩЕ } });
+                  return о; }; return к; }; })();""".replace("ФОТО_В_ХРАНИЛИЩЕ", json.dumps(ФОТО)))
             стр.goto(f"http://127.0.0.1:{порт}/index.html", wait_until="load")
             стр.wait_for_timeout(2500)
 
