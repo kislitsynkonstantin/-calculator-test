@@ -69,11 +69,12 @@ for _п in (1, 2):
                          "option_id": _о["option_id"], "price": 30000})
 
 
-def ссылка(код, автор, имя, общий=True, закрыт=False):
+def ссылка(код, автор, имя, общий=True, закрыт=False, проект=None):
     return {"short_code": код, "preset_id": "p-" + код, "author_id": автор,
             "author_name": имя, "name": имя, "is_public": общий, "locked": закрыт,
             "state": {"savedAt": "2026-09-18T10:00:00Z"},
-            "spec_state": {}, "requisites": {}, "discount": {}, "payment_plan": {},
+            "spec_state": {"project": {"name": проект}, "checkedOptions": []} if проект else {},
+            "requisites": {}, "discount": {}, "payment_plan": {},
             "created_at": "2026-09-18T10:00:00Z", "updated_at": "2026-09-18T10:00:00Z"}
 
 
@@ -94,7 +95,7 @@ def ссылка(код, автор, имя, общий=True, закрыт=False
     "preset_links": [
         ссылка(МОЙ_КОД, Я, "Мой общий"),
         ссылка(ЧУЖОЙ_ОТКРЫТ, ЧУЖОЙ, "Петров, замок открыт"),
-        ссылка(ЧУЖОЙ_ЗАКРЫТ, ЧУЖОЙ, "Петров, замок закрыт", закрыт=True),
+        ссылка(ЧУЖОЙ_ЗАКРЫТ, ЧУЖОЙ, "Петров, замок закрыт", закрыт=True, проект="Проба 6×4"),
         ссылка(ЧУЖОЙ_ПРИВАТ, ЧУЖОЙ, "Петров, не общий", общий=False),
         ссылка(МОЙ_ЗАКРЫТ, Я, "Мой, замок закрыт", закрыт=True),
     ],
@@ -283,6 +284,36 @@ def главная():
                       "чужой расчёт всем желающим помимо воли автора")
             if адм.get("правка"):
                 плохо("администратор правит расчёт с закрытым замком — замок держит всех")
+
+            # «Посмотреть» у проекта под закрытым замком: администратору и
+            # редактору кнопка остаётся и открывает окно только для чтения
+            # (Константин, 25.09.2026); прежде нажатие глушил сам замок.
+            стр.wait_for_timeout(500)
+            кн = спросить(стр, """() => { const к = document.querySelector('#projectInfo .btn-edit-project:not(.btn-save-preset)');
+              return к ? { видна: !!к.offsetParent, текст: к.innerText.trim() } : null; }""") or {}
+            if not кн.get("видна") or "Посмотреть" not in (кн.get("текст") or ""):
+                плохо(f"администратор под закрытым замком не видит «Посмотреть» у проекта: {кн}")
+            else:
+                try:
+                    стр.locator("#projectInfo .btn-edit-project:not(.btn-save-preset)").scroll_into_view_if_needed(timeout=2000)
+                    стр.locator("#projectInfo .btn-edit-project:not(.btn-save-preset)").click(timeout=2000)
+                except Exception:
+                    pass
+                стр.wait_for_timeout(400)
+                окно = спросить(стр, """() => { const ф = document.getElementById('editProjectForm');
+                  const пр = ф.querySelector('.btn-confirm-edit');
+                  return { открыто: ф.classList.contains('open'),
+                           применить: !!(пр && пр.offsetParent),
+                           незаперто: [...ф.querySelectorAll('input, select')].filter(э => э.offsetParent && !э.disabled).length }; }""") or {}
+                if not окно.get("открыто"):
+                    плохо("«Посмотреть» под закрытым замком не открывает окно данных проекта")
+                if окно.get("применить") or окно.get("незаперто"):
+                    плохо(f"окно данных проекта под замком правится: {окно}")
+                спросить(стр, "() => closeEditProject()")
+            спросить(стр, """() => { window._sbProfile = { id: '%s', role: 'manager', full_name: 'Проба' };
+              кнопкаПроектаПриЗамке(); }""" % Я)
+            if спросить(стр, "() => !!(document.querySelector('#projectInfo .btn-edit-project:not(.btn-save-preset)') || {}).offsetParent"):
+                плохо("менеджеру под закрытым замком видна кнопка у проекта, которая ничего не делает")
 
             if ошибки:
                 плохо("ошибки страницы: " + "; ".join(ошибки)[:200])
