@@ -994,8 +994,11 @@
    На светлом зелёном белое давало 2,8:1, спец. цена светло-красным почти
    пропадала. Ночь — только на экране: печать всегда дневная. */
 :root[data-tone="bmsk"] { --strip-bg:#24271f; --strip-disc:#a6d474; }
+/* «Бирюза-антрацит» — та же пара: итог антрацитовый, спец. цена светлой бирюзой. */
+:root[data-tone="anthracite"] { --strip-bg:#1f2a2c; --strip-disc:var(--br-67); }
 @media screen and (prefers-color-scheme: dark) {
   :root[data-tone="bmsk"] { --strip-bg:#1b1d17; }
+  :root[data-tone="anthracite"] { --strip-bg:#161f21; }
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -1423,7 +1426,7 @@ function логотип(вид, тон) {
 }
 function нарисовать(с, ценаДо) {
   // Тона, для которых рядом лежат файлы логотипа; незнакомый — бирюза.
-  var ТОНЫ_ЛИСТА = ['sky', 'blue', 'bmsk', 'amber', 'plum', 'indigo', 'graphite', 'titan'];
+  var ТОНЫ_ЛИСТА = ['sky', 'blue', 'bmsk', 'anthracite', 'amber', 'plum', 'indigo', 'graphite', 'titan'];
   var тон = ТОНЫ_ЛИСТА.indexOf(с.тон) >= 0 ? с.тон : '';
   if (тон) document.documentElement.setAttribute('data-tone', тон);
   else document.documentElement.removeAttribute('data-tone');
