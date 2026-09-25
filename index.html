@@ -6073,6 +6073,7 @@ body.ui-blank .price-fields-row { gap: 8px 14px; }
 /* Выпадающий список этажности и поля цен опций заданы инлайном —
    перебиваем ровно те свойства, что там стоят. */
 body.ui-blank #cpFloorType,
+body.ui-blank #epFloorType,
 body.ui-blank .custom-project-form input[id^="cpOpt_"],
 body.ui-blank .edit-project-form input[id^="epOpt_"] {
   background: none !important;
@@ -6084,6 +6085,7 @@ body.ui-blank .edit-project-form input[id^="epOpt_"] {
   padding: 4px 2px 5px !important;
 }
 body.ui-blank #cpFloorType:focus,
+body.ui-blank #epFloorType:focus,
 body.ui-blank .custom-project-form input[id^="cpOpt_"]:focus,
 body.ui-blank .edit-project-form input[id^="epOpt_"]:focus {
   border-bottom-color: var(--bl-acc2) !important;
@@ -10128,17 +10130,20 @@ body.ui-blank #confirmDialogOk { background: #c0392b; }
         <div class="price-fields-row">
           <div class="field">
             <label id="epPrice100Label">100 мм (₽)</label>
-            <input type="text" id="epPrice100" oninput="fmtInput(this)" inputmode="numeric">
+            <input type="text" id="epPrice100" oninput="fmtInput(this);epЦенаВписана()" inputmode="numeric">
           </div>
           <div class="field">
             <label id="epPrice150Label">150 мм (₽)</label>
-            <input type="text" id="epPrice150" oninput="fmtInput(this)" inputmode="numeric">
+            <input type="text" id="epPrice150" oninput="fmtInput(this);epЦенаВписана()" inputmode="numeric">
           </div>
           <div class="field">
             <label id="epPrice200Label">200 мм (₽)</label>
-            <input type="text" id="epPrice200" oninput="fmtInput(this)" inputmode="numeric">
+            <input type="text" id="epPrice200" oninput="fmtInput(this);epЦенаВписана()" inputmode="numeric">
           </div>
         </div>
+        <!-- Откуда цена ручного проекта бруса: посчитана от контура, взята из прайса
+             или вписана руками. От этого зависит, меняют ли её площади ниже. -->
+        <div id="epPriceSource" style="display:none;font-size:0.68rem;color:var(--gray);line-height:1.45;margin:0 0 8px;"></div>
         <!-- «Без отделки» ручного проекта бруса: как проект был заведён. Снятая
              или поставленная здесь галочка пересчитывает три цены выше. -->
         <div id="epNoFinishField" style="display:none;align-items:center;gap:8px;margin:2px 0 10px;">
@@ -10148,14 +10153,25 @@ body.ui-blank #confirmDialogOk { background: #c0392b; }
           </label>
         </div>
       </div>
+      <!-- У ручного проекта бруса — тот же выбор, что в форме: число 1,5 не
+           отличает мансарду от полуторного этажа, а ставки у них разные. -->
+      <div class="field" id="epFloorTypeField" style="display:none;">
+        <label>Тип этажности</label>
+        <select id="epFloorType" onchange="epПересчитать()" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--field-bg);color:var(--black);font-family:'Geologica',sans-serif;font-size:0.82rem;cursor:pointer;">
+          <option value="1">1 этаж</option>
+          <option value="mansard">Мансардный этаж</option>
+          <option value="1.5">Полуторный этаж</option>
+          <option value="2">2 этажа</option>
+        </select>
+      </div>
       <div class="price-fields-row">
-        <div class="field">
+        <div class="field" id="epFloorsField">
           <label>Этажей</label>
           <input type="number" id="epFloors" min="1" max="3" step="0.5">
         </div>
         <div class="field">
           <label>Тёплый контур (м²)</label>
-          <input type="number" id="epWarm" min="0">
+          <input type="number" id="epWarm" min="0" oninput="epПересчитать()">
         </div>
         <div class="field">
           <label>Кровля</label>
@@ -10165,11 +10181,11 @@ body.ui-blank #confirmDialogOk { background: #c0392b; }
       <div class="price-fields-row">
         <div class="field">
           <label>Откр. терраса (м²)</label>
-          <input type="number" id="epOpen" min="0" placeholder="0">
+          <input type="number" id="epOpen" min="0" placeholder="0" oninput="epПересчитать()">
         </div>
         <div class="field">
           <label>Крыт. терраса (м²)</label>
-          <input type="number" id="epClosed" min="0" placeholder="0">
+          <input type="number" id="epClosed" min="0" placeholder="0" oninput="epПересчитать()">
         </div>
         <div class="field"></div>
       </div>
@@ -10224,7 +10240,10 @@ body.ui-blank #confirmDialogOk { background: #c0392b; }
       <!-- Floor type dropdown -->
       <div class="field" id="cpFloorTypeField">
         <label>Тип этажности</label>
-        <select id="cpFloorType" onchange="cpRecalcPrices()" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--field-bg);color:var(--black);font-family:'Geologica',sans-serif;font-size:0.82rem;cursor:pointer;">
+        <select id="cpFloorType" onchange="_cpЭтажАвто = false; cpRecalcPrices()" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--field-bg);color:var(--black);font-family:'Geologica',sans-serif;font-size:0.82rem;cursor:pointer;">
+          <!-- Пустой выбор — только у бруса со ставками: там этажность обязательна,
+               и молча стоящий «1 этаж» считался бы выбранным. -->
+          <option value="" id="cpFloorTypeNone" hidden>Выберите тип</option>
           <option value="1">1 этаж</option>
           <option value="mansard">Мансардный этаж</option>
           <option value="1.5">Полуторный этаж</option>
@@ -10278,7 +10297,7 @@ body.ui-blank #confirmDialogOk { background: #c0392b; }
            домов») — так же, как в каркасе, где оно зашито в формулу. -->
       <div style="display:none;flex-wrap:wrap;align-items:center;gap:6px 18px;margin:2px 0 10px;" id="cpGlulamAdjField">
         <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.78rem;color:var(--black);">
-          <input type="checkbox" id="cpNoFinish" onchange="cpRecalcPrices()" style="width:15px;height:15px;accent-color:var(--green-dark);cursor:pointer;">
+          <input type="checkbox" id="cpNoFinish" onchange="cpБезОтделкиФормы()" style="width:15px;height:15px;accent-color:var(--green-dark);cursor:pointer;">
           Без отделки <span id="cpNoFinishPct" style="color:var(--gray);"></span>
         </label>
       </div>
@@ -12172,6 +12191,12 @@ function cpПлощадиБрусаСверху() {
   if (кр && !кр.value && kbAreas.roof != null) кр.value = kbAreas.roof;
 }
 const CP_RATE_FIELDS = ['cpFloorTypeField', 'cpOpenField', 'cpClosedField'];
+let _cpЭтажАвто = false;   // «1 этаж» в форме поставлен сам, а не выбран
+// Откуда цена в форме: 'calc' — посчитана от тёплого контура, 'price' — взята
+// из прайса выбранного проекта, 'manual' — вписана руками. Уходит в запись
+// проекта: окно «Редактировать» по ней решает, пересчитывать ли цену при
+// смене площадей (решение Константина 25.09.2026, предложение 3 разбора).
+let _cpИсточник = null;
 function cpApplyTechChrome() {
   const брус = currentTech === 'glulam';
   const считает = !брус || !!cpСтавкиБруса();
@@ -12185,6 +12210,17 @@ function cpApplyTechChrome() {
     const э = document.getElementById(ид);
     if (э) э.style.display = считает ? '' : 'none';
   });
+  // Этажность у бруса со ставками обязательна, поэтому выбора по умолчанию
+  // там нет. У каркаса «1 этаж» стоит сам, как стоял всегда; если форму
+  // открыли каркасом и переключились на брус, поставленный так «1 этаж»
+  // выбором не считается.
+  const этаж = document.getElementById('cpFloorType');
+  const нетЭтажа = document.getElementById('cpFloorTypeNone');
+  if (нетЭтажа) нетЭтажа.hidden = !(брус && считает);
+  if (этаж) {
+    if (брус && считает) { if (_cpЭтажАвто) { этаж.value = ''; _cpЭтажАвто = false; } }
+    else if (!этаж.value) { этаж.value = '1'; _cpЭтажАвто = true; }
+  }
   const поправки = document.getElementById('cpGlulamAdjField');
   if (поправки) поправки.style.display = (брус && считает) ? 'flex' : 'none';
   if (брус && считает) {
@@ -12286,6 +12322,7 @@ function cpCopyFromSelected() {
     if (srcFloors === 2) ftEl.value = '2';
     else if (srcFloors === 1.5) ftEl.value = '1.5';
     else ftEl.value = '1';
+    _cpЭтажАвто = false;
   }
   if (!document.getElementById('cpWarm').value) document.getElementById('cpWarm').value = selectedProject[6] || '';
   if (!document.getElementById('cpOpen').value) document.getElementById('cpOpen').value = selectedProject[7] || '';
@@ -12310,6 +12347,7 @@ function cpCopyFromSelected() {
   setP('cpPrice100', selectedProject[1]);
   setP('cpPrice150', selectedProject[2]);
   setP('cpPrice200', selectedProject[3]);
+  _cpИсточник = 'price';
   }
   // У бруса цена прайса — основа, поправки ложатся на неё сразу.
   if (currentTech === 'glulam' && cpСтавкиБруса() && !брусСчитает) {
@@ -12533,10 +12571,19 @@ function cpПоказатьОснову() {
 // Вписанное руками — это цена с теми поправками, что сейчас отмечены: так её
 // и видят. Основа — она же без поправок.
 function cpЦенаВписана(i) {
+  _cpИсточник = 'manual';
   if (currentTech !== 'glulam' || !cpСтавкиБруса()) return;
   if (!_cpОснова) _cpОснова = CP_ЦЕНЫ.map(ид => { const ч = rawNum(ид); return ч ? ч / cpПоправкаБруса() : null; });
   const ч = rawNum(CP_ЦЕНЫ[i]);
   _cpОснова[i] = ч ? ч / cpПоправкаБруса() : null;
+}
+
+// «Без отделки» в форме. Цена, вписанная руками поверх расчёта, — своя
+// цена: галочка ложится на неё, а не пересчитывает от контура и не затирает.
+// Площади и этажность по-прежнему пересчитывают.
+function cpБезОтделкиФормы() {
+  if (currentTech === 'glulam' && _cpОснова) { cpПоказатьОснову(); return; }
+  cpRecalcPrices();
 }
 
 function cpRecalcPrices() {
@@ -12561,8 +12608,10 @@ function cpRecalcPrices() {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
+    _cpИсточник = null;
     return;
   }
+  _cpИсточник = 'calc';
 
   if (currentTech === 'glulam') {
     _cpОснова = null;   // цена считается от контура — поправки уже в формуле
@@ -12603,6 +12652,23 @@ function confirmCustomProject() {
   const isZheneva = document.getElementById('cpZheneva')?.checked || false;
 
   if (!name) { document.getElementById('cpName').focus(); return; }
+  // У бруса со ставками без этажности и тёплого контура цена ни из чего не
+  // посчитана, и через месяц не понять, откуда она взялась (предложение 2
+  // разбора, решено Константином 25.09.2026). Остальное — по желанию.
+  if (currentTech === 'glulam' && cpСтавкиБруса()) {
+    const пусто = !document.getElementById('cpFloorType')?.value ? ['cpFloorType', 'тип этажности']
+                : !(warm > 0) ? ['cpWarm', 'тёплый контур'] : null;
+    if (пусто) {
+      showToast('Укажите ' + пусто[1] + ' — без него цена бруса не считается');
+      const э = document.getElementById(пусто[0]);
+      if (э) {
+        э.classList.add('field-highlight');
+        setTimeout(() => э.classList.remove('field-highlight'), 600);
+        э.focus();
+      }
+      return;
+    }
+  }
   if (!p150) { document.getElementById('cpPrice150').focus(); return; }
 
   // Check that at least some option prices have been filled (must copy from selected project)
@@ -12638,6 +12704,7 @@ function confirmCustomProject() {
   // 25.09.2026: «не показывает, была ли нажата галочка „без отделки“»).
   newProject._params = {
     floorType,
+    source: _cpИсточник || 'manual',
     ...(currentTech === 'glulam'
       ? { noFinish: !!document.getElementById('cpNoFinish')?.checked }
       : { zheneva: !!isZheneva }),
@@ -12672,8 +12739,9 @@ function confirmCustomProject() {
   if (zhEl) zhEl.checked = false;
   ['cpNoFinish'].forEach(id => { const э = document.getElementById(id); if (э) э.checked = false; });
   _cpОснова = null;
+  _cpИсточник = null;
   const ftEl = document.getElementById('cpFloorType');
-  if (ftEl) ftEl.value = '1';
+  if (ftEl) { ftEl.value = ''; _cpЭтажАвто = false; }
   document.getElementById('cpOptionSections').innerHTML = '';
   toggleCustomProjectForm(true);
 
@@ -12900,6 +12968,14 @@ function openEditProject() {
   }
   document.getElementById('epFloors').value = floors || '';
   document.getElementById('epWarm').value = warm || '';
+  // Ручной проект бруса при известных ставках: этажность — тем же выбором,
+  // что в форме, а цена, посчитанная от контура, пересчитывается при смене
+  // площадей. Взятую из прайса и вписанную руками площади не меняют.
+  _epБрусСчёт = !!(брусСвой && ставки);
+  const полеЭтажей = document.getElementById('epFloorsField');
+  const полеТипа = document.getElementById('epFloorTypeField');
+  if (полеЭтажей) полеЭтажей.style.display = _epБрусСчёт ? 'none' : '';
+  if (полеТипа) полеТипа.style.display = _epБрусСчёт ? '' : 'none';
   document.getElementById('epRoof').value = roof || '';
   document.getElementById('epOpen').value = selectedProject[7] || '';
   document.getElementById('epClosed').value = selectedProject[8] || '';
@@ -12934,6 +13010,14 @@ function openEditProject() {
     const topRow = document.getElementById('epTopCloseRow');
     if (topRow) topRow.style.display = isCustom ? 'none' : 'flex';
   }
+
+  if (_epБрусСчёт) {
+    const пар = selectedProject._params || {};
+    const тип = document.getElementById('epFloorType');
+    тип.value = пар.floorType || ({ 1: '1', 1.5: '1.5', 2: '2' })[floors] || '1';
+    _epИсточник = epИсточникЦены(тип);
+  } else _epИсточник = null;
+  epПоказатьИсточник();
 
   // Render option prices
   epRenderOptionSections(isCustom);
@@ -13021,12 +13105,63 @@ function epФакторБезОтделки() {
   return 1 - (document.getElementById('epNoFinish')?.checked ? (+с.cp_coef.no_finish || 0) : 0);
 }
 function epБезОтделки() {
+  if (_epБрусСчёт && _epИсточник === 'calc') { epПересчитать(); return; }
   const новый = epФакторБезОтделки();
   ['epPrice100', 'epPrice150', 'epPrice200'].forEach(ид => {
     const ч = rawNum(ид);
     if (ч) setFmtValue(ид, Math.round(ч / _epФактор * новый));
   });
   _epФактор = новый;
+}
+
+let _epБрусСчёт = false;   // окно открыто для ручного проекта бруса со ставками
+let _epИсточник = null;    // 'calc' | 'price' | 'manual' | null — не записано
+function epВвод() {
+  const ч = ид => parseFloat(document.getElementById(ид)?.value) || 0;
+  return [document.getElementById('epFloorType')?.value || '1', ч('epWarm'), ч('epOpen'), ч('epClosed'),
+          !!document.getElementById('epNoFinish')?.checked];
+}
+// Откуда цена. У проектов, заведённых до того, как это записывалось, её
+// узнаём по совпадению: если правило от тех же площадей даёт ровно эти три
+// цены — она посчитана. У полутора этажей заодно выясняется, мансарда ли.
+function epИсточникЦены(тип) {
+  const пар = selectedProject._params || {};
+  if (пар.source) return пар.source;
+  const [, тёплый, откр, крыт, без] = epВвод();
+  if (!(тёплый > 0)) return null;
+  const цены = [selectedProject[1], selectedProject[2], selectedProject[3]].map(Number);
+  const варианты = пар.floorType ? [пар.floorType] : (тип.value === '1.5' ? ['1.5', 'mansard'] : [тип.value]);
+  for (const в of варианты) {
+    const р = cpЦеныБруса(в, тёплый, откр, крыт, без);
+    if (р && р.every((ч, i) => ч === цены[i])) { тип.value = в; return 'calc'; }
+  }
+  return null;
+}
+function epПоказатьИсточник() {
+  const э = document.getElementById('epPriceSource');
+  if (!э) return;
+  if (!_epБрусСчёт) { э.style.display = 'none'; return; }
+  const образец = selectedProject && selectedProject._basedOn;
+  э.textContent = _epИсточник === 'calc' ? 'Цена посчитана от тёплого контура — меняется вместе с площадями и этажностью.'
+    : _epИсточник === 'price' ? 'Цена взята из прайса' + (образец ? ' проекта «' + образец + '»' : '') + ' — площади её не меняют.'
+    : _epИсточник === 'manual' ? 'Цена вписана руками — площади её не меняют.'
+    : 'Как получена цена, не записано — площади её не меняют.';
+  э.style.display = 'block';
+}
+function epПересчитать() {
+  if (!_epБрусСчёт || _epИсточник !== 'calc') return;
+  const [тип, тёплый, откр, крыт, без] = epВвод();
+  if (!(тёплый > 0)) return;
+  const цены = cpЦеныБруса(тип, тёплый, откр, крыт, без);
+  if (!цены) return;
+  ['epPrice100', 'epPrice150', 'epPrice200'].forEach((ид, i) => setFmtValue(ид, цены[i]));
+  _epФактор = epФакторБезОтделки();
+}
+// Цена, вписанная руками поверх расчёта, дальше своя: площади её не трогают.
+function epЦенаВписана() {
+  if (!_epБрусСчёт || _epИсточник === 'manual') return;
+  _epИсточник = 'manual';
+  epПоказатьИсточник();
 }
 
 function closeEditProject() {
@@ -13048,12 +13183,28 @@ function confirmEditProject() {
 
   const isCustom = customProjects.includes(selectedProject);
 
+  // У ручного проекта бруса тёплый контур обязателен, как и в форме: пустое
+  // поле раньше молча возвращало прежнее значение.
+  let типЭтажности = null, этажи = floors;
+  if (isCustom && _epБрусСчёт) {
+    if (!(parseFloat(document.getElementById('epWarm').value) > 0)) {
+      showToast('Укажите тёплый контур — без него цена бруса не считается');
+      const э = document.getElementById('epWarm');
+      э.classList.add('field-highlight');
+      setTimeout(() => э.classList.remove('field-highlight'), 600);
+      э.focus();
+      return;
+    }
+    типЭтажности = document.getElementById('epFloorType').value || '1';
+    этажи = ({ '1': 1, 'mansard': 1.5, '1.5': 1.5, '2': 2 })[типЭтажности] || 1;
+  }
+
   if (isCustom) {
     selectedProject[0] = name;
     selectedProject[1] = p100;
     selectedProject[2] = p150;
     selectedProject[3] = p200;
-    selectedProject[4] = floors;
+    selectedProject[4] = этажи;
     selectedProject[5] = roof;
     selectedProject[6] = warm;
     selectedProject[7] = open;
@@ -13061,6 +13212,10 @@ function confirmEditProject() {
     if ((selectedProject._tech || currentTech) === 'glulam' && document.getElementById('epNoFinishField')?.style.display !== 'none') {
       selectedProject._params = Object.assign({}, selectedProject._params || {},
         { noFinish: !!document.getElementById('epNoFinish')?.checked });
+    }
+    if (типЭтажности) {
+      selectedProject._params = Object.assign({}, selectedProject._params || {}, { floorType: типЭтажности },
+        _epИсточник ? { source: _epИсточник } : {});
     }
   } else {
     if (!projectOverrides.has(selectedProject)) {

@@ -185,6 +185,9 @@ def главная():
             пл = спросить(стр, "() => [document.getElementById('cpFasadArea').value, document.getElementById('cpRoofArea').value]") or []
             if пл != ["45", "32"]:
                 плохо(f"площади фасада и кровли сверху не дошли до формы: {пл}")
+            этаж_сразу = спросить(стр, "() => cpFloorType.value")
+            if этаж_сразу != "":
+                плохо(f"у бруса со ставками этажность в только что открытой форме уже выбрана: «{этаж_сразу}»")
             for ид, имя in (("cpFloorTypeField", "этажность"), ("cpOpenField", "открытая терраса"),
                             ("cpClosedField", "крытая терраса"), ("cpGlulamAdjField", "поправки")):
                 if not спросить(стр, ВИДНО, ид):
@@ -256,30 +259,65 @@ def главная():
             if спросить(стр, "() => (document.getElementById('cpOpt_kb_проба') || {}).value") in (None, ""):
                 плохо("«Взять из выбранного» не взяло цены опций")
 
-            # ── заведённый проект помнит «Без отделки», и окно правки его показывает ──
-            спросить(стр, """() => {
+            # Помощники: выбрать проект в списке, открыть чистую форму, прочитать
+            # последнюю записанную строку, открыть окно правки.
+            ВЫБРАТЬ = """async (имя) => {
+              const и = [...PROJECTS, ...customProjects].findIndex(p => p[0] === имя);
+              if (и < 0) return false;
+              selectProjectOption(и); await new Promise(r => setTimeout(r, 300)); return true;
+            }"""
+            ЧИСТАЯ = """() => {
+              toggleCustomProjectForm(true); toggleCustomProjectForm();
               ['cpName','cpWarm','cpOpen','cpClosed','cpPrice100','cpPrice150','cpPrice200'].forEach(ид => document.getElementById(ид).value = '');
-              cpNoFinish.checked = false; _cpОснова = null;
-              cpCopyFromSelected(); cpNoFinish.checked = true; cpRecalcPrices();
-              cpName.value = 'Проба ручной'; confirmCustomProject();
-            }""")
-            стр.wait_for_timeout(400)
-            строка = (спросить(стр, "() => (window.__ТАБЛИЦЫ.custom_projects || []).slice(-1)[0] || null") or {})
-            if not (строка.get("params") or {}).get("noFinish"):
-                плохо(f"ручной проект записан в базу без отметки «Без отделки»: params = {строка.get('params')}")
-            if строка.get("price_150") != int(2200000 * 0.92 + 0.5):
-                плохо(f"ручной проект записан с ценой {строка.get('price_150')}, ждали {int(2200000 * 0.92 + 0.5)}")
-            окно = спросить(стр, """async () => {
-              const все = [...PROJECTS, ...customProjects];
-              const и = все.findIndex(p => p[0] === 'Проба ручной');
+              cpNoFinish.checked = false; _cpОснова = null; _cpИсточник = null; cpFloorType.value = '';
+            }"""
+            ПОСЛЕДНЯЯ = "() => (window.__ТАБЛИЦЫ.custom_projects || []).slice(-1)[0] || null"
+            ОКНО = """async (имя) => {
+              const и = [...PROJECTS, ...customProjects].findIndex(p => p[0] === имя);
               if (и < 0) return { беда: 'проекта нет в списке' };
-              selectProjectOption(и);
-              await new Promise(r => setTimeout(r, 300));
+              selectProjectOption(и); await new Promise(r => setTimeout(r, 300));
               openEditProject();
               return { галочка: epNoFinish.checked, видно: !!epNoFinishField.offsetParent,
+                       тип: epFloorType.value, типВидно: !!epFloorTypeField.offsetParent,
+                       числоВидно: !!epFloorsField.offsetParent, откуда: epPriceSource.textContent,
                        подпись: epPrice100Label.textContent, подсказка: epPricesHint.textContent,
-                       база: epBaseSnapshot.textContent, цена: rawNum('epPrice150') };
-            }""") or {}
+                       база: epBaseSnapshot.textContent,
+                       цены: ['epPrice100','epPrice150','epPrice200'].map(ид => rawNum(ид)) };
+            }"""
+            ЦЕНЫ_ОКНА = "() => ['epPrice100','epPrice150','epPrice200'].map(ид => rawNum(ид))"
+            def строк():
+                return len(спросить(стр, "() => (window.__ТАБЛИЦЫ.custom_projects || []).length") or [])
+
+            # ── обязательные поля: этажность и тёплый контур ──
+            спросить(стр, ВЫБРАТЬ, "Брус проба 6×6")
+            спросить(стр, ЧИСТАЯ)
+            было = спросить(стр, "() => (window.__ТАБЛИЦЫ.custom_projects || []).length")
+            спросить(стр, """() => { cpCopyFromSelected(); cpFloorType.value = ''; cpWarm.value = '';
+              cpName.value = 'Проба без полей'; confirmCustomProject(); }""")
+            стр.wait_for_timeout(300)
+            тост1 = спросить(стр, "() => _toastТекст") or ""
+            спросить(стр, "() => { cpFloorType.value = '1'; confirmCustomProject(); }")
+            стр.wait_for_timeout(300)
+            тост2 = спросить(стр, "() => _toastТекст") or ""
+            if спросить(стр, "() => (window.__ТАБЛИЦЫ.custom_projects || []).length") != было:
+                плохо("брус без этажности и тёплого контура записался")
+            if "этажност" not in тост1 or "тёплый контур" not in тост2:
+                плохо(f"сообщения о пустых полях не называют поле: «{тост1}», «{тост2}»")
+
+            # ── посчитанный проект: источник, мансарда, пересчёт в окне правки ──
+            спросить(стр, ВЫБРАТЬ, "Брус проба 6×6")
+            спросить(стр, ЧИСТАЯ)
+            спросить(стр, """() => { cpCopyFromSelected(); cpFloorType.value = 'mansard'; cpWarm.value = '64';
+              cpClosed.value = '10'; cpRecalcPrices(); cpNoFinish.checked = true; cpБезОтделкиФормы();
+              cpName.value = 'Проба расчёт'; confirmCustomProject(); }""")
+            стр.wait_for_timeout(400)
+            строка = спросить(стр, ПОСЛЕДНЯЯ) or {}
+            пар = строка.get("params") or {}
+            надо = ожидание("mansard", 64, 0, 10, True)
+            if строка.get("name") != "Проба расчёт" or пар.get("source") != "calc" or пар.get("floorType") != "mansard" \
+                    or not пар.get("noFinish") or строка.get("price_150") != надо[1]:
+                плохо(f"посчитанный проект записан не так: {строка.get('name')} params {пар}, цена {строка.get('price_150')}, ждали {надо[1]}")
+            окно = спросить(стр, ОКНО, "Проба расчёт") or {}
             if окно.get("беда"):
                 плохо("окно правки: " + окно["беда"])
             else:
@@ -287,36 +325,63 @@ def главная():
                     path=str(pathlib.Path(__file__).parent / "правка-бруса-1440.png"))
                 if not (окно.get("видно") and окно.get("галочка")):
                     плохо(f"окно «Редактировать» не показывает, что стояло «Без отделки»: {окно}")
+                if окно.get("тип") != "mansard" or not окно.get("типВидно") or окно.get("числоВидно"):
+                    плохо(f"окно правки не показывает мансарду выбором этажности: {окно}")
+                if "посчитана" not in (окно.get("откуда") or ""):
+                    плохо(f"окно правки не говорит, что цена посчитана: «{окно.get('откуда')}»")
                 if "125" not in (окно.get("подпись") or "") or "сечению бруса" not in (окно.get("подсказка") or ""):
                     плохо(f"в окне правки бруса подписи каркаса: «{окно.get('подпись')}», «{окно.get('подсказка')}»")
                 if "100 мм" in (окно.get("база") or ""):
                     плохо(f"строка «Цены в базе» у бруса в миллиметрах утепления: «{окно.get('база')}»")
+                спросить(стр, "() => { epWarm.value = '70'; epПересчитать(); }")
+                if спросить(стр, ЦЕНЫ_ОКНА) != ожидание("mansard", 70, 0, 10, True):
+                    плохо(f"окно правки не пересчитало посчитанную цену от нового контура: {спросить(стр, ЦЕНЫ_ОКНА)}")
                 спросить(стр, "() => { epNoFinish.checked = false; epБезОтделки(); }")
-                вернулась = спросить(стр, "() => rawNum('epPrice150')")
-                if вернулась != 2200000:
-                    плохо(f"снятая в окне правки «Без отделки» вернула цену {вернулась}, ждали 2 200 000")
-                спросить(стр, "() => confirmEditProject()")
+                if спросить(стр, ЦЕНЫ_ОКНА) != ожидание("mansard", 70, 0, 10, False):
+                    плохо(f"снятая в окне «Без отделки» не пересчитала цену от контура: {спросить(стр, ЦЕНЫ_ОКНА)}")
+                # пустой контур окно не принимает
+                спросить(стр, "() => { epWarm.value = ''; confirmEditProject(); }")
+                if "тёплый контур" not in (спросить(стр, "() => _toastТекст") or "") \
+                        or not спросить(стр, ВИДНО, "editProjectForm"):
+                    плохо("окно правки бруса приняло пустой тёплый контур")
+                спросить(стр, "() => { epWarm.value = '70'; confirmEditProject(); }")
                 стр.wait_for_timeout(400)
-                после = (спросить(стр, "() => (window.__ТАБЛИЦЫ.custom_projects || []).slice(-1)[0] || null") or {})
-                if (после.get("params") or {}).get("noFinish") or после.get("price_150") != 2200000:
-                    плохо(f"правка ручного проекта не дошла до базы: params {после.get('params')}, цена {после.get('price_150')}")
+                после = спросить(стр, ПОСЛЕДНЯЯ) or {}
+                п2 = после.get("params") or {}
+                if п2.get("noFinish") or п2.get("floorType") != "mansard" or после.get("warm") not in (70, "70") \
+                        or после.get("price_150") != ожидание("mansard", 70, 0, 10, False)[1]:
+                    плохо(f"правка посчитанного проекта не дошла до базы: {после.get('warm')} м², params {п2}, цена {после.get('price_150')}")
+                # проект, заведённый до записи источника: узнаётся по совпадению цены
+                спросить(стр, "() => { const п = customProjects.find(p => p[0] === 'Проба расчёт'); delete п._params.source; delete п._params.floorType; }")
+                старое = спросить(стр, ОКНО, "Проба расчёт") or {}
+                if "посчитана" not in (старое.get("откуда") or "") or старое.get("тип") != "mansard":
+                    плохо(f"проект без записанного источника не узнан как посчитанный мансардный: {старое}")
+                спросить(стр, "() => closeEditProject()")
 
-            # ── вписана одна цена 150: 100 и 200 достраиваются по соотношению бруса ──
-            # Соотношение берётся из той же таблицы, что и расчёт от контура
-            # (0,9 / 1 / 1,155), а не каркасное 0,893 / 1,063.
-            спросить(стр, """() => {
-              toggleCustomProjectForm(true); toggleCustomProjectForm();
-              ['cpName','cpWarm','cpOpen','cpClosed','cpPrice100','cpPrice150','cpPrice200'].forEach(ид => document.getElementById(ид).value = '');
-              cpNoFinish.checked = false; _cpОснова = null; cpCopyFromSelected();
-              cpPrice100.value = ''; cpPrice200.value = ''; cpPrice150.value = '1 000 000';
-              cpName.value = 'Проба одна цена'; confirmCustomProject();
-            }""")
+            # ── цена вписана руками: форма её не пересчитывает галочкой, окно — площадями ──
+            спросить(стр, ВЫБРАТЬ, "Брус проба 6×6")
+            спросить(стр, ЧИСТАЯ)
+            спросить(стр, """() => { cpCopyFromSelected(); cpFloorType.value = '1'; cpWarm.value = '25'; cpRecalcPrices();
+              cpPrice100.value = ''; cpPrice200.value = ''; cpPrice150.value = '1 000 000'; cpЦенаВписана(1); }""")
+            спросить(стр, "() => { cpNoFinish.checked = true; cpБезОтделкиФормы(); }")
+            вписано = спросить(стр, "() => rawNum('cpPrice150')")
+            if вписано != 920000:
+                плохо(f"«Без отделки» пересчитала вписанную руками цену 1 000 000 от контура: {вписано}, ждали 920 000")
+            спросить(стр, "() => { cpNoFinish.checked = false; cpБезОтделкиФормы(); cpName.value = 'Проба руками'; confirmCustomProject(); }")
             стр.wait_for_timeout(400)
-            одна = (спросить(стр, "() => (window.__ТАБЛИЦЫ.custom_projects || []).slice(-1)[0] || null") or {})
+            одна = спросить(стр, ПОСЛЕДНЯЯ) or {}
             ждём = [900000, 1000000, 1155000]
             есть = [одна.get("price_100"), одна.get("price_150"), одна.get("price_200")]
-            if одна.get("name") != "Проба одна цена" or есть != ждём:
-                плохо(f"брус с одной ценой 150: записано {одна.get('name')} {есть}, ждали {ждём} — соотношение не бруса")
+            if одна.get("name") != "Проба руками" or есть != ждём or (одна.get("params") or {}).get("source") != "manual":
+                плохо(f"брус с вписанной ценой 150: {одна.get('name')} {есть}, params {одна.get('params')}; "
+                      f"ждали {ждём} по соотношению бруса и источник «вручную»")
+            окно = спросить(стр, ОКНО, "Проба руками") or {}
+            if "руками" not in (окно.get("откуда") or ""):
+                плохо(f"окно правки не говорит, что цена вписана руками: «{окно.get('откуда')}»")
+            спросить(стр, "() => { epWarm.value = '40'; epПересчитать(); }")
+            if спросить(стр, ЦЕНЫ_ОКНА) != ждём:
+                плохо(f"смена контура в окне переписала вписанную руками цену: {спросить(стр, ЦЕНЫ_ОКНА)}")
+            спросить(стр, "() => closeEditProject()")
 
             # ── каркас: поправок бруса нет ──
             спросить(стр, "async () => { await switchTech('frame'); await new Promise(r => setTimeout(r, 400)); toggleCustomProjectForm(); }")
@@ -325,6 +390,8 @@ def главная():
                 плохо("у каркаса видны поправки бруса")
             if not спросить(стр, ВИДНО, "cpZhenevaField"):
                 плохо("у каркаса пропала «Женева»")
+            if спросить(стр, "() => cpFloorType.value") != "1":
+                плохо(f"у каркаса этажность не стоит «1 этаж» сама: «{спросить(стр, '() => cpFloorType.value')}»")
             for о in [о for о in ошибки if "supabase.co" not in о][:3]:
                 плохо("ошибка страницы: " + о[:160])
             стр.close()
