@@ -13127,13 +13127,20 @@ function epВвод() {
 function epИсточникЦены(тип) {
   const пар = selectedProject._params || {};
   if (пар.source) return пар.source;
-  const [, тёплый, откр, крыт, без] = epВвод();
+  const [, тёплый, откр, крыт] = epВвод();
   if (!(тёплый > 0)) return null;
   const цены = [selectedProject[1], selectedProject[2], selectedProject[3]].map(Number);
   const варианты = пар.floorType ? [пар.floorType] : (тип.value === '1.5' ? ['1.5', 'mansard'] : [тип.value]);
-  for (const в of варианты) {
+  // «Без отделки» у проектов до 25.09.2026 не записано — тоже узнаётся по цене.
+  const отделка = 'noFinish' in пар ? [!!пар.noFinish] : [false, true];
+  const галочка = document.getElementById('epNoFinish');
+  for (const в of варианты) for (const без of отделка) {
     const р = cpЦеныБруса(в, тёплый, откр, крыт, без);
-    if (р && р.every((ч, i) => ч === цены[i])) { тип.value = в; return 'calc'; }
+    if (р && р.every((ч, i) => ч === цены[i])) {
+      тип.value = в;
+      if (галочка) { галочка.checked = без; _epФактор = epФакторБезОтделки(); }
+      return 'calc';
+    }
   }
   return null;
 }
