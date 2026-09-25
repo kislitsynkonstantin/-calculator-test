@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Полоска состояния — пять концепций</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Geologica:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Токены листа «Бланк» и «Модерна» — день и ночь. Страница макета сама живёт
+   в тех же цветах, что показывает. */
+:root{
+  --page:#f0f6f6; --card:#fff; --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5;
+  --rule:#dceaeb; --acc:#1e6c72; --acc2:#2a8f97; --tint:#e4f5f6;
+  --strip:#1e6c72; --grey:#5b6a6e; --amber:#e39a2b;
+  --sheet:#fff; --field:#f7fafb;
+  --glass:rgba(250,252,252,.86); --glass-ink:#12262a; --glass-ink2:#5b7376; --glass-rule:rgba(18,38,42,.08);
+}
+body.night{
+  --page:#0b1618; --card:#122528; --ink:#e6f3f3; --ink2:#9db6b8; --ink3:#8aa4a6;
+  --rule:#224347; --acc:#8fd6dc; --acc2:#5fc2ca; --tint:#173338;
+  --strip:#143638; --grey:#41504f; --amber:#f0b050;
+  --sheet:#132528; --field:#173338;
+  --glass:rgba(26,40,43,.84); --glass-ink:#e6f3f3; --glass-ink2:#9db6b8; --glass-rule:rgba(255,255,255,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:'Geologica',system-ui,sans-serif;
+  line-height:1.55;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 80px}
+.eyebrow{font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+h1{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.35rem;margin:.3em 0 .35em;letter-spacing:-.01em}
+h1 em{font-style:normal;color:var(--acc)}
+.lead{color:var(--ink2);max-width:70ch;margin:0 0 18px;font-size:.9rem}
+/* Панель переключателей */
+.ctl{position:sticky;top:0;z-index:50;background:var(--page);padding:10px 0 12px;border-bottom:1px solid var(--rule);
+  display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-bottom:22px}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:9px;overflow:hidden;background:var(--card)}
+.seg button{border:0;background:none;color:var(--ink2);font:600 .74rem 'Geologica',sans-serif;padding:8px 12px;cursor:pointer;min-height:36px}
+.seg button.on{background:var(--acc);color:var(--card)}
+body.night .seg button.on{color:#08181a}
+.ctl-lab{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);font-weight:600;margin-right:-8px}
+/* Вариант */
+.var{border-top:2px solid var(--acc);padding:16px 0 30px;margin-top:8px}
+.var-head{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.var-no{font-family:'Unbounded',sans-serif;font-weight:800;font-size:1.9rem;color:var(--acc2);opacity:.45;line-height:1}
+.var h2{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1rem;margin:0}
+.var .why{color:var(--ink2);font-size:.86rem;max-width:78ch;margin:6px 0 4px}
+.var ul{margin:6px 0 14px;padding-left:18px;color:var(--ink2);font-size:.82rem;max-width:78ch}
+.var li{margin:2px 0}
+.scenes{display:grid;grid-template-columns:1fr;gap:16px;align-items:start}
+.scenes > div:first-child{max-width:390px}
+.cap{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);font-weight:600;margin:0 0 6px}
+
+/* ── Сцена: кусок калькулятора ─────────────────────────────────────────── */
+.frame{position:relative;overflow:hidden;border:1px solid var(--rule);border-radius:18px;background:var(--sheet);
+  height:560px;container-type:inline-size}
+.frame.desk{height:460px;border-radius:12px}
+body.modern .frame{background:var(--page)}
+.hdr{height:48px;display:flex;align-items:center;gap:18px;padding:0 16px;border-bottom:1px solid var(--rule);
+  color:var(--ink2);font-size:.72rem;background:var(--sheet)}
+body.modern .hdr{background:var(--acc);color:rgba(255,255,255,.85);border:0}
+body.modern.night .hdr{background:#143638}
+.hdr i{display:inline-block;width:16px;height:16px;border:1.6px solid currentColor;border-radius:4px;opacity:.7}
+.hdr .sp{flex:1}
+.body{padding:18px 18px 0;max-width:960px;margin:0 auto}
+.sec{display:flex;align-items:baseline;gap:10px;border-bottom:2px solid var(--acc);padding-bottom:6px;margin-bottom:4px}
+.sec b{font-family:'Unbounded',sans-serif;font-size:1.6rem;color:var(--acc2);opacity:.35;font-weight:800}
+.sec span{font-family:'Unbounded',sans-serif;font-weight:700;font-size:.82rem;color:var(--acc)}
+.sec small{margin-left:auto;font-weight:600;color:var(--ink);font-size:.8rem}
+body.modern .sec{background:var(--card);border:0;border-radius:12px 12px 0 0;padding:10px 12px}
+.row{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--rule);font-size:.8rem}
+body.modern .row{background:var(--card);padding:9px 12px}
+.row .ck{width:18px;height:18px;border-radius:4px;flex:none;margin-top:1px;box-shadow:inset 0 0 0 1.5px var(--rule)}
+.row.on .ck{background:var(--acc);box-shadow:none}
+body.night .row.on .ck{background:#2a8f97}
+.row .nm{flex:1}
+.row .pr{color:var(--ink2);white-space:nowrap}
+
+/* Полоска итога — как в калькуляторе */
+.ts{position:absolute;left:0;right:0;bottom:0;background:var(--strip);color:#fff;padding:10px 18px 12px;z-index:5}
+.ts-in{max-width:960px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px}
+.ts-lab{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.7);white-space:nowrap}
+.ts-val{margin-left:auto;font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.3rem;letter-spacing:-.02em}
+.ts-sub{width:100%;font-size:.66rem;color:rgba(255,255,255,.62)}
+.frame.desk .ts-val{font-size:1.45rem}
+
+/* ── Общие детали индикаторов ──────────────────────────────────────────── */
+.ind{position:absolute;z-index:6}
+.btn-soft{position:relative;border:0;border-radius:14px;padding:5px 12px;font:600 .72rem 'Geologica',sans-serif;cursor:pointer;white-space:nowrap}
+.btn-soft::before{content:'';position:absolute;inset:-10px -5px}
+.ico{display:inline-flex;align-items:center;justify-content:center;flex:none}
+.x{position:relative;border:0;background:none;padding:0;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:inherit;opacity:.6;flex:none}
+.x::before{content:'';position:absolute;inset:-11px -6px}
+.star{position:relative;border:0;background:none;padding:0;display:inline-flex;cursor:pointer;color:inherit;flex:none}
+.star::before{content:'';position:absolute;inset:-10px -5px}
+.lock{position:relative;border:0;border-radius:14px;padding:4px 9px;font:600 .68rem 'Geologica',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.lock::before{content:'';position:absolute;inset:-10px -4px}
+
+
+/* ═══ 01 · Мягкий объём (Soft UI) ═══════════════════════════════════════
+   Светлая плита, приподнятая двумя мягкими тенями и тонким светом по
+   верхней кромке. Ни рамок, ни стекла — вес даёт только глубина. */
+.c1{left:12px;right:12px;bottom:80px;display:flex;align-items:center;gap:12px;padding:10px 10px 10px 14px;
+  border-radius:18px;background:var(--c1-bg);color:var(--ink);
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 2px 4px rgba(18,38,42,.06),0 12px 28px -6px rgba(18,38,42,.22)}
+body{--c1-bg:#f7fbfb}
+body.night{--c1-bg:#1a3034}
+body.night .c1{box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 2px 4px rgba(0,0,0,.3),0 14px 30px -6px rgba(0,0,0,.6)}
+body.blank .c1{border-radius:12px}
+.frame.desk .c1{left:auto;right:24px;width:min(460px,calc(100% - 48px));bottom:94px}
+.c1 .well{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;
+  background:var(--tint);color:var(--acc);box-shadow:inset 0 1px 2px rgba(18,38,42,.12)}
+.c1.warn .well{background:#fbeede;color:#9a5a0c}
+body.night .c1.warn .well{background:#3a2b16;color:#f0c07a}
+.c1 .tx{flex:1;min-width:0;line-height:1.25}
+.c1 .tx b{display:block;font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c1 .tx span{font-size:.72rem;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.c1 .go{position:relative;border:0;border-radius:11px;padding:9px 14px;font:600 .76rem 'Geologica',sans-serif;cursor:pointer;color:#fff;
+  background:linear-gradient(180deg,#2a8f97,#1e6c72);box-shadow:0 1px 0 rgba(255,255,255,.3) inset,0 4px 10px -2px rgba(30,108,114,.5)}
+.c1 .go::before{content:'';position:absolute;inset:-6px -4px}
+.c1 .lock{background:var(--tint);color:var(--acc)}
+
+/* ═══ 02 · Швейцарская строгость ═════════════════════════════════════════
+   Не капсула, а строка документа во всю ширину над итогом: белое поле,
+   чёрная линейка сверху, капс вразрядку слева, одно акцентное слово.
+   Прямые углы, никаких теней — всё держит сетка. */
+.c2{left:0;right:0;bottom:72px;background:var(--sheet);border-top:2px solid var(--ink);color:var(--ink);z-index:6}
+.c2 .in{max-width:960px;margin:0 auto;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:0 16px;padding:10px 18px 11px}
+.c2 .k{font:700 .6rem 'Unbounded',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--ink)}
+.c2 .k i{display:inline-block;width:8px;height:8px;margin-right:8px;background:var(--acc);vertical-align:1px}
+.c2.warn .k i{background:#d9822b}
+.c2 .v{font-size:.8rem;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.c2 .v b{color:var(--ink);font-weight:600}
+.c2 .acts{display:flex;align-items:center;gap:14px}
+.c2 .go{position:relative;border:0;background:none;padding:0;font:700 .72rem 'Unbounded',sans-serif;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--acc);cursor:pointer;border-bottom:2px solid var(--acc);padding-bottom:1px}
+.c2 .go::before{content:'';position:absolute;inset:-14px -8px}
+.c2 .lock{background:none;border:1.5px solid var(--ink);border-radius:0;color:var(--ink)}
+@container (max-width:520px){.c2 .in{grid-template-columns:1fr auto;gap:2px 12px}.c2 .v{grid-column:1/2;grid-row:2}.c2 .acts{grid-row:1/3;grid-column:2}}
+
+/* ═══ 03 · Нео-брутализм ═════════════════════════════════════════════════
+   Плотная плашка с толстой чёрной рамкой и жёсткой сдвинутой тенью, как
+   наклейка. Яркий фон состояния, крупный капс Unbounded. Самый громкий. */
+.c3{left:12px;right:12px;bottom:82px;display:flex;align-items:center;gap:12px;padding:10px 10px 10px 14px;
+  border:2.5px solid #0b1416;border-radius:0;box-shadow:5px 5px 0 #0b1416;color:#0b1416}
+.c3.warn{background:#ffd166} .c3.ok{background:#8fe0d0}
+body.night .c3{border-color:#e6f3f3;box-shadow:5px 5px 0 #e6f3f3}
+body.blank .c3{border-radius:0}
+body.modern .c3{border-radius:10px}
+.frame.desk .c3{left:auto;right:28px;width:min(470px,calc(100% - 56px));bottom:96px}
+.c3 .tx{flex:1;min-width:0;line-height:1.15}
+.c3 .tx b{display:block;font:800 .8rem 'Unbounded',sans-serif;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c3 .tx span{font-size:.72rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;margin-top:2px}
+.c3 .go{position:relative;border:2.5px solid #0b1416;background:#0b1416;color:#fff;border-radius:0;padding:8px 12px;
+  font:800 .7rem 'Unbounded',sans-serif;text-transform:uppercase;cursor:pointer;box-shadow:3px 3px 0 rgba(11,20,22,.35)}
+body.modern .c3 .go{border-radius:8px}
+.c3 .go:active{transform:translate(2px,2px);box-shadow:none}
+.c3 .lock{background:#0b1416;color:#fff;border-radius:0}
+.c3 .star{color:#0b1416}
+
+/* ═══ 04 · Светящееся стекло ═════════════════════════════════════════════
+   Тёмная прозрачная капсула с переливающейся кромкой (бирюза → мята →
+   синий) и мягким свечением — как «живое» стекло новых систем. Кромка
+   медленно течёт, при уменьшении движения стоит. */
+.c4{left:14px;right:14px;bottom:82px;border-radius:999px;padding:1.5px;
+  background:conic-gradient(from var(--a,0deg),#2a8f97,#8fe0c4,#6aa8ff,#2a8f97);
+  box-shadow:0 10px 30px -6px rgba(42,143,151,.55);animation:c4spin 6s linear infinite}
+@property --a{syntax:'<angle>';initial-value:0deg;inherits:false}
+@keyframes c4spin{to{--a:360deg}}
+@media (prefers-reduced-motion:reduce){.c4{animation:none}}
+.c4.warn{background:conic-gradient(from var(--a,0deg),#f0a030,#ffd98a,#f07a4a,#f0a030);box-shadow:0 10px 30px -6px rgba(240,160,48,.5)}
+body.blank .c4{border-radius:16px} body.blank .c4 .in{border-radius:14.5px}
+.frame.desk .c4{left:auto;right:28px;width:min(460px,calc(100% - 56px));bottom:96px}
+.c4 .in{border-radius:999px;background:rgba(10,20,22,.86);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  color:#eaf6f6;display:flex;align-items:center;gap:12px;padding:8px 8px 8px 16px}
+.c4 .tx{flex:1;min-width:0;line-height:1.25}
+.c4 .tx b{display:block;font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c4 .tx span{font-size:.7rem;color:rgba(234,246,246,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.c4 .go{position:relative;border:0;border-radius:999px;padding:9px 16px;font:600 .74rem 'Geologica',sans-serif;cursor:pointer;color:#08181a;background:#eaf6f6}
+body.blank .c4 .go{border-radius:10px}
+.c4 .go::before{content:'';position:absolute;inset:-6px -4px}
+.c4 .lock{background:rgba(255,255,255,.12);color:#eaf6f6}
+.c4 .star{color:#eaf6f6}
+
+/* ═══ 05 · Строка состояния ══════════════════════════════════════════════
+   Как нижняя строка редактора кода: во всю ширину, 28 px, моноширинный
+   мелкий шрифт, сегменты через вертикальные черты. Состояние — первым
+   цветным сегментом. Сухо, плотно, ничего не закрывает. */
+.c5{left:0;right:0;bottom:72px;height:28px;display:flex;align-items:stretch;background:var(--c5-bg);color:var(--c5-ink);
+  font:500 .68rem ui-monospace,'SF Mono',Menlo,monospace;border-top:1px solid var(--c5-rule);z-index:6}
+body{--c5-bg:#eef4f4;--c5-ink:#35494c;--c5-rule:#d3e2e3}
+body.night{--c5-bg:#0f1d1f;--c5-ink:#a9c0c2;--c5-rule:#20383b}
+.c5 .seg{display:flex;align-items:center;gap:6px;padding:0 10px;border-right:1px solid var(--c5-rule);white-space:nowrap;min-width:0}
+.c5 .seg.st{color:#fff;font-weight:600}
+.c5.warn .seg.st{background:#c46f12} .c5.ok .seg.st{background:#1e6c72}
+.c5 .seg.nm{flex:1;overflow:hidden}
+.c5 .seg.nm span{overflow:hidden;text-overflow:ellipsis}
+.c5 button{position:relative;border:0;background:none;color:inherit;font:inherit;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:5px}
+.c5 button::before{content:'';position:absolute;inset:-9px -6px}
+.c5 .seg.act{color:var(--acc);font-weight:700}
+@container (max-width:520px){.c5 .hide-s{display:none}}
+/* На телефоне у замка только значок: подпись съедала место у названия. */
+@container (max-width:520px){.lock .lbl{display:none}.lock{padding:5px 7px}}
+</style>
+</head>
+<body class="blank day">
+<div class="wrap">
+  <div class="eyebrow">Макет · калькулятор спецификаций</div>
+  <h1>Полоска состояния — <em>пять концепций</em></h1>
+  <p class="lead">Пять разных языков оформления для одного и того же сообщения —
+    «расчёт не сохранён» и «общий пресет». Отличаются не местом, а материалом: мягкий
+    объём, строгая типографика, брутализм, светящееся стекло и строка состояния. Выберите
+    язык — потом детализируем. Переключатели сверху: тема, день и ночь, состояние.</p>
+
+  <div class="ctl">
+    <span class="ctl-lab">Тема</span>
+    <span class="seg" data-g="ui"><button class="on" data-v="blank">Бланк</button><button data-v="modern">Модерн</button></span>
+    <span class="ctl-lab">Время</span>
+    <span class="seg" data-g="dn"><button class="on" data-v="day">День</button><button data-v="night">Ночь</button></span>
+    <span class="ctl-lab">Состояние</span>
+    <span class="seg" data-g="st"><button class="on" data-v="unsaved">Не сохранён</button><button data-v="shared">Общий, правится</button><button data-v="view">Общий, просмотр</button></span>
+  </div>
+
+    <section class="var" data-v="1">
+    <div class="var-head"><span class="var-no">01</span><h2>Мягкий объём</h2></div>
+    <p class="why">Светлая плита над итогом, приподнятая мягкими тенями и тонким светом по
+      верхней кромке. Значок в «углублении», кнопка — выпуклая, с градиентом. Спокойный,
+      «дорогой» вид корпоративного приложения: не кричит, но заметен.</p>
+    <div class="scenes"><div><p class="cap">Телефон · 390</p><div class="frame phone"></div></div>
+      <div><p class="cap">Компьютер · 1440</p><div class="frame desk"></div></div></div>
+  </section>
+  <section class="var" data-v="2">
+    <div class="var-head"><span class="var-no">02</span><h2>Швейцарская строгость</h2></div>
+    <p class="why">Не всплывающая плашка, а строка документа во всю ширину: чёрная линейка
+      сверху, капс вразрядку, квадратный маркер состояния, одно подчёркнутое действие. Прямые
+      углы, без теней — ближе всего к «Бланку», читается как часть листа.</p>
+    <div class="scenes"><div><p class="cap">Телефон · 390</p><div class="frame phone"></div></div>
+      <div><p class="cap">Компьютер · 1440</p><div class="frame desk"></div></div></div>
+  </section>
+  <section class="var" data-v="3">
+    <div class="var-head"><span class="var-no">03</span><h2>Нео-брутализм</h2></div>
+    <p class="why">Плашка-наклейка: толстая чёрная рамка, жёсткая сдвинутая тень, яркий фон —
+      жёлтый у несохранённого, мятный у общего. Крупный капс. Самый громкий вариант: пропустить
+      невозможно, и это его смысл.</p>
+    <div class="scenes"><div><p class="cap">Телефон · 390</p><div class="frame phone"></div></div>
+      <div><p class="cap">Компьютер · 1440</p><div class="frame desk"></div></div></div>
+  </section>
+  <section class="var" data-v="4">
+    <div class="var-head"><span class="var-no">04</span><h2>Светящееся стекло</h2></div>
+    <p class="why">Тёмная прозрачная капсула с переливающейся кромкой — бирюза, мята и синий
+      у общего, янтарь у несохранённого. Кромка медленно течёт по кругу и мягко светится.
+      Эффектный «живой» вид; при настройке «уменьшить движение» кромка стоит.</p>
+    <div class="scenes"><div><p class="cap">Телефон · 390</p><div class="frame phone"></div></div>
+      <div><p class="cap">Компьютер · 1440</p><div class="frame desk"></div></div></div>
+  </section>
+  <section class="var" data-v="5">
+    <div class="var-head"><span class="var-no">05</span><h2>Строка состояния</h2></div>
+    <p class="why">Как нижняя строка редактора кода: во всю ширину, высотой 28 px, моноширинный
+      шрифт, сегменты через черты. Первый сегмент — цветное состояние, дальше имя, статус,
+      действия. Самый плотный и сухой: почти ничего не закрывает.</p>
+    <div class="scenes"><div><p class="cap">Телефон · 390</p><div class="frame phone"></div></div>
+      <div><p class="cap">Компьютер · 1440</p><div class="frame desk"></div></div></div>
+  </section>
+</div>
+
+<script>
+const S = { ui:'blank', dn:'day', st:'unsaved' };
+const ПРОЕКТ = 'Баня из клееного бруса «Форино» 9×5';
+const ОБЩИЙ = 'Форино 9×5 · Иванов · 24.09.26';
+const I = {
+  save:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>',
+  save20:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>',
+  people:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  saveS:'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>',
+  peopleS:'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>',
+  starS:'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  x:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  star:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  lockO:'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>',
+};
+const строки = [
+  ['Чистовой пол — доска шпунтованная 27 мм', 'Включено в базу', 1],
+  ['Обшивка потолка — евровагонка 16×90 мм (сорт АВ)', 'Включено в базу', 1],
+  ['Декоративные элементы — наличники, плинтусы', 'Включено в базу', 1],
+  ['Высота пол/потолок в комнате отдыха', 'Включено в базу', 1],
+  ['Защитная сетка от грызунов', '10 005 ₽', 0],
+  ['Черновой пол — фанера 21 мм', '43 200 ₽', 0],
+  ['Чистовой пол — шпунтованная доска 36 мм', '18 975 ₽', 0],
+  ['Утепление пола 200 мм', '64 800 ₽', 0],
+  ['Пароизоляция пола', '12 400 ₽', 0],
+];
+function лист(сдвиг) {
+  return '<div class="hdr"><i></i><i></i><i></i><i></i><span class="sp"></span><span>Пресеты</span><span>Сбросить</span><i></i></div>'
+    + '<div class="body' + (сдвиг ? ' shift' : '') + '"><div class="sec"><b>08</b><span>Внутренняя отделка</span><small>—</small></div>'
+    + строки.map(р => '<div class="row' + (р[2] ? ' on' : '') + '"><span class="ck"></span><span class="nm">' + р[0] + '</span><span class="pr">' + р[1] + '</span></div>').join('')
+    + '</div>';
+}
+function итог(подпись, внутри) {
+  return '<div class="ts' + (внутри === 'v5' ? ' tsv5' : '') + '"><div class="ts-in">' + (подпись || '<span class="ts-lab">Общая стоимость</span>')
+    + '<span class="ts-val">6 209 600 ₽</span><span class="ts-sub">База 6 209 600 ₽ · 47 позиций</span></div>'
+    + (внутри && внутри !== 'v5' ? '' : '') + '</div>';
+}
+function статус() { return S.st === 'view' ? 'только просмотр' : 'изменения сохраняются'; }
+// На телефоне у замка остаётся значок: подпись съедала место у названия.
+function замок(кл) { return S.st === 'shared' ? '<button class="lock ' + (кл || '') + '" title="Закрыть замок">' + I.lockO + '<span class="lbl">Закрыть замок</span></button>' : ''; }
+
+function c1() {
+  const о = S.st !== 'unsaved';
+  return лист() + итог() + '<div class="ind c1 ' + (о ? 'ok' : 'warn') + '"><span class="well">' + (о ? I.people : I.save) + '</span>'
+    + '<span class="tx"><b>' + (о ? ОБЩИЙ : 'Расчёт не сохранён') + '</b><span>' + (о ? 'Общий пресет · ' + статус() : ПРОЕКТ) + '</span></span>'
+    + (о ? '<button class="star">' + I.star + '</button>' + замок() : '<button class="go">Сохранить</button>') + '</div>';
+}
+function c2() {
+  const о = S.st !== 'unsaved';
+  return лист() + итог() + '<div class="ind c2 ' + (о ? 'ok' : 'warn') + '"><div class="in">'
+    + '<span class="k"><i></i>' + (о ? 'Общий пресет' : 'Не сохранён') + '</span>'
+    + '<span class="v">' + (о ? '<b>' + ОБЩИЙ + '</b> — ' + статус() : 'Закроете вкладку — расчёт потеряется') + '</span>'
+    + '<span class="acts">' + (о ? '<button class="star">' + I.star + '</button>' + замок() : '<button class="go">Сохранить</button>') + '</span></div></div>';
+}
+function c3() {
+  const о = S.st !== 'unsaved';
+  return лист() + итог() + '<div class="ind c3 ' + (о ? 'ok' : 'warn') + '">'
+    + '<span class="tx"><b>' + (о ? 'Общий пресет' : 'Не сохранён!') + '</b><span>' + (о ? ОБЩИЙ + ' · ' + статус() : 'Сохраните, пока не закрыли вкладку') + '</span></span>'
+    + (о ? '<button class="star">' + I.star + '</button>' + замок() : '<button class="go">Сохранить</button>') + '</div>';
+}
+function c4() {
+  const о = S.st !== 'unsaved';
+  return лист() + итог() + '<div class="ind c4 ' + (о ? 'ok' : 'warn') + '"><div class="in">'
+    + '<span class="tx"><b>' + (о ? ОБЩИЙ : 'Расчёт не сохранён') + '</b><span>' + (о ? 'Общий пресет · ' + статус() : ПРОЕКТ) + '</span></span>'
+    + (о ? '<button class="star">' + I.star + '</button>' + замок() : '<button class="go">Сохранить</button>') + '</div></div>';
+}
+function c5() {
+  const о = S.st !== 'unsaved';
+  return лист() + итог() + '<div class="ind c5 ' + (о ? 'ok' : 'warn') + '">'
+    + '<span class="seg st">' + (о ? I.peopleS + 'ОБЩИЙ' : I.saveS + 'НЕ СОХРАНЁН') + '</span>'
+    + '<span class="seg nm"><span>' + (о ? ОБЩИЙ : ПРОЕКТ) + '</span></span>'
+    + (о ? '<span class="seg hide-s">' + статус() + '</span><span class="seg"><button title="В избранные">' + I.starS + '</button></span>'
+         + (S.st === 'shared' ? '<span class="seg"><button title="Закрыть замок">' + I.lockO + '<span class="hide-s">замок</span></button></span>' : '')
+         : '<span class="seg act"><button>' + I.saveS + 'Сохранить</button></span>')
+    + '</div>';
+}
+const V = { 1: c1, 2: c2, 3: c3, 4: c4, 5: c5 };
+function рисовать() {
+  document.body.className = S.ui + ' ' + S.dn;
+  document.querySelectorAll('section.var').forEach(с => {
+    const f = V[с.dataset.v];
+    с.querySelector('.frame.phone').innerHTML = f(false);
+    с.querySelector('.frame.desk').innerHTML = f(true);
+  });
+}
+document.querySelectorAll('.seg').forEach(г => г.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  г.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  S[г.dataset.g] = b.dataset.v; рисовать();
+}));
+try { if (matchMedia('(prefers-color-scheme: dark)').matches) document.querySelector('[data-g=dn] [data-v=night]').click(); } catch (e) {}
+рисовать();
+</script>
+</body>
+</html>
