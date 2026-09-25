@@ -17,6 +17,10 @@
   • лист печати в стиле «Карточки» (25.09.2026: «тут тоже графит зелёный
     должен быть в теме для печати») — блок итога тем же графитом, цена со
     скидкой зелёная, надписи держат контраст; в «Бирюзовом» блок прежний;
+  • там же «Модерн» (градиентный блок итога) и «Бланк» (полоска итога внизу
+    листа) и лист клиента по ссылке, днём и ночью — графит и зелёная спец.
+    цена («и тут графит зелёный в темах для печати должен быть, смотрится
+    бомба»); в «Бирюзовом» всё прежнее;
   • в «Бирюзовом» оба блока остались прежними — заливка var(--br-28);
   • ничего не вылезает за окно, ошибок страницы нет.
 
@@ -203,13 +207,52 @@ def проверить(бр, порт, ш, в, бланк, ночь, тон, с�
 }"""
 
 
+def лист_клиента(бр, порт, снимок, ночь):
+    КОД = "abcd2345"
+    с404 = (КОРЕНЬ / "404.html").read_text(encoding="utf-8")
+    ответ = {"status": "ok", "snapshot_at": "2026-09-25T09:00:00+00:00", "price_until": None, "snapshot": снимок}
+    к = бр.new_context(viewport={"width": 390, "height": 844}, color_scheme="dark" if ночь else "light")
+    к.route(f"http://127.0.0.1:{порт}/{КОД}*",
+            lambda м: м.fulfill(status=200, content_type="text/html; charset=utf-8", body=с404))
+    к.route("**/rest/v1/rpc/**",
+            lambda м: м.fulfill(status=200, content_type="application/json",
+                                body=json.dumps(ответ if м.request.url.endswith("client_link_get") else {"status": "ok"})))
+    стр = к.new_page()
+    стр.goto(f"http://127.0.0.1:{порт}/{КОД}", wait_until="load")
+    стр.wait_for_timeout(1500)
+    ф = стр.evaluate("() => { const б = document.querySelector('.bl-strip'); return б ? getComputedStyle(б).backgroundColor : ''; }")
+    к.close()
+    return ф
+
+
 def печать(бр, порт, тон):
     где = f"{тон} · печать «Карточки»"
     к, стр, ошибки = открыть(бр, порт, 1440, 900, False, False, тон)
     стр.evaluate("() => { openPrintPreview(); setPrintStyle('cards', true); }")
     стр.wait_for_timeout(700)
     п = стр.evaluate(ПЕЧАТЬ)
+    ещё = {}
+    for стиль, сел, спец in (("modern", ".rs-hero", ".rs-hero-sum--spec"), ("blank", ".bl-strip", ".bl-strip-disc")):
+        стр.evaluate(f"() => setPrintStyle('{стиль}', true)")
+        стр.wait_for_timeout(600)
+        ещё[стиль] = стр.evaluate("""([сел, спец]) => { const б = document.querySelector('#printDoc ' + сел), ц = document.querySelector('#printDoc ' + спец);
+          if (!б) return null; const st = getComputedStyle(б);
+          return { фон: st.backgroundImage !== 'none' ? st.backgroundImage : st.backgroundColor, спец: ц ? getComputedStyle(ц).color : '' }; }""", [сел, спец])
+    снимок = стр.evaluate("() => window._снимокКлиента")
     к.close()
+    for стиль, з in ещё.items():
+        if not з:
+            плохо(где, f"«{стиль}»: блок итога на листе не найден"); continue
+        графит = "rgb(46, 50, 40)" in з["фон"] or "rgb(36, 39, 31)" in з["фон"]
+        if (тон == "bmsk") != графит or (тон == "bmsk" and з["спец"] != "rgb(166, 212, 116)"):
+            плохо(f"{тон} · печать «{стиль}»", f"фон {з['фон'][:60]}, спец. цена {з['спец']}")
+        print(f"  {тон} · печать «{стиль}»: {з['фон'][:48]}, спец. цена {з['спец']}")
+    for ночь in (False, True):
+        ф = лист_клиента(бр, порт, снимок, ночь)
+        ждём = ("rgb(27, 29, 23)" if ночь else "rgb(36, 39, 31)") if тон == "bmsk" else None
+        if (ждём and ф != ждём) or (not ждём and ф in ("rgb(27, 29, 23)", "rgb(36, 39, 31)")) or not ф:
+            плохо(f"{тон} · лист клиента · {'ночь' if ночь else 'день'}", f"полоска итога {ф}")
+        print(f"  {тон} · лист клиента · {'ночь' if ночь else 'день'}: полоска {ф}")
     if not п:
         плохо(где, "блок итога на листе не найден")
         return

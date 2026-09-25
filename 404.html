@@ -990,6 +990,13 @@
   --strip-ink3:rgba(255,255,255,.62); --strip-rule:rgba(255,255,255,.18); --strip-disc:#ffa8a8;
   --shadow:0 1px 2px rgba(var(--br-12в-rgb),.05), 0 12px 40px rgba(var(--br-12в-rgb),.07);
 }
+/* «Зелёный»: полоска итога — графит, как в калькуляторе и на листе печати.
+   На светлом зелёном белое давало 2,8:1, спец. цена светло-красным почти
+   пропадала. Ночь — только на экране: печать всегда дневная. */
+:root[data-tone="bmsk"] { --strip-bg:#24271f; --strip-disc:#a6d474; }
+@media screen and (prefers-color-scheme: dark) {
+  :root[data-tone="bmsk"] { --strip-bg:#1b1d17; }
+}
 @media (prefers-color-scheme: dark) {
   :root {
     --page:var(--br-08а); --sheet:var(--br-12д); --zebra:var(--br-15а);
