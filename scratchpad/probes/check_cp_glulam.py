@@ -29,6 +29,9 @@
     цены не затираются;
   • ставки, заведённые при открытой странице, форма дочитывает сама при
     следующем открытии — без перезагрузки и не трогая вписанную цену;
+  • заведённый проект помнит «Без отделки» в базе; окно «Редактировать»
+    показывает галочку, подписи сечений бруса, а снятая галочка возвращает
+    цену и уходит в базу вместе с правкой;
   • у каркаса поправок бруса нет, «Женева» на месте.
 
     python3 check_cp_glulam.py
@@ -83,7 +86,12 @@ def проект(продукт, имя, порядок):
 def таблицы(со_ставками):
     т = {
         "pricing_projects": [проект("frame", "Каркас проба 6×4", 1), проект("glulam", "Брус проба 6×6", 1)],
-        "pricing_matrix": [], "pricing_options": [], "pricing_sections": [],
+        "pricing_matrix": [{"product": "glulam", "project_slug": "Брус проба 6×6",
+                            "option_id": "kb_проба", "price": 12000}],
+        "pricing_options": [{"product": "glulam", "option_id": "kb_проба", "name": "Проба опция",
+                             "section": "extra", "included": False, "price": 10000,
+                             "formula": None, "status": None, "sort": 1}],
+        "pricing_sections": [],
         "profiles": [{"id": "u-проба", "role": "admin", "full_name": "Проба"}],
         "custom_projects": [], "events": [],
     }
@@ -236,6 +244,51 @@ def главная():
                 спросить(стр, ВВЕСТИ, {"этаж": "1", "тёплый": "25", "откр": "6", "крыт": "4", "ост": True, "без": False})
                 стр.locator("#customProjectForm").screenshot(
                     path=str(pathlib.Path(__file__).parent / f"ручной-брус-{w}.png"))
+            # ── заведённый проект помнит «Без отделки», и окно правки его показывает ──
+            спросить(стр, """() => {
+              ['cpName','cpWarm','cpOpen','cpClosed','cpPrice100','cpPrice150','cpPrice200'].forEach(ид => document.getElementById(ид).value = '');
+              cpNoFinish.checked = false; _cpОснова = null;
+              cpCopyFromSelected(); cpNoFinish.checked = true; cpRecalcPrices();
+              cpName.value = 'Проба ручной'; confirmCustomProject();
+            }""")
+            стр.wait_for_timeout(400)
+            строка = (спросить(стр, "() => (window.__ТАБЛИЦЫ.custom_projects || []).slice(-1)[0] || null") or {})
+            if not (строка.get("params") or {}).get("noFinish"):
+                плохо(f"ручной проект записан в базу без отметки «Без отделки»: params = {строка.get('params')}")
+            if строка.get("price_150") != int(2200000 * 0.92 + 0.5):
+                плохо(f"ручной проект записан с ценой {строка.get('price_150')}, ждали {int(2200000 * 0.92 + 0.5)}")
+            окно = спросить(стр, """async () => {
+              const все = [...PROJECTS, ...customProjects];
+              const и = все.findIndex(p => p[0] === 'Проба ручной');
+              if (и < 0) return { беда: 'проекта нет в списке' };
+              selectProjectOption(и);
+              await new Promise(r => setTimeout(r, 300));
+              openEditProject();
+              return { галочка: epNoFinish.checked, видно: !!epNoFinishField.offsetParent,
+                       подпись: epPrice100Label.textContent, подсказка: epPricesHint.textContent,
+                       база: epBaseSnapshot.textContent, цена: rawNum('epPrice150') };
+            }""") or {}
+            if окно.get("беда"):
+                плохо("окно правки: " + окно["беда"])
+            else:
+                стр.locator("#editProjectForm").screenshot(
+                    path=str(pathlib.Path(__file__).parent / "правка-бруса-1440.png"))
+                if not (окно.get("видно") and окно.get("галочка")):
+                    плохо(f"окно «Редактировать» не показывает, что стояло «Без отделки»: {окно}")
+                if "125" not in (окно.get("подпись") or "") or "сечению бруса" not in (окно.get("подсказка") or ""):
+                    плохо(f"в окне правки бруса подписи каркаса: «{окно.get('подпись')}», «{окно.get('подсказка')}»")
+                if "100 мм" in (окно.get("база") or ""):
+                    плохо(f"строка «Цены в базе» у бруса в миллиметрах утепления: «{окно.get('база')}»")
+                спросить(стр, "() => { epNoFinish.checked = false; epБезОтделки(); }")
+                вернулась = спросить(стр, "() => rawNum('epPrice150')")
+                if вернулась != 2200000:
+                    плохо(f"снятая в окне правки «Без отделки» вернула цену {вернулась}, ждали 2 200 000")
+                спросить(стр, "() => confirmEditProject()")
+                стр.wait_for_timeout(400)
+                после = (спросить(стр, "() => (window.__ТАБЛИЦЫ.custom_projects || []).slice(-1)[0] || null") or {})
+                if (после.get("params") or {}).get("noFinish") or после.get("price_150") != 2200000:
+                    плохо(f"правка ручного проекта не дошла до базы: params {после.get('params')}, цена {после.get('price_150')}")
+
             # ── каркас: поправок бруса нет ──
             спросить(стр, "async () => { await switchTech('frame'); await new Promise(r => setTimeout(r, 400)); toggleCustomProjectForm(); }")
             стр.wait_for_timeout(300)
