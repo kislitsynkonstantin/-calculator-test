@@ -14,7 +14,8 @@
   • память браузера полна — пресет всё равно получает код и код уходит в
     журнал (с (32) пресеты в браузер не пишутся вовсе — проба это держит);
   • печать несохранённого расчёта сохраняет его пресетом и ставит код в
-    правый нижний угол листа: «код 123 456», 3,5 pt, светло-серым;
+    правый нижний угол листа: «код 123 456», 1,75 pt, светло-серым
+    (Константин 25.09.2026: «код сделай ещё в 2 раза меньше»; было 3,5 pt);
   • печать уже сохранённого берёт его код и нового пресета не заводит;
   • штамп на листе внутри страницы, у правого нижнего края, и мельче любого
     текста листа;
@@ -129,24 +130,73 @@ def главная():
                 if ждём not in л:
                     плохо(f"лист {i + 1}: нет «{ждём}»")
             print(f"  печать: пресетов {р['до']} → {р['после']} → {р['после2']}, на листах «{ждём}»")
-            # Штамп на отрисованном листе: угол, мелкость.
-            if р["листы"]:
-                л = бр.new_page(viewport={"width": 900, "height": 1200})
-                л.set_content(р["листы"][0]); л.wait_for_timeout(300)
-                ш = л.evaluate("""() => { const e = document.querySelector('.spec-code-stamp'); if (!e) return null;
-                  const r = e.getBoundingClientRect(), fs = parseFloat(getComputedStyle(e).fontSize);
-                  const мин = Math.min(...[...document.querySelectorAll('body *')].filter(x => x !== e && x.childNodes.length && [...x.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()))
-                    .map(x => parseFloat(getComputedStyle(x).fontSize)));
-                  return { справа: innerWidth - r.right, снизу: innerHeight - r.bottom, fs, мин, fixed: getComputedStyle(e).position }; }""")
-                if not ш:
-                    плохо("на отрисованном листе штампа нет")
-                else:
-                    if ш["fixed"] != "fixed" or not (0 <= ш["справа"] <= 30 and 0 <= ш["снизу"] <= 20):
-                        плохо(f"штамп не в правом нижнем углу: {ш}")
-                    if not ш["fs"] < ш["мин"] or ш["fs"] > 5:
-                        плохо(f"штамп не мельче текста листа: {ш['fs']} px при самом мелком {ш['мин']} px")
-                    print(f"  штамп: {ш['fs']:.2f} px (самый мелкий текст листа {ш['мин']:.2f}), от края {ш['справа']:.0f}/{ш['снизу']:.0f} px")
-                л.close()
+            # Штамп на настоящем PDF, во всех шести стилях: каждая страница,
+            # кегль, место у края бумаги и чистота вокруг. Прежде штамп мерили
+            # на экране, и проба не видела, что на бумаге он садится на
+            # линейку строки у низа страницы (25.09.2026, на настоящем PDF).
+            try:
+                import pymupdf
+            except ImportError:
+                pymupdf = None
+                плохо("нет pymupdf — настоящий PDF не проверен (pip install pymupdf)")
+            if pymupdf:
+                сводка = []
+                for стиль in ("blank", "modern", "classic", "architect", "cards", "luxury"):
+                    html = стр.evaluate("""(стиль) => { window.__листы.length = 0; setPrintStyle(стиль, true);
+                      printFromPreview(); return window.__листы[0].html; }""", стиль)
+                    л = бр.new_page()
+                    л.set_content(html, wait_until="load"); л.wait_for_timeout(300)
+                    путь = ЗДЕСЬ / f"_проба-{стиль}.pdf"
+                    л.pdf(path=str(путь), format="A4", print_background=True); л.close()
+                    док = pymupdf.open(str(путь))
+                    for н, пг in enumerate(док, 1):
+                        где = f"PDF, {стиль}, стр. {н}"
+                        пятна = [с_ for б in пг.get_text("dict")["blocks"] for стр_ in б.get("lines", [])
+                                 for с_ in стр_["spans"] if с_["text"].startswith("код")]
+                        if len(пятна) != 1 or пятна[0]["text"] != ждём:
+                            плохо(f"{где}: кода «{ждём}» нет или он не один: {[x['text'] for x in пятна]}")
+                            continue
+                        п_ = пятна[0]
+                        к = pymupdf.Rect(п_["bbox"])
+                        if п_["size"] > 1.8:
+                            плохо(f"{где}: кегль {п_['size']:.2f} pt, ждали 1,75")
+                        if пг.rect.y1 - к.y1 > 12 or пг.rect.x1 - к.x1 > 60:
+                            плохо(f"{где}: код не у правого нижнего края бумаги "
+                                  f"({пг.rect.x1 - к.x1:.0f}/{пг.rect.y1 - к.y1:.0f} pt)")
+                        зона = pymupdf.Rect(к.x0 - 2, к.y0 - 2, к.x1 + 2, к.y1 + 2)
+                        линии = [d for d in пг.get_drawings() if d["rect"].intersects(зона)
+                                 and d["rect"].width * d["rect"].height < пг.rect.width * пг.rect.height * 0.5]
+                        текст = [b for b in пг.get_text("blocks") if pymupdf.Rect(b[:4]).intersects(зона)
+                                 and not b[4].startswith("код")]
+                        if линии or текст:
+                            плохо(f"{где}: код пересекается с листом — линий {len(линии)}, текста {len(текст)}")
+                    сводка.append(f"{стиль} {len(док)} стр.")
+                    док.close(); путь.unlink()
+                print(f"  PDF: «{ждём}» 1,75 pt у края бумаги — {', '.join(сводка)}")
+            # Где полей страницы нет (Safari, Firefox, старый Chromium), остаётся
+            # прежний штамп внутри листа.
+            з = стр.evaluate("""() => { if (typeof печатьСПолямиСтраниц !== 'function') return null;
+              const ua = {
+                сафари: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
+                хромАйфон: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/126.0 Mobile/15E148 Safari/604.1',
+                файрфокс: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0',
+                хром130: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+                яндекс: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 YaBrowser/25.4.0.0 Safari/537.36',
+              };
+              const итог = {};
+              for (const [имя, строка] of Object.entries(ua)) {
+                Object.defineProperty(navigator, 'userAgent', { value: строка, configurable: true });
+                итог[имя] = печатьСПолямиСтраниц();
+                delete navigator.userAgent;
+              }
+              итог.запасной = штампКодаДляПечати('123456', false);
+              return итог; }""")
+            if з is None:
+                плохо("выбора между полями страницы и штампом нет вовсе")
+            elif з["сафари"] or з["хромАйфон"] or з["файрфокс"] or з["хром130"] or not з["яндекс"]:
+                плохо(f"выбор между полями страницы и штампом неверен: {з}")
+            if з is not None and ("position:fixed" not in з["запасной"] or "код 123 456" not in з["запасной"]):
+                плохо("запасной штамп (Safari, Firefox) потерян")
             if any("spec-code-stamp-view" in л for л in р["листы"]):
                 плохо("в окно печати ушёл и штамп предпросмотра — код стоит дважды")
             if ошибки:
@@ -195,8 +245,8 @@ def главная():
                         плохо(f"{где}: на листе «{и['текст']}», ждали «{ждём}»")
                     if not (0 <= и["справа"] <= 30 and 0 <= и["снизу"] <= 20):
                         плохо(f"{где}: штамп не в правом нижнем углу листа: {и['справа']:.0f}/{и['снизу']:.0f} px")
-                    if и["fs"] > 5:
-                        плохо(f"{где}: штамп крупнее 5 px ({и['fs']:.2f})")
+                    if и["fs"] > 2.6:
+                        плохо(f"{где}: штамп крупнее 1,75 pt ({и['fs']:.2f} px)")
                     if и["наложение"]:
                         плохо(f"{где}: штамп наезжает на текст листа")
                 print(f"  предпросмотр {ширина} px: «{ждём}» в {sum(1 for и in р['итог'].values() if и['сколько'] == 1)} стилях из 6")
