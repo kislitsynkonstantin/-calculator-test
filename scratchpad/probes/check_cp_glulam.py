@@ -243,12 +243,23 @@ def главная():
             if (спросить(стр, ЦЕНЫ) or [0, 0])[1] != 1000000:
                 плохо("снятая галочка не вернула вписанную цену к 1 000 000")
 
-            for w in (1440, 390):
+            for w in (1440, 390, 360):
                 стр.set_viewport_size({"width": w, "height": 1000})
                 стр.wait_for_timeout(200)
+                # Цена в восемь знаков должна помещаться в свою треть — в обеих
+                # темах (у 360 px в «Модерне» раньше съедались последние цифры).
+                for бланк in (False, True):
+                    обрез = спросить(стр, """(б) => { document.body.classList.toggle('ui-blank', б);
+                      ['cpPrice100','cpPrice150','cpPrice200'].forEach(ид => document.getElementById(ид).value = '15 086 183');
+                      return ['cpPrice100','cpPrice150','cpPrice200'].map(ид => { const e = document.getElementById(ид);
+                        return e.scrollWidth - e.clientWidth; }); }""", бланк) or []
+                    if any(о > 0 for о in обрез):
+                        плохо(f"{w} px, {'Бланк' if бланк else 'Модерн'}: цена 15 086 183 не помещается в поле, срезано {обрез} px")
+                спросить(стр, "() => document.body.classList.remove('ui-blank')")
                 спросить(стр, ВВЕСТИ, {"этаж": "1", "тёплый": "25", "откр": "6", "крыт": "4", "ост": True, "без": False})
-                стр.locator("#customProjectForm").screenshot(
-                    path=str(pathlib.Path(__file__).parent / f"ручной-брус-{w}.png"))
+                if w != 360:
+                    стр.locator("#customProjectForm").screenshot(
+                        path=str(pathlib.Path(__file__).parent / f"ручной-брус-{w}.png"))
             # ── «Взять из выбранного» не затирает базу, посчитанную от контура ──
             спросить(стр, "() => { ['cpWarm','cpOpen','cpClosed','cpPrice100','cpPrice150','cpPrice200'].forEach(ид => document.getElementById(ид).value = ''); cpNoFinish.checked = false; _cpОснова = null; }")
             посчитано = спросить(стр, ВВЕСТИ, {"этаж": "1.5", "тёплый": "55", "откр": "12", "крыт": "", "ост": False, "без": False})
@@ -395,6 +406,47 @@ def главная():
                 плохо("у каркаса пропала «Женева»")
             if спросить(стр, "() => cpFloorType.value") != "1":
                 плохо(f"у каркаса этажность не стоит «1 этаж» сама: «{спросить(стр, '() => cpFloorType.value')}»")
+
+            # ── каркас: окно правки тоже пересчитывает посчитанную цену ──
+            # («если изменили, должно пересчитать», 25.09.2026). Правило каркаса
+            # берётся у самой страницы: здесь проверяется, что окно его зовёт.
+            КАРКАС = "([т, в, о, к, ж]) => [0, 1, 2].map(и => cpCalcBasePrice(т, в, о, к, ж, и))"
+            спросить(стр, ВЫБРАТЬ, "Каркас проба 6×4")
+            спросить(стр, ЧИСТАЯ)
+            спросить(стр, """() => { cpCopyFromSelected(); cpFloorType.value = 'mansard'; cpWarm.value = '50';
+              cpClosed.value = '6'; cpZheneva.checked = true; cpRecalcPrices();
+              const о = document.querySelector('[id^="cpOpt_"]'); if (о) о.value = '5 000';
+              cpName.value = 'Проба каркас'; confirmCustomProject(); }""")
+            стр.wait_for_timeout(400)
+            кс = спросить(стр, ПОСЛЕДНЯЯ) or {}
+            кп = кс.get("params") or {}
+            if кс.get("name") != "Проба каркас" or кп.get("source") != "calc" or кп.get("floorType") != "mansard" or not кп.get("zheneva"):
+                плохо(f"ручной проект каркаса записан не так: {кс.get('name')} params {кп}")
+            ок = спросить(стр, ОКНО, "Проба каркас") or {}
+            жен = спросить(стр, "() => [epZheneva.checked, !!epZhenevaField.offsetParent, !!epNoFinishField.offsetParent]") or []
+            if ок.get("тип") != "mansard" or not ок.get("типВидно") or "посчитана" not in (ок.get("откуда") or ""):
+                плохо(f"окно правки каркаса не показывает мансарду и посчитанную цену: {ок}")
+            if жен != [True, True, False]:
+                плохо(f"окно правки каркаса: «Женева» [стоит, видна, «Без отделки» видна] = {жен}, ждали [True, True, False]")
+            спросить(стр, "() => { epWarm.value = '60'; epПересчитать(); }")
+            if спросить(стр, ЦЕНЫ_ОКНА) != спросить(стр, КАРКАС, ["mansard", 60, 0, 6, True]):
+                плохо(f"окно правки каркаса не пересчитало цену от нового контура: {спросить(стр, ЦЕНЫ_ОКНА)}")
+            спросить(стр, "() => { epZheneva.checked = false; epБезОтделки(); }")
+            ждём_к = спросить(стр, КАРКАС, ["mansard", 60, 0, 6, False]) or [0, 0, 0]
+            if спросить(стр, ЦЕНЫ_ОКНА) != ждём_к:
+                плохо(f"снятая в окне «Женева» не пересчитала цену каркаса: {спросить(стр, ЦЕНЫ_ОКНА)}, ждали {ждём_к}")
+            спросить(стр, "() => confirmEditProject()")
+            стр.wait_for_timeout(400)
+            кс2 = спросить(стр, ПОСЛЕДНЯЯ) or {}
+            if кс2.get("price_150") != ждём_к[1] or (кс2.get("params") or {}).get("zheneva") or кс2.get("warm") not in (60, "60"):
+                плохо(f"правка каркаса не дошла до базы: {кс2.get('warm')} м², цена {кс2.get('price_150')}, params {кс2.get('params')}")
+            спросить(стр, """() => { const п = customProjects.find(p => p[0] === 'Проба каркас');
+              [0, 1, 2].forEach(и => п[1 + и] = cpCalcBasePrice('mansard', 60, 0, 6, true, и)); п._params = {}; }""")
+            ст = спросить(стр, ОКНО, "Проба каркас") or {}
+            if "посчитана" not in (ст.get("откуда") or "") or ст.get("тип") != "mansard" \
+                    or not спросить(стр, "() => epZheneva.checked"):
+                плохо(f"старый проект каркаса не узнан по цене как мансардная «Женева»: {ст}")
+            спросить(стр, "() => closeEditProject()")
             for о in [о for о in ошибки if "supabase.co" not in о][:3]:
                 плохо("ошибка страницы: " + о[:160])
             стр.close()
