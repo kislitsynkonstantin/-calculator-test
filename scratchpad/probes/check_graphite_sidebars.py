@@ -9,6 +9,8 @@
   • справка: калькулятор собирает её через сПалитрой(); при «Зелёном-
     графите» у корня документа стоит data-tone="bmsk", и меню .sb — #24271f;
     при бирюзе признака нет и меню прежнее, при «Синем» — не графит;
+  • на графите зелёным — заголовки групп и выбранный пункт (вариант 03
+    макета sidebar-green-v1: «вот так давай»), в других тонах — нет;
   • база знаний: сообщение тона несёт имя; при bmsk меню графитовое, при
     другом имени и при старом сообщении без имени — нет;
   • калькулятор шлёт имя тона в обоих местах, где отправляет тон базе.
@@ -32,6 +34,8 @@ from playwright.sync_api import sync_playwright
               + json.dumps(ДАННЫЕ, ensure_ascii=False) + ");\n"
               "window.__ТАБЛИЦЫ.profiles = [{ id: 'u-проба', role: 'manager', first_name: 'Проба', app_settings: {} }];")
 ГРАФИТ = "rgb(36, 39, 31)"
+# Вариант 03 макета sidebar-green-v1: заголовки групп #8bc34a, выбранный пункт #a6d474.
+ЗЕЛ, ЗЕЛ2 = "rgb(139, 195, 74)", "rgb(166, 212, 116)"
 НАХОДКИ = []
 
 
@@ -73,13 +77,21 @@ def справка(бр, порт):
           document.body.appendChild(ф);
           await new Promise(r => { ф.onload = r; ф.srcdoc = собрано; });
           const sb = ф.contentDocument.querySelector('.sb');
+          const гр = ф.contentDocument.querySelector('.sb-group');
+          const пн = ф.contentDocument.querySelector('.sb-a'); пн.classList.add('on');
+          await new Promise(r => setTimeout(r, 300));  // у пункта цвет меняется с переходом 0,1 с
           const итог = { признак: ф.contentDocument.documentElement.getAttribute('data-tone') || '',
-                         фон: sb ? getComputedStyle(sb).backgroundColor : '' };
+                         фон: sb ? getComputedStyle(sb).backgroundColor : '',
+                         группа: getComputedStyle(гр).color, выбран: getComputedStyle(пн).color };
           ф.remove(); return итог;
         }""", [тон, оболочка])
         где = f"справка · {тон}"
         if (з["фон"] == ГРАФИТ) != ждём:
             плохо(где, f"меню {з['фон']}, графит ждали: {ждём}")
+        if ждём and (з["группа"] != ЗЕЛ or з["выбран"] != ЗЕЛ2):
+            плохо(где, f"зелёные акценты: группа {з['группа']}, выбранный {з['выбран']}")
+        if not ждём and ЗЕЛ in (з["группа"], з["выбран"]):
+            плохо(где, "зелёные акценты графита протекли в другой тон")
         if ждём and з["признак"] != "bmsk":
             плохо(где, f"признак тона у корня {з['признак']!r}")
         if тон == "teal" and з["признак"]:
@@ -103,6 +115,15 @@ def база(бр):
         # обрывается раньше, чем подписывается на сообщения. Та же заглушка,
         # что у калькулятора.
         стр.add_init_script(ЗАГЛУШКА)
+        # Два блока и три урока — чтобы в меню были заголовки блоков и пункты:
+        # без них проверять зелёные акценты не на чем.
+        стр.add_init_script("window.__ТАБЛИЦЫ = Object.assign(window.__ТАБЛИЦЫ || {}, " + json.dumps({
+            "kb_blocks": [{"id": "b1", "num": 1, "ord": 1, "name_ru": "Компания", "name_en": "Company", "sub_ru": "", "sub_en": ""},
+                          {"id": "b3", "num": 3, "ord": 3, "name_ru": "Продажи", "name_en": "Sales", "sub_ru": "", "sub_en": ""}],
+            "kb_lessons": [{"id": f"lesson-{к}", "block": int(к[0]), "ord": int(к[2:]), "status": "ready", "title_ru": н, "title_en": н,
+                            "nav_ru": н, "nav_en": н, "sub_ru": "", "sub_en": "", "body_html": f'<div class="lesson" id="lesson-{к}"></div>'}
+                           for к, н in (("1-1", "Кто такая Баня-МСК"), ("1-3", "Что мы строим"), ("3-1", "Как устроены продажи"))]},
+            ensure_ascii=False) + ");")
         стр.goto(f"http://127.0.0.1:{порт}/index.html?embed=1", wait_until="load")
         стр.wait_for_timeout(1500)
         for имя, ждём in (("bmsk", True), ("sky", False), (None, False), ("bmsk", True), ("", False)):
@@ -112,9 +133,15 @@ def база(бр):
             }""", имя)
             стр.wait_for_timeout(150)
             фон = стр.evaluate("() => getComputedStyle(document.getElementById('sidebar')).backgroundColor")
+            стр.wait_for_timeout(250)
+            гр = стр.evaluate("() => { const g = document.querySelector('#sidebar .sb-group'); return g ? getComputedStyle(g).color : ''; }")
+            if not гр:
+                плохо(f"база знаний · имя {имя!r}", "в меню нет заголовков блоков — зелёные акценты не проверены")
             где = f"база знаний · имя {имя!r}"
             if (фон == ГРАФИТ) != ждём:
                 плохо(где, f"меню {фон}, графит ждали: {ждём}")
+            if гр and (гр == ЗЕЛ) != ждём:
+                плохо(где, f"заголовок блока {гр}, зелёный ждали: {ждём}")
             print(f"  {где}: меню {фон}")
         # Чужой источник сообщения не красит.
         стр.evaluate("""() => window.dispatchEvent(new MessageEvent('message',
