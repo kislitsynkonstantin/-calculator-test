@@ -12622,8 +12622,12 @@ function confirmCustomProject() {
     return;
   }
 
-  const price100 = p100 || Math.round(p150 * 0.893);
-  const price200 = p200 || Math.round(p150 * 1.063);
+  // Пустые 100 и 200 достраиваются от 150 по соотношению своей технологии:
+  // у бруса оно лежит в pricing_rates (0,9 / 1 / 1,155), у каркаса — прежнее.
+  const _долиБруса = currentTech === 'glulam' && cpСтавкиБруса() ? cpСтавкиБруса().cp_coef.sections : null;
+  const [д100, д150, д200] = _долиБруса || [0.893, 1, 1.063];
+  const price100 = p100 || Math.round(p150 * д100 / д150);
+  const price200 = p200 || Math.round(p150 * д200 / д150);
 
   const newProject = [name, price100, p150, price200, floors, 'двус-ая', warm, open, closed, fasadArea, paintArea, roofArea];
   // Технология проекта — та, в которой его завели. Дальше по ней он и живёт:

@@ -301,6 +301,23 @@ def главная():
                 if (после.get("params") or {}).get("noFinish") or после.get("price_150") != 2200000:
                     плохо(f"правка ручного проекта не дошла до базы: params {после.get('params')}, цена {после.get('price_150')}")
 
+            # ── вписана одна цена 150: 100 и 200 достраиваются по соотношению бруса ──
+            # Соотношение берётся из той же таблицы, что и расчёт от контура
+            # (0,9 / 1 / 1,155), а не каркасное 0,893 / 1,063.
+            спросить(стр, """() => {
+              toggleCustomProjectForm(true); toggleCustomProjectForm();
+              ['cpName','cpWarm','cpOpen','cpClosed','cpPrice100','cpPrice150','cpPrice200'].forEach(ид => document.getElementById(ид).value = '');
+              cpNoFinish.checked = false; _cpОснова = null; cpCopyFromSelected();
+              cpPrice100.value = ''; cpPrice200.value = ''; cpPrice150.value = '1 000 000';
+              cpName.value = 'Проба одна цена'; confirmCustomProject();
+            }""")
+            стр.wait_for_timeout(400)
+            одна = (спросить(стр, "() => (window.__ТАБЛИЦЫ.custom_projects || []).slice(-1)[0] || null") or {})
+            ждём = [900000, 1000000, 1155000]
+            есть = [одна.get("price_100"), одна.get("price_150"), одна.get("price_200")]
+            if одна.get("name") != "Проба одна цена" or есть != ждём:
+                плохо(f"брус с одной ценой 150: записано {одна.get('name')} {есть}, ждали {ждём} — соотношение не бруса")
+
             # ── каркас: поправок бруса нет ──
             спросить(стр, "async () => { await switchTech('frame'); await new Promise(r => setTimeout(r, 400)); toggleCustomProjectForm(); }")
             стр.wait_for_timeout(300)
