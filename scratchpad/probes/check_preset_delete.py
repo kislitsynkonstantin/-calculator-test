@@ -72,16 +72,16 @@ def сервер():
       updated_at: '2026-09-17T12:00:00Z', deleted_at: '2026-09-17T12:00:00Z' },
   ];
   window.__ТАБЛИЦЫ.preset_links = [];
-  // В браузере лежат оба — и ещё один, которого в облаке нет вовсе: такой
-  // обязан уехать наверх, иначе новое устройство потеряет свою работу.
-  localStorage.setItem('banya_msk_presets_v1', JSON.stringify({
+  // В памяти страницы лежат оба — и ещё один, которого в облаке нет вовсе:
+  // такой обязан уехать наверх, иначе новое устройство потеряет свою работу.
+  saveAllPresets(({
     'живой':     { id: 'живой',     name: 'Живой',     state: { savedAt: '2026-09-17T09:00:00Z' } },
     'удалённый': { id: 'удалённый', name: 'Удалённый', state: { savedAt: '2026-09-17T09:00:00Z' } },
     'местный':   { id: 'местный',   name: 'Местный',   state: { savedAt: '2026-09-17T09:00:00Z' } },
   }));
   window.__залито = [];
   window.__былоСохранение = window.sbSavePreset;
-  window.sbSavePreset = async (п) => { window.__залито.push(п.id); };
+  window.sbSavePreset = async (п) => { window.__залито.push(п.id); return true; };
   return true;
 }"""
 
@@ -116,7 +116,7 @@ def главная():
         # ── синхронизация чтит метку ────────────────────────────────────────
         итог = стр.evaluate("""async () => {
           await sbSyncPresets(true);
-          const местные = JSON.parse(localStorage.getItem('banya_msk_presets_v1') || '{}');
+          const местные = loadAllPresets();
           const итог = { ключи: Object.keys(местные).sort(), залито: window.__залито.slice() };
           window.sbSavePreset = window.__былоСохранение;
           return итог;
@@ -147,7 +147,7 @@ def главная():
               author_name: 'Другой', name: 'Чужой', state: {}, is_public: true,
               visibility: 'public' },
           ];
-          localStorage.setItem('banya_msk_presets_v1', JSON.stringify({
+          saveAllPresets(({
             'сномером': { id: 'сномером', name: 'С номером', state: {},
                           shortCode: '111111', sharedId: '111111' },
           }));

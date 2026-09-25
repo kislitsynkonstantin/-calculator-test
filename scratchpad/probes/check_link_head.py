@@ -882,7 +882,7 @@ def проверить(страница, окно, ш, в):
     ушли = страница.evaluate("""() => {
       const итог = { куда: window.__куда,
                      окно: document.getElementById('bellMenu').style.display,
-                     улёгся: !!(JSON.parse(localStorage.getItem('banya_msk_presets_v1') || '{}')['7']) };
+                     улёгся: !!(loadAllPresets()['7']) };
       window.loadPreset = window.__былLoadPreset;
       return итог;
     }""")

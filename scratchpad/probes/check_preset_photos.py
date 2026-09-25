@@ -119,7 +119,7 @@ def главная():
               await new Promise(r => setTimeout(r, 300));
               все['со'] = { id: 'со', name: 'Расчёт со снимками',
                             savedAt: new Date().toISOString(), state: collectState() };
-              localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(все));
+              saveAllPresets(все);
               canvasClearAll();
               return {
                 вЗаписи: (все['со'].state.canvasImages || []).length,
@@ -233,7 +233,7 @@ def главная():
               const все = loadAllPresets();
               все['брус'] = { id: 'брус', name: 'Брусовый расчёт со снимками',
                               savedAt: new Date().toISOString(), state: collectState() };
-              localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(все));
+              saveAllPresets(все);
               await switchTech('frame');
               await new Promise(r => setTimeout(r, 900));
               const послеСмены = document.querySelectorAll('.canvas-img-item').length;

@@ -195,7 +195,7 @@ def главная():
               все[ид] = { id: ид, name: 'Расчёт клиента Иванова',
                           savedAt: new Date().toISOString(),
                           state: collectState() };
-              localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(все));
+              saveAllPresets(все);
               setActivePreset(ид);
               await new Promise(r => setTimeout(r, 400));
               return JSON.stringify(loadAllPresets()[ид].state);

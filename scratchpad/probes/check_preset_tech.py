@@ -63,7 +63,7 @@ from playwright.sync_api import sync_playwright
     '2': мк('2', 'Брусовый расчёт', 'glulam', 7214800),
     '3': мк('3', 'Древний расчёт без поля', null, 4513375),
   };
-  localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(все));
+  saveAllPresets(все);
   return Object.keys(все).length;
 }"""
 
