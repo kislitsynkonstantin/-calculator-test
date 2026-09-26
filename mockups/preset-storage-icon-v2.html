@@ -10477,9 +10477,10 @@ body.ui-blank .al-empty b{color:var(--bl-ink);}
     /* Бланк на широком экране: низ плитки — одна полоса, значок встаёт её последней клеткой, после «Публ.» */
     '@media (min-width:900px){',
     '  body.ui-blank #presetPanel .pcard-code-row{padding-right:16px !important}',
-    '  body.ui-blank #presetPanel .pst{position:relative;right:auto;bottom:auto;order:4;flex:none;align-self:stretch;height:auto;width:auto;padding:0 18px 0 4px;background:var(--bl-zebra);border-top:1px solid var(--bl-rule)}',
-    '  body.ui-blank #presetPanel .pst::before{inset:0 4px 0 -8px}',
-    '  body.ui-blank #presetPanel .pst-tip{right:10px}',
+    '  body.ui-blank #presetPanel .pcard-actions{flex:0 1 auto}',
+    '  body.ui-blank #presetPanel .pst{position:relative;right:auto;bottom:auto;order:2;flex:none;align-self:stretch;height:auto;width:auto;padding:0 2px 0 4px;background:var(--bl-zebra);border-top:1px solid var(--bl-rule)}',
+    '  body.ui-blank #presetPanel .pst::before{inset:0 -6px 0 -8px}',
+    '  body.ui-blank #presetPanel .pst-tip{right:-10px}',
     '}'
   ].join('\n');
 
