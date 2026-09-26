@@ -1,0 +1,60 @@
+/* Переключатели макета — не часть калькулятора. Нейтральная оправа,
+   читается в любой теме: чернила берутся у страницы, заливка — полупрозрачная. */
+.mk {
+  --mk-ink: var(--bl-ink, #12262a);
+  --mk-line: color-mix(in srgb, var(--mk-ink) 22%, transparent);
+  --mk-fill: color-mix(in srgb, var(--mk-ink) 7%, transparent);
+  --mk-on: var(--bl-acc, var(--green-dark, #1e6c72));
+  max-width: 1000px; margin: 12px auto 0; padding: 14px 20px 12px;
+  box-sizing: border-box; color: var(--mk-ink);
+  font-family: 'Geologica', system-ui, sans-serif; font-size: 13px; line-height: 1.35;
+  border: 1px dashed var(--mk-line); border-radius: 18px;
+}
+body:not(.ui-blank) .mk { --mk-ink: #10262a; --mk-on: var(--green-dark, #1e6c72); }
+body.dark:not(.ui-blank) .mk { --mk-ink: #e8f0f1; --mk-on: var(--green-light, #3db0ba); }
+@media (max-width: 1040px) { .mk { margin: 10px 16px 0; } }
+.mk-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-bottom: 10px; }
+.mk-head b { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: 14px; }
+.mk-head span { opacity: .72; }
+.mk-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.mk-seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px; background: var(--mk-fill); }
+.mk-seg button, .mk-wins button {
+  font: inherit; color: inherit; background: transparent; border: 0; cursor: pointer;
+  min-height: 34px; padding: 6px 12px; border-radius: 999px; white-space: nowrap;
+}
+.mk-seg button.on { background: var(--mk-on); color: #fff; font-weight: 600; }
+body.dark .mk-seg button.on { color: #0d1a1c; }
+.mk-wins button { border: 1px solid var(--mk-line); background: var(--mk-fill); }
+@media (hover: hover) { .mk-wins button:hover, .mk-seg button:not(.on):hover { background: color-mix(in srgb, var(--mk-ink) 14%, transparent); } }
+.mk button:focus-visible, .mk-sw input:focus-visible + i { outline: 2px solid var(--mk-on); outline-offset: 2px; }
+.mk-sw { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; min-height: 40px; padding-right: 6px; font-weight: 600; }
+.mk-sw input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.mk-sw i { width: 42px; height: 24px; border-radius: 999px; background: var(--mk-line); position: relative; transition: background .2s; }
+.mk-sw i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .2s; }
+.mk-sw input:checked + i { background: var(--mk-on); }
+.mk-sw input:checked + i::after { transform: translateX(18px); }
+.mk-note { margin: 2px 0 0; opacity: .7; font-size: 12px; }
+
+/* Кнопка «к переключателям» — у правого края, над полоской итога */
+#mkFab {
+  position: fixed; right: 12px; bottom: 112px; z-index: 900;
+  width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+  color: var(--bl-ink, #12262a); background: color-mix(in srgb, var(--bl-sheet, #fff) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--bl-ink, #12262a) 18%, transparent);
+  box-shadow: 0 8px 24px -8px rgba(0,0,0,.45);
+  -webkit-backdrop-filter: blur(18px) saturate(180%); backdrop-filter: blur(18px) saturate(180%);
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+body:not(.ui-blank) #mkFab { color: #10262a; background: rgba(255,255,255,.8); }
+body.dark:not(.ui-blank) #mkFab { color: #e8f0f1; background: rgba(26,42,44,.8); }
+#mkFab.on { opacity: 1; pointer-events: auto; }
+/* На телефоне у правого края строк стоят звёзды: кнопка встаёт правее их колонки */
+@media (max-width: 520px) { #mkFab { right: 4px; width: 40px; height: 40px; } }
+#mkToast {
+  position: fixed; left: 50%; top: 18px; z-index: 9999; transform: translate(-50%, calc(-100% - 40px)); visibility: hidden;
+  padding: 10px 16px; border-radius: 16px; font: 13px 'Geologica', sans-serif; max-width: calc(100% - 32px);
+  color: #fff; background: rgba(20, 30, 32, .86); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  transition: transform .25s ease, visibility 0s .25s; pointer-events: none;
+}
+#mkToast.on { transform: translate(-50%, 0); visibility: visible; transition: transform .25s ease; }
+@media (prefers-reduced-motion: reduce) { .mk-sw i, .mk-sw i::after, #mkFab, #mkToast { transition: none; } }

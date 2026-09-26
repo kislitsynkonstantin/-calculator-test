@@ -1,0 +1,466 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Стекло — слой поверх «Бланка» и «Модерна», днём и ночью, в любом цвете.
+   Включается признаком body.ui-glass (галочка «Стекло» в настройках).
+   Правило слоя: стекло — у того, что лежит на обоях, — у листов, панели
+   кнопок, полоски итога и окон. Внутри листа строки стоят на самом листе:
+   стекло на стекле мутнеет и дорого обходится телефону.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Жетоны ── */
+body.ui-glass {
+  --gl-base: var(--bl-page, var(--page-bg, #eef4f3));
+  --gl-sheet: var(--bl-sheet, var(--card-bg, #fff));
+  --gl-ink: var(--bl-ink, #12262a);
+  --gl-ink2: var(--bl-ink2, #5b7376);
+  --gl-acc: var(--bl-acc, var(--green-dark, #1e6c72));
+  --gl-acc2: var(--bl-acc2, var(--green-light, #3db0ba));
+  --gl-warm: #e8b86a;
+  --gl-cool: #7fb6ff;
+  /* кромка: светлая сверху, как у настоящего стекла под лампой */
+  --gl-hi: rgba(255, 255, 255, .70);
+  --gl-lo: rgba(255, 255, 255, .18);
+  --gl-edge: rgba(255, 255, 255, .55);
+  --gl-edge2: rgba(18, 38, 42, .08);
+  --gl-shadow: 0 22px 48px -22px rgba(14, 40, 44, .38), 0 2px 6px rgba(14, 40, 44, .06);
+  --gl-pane: color-mix(in srgb, var(--gl-sheet) 60%, transparent);
+  --gl-pane2: color-mix(in srgb, var(--gl-sheet) 44%, transparent);
+  --gl-win: color-mix(in srgb, var(--gl-sheet) 78%, transparent);
+  --gl-well: color-mix(in srgb, var(--gl-ink) 5%, transparent);
+  --gl-well2: color-mix(in srgb, var(--gl-ink) 9%, transparent);
+  --gl-tile: color-mix(in srgb, var(--gl-sheet) 55%, transparent);
+  /* плавающее над строками — плотнее: сквозь него не должно читаться */
+  --gl-bar: color-mix(in srgb, var(--gl-sheet) 74%, transparent);
+  --gl-pill: color-mix(in srgb, var(--gl-sheet) 94%, transparent);
+  --gl-blur: blur(22px) saturate(185%);
+  --gl-blur2: blur(40px) saturate(200%);
+  --gl-rim: linear-gradient(150deg, rgba(255,255,255,.95), rgba(255,255,255,.28) 22%, rgba(255,255,255,0) 48%, rgba(255,255,255,.12) 74%, rgba(255,255,255,.7));
+  --gl-sheen: linear-gradient(180deg, rgba(255,255,255,.34), rgba(255,255,255,0) 140px);
+  --gl-r: 26px;
+  --gl-r-win: 30px;
+  --gl-scrim: rgba(12, 30, 32, .22);
+}
+body.ui-glass.dark {
+  --gl-hi: rgba(255, 255, 255, .20);
+  --gl-lo: rgba(255, 255, 255, .05);
+  --gl-edge: rgba(255, 255, 255, .13);
+  --gl-edge2: rgba(0, 0, 0, .35);
+  --gl-shadow: 0 26px 60px -24px rgba(0, 0, 0, .75), 0 2px 8px rgba(0, 0, 0, .25);
+  --gl-pane: color-mix(in srgb, var(--gl-sheet) 54%, transparent);
+  --gl-pane2: color-mix(in srgb, var(--gl-sheet) 46%, transparent);
+  --gl-win: color-mix(in srgb, var(--gl-sheet) 82%, transparent);
+  --gl-well: color-mix(in srgb, var(--gl-ink) 6%, transparent);
+  --gl-well2: color-mix(in srgb, var(--gl-ink) 11%, transparent);
+  --gl-tile: color-mix(in srgb, var(--gl-ink) 4%, transparent);
+  --gl-scrim: rgba(0, 0, 0, .38);
+  --gl-rim: linear-gradient(150deg, rgba(255,255,255,.42), rgba(255,255,255,.10) 22%, rgba(255,255,255,0) 48%, rgba(255,255,255,.05) 74%, rgba(255,255,255,.26));
+  --gl-sheen: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0) 140px);
+  --gl-bar: color-mix(in srgb, var(--gl-sheet) 84%, transparent);
+  /* ночью выбранная таблетка светлее лунки, а не темнее */
+  --gl-pill: color-mix(in srgb, var(--gl-ink) 17%, transparent);
+}
+/* «Модерн»: у него свои имена чернил */
+body.ui-glass:not(.ui-blank) {
+  --gl-ink: #10262a;
+  --gl-ink2: var(--gray, #555);
+}
+body.ui-glass.dark:not(.ui-blank) { --gl-ink: #e8f0f1; }
+
+/* ── Обои: стеклу нужно, что преломлять. Мягкие пятна цветами схемы,
+   неподвижные — стекло скользит по ним при прокрутке. Слой отдельный, а
+   не background-attachment: fixed — его Safari на iPhone не держит. ── */
+body.ui-glass { background: var(--gl-base) !important; }
+body.ui-glass::before {
+  content: ''; position: fixed; inset: -12vmax; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(34vmax 30vmax at 12% 10%, color-mix(in srgb, var(--gl-acc2) 62%, transparent), transparent 68%),
+    radial-gradient(30vmax 28vmax at 88% 16%, color-mix(in srgb, var(--gl-cool) 34%, transparent), transparent 70%),
+    radial-gradient(38vmax 34vmax at 80% 74%, color-mix(in srgb, var(--gl-warm) 46%, transparent), transparent 70%),
+    radial-gradient(34vmax 30vmax at 16% 84%, color-mix(in srgb, var(--gl-acc) 42%, transparent), transparent 70%),
+    radial-gradient(22vmax 20vmax at 52% 46%, color-mix(in srgb, var(--gl-acc2) 22%, transparent), transparent 70%),
+    radial-gradient(26vmax 22vmax at 38% 30%, color-mix(in srgb, var(--gl-cool) 22%, transparent), transparent 70%),
+    radial-gradient(26vmax 24vmax at 62% 60%, color-mix(in srgb, var(--gl-warm) 26%, transparent), transparent 70%);
+}
+body.ui-glass.dark::before {
+  background:
+    radial-gradient(34vmax 30vmax at 10% 8%, color-mix(in srgb, var(--gl-acc) 58%, transparent), transparent 68%),
+    radial-gradient(30vmax 28vmax at 90% 14%, color-mix(in srgb, var(--gl-cool) 34%, transparent), transparent 70%),
+    radial-gradient(38vmax 34vmax at 82% 72%, color-mix(in srgb, var(--gl-warm) 36%, transparent), transparent 70%),
+    radial-gradient(34vmax 30vmax at 14% 86%, color-mix(in srgb, var(--gl-acc2) 44%, transparent), transparent 70%),
+    radial-gradient(24vmax 22vmax at 50% 44%, color-mix(in srgb, var(--gl-acc) 26%, transparent), transparent 70%),
+    radial-gradient(26vmax 22vmax at 36% 28%, color-mix(in srgb, var(--gl-cool) 20%, transparent), transparent 70%),
+    radial-gradient(26vmax 24vmax at 64% 62%, color-mix(in srgb, var(--gl-warm) 22%, transparent), transparent 70%);
+}
+
+/* ── Лист калькулятора перестаёт быть листом: его части — отдельные стёкла ── */
+body.ui-glass .page-wrap {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+
+/* Общий рецепт стекла */
+body.ui-glass .page-wrap .card,
+body.ui-glass #resultCard,
+body.ui-glass #headerBtns,
+body.ui-glass .total-strip,
+body.ui-glass #sideNavInner {
+  -webkit-backdrop-filter: var(--gl-blur);
+  backdrop-filter: var(--gl-blur);
+}
+body.ui-glass .page-wrap .card,
+body.ui-glass #resultCard {
+  position: relative;
+  background: var(--gl-sheen), var(--gl-pane) !important;
+  border: 1px solid var(--gl-edge) !important;
+  border-radius: var(--gl-r) !important;
+  box-shadow: inset 0 1px 0 var(--gl-hi), inset 0 -1px 0 var(--gl-lo), var(--gl-shadow) !important;
+  padding: 22px 26px 24px !important;
+  margin-bottom: 18px !important;
+  overflow: visible;
+}
+/* Две колонки — два стекла с просветом, а не лист с чертой посередине */
+body.ui-glass #imageCanvasCard { padding: 20px 26px !important; }
+body.ui-glass .two-col { gap: 18px !important; margin-bottom: 18px !important; align-items: stretch; }
+body.ui-glass .two-col > .card { margin-bottom: 0 !important; border-left: 1px solid var(--gl-edge) !important; }
+body.ui-glass.ui-blank .two-col > .card + .card { padding-left: 26px !important; }
+
+/* Заголовки карточек — чернилами, черта под ними тоньше и короче: на стекле
+   жирная черта во всю ширину спорит с кромкой */
+body.ui-glass.ui-blank .card-title {
+  border-bottom-width: 1px !important;
+  border-bottom-color: color-mix(in srgb, var(--gl-acc) 55%, transparent) !important;
+}
+
+/* Разделы спецификации: номер и название на стекле */
+body.ui-glass.ui-blank .section-header { border-bottom-color: color-mix(in srgb, var(--gl-acc) 60%, transparent) !important; }
+body.ui-glass.ui-blank .opt-item { border-bottom-color: color-mix(in srgb, var(--gl-ink) 9%, transparent) !important; }
+/* Выбранная строка — мягкая подсветка, гаснущая к краю, как на листе, но
+   прозрачнее: под ней стекло, а не бумага */
+body.ui-glass.ui-blank .opt-item.checked,
+body.ui-glass.ui-blank .opt-item.active {
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--gl-acc) 16%, transparent), transparent 320px) !important;
+}
+
+/* ── Поля — лунки в стекле, а не черта по бумаге ── */
+body.ui-glass .page-wrap .field input:not([type="checkbox"]):not([type="radio"]),
+body.ui-glass .page-wrap .field select,
+body.ui-glass .page-wrap .custom-select-trigger {
+  background: var(--gl-well) !important;
+  border: 1px solid transparent !important;
+  border-radius: 14px !important;
+  box-shadow: inset 0 1px 2px var(--gl-edge2) !important;
+}
+body.ui-glass .page-wrap .field input:not([type="checkbox"]):not([type="radio"]):focus,
+body.ui-glass .page-wrap .field select:focus {
+  background: var(--gl-well2) !important;
+  border-color: color-mix(in srgb, var(--gl-acc) 55%, transparent) !important;
+  outline: none;
+}
+body.ui-glass.ui-blank .page-wrap .field input:not([type="checkbox"]):not([type="radio"]),
+body.ui-glass.ui-blank .page-wrap .custom-select-trigger { padding-left: 14px !important; padding-right: 14px !important; }
+body.ui-glass .search-wrap { border-bottom: 0 !important; }
+body.ui-glass #projectSearch,
+body.ui-glass .psearch-wrap input {
+  background: var(--gl-well) !important;
+  border: 1px solid transparent !important;
+  border-radius: 14px !important;
+  box-shadow: inset 0 1px 2px var(--gl-edge2) !important;
+  padding-left: 40px !important;
+  min-height: 44px;
+}
+body.ui-glass .search-wrap .search-icon { left: 14px !important; }
+body.ui-glass .psearch-wrap svg { left: 14px !important; }
+body.ui-glass .psearch-wrap .search-clear,
+body.ui-glass .search-wrap .search-clear { right: 8px !important; }
+
+/* Толщина — сегментный переключатель: лунка и светлая таблетка */
+body.ui-glass .thickness-tabs {
+  background: var(--gl-well) !important;
+  border-radius: 999px !important;
+  padding: 4px !important;
+  gap: 2px !important;
+  border: 0 !important;
+  box-shadow: inset 0 1px 2px var(--gl-edge2) !important;
+}
+body.ui-glass .thick-btn {
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+}
+body.ui-glass .thick-btn.active {
+  background: var(--gl-pill) !important;
+  box-shadow: 0 1px 0 var(--gl-hi) inset, 0 4px 14px -6px rgba(0,0,0,.35) !important;
+  color: var(--gl-ink) !important;
+}
+
+/* Кнопки на листе — стеклянные таблетки */
+body.ui-glass .page-wrap .btn-project-view,
+body.ui-glass .page-wrap .btn-contract-data,
+body.ui-glass .page-wrap .contract-data-row > button,
+body.ui-glass .page-wrap .btn-add-project,
+body.ui-glass .page-wrap .add-opt-btn,
+body.ui-glass .page-wrap .add-note-btn {
+  border-radius: 999px !important;
+  background: color-mix(in srgb, var(--gl-acc) 10%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--gl-acc) 34%, transparent) !important;
+  box-shadow: inset 0 1px 0 var(--gl-lo) !important;
+}
+body.ui-glass .page-wrap .btn-add-project,
+body.ui-glass .page-wrap .add-opt-btn,
+body.ui-glass .page-wrap .add-note-btn { border-style: dashed !important; background: transparent !important; }
+
+/* ── Шапка: логотип и заголовок стоят прямо на обоях ── */
+body.ui-glass .header { border-bottom: 0 !important; }
+body.ui-glass.ui-blank .header::after { display: none !important; }
+
+/* Панель кнопок — плавающая стеклянная капсула */
+body.ui-glass #headerBtns {
+  background: var(--gl-pane2) !important;
+  border: 1px solid var(--gl-edge) !important;
+  border-radius: 24px !important;
+  box-shadow: inset 0 1px 0 var(--gl-hi), var(--gl-shadow) !important;
+  padding: 6px 10px !important;
+  margin-top: 18px !important;
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+body.ui-glass #headerBtns .btn-hide-global { border-radius: 14px !important; }
+/* Прилипшая панель не прирастает к краю экрана, а висит над ним */
+body.ui-glass #headerBtns.sticky {
+  top: max(8px, env(safe-area-inset-top, 8px)) !important;
+  left: 50% !important; right: auto !important;
+  transform: translateX(-50%);
+  width: max-content !important;
+  max-width: calc(100% - 16px) !important;
+  padding: 6px 10px !important;
+  margin: 0 !important;
+  border-radius: 24px !important;
+  border: 1px solid var(--gl-edge) !important;
+  background: var(--gl-bar) !important;
+  -webkit-backdrop-filter: var(--gl-blur2);
+  backdrop-filter: var(--gl-blur2);
+}
+
+/* ── Итог: карточка и полоска внизу ── */
+body.ui-glass #resultCard { padding: 24px 28px !important; }
+body.ui-glass .total-strip {
+  left: 10px !important; right: 10px !important;
+  bottom: max(10px, env(safe-area-inset-bottom, 10px)) !important;
+  max-width: 980px; margin: 0 auto;
+  border-radius: 24px !important;
+  background: var(--gl-bar) !important;
+  color: var(--gl-ink) !important;
+  border: 1px solid var(--gl-edge) !important;
+  box-shadow: inset 0 1px 0 var(--gl-hi), 0 20px 50px -18px rgba(0,0,0,.55) !important;
+  padding: 12px 20px !important;
+  -webkit-backdrop-filter: var(--gl-blur2);
+  backdrop-filter: var(--gl-blur2);
+}
+body.ui-glass .total-strip .ts-lab,
+body.ui-glass .total-strip .ts-sub { color: var(--gl-ink2) !important; }
+body.ui-glass .total-strip .ts-val { color: var(--gl-ink) !important; }
+body.ui-glass .total-strip .ts-disc { color: var(--gl-acc) !important; }
+
+/* Боковая панель «Спецификация» — стеклянная колонка */
+body.ui-glass #sideNavInner {
+  background: var(--gl-win) !important;
+  border: 1px solid var(--gl-edge) !important;
+  border-radius: 24px 0 0 24px !important;
+  box-shadow: inset 0 1px 0 var(--gl-hi), var(--gl-shadow) !important;
+}
+
+/* ══ Окна ══════════════════════════════════════════════════════════════════
+   Подложка не темнит страницу, а размывает: видно, откуда окно пришло.
+   Само окно — толстое стекло: пропускает цвет, но не текст под ним. */
+body.ui-glass #presetPanel,
+body.ui-glass #paymentPlanOverlay,
+body.ui-glass #actionLogOverlay,
+body.ui-glass #settingsPanel,
+body.ui-glass #printOverlay,
+body.ui-glass #optSearchOverlay,
+body.ui-glass #contractDataOverlay {
+  background: var(--gl-scrim) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+}
+body.ui-glass #presetBox,
+body.ui-glass #ppPanel,
+body.ui-glass #actionLogPanel,
+body.ui-glass #settingsBox,
+body.ui-glass #contractDataOverlay > div,
+body.ui-glass #printOverlay > div > div:first-child {
+  background: var(--gl-win) !important;
+  -webkit-backdrop-filter: var(--gl-blur2);
+  backdrop-filter: var(--gl-blur2);
+  border: 1px solid var(--gl-edge) !important;
+  border-radius: var(--gl-r-win) !important;
+  box-shadow: inset 0 1px 0 var(--gl-hi), inset 0 -1px 0 var(--gl-lo), 0 40px 90px -30px rgba(0,0,0,.6) !important;
+  overflow: hidden;
+}
+/* Шапка окна — часть того же стекла */
+body.ui-glass .ovl-head,
+body.ui-glass #settingsBox > div:first-child,
+body.ui-glass #presetHeader,
+body.ui-glass #ppHeader {
+  background: transparent !important;
+}
+body.ui-glass .ovl-x {
+  border-radius: 999px !important;
+  background: var(--gl-well) !important;
+  border: 1px solid var(--gl-edge) !important;
+  box-shadow: inset 0 1px 0 var(--gl-lo) !important;
+}
+body.ui-glass.ui-blank .ovl-head { border-bottom-color: color-mix(in srgb, var(--gl-acc) 55%, transparent) !important; }
+
+/* Вкладки окон — сегментный переключатель */
+body.ui-glass .ptabs,
+body.ui-glass #ppTabs,
+body.ui-glass #settingsBox > .ovl-head + div {
+  background: var(--gl-well) !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  padding: 4px !important;
+  margin: 12px 20px 6px !important;
+  gap: 2px;
+  box-shadow: inset 0 1px 2px var(--gl-edge2) !important;
+  width: auto !important;
+}
+body.ui-glass .ptab,
+body.ui-glass #ppTabs button,
+body.ui-glass #settingsBox > .ovl-head + div > button {
+  border: 0 !important;
+  border-radius: 999px !important;
+  margin: 0 !important;
+  padding: 8px 12px !important;
+  flex: 1 1 auto;
+  white-space: nowrap;
+  text-align: center;
+  background: transparent !important;
+}
+body.ui-glass .ptab::after,
+body.ui-glass .st-tab::after { display: none !important; }
+body.ui-glass .ptab.ptab-active,
+body.ui-glass #ppTabs button[data-active="1"],
+body.ui-glass #settingsBox > .ovl-head + div > button[data-active="1"] {
+  background: var(--gl-pill) !important;
+  color: var(--gl-ink) !important;
+  box-shadow: inset 0 1px 0 var(--gl-hi), 0 4px 14px -6px rgba(0,0,0,.4) !important;
+}
+
+/* Плитки внутри окон: светлее стекла окна, без своего размытия */
+body.ui-glass #presetPanel .pcard,
+body.ui-glass #presetPanel .shared-pcard,
+body.ui-glass #actionLogPanel .al-row {
+  background: var(--gl-tile) !important;
+  border: 1px solid color-mix(in srgb, var(--gl-ink) 9%, transparent) !important;
+  border-radius: 22px !important;
+  box-shadow: inset 0 1px 0 var(--gl-lo) !important;
+}
+body.ui-glass #presetPanel .pcard-code-row,
+body.ui-glass #presetPanel .pcard-actions,
+body.ui-glass #presetPanel .shared-pcard-actions {
+  background: transparent !important;
+}
+/* Кнопки и метки в окнах — таблетки */
+body.ui-glass #presetPanel .ptoolbar-btn,
+body.ui-glass #presetPanel .pfilter-btn,
+body.ui-glass #presetPanel .btn-shared-use,
+body.ui-glass #presetPanel .btn-pcard-load,
+body.ui-glass #presetPanel .btn-shared-act,
+body.ui-glass #presetPanel .pcard-act,
+body.ui-glass #actionLogPanel button,
+body.ui-glass #settingsBox .st-theme-btn,
+body.ui-glass #settingsBox .st-seg button {
+  border-radius: 999px !important;
+}
+body.ui-glass #settingsBox input[type="text"],
+body.ui-glass #actionLogPanel select {
+  background: var(--gl-well) !important;
+  border-radius: 14px !important;
+  border: 1px solid transparent !important;
+}
+body.ui-glass #presetScroll .psearch-bar,
+body.ui-glass.ui-blank #presetScroll .psearch-bar { background: transparent !important; }
+
+/* Платёжный план: этапы — строки на стекле, поля — лунки */
+body.ui-glass #paymentPlanBody input {
+  background: var(--gl-well) !important;
+  border: 1px solid transparent !important;
+  border-radius: 12px !important;
+}
+
+/* Печать: панель инструментов — стекло, сам документ остаётся бумагой */
+body.ui-glass #printOverlay #printDoc,
+body.ui-glass #printOverlay .print-page,
+body.ui-glass #printOverlay .print-sheet {
+  border-radius: 18px !important;
+  box-shadow: 0 30px 80px -30px rgba(0,0,0,.7) !important;
+}
+
+/* Сообщения — стеклянные капсулы */
+body.ui-glass .toast,
+body.ui-glass #toastBox > div {
+  -webkit-backdrop-filter: var(--gl-blur2);
+  backdrop-filter: var(--gl-blur2);
+  background: color-mix(in srgb, var(--gl-sheet) 70%, transparent) !important;
+  color: var(--gl-ink) !important;
+  border: 1px solid var(--gl-edge) !important;
+  border-radius: 20px !important;
+}
+
+/* «Модерн»: шапка окна — цветная полоса с белыми буквами. Прозрачной её
+   делать нельзя: белый заголовок на светлом стекле пропадает. Полоса
+   остаётся, но становится тонированным стеклом. */
+body.ui-glass:not(.ui-blank) .ovl-head,
+body.ui-glass:not(.ui-blank) #settingsBox > div:first-child,
+body.ui-glass:not(.ui-blank) #presetHeader,
+body.ui-glass:not(.ui-blank) #ppHeader,
+body.ui-glass:not(.ui-blank) #printOverlay > div > div:first-child {
+  background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0)),
+              color-mix(in srgb, var(--green-dark) 84%, transparent) !important;
+}
+body.ui-glass:not(.ui-blank) .ovl-x { background: rgba(255,255,255,.16) !important; border-color: rgba(255,255,255,.28) !important; }
+
+/* ── Кромка: светлая грань с бликом в верхнем левом углу и отсветом в нижнем
+   правом — то, что отличает стекло от полупрозрачной коробки. Рисуется
+   отдельным слоем по маске рамки, поэтому не прозрачит само стекло. ── */
+body.ui-glass .page-wrap .card::after,
+body.ui-glass #resultCard::after,
+body.ui-glass #headerBtns::after,
+body.ui-glass .total-strip::after,
+body.ui-glass #presetBox::after,
+body.ui-glass #ppPanel::after,
+body.ui-glass #actionLogPanel::after,
+body.ui-glass #settingsBox::after {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none;
+  padding: 1px; background: var(--gl-rim);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  z-index: 1;
+}
+body.ui-glass #headerBtns:not(.sticky),
+body.ui-glass #presetBox, body.ui-glass #ppPanel,
+body.ui-glass #actionLogPanel, body.ui-glass #settingsBox { position: relative; }
+body.ui-glass #presetBox, body.ui-glass #ppPanel,
+body.ui-glass #actionLogPanel, body.ui-glass #settingsBox { background-image: var(--gl-sheen) !important; }
+
+/* ── Телефон ── */
+@media (max-width: 680px) {
+  body.ui-glass .ptab, body.ui-glass #ppTabs button,
+  body.ui-glass #settingsBox > .ovl-head + div > button { font-size: .74rem !important; padding: 8px 8px !important; }
+  body.ui-glass .ptabs, body.ui-glass #ppTabs,
+  body.ui-glass #settingsBox > .ovl-head + div { margin: 10px 14px 4px !important; }
+  body.ui-glass .page-wrap .card,
+  body.ui-glass #resultCard { padding: 18px 18px 20px !important; border-radius: 22px !important; margin-bottom: 14px !important; }
+  body.ui-glass .two-col { gap: 14px !important; margin-bottom: 14px !important; }
+  body.ui-glass.ui-blank .two-col > .card + .card { padding-left: 18px !important; }
+  body.ui-glass #headerBtns { border-radius: 22px !important; width: auto; }
+  body.ui-glass .total-strip { left: 8px !important; right: 8px !important; border-radius: 22px !important; }
+}
+
+/* ── Понижение прозрачности в системе: стекло становится плотным ── */
+@media (prefers-reduced-transparency: reduce) {
+  body.ui-glass { --gl-pane: var(--gl-sheet); --gl-pane2: var(--gl-sheet); --gl-win: var(--gl-sheet); --gl-tile: var(--gl-sheet); }
+  body.ui-glass * { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+}
