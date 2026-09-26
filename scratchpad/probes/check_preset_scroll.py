@@ -75,10 +75,12 @@ def сервер():
   const ввод = пои.querySelector('input'), вр = r(ввод);
   const попал = document.elementFromPoint(вр.left + 20, (вр.top + вр.bottom) / 2);
   const фон = getComputedStyle(пои).backgroundColor;
+  // Цвет прилипшей строки должен совпадать с окном: иначе она лежит полосой.
+  const фонОкна = getComputedStyle(document.getElementById('presetBox')).backgroundColor;
   const спис = document.getElementById('presetList');
   return { вначале, прокручено: обл.scrollTop,
     тулУшёл: т.bottom <= о.top + 0.5, поискСверху: Math.abs(п.top - о.top) <= 1,
-    поискОтвечает: !!(попал && пои.contains(попал)), фон,
+    поискОтвечает: !!(попал && пои.contains(попал)), фон, фонОкна,
     шапкаНаМесте: Math.abs(ш.top - ш0.top) < 0.5 && ш.bottom <= о.top + 0.5 && в.bottom <= о.top + 0.5,
     своейПрокрутки: спис.scrollHeight > спис.clientHeight + 1 && getComputedStyle(спис).overflowY !== 'visible',
     гориз: обл.scrollWidth > обл.clientWidth + 1 };
@@ -115,6 +117,7 @@ def главная():
                         if not м["поискСверху"]: плохо(н + ": строка поиска не прилипла к верху")
                         if not м["поискОтвечает"]: плохо(н + ": строка поиска не отвечает — сверху лежит карточка")
                         if м["фон"] in ("rgba(0, 0, 0, 0)", "transparent"): плохо(н + ": строка поиска прозрачна, карточки просвечивают")
+                        elif м["фон"] != м.get("фонОкна"): плохо(н + f": строка поиска другого цвета, чем окно ({м['фон']} на {м.get('фонОкна')}) — лежит полосой")
                         if not м["шапкаНаМесте"]: плохо(н + ": шапка или вкладки сдвинулись")
                         if м["своейПрокрутки"]: плохо(н + ": у списка осталась своя прокрутка")
                         if м["гориз"]: плохо(н + ": прокрутка вбок")
