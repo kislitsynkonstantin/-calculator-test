@@ -71,6 +71,7 @@ def сервер():
   openOptSearch(); await ждать(150);
   const чип = document.querySelector('#optSearchPanel .ops-chip[data-f="star"]');
   итог.чип = чип ? чип.textContent.trim() : '';
+  итог.порядок = [...document.querySelectorAll('#optSearchPanel .ops-chip')].map(ч => ч.textContent.trim()).join(' · ');
   if (чип) { setOptSearchFilter('star'); await ждать(150); }
   итог.вПоиске = (_optSearchRows || []).map(r => r.id);
   try { closeOptSearch(); } catch (e) { try { document.getElementById('optSearchOverlay').style.display = 'none'; } catch (e2) {} }
@@ -137,6 +138,8 @@ def главная():
                         print("  " + json.dumps(р, ensure_ascii=False))
                     if р["чип"] != "Избранные": плохо(н + ": в поиске по опциям нет вкладки «Избранные»")
                     elif len(р["вПоиске"]) != 2: плохо(н + f": на вкладке «Избранные» {len(р['вПоиске'])} опций, а отмечено 2")
+                    if р.get("порядок") != "Все · Выбранные · Не выбранные · Закреплённые · Избранные · Ручные":
+                        плохо(н + f": порядок вкладок поиска: {р.get('порядок')}")
                     if р["последнийВМеню"] != "rdStars": плохо(н + f": последний пункт меню «Сбросить» — {р['последнийВМеню']}, а не «Сбросить избранные»")
                     if "Избранные" not in р["последнийВНастройках"]: плохо(н + f": последний в «Сбросить всё» — «{р['последнийВНастройках']}»")
                     if р["включёнПоУмолчанию"]: плохо(н + ": сброс избранных включён по умолчанию (при старом stars: true)")
