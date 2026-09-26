@@ -12,7 +12,9 @@ calc() выходил раньше, чем обновлялись итог, кэ
   • общий пресет закрыт, полоски внизу нет, проекта нет;
   • итог расчёта 0, в шапке панели нет прежней цены, у всех разделов «—»;
   • у чужого пресета «только просмотр» пункт не заперт: сброс не правит
-    пресет, а выходит из него.
+    пресет, а выходит из него;
+  • у него же прочие пункты меню серые (кроме звёзд опций), подсказка
+    называет «Сбросить всё»; у своего и без пресета пункт выбранных опций жив.
 
     python3 check_reset_all_totals.py
 """
@@ -55,6 +57,9 @@ def сервер():
   const б = document.getElementById('pricingErrorScreen'); if (б) б.style.display = 'none';
   applyUiStyle('blank', false); applyThemeMode('dark', false);
   selectProjectOption(0); await ждать(700);
+  // Одна не базовая опция — чтобы пункту «Выбранные опции» было что сбрасывать.
+  const оп = OPTIONS.find(о => !о.included && о.price && !checkedOptions[о.id] && о.status !== 'legacy');
+  if (оп) { try { toggleOpt(оп.id); } catch (e) {} }
   const снимок = collectState(); снимок.tech = 'frame';
   window.__т = []; window.showToast = т => window.__т.push(String(т));
   if (вид !== 'без') {
@@ -67,6 +72,18 @@ def сервер():
   try { openSideNav(); } catch (e) {}
   await ждать(400);
   return { итог: _currentTotal, код: _activeSharedCode };
+}"""
+
+МЕНЮ = """async () => {
+  toggleResetDropdown(); await new Promise(r => setTimeout(r, 200));
+  const живые = [...document.querySelectorAll('#resetDropdownMenu .reset-dropdown-item')]
+    .filter(х => !х.classList.contains('reset-all-item') && !х.disabled && !х.classList.contains('rd-off')).map(х => х.id);
+  const п = document.getElementById('rdHint');
+  const подсказка = п && getComputedStyle(п).display !== 'none' ? п.textContent : '';
+  const м = document.getElementById('resetDropdownMenu').getBoundingClientRect();
+  const зазор = Math.round(innerWidth - м.right);
+  closeResetDropdown(); await new Promise(r => setTimeout(r, 100));
+  return { живые, подсказка, зазор };
 }"""
 
 СБРОС = """async () => {
@@ -106,6 +123,17 @@ def главная():
                     до = стр.evaluate(ОТКРЫТЬ, вид)
                     if not до["итог"]:
                         плохо(f"{н} до сброса итога нет — проверять нечего ({до})")
+                    меню = стр.evaluate(МЕНЮ)
+                    print("  " + н, "меню", меню)
+                    if меню["зазор"] < 8:
+                        плохо(f"{н} меню «Сбросить» у края экрана: зазор {меню['зазор']} px")
+                    if вид == "чужой":
+                        if [и for и in меню["живые"] if и != "rdStars"]:
+                            плохо(f"{н} в пресете «только просмотр» живые пункты сброса: {меню['живые']}")
+                        if "Сбросить всё" not in меню["подсказка"]:
+                            плохо(f"{н} подсказка меню не говорит про «Сбросить всё»: «{меню['подсказка']}»")
+                    elif "rdChecked" not in меню["живые"]:
+                        плохо(f"{н} пункт «Сбросить выбранные опции» серый без замка: {меню['живые']}")
                     р = стр.evaluate(СБРОС)
                     print("  " + н, json.dumps(р, ensure_ascii=False)[:300])
                     if any("заблокирован" in т for т in р["тосты"]):

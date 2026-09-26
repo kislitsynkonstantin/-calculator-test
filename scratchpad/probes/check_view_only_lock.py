@@ -173,12 +173,16 @@ def прогон(стр, ш, вид):
           toggleResetDropdown(); await new Promise(r => setTimeout(r, 200));
           const к = [...document.querySelectorAll('#resetDropdownMenu .reset-dropdown-item')]
             .find(х => !х.disabled && х.id !== 'rdStars' && !х.classList.contains('reset-all-item'));
-          if (!к) { try { closeResetDropdown(); } catch (e) {} return { пункт: null }; }
+          // С (50) пункты под замком серые — замок держит их и без нажатия.
+          const выкл = [...document.querySelectorAll('#resetDropdownMenu .reset-dropdown-item')]
+            .filter(х => х.id !== 'rdStars' && !х.classList.contains('reset-all-item')).every(х => х.disabled);
+          if (!к) { try { closeResetDropdown(); } catch (e) {} return { пункт: null, выкл }; }
           const до = слепок(); к.click(); await new Promise(r => setTimeout(r, 400));
           try { closeResetDropdown(); } catch (e) {}
           return { пункт: к.id, изменилось: слепок() !== до }; }""")
         if not сброс["пункт"]:
-            плохо(f"{н} в «Сбросить» нет живых пунктов — проверить нечем")
+            if not сброс.get("выкл"):
+                плохо(f"{н} в «Сбросить» нет живых пунктов, но и выключены не все")
         elif сброс["изменилось"]:
             плохо(f"{н} «Сбросить → {сброс['пункт']}» изменила расчёт")
 
