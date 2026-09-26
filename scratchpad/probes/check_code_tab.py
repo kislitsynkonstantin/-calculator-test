@@ -19,7 +19,8 @@
   • список живёт в настройках аккаунта (`codeFound`), а строки, которых нет
     в памяти страницы, дочитываются из базы;
   • возврат в «Мои» с кодом в поле не уводит обратно — там ссылка словами;
-  • карточка не вылезает за край окна.
+  • карточка не вылезает за край окна;
+  • у неопубликованного значок — облако с галочкой, у опубликованного — глобус.
 
     python3 check_code_tab.py
 """
@@ -135,6 +136,29 @@ def главная():
                 if р["заКрай"] or р["ширинаСтраницы"]:
                     плохо(f"{н} карточка или страница шире окна")
                 стр.screenshot(path=str(СНИМКИ / f"code-tab-{ш}-found.png"))
+                # значок: неопубликованный — облако, опубликованный — глобус
+                зн = стр.evaluate("""async () => {
+                  const к = document.querySelector('#codePresetList .shared-pcard[data-scode="365484"]');
+                  const скрыт = к ? { облако: !!к.querySelector('.pst:not(.pst-pub)'), глобус: !!к.querySelector('.pst-pub') } : null;
+                  const снимок = (_foundByCodeCache['365484'] || {}).state;
+                  _sharedPresets.push({ short_code: '540117', id: '540117', preset_id: 'x540117', author_id: 'u-другой',
+                    author_name: 'Павел Жуков', name: 'Опубликованный пресет пробы', state: снимок, is_public: true,
+                    visibility: 'public', created_at: '2026-09-20T10:00:00Z', updated_at: '2026-09-20T10:00:00Z', locked: false });
+                  const п = document.getElementById('codeSearchInput'); п.value = '540117';
+                  п.dispatchEvent(new Event('input', { bubbles: true }));
+                  await new Promise(r => setTimeout(r, 400));
+                  const о = document.querySelector('#codePresetList .shared-pcard[data-scode="540117"]');
+                  const откр = о ? { облако: !!о.querySelector('.pst:not(.pst-pub)'), глобус: !!о.querySelector('.pst-pub') } : null;
+                  // Пробный опубликованный уходит из списка: дальше проба считает карточки.
+                  appSettings.codeFound = (appSettings.codeFound || []).filter(к => к !== '540117');
+                  for (let и = _sharedPresets.length - 1; и >= 0; и--) if (_sharedPresets[и].short_code === '540117') _sharedPresets.splice(и, 1);
+                  п.value = '365484'; п.dispatchEvent(new Event('input', { bubbles: true }));
+                  await new Promise(r => setTimeout(r, 300));
+                  return { скрыт, откр }; }""")
+                if not зн["скрыт"] or зн["скрыт"]["глобус"] or not зн["скрыт"]["облако"]:
+                    плохо(f"{н} у неопубликованного по коду не облако, а {зн['скрыт']}")
+                if not зн["откр"] or not зн["откр"]["глобус"]:
+                    плохо(f"{н} у опубликованного по коду нет глобуса: {зн['откр']}")
 
                 # 2. открыть и отметить звездой на полоске
                 кн = стр.locator("#codePresetList .btn-shared-use").first
