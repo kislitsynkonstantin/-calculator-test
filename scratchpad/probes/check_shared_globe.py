@@ -11,7 +11,11 @@
     метки «Для всех» нет; у своего общего метка «Мой» остаётся;
   • ветки «только администраторам» больше нет (такую публикацию сняли):
     ни щита, ни метки «Admin only», ни раздела «Только admin»;
-  • на «Моих» метки «Мой» нет, а «Опубл.» у опубликованного остаётся;
+  • на «Моих» меток нет вовсе: у опубликованного вместо «Опубл.» и облака —
+    глобус в строке кода (Константин, 26.09.2026: «в моих пресетах, когда
+    опубликовал, тоже меняй на глобус. А справа сверху «Опубл» убери»);
+  • метка «Мой» на «Общих» нажимается и включает фильтр «Мои» этой вкладки,
+    а поле нажатия у неё не меньше 32 px по высоте;
   • глобус того же размера, что облако на «Моих», и стоит так же: не у края
     карточки и не вплотную к «Код»; нажатие показывает подсказку.
 
@@ -59,11 +63,13 @@ def сервер():
   openPresetPanel(); switchPresetTab('my'); renderPresetList(); await ждать(200);
   const мои = [...document.querySelectorAll('#presetList .pcard')].map(к => ({ ид: к.dataset.pid,
     метка: (к.querySelector('.pcard-badge') || {}).textContent || '',
+    глобус: !!к.querySelector('.pcard-code-row .pst svg circle'),
     облако: (() => { const s = к.querySelector('.pcard-code-row .pst svg'); return s ? s.getBoundingClientRect().width * s.getBoundingClientRect().height : 0; })() }));
   const с = (код, имя, вид, свой) => ({ short_code: код, name: имя, author_name: свой ? 'Проба' : 'Максим Григорьев',
     author_id: свой ? (_sbUser && _sbUser.id) : 'u-другой', is_public: true, visibility: вид,
     created_at: '2026-09-02T10:05:00Z', updated_at: '2026-09-02T10:05:00Z',
     state: { project: { name: 'Проба дом 8×8' }, thickness: 1, totalNum: 8017902, tech: 'frame' } });
+  setSharedFilter('all');
   _sharedPresets.length = 0;
   _sharedPresets.push(с('775165', 'Чужой для всех', 'public', false), с('333333', 'Свой для всех', 'public', true), с('444444', 'Только админам', 'admin', false));
   _presetTab = 'shared';
@@ -78,8 +84,18 @@ def сервер():
       площадь: r ? r.width * r.height : 0, доКрая: r ? Math.round(r.left - c.left) : -1, доКод: r ? Math.round(л.left - r.right) : -1,
       подсказка: b ? (b.querySelector('.pst-tip') || {}).textContent : '' };
   });
+  const мой = document.querySelector('#sharedPresetList .shared-pcard[data-scode="333333"] .badge-pub-mine');
+  let поле = 0, фильтр = '', карточек = -1;
+  if (мой) {
+    const r = мой.getBoundingClientRect(), x = r.left + r.width / 2;
+    for (let y = Math.floor(r.top) - 30; y <= r.bottom + 30; y++) if (мой.contains(document.elementFromPoint(x, y))) поле++;
+    мой.click(); await ждать(150);
+    фильтр = _sharedFilter;
+    карточек = [...document.querySelectorAll('#sharedPresetList .shared-pcard')].map(к => к.dataset.scode).join(',');
+    setSharedFilter('all');
+  }
   closePresetPanel();
-  return { мои, общие };
+  return { мои, общие, мой: { поле, фильтр, карточек } };
 }"""
 
 
@@ -105,7 +121,13 @@ def главная():
                         print("  " + json.dumps(р, ensure_ascii=False))
                     мои = {x["ид"]: x for x in р["мои"]}
                     if "Мой" in мои.get("m1", {}).get("метка", ""): плохо(н + ": на «Моих» осталась метка «Мой»")
-                    if "Опубл" not in мои.get("m2", {}).get("метка", ""): плохо(н + ": у опубликованного на «Моих» пропала метка «Опубл.»")
+                    if мои.get("m2", {}).get("метка", ""): плохо(н + ": у опубликованного на «Моих» осталась метка «Опубл.»")
+                    if not мои.get("m2", {}).get("глобус"): плохо(н + ": у опубликованного на «Моих» нет глобуса")
+                    if мои.get("m1", {}).get("глобус"): плохо(н + ": неопубликованный на «Моих» показан глобусом")
+                    м = р.get("мой", {})
+                    if м.get("фильтр") != "mine": плохо(н + ": нажатие на «Мой» не включило фильтр «Мои»")
+                    elif м.get("карточек") != "333333": плохо(н + f": после «Мой» в списке {м.get('карточек')}, а не только свой")
+                    if м.get("поле", 0) < 32: плохо(н + f": поле нажатия «Мой» {м.get('поле')} px по высоте, нужно от 32")
                     облако = мои.get("m1", {}).get("облако", 0)
                     общ = {x["код"]: x for x in р["общие"]}
                     for код, х in общ.items():
@@ -133,7 +155,7 @@ def главная():
             print("  ✗", н)
         raise SystemExit(1)
     print("Чисто: на «Общих» глобус перед «Код» вместо метки «Для всех», у своего общего — «Мой», ветки «только администраторам» нет; "
-          "на «Моих» метки «Мой» нет, «Опубл.» на месте; значки одного размера и не прилипли — на 390 и 1440, в обеих темах.")
+          "на «Моих» меток нет, опубликованный — с глобусом; «Мой» включает фильтр «Мои»; значки одного размера и не прилипли — на 390 и 1440, в обеих темах.")
 
 
 if __name__ == "__main__":
