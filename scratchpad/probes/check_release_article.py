@@ -297,6 +297,16 @@ def прогон(бр, порт, ш, тон, ночь):
             нач = кадр.locator("body").evaluate("() => ({ y: Math.round(scrollY), открыта: document.getElementById('tocPanel').classList.contains('open') })")
             if нач["y"] > 30 or нач["открыта"]:
                 плохо(f"{н} нажатие по заголовку «Оглавления» не привело к началу статьи: {нач}")
+            # Закрытая панель не торчит за край страницы: Safari подгоняет окно справки
+            # под ширину содержимого, и торчащая панель делала страницу шире экрана —
+            # свайп вбок телефон забирал себе (Константин, 27.09.2026). Safari здесь
+            # не запустить, поэтому держим устройство: панель внутри обрезающего слоя,
+            # сама страница вбок не прокручивается, жесты вбок отданы странице.
+            стр_ = кадр.locator("body").evaluate("""() => { const п = document.getElementById('tocPanel'), с = п.parentElement;
+              return { слой: getComputedStyle(с).overflow, фикс: getComputedStyle(с).position, панель: getComputedStyle(п).position,
+                       вбок: getComputedStyle(document.documentElement).overflowX, жест: getComputedStyle(document.body).touchAction }; }""")
+            if стр_["слой"] != "hidden" or стр_["фикс"] != "fixed" or стр_["панель"] != "absolute" or стр_["вбок"] not in ("hidden", "clip") or "pan-y" not in стр_["жест"]:
+                плохо(f"{н} закрытая панель «Оглавления» может торчать за край страницы: {стр_}")
             if not жесты["влево"]:
                 плохо(f"{н} свайп влево из середины статьи не выдвинул «Оглавление»: {жесты}")
             for что in ("короткий", "вертикаль", "сКрая", "вправо"):
