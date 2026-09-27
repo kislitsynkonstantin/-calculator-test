@@ -7,9 +7,11 @@
 должна быть, не все сразу».
 
 Проба на 390 и 1440, в «Бланке» и «Модерне», держит:
-  • у каждой карточки «По коду» последней в ряду действий стоит кнопка
-    «Убрать из списка» той же высоты, что соседние, с зазором до соседа и не
-    за краем карточки; на «Общих» такой кнопки нет;
+  • у каждой карточки «По коду» в правом верхнем углу стоит крестик «Убрать
+    из списка» — без коробки, поле нажатия не меньше 40 px, у края карточки,
+    не наезжает ни на название, ни на метку технологии; на «Общих» его нет
+    (вариант 1 макета mockups/code-drop-v1.html, выбран 27.09.2026 — кружок
+    в ряду действий Константин снял);
   • нажатие убирает ровно эту карточку: остальные на месте, список в
     настройках аккаунта (`codeFound`) без неё и записан, сообщение словами;
   • кнопки «убрать всё» нет;
@@ -84,14 +86,16 @@ def сервер():
   const сп = document.getElementById('codePresetList');
   const карт = [...сп.querySelectorAll('.shared-pcard')];
   return { карточки: карт.map(к => к.dataset.scode),
-    кнопки: карт.map(к => { const ряд = к.querySelector('.shared-pcard-actions');
-      const все = [...ряд.children].filter(x => x.offsetWidth);
-      const у = к.querySelector('.pcode-drop'); if (!у) return null;
-      const r = у.getBoundingClientRect(), кр = к.getBoundingClientRect();
-      const сосед = все[все.indexOf(у) - 1]; const рс = сосед ? сосед.getBoundingClientRect() : null;
-      const скач = [...ряд.querySelectorAll('.btn-shared-act')].find(x => /Скачать/.test(x.title || ''));
-      return { последняя: все[все.length - 1] === у, h: Math.round(r.height), hСкач: скач ? Math.round(скач.getBoundingClientRect().height) : null,
-               зазор: рс ? Math.round(r.left - рс.right) : null, заКрай: r.right > кр.right + 0.5 || r.left < кр.left - 0.5,
+    кнопки: карт.map(к => { const у = к.querySelector('.pcode-drop'); if (!у || !у.offsetWidth) return null;
+      const r = у.getBoundingClientRect(), кр = к.getBoundingClientRect(), cs = getComputedStyle(у), до = getComputedStyle(у, '::before');
+      const пересечение = (а, б) => а.left < б.right && б.left < а.right && а.top < б.bottom && б.top < а.bottom;
+      const имя = к.querySelector('.shared-pcard-name'), чип = к.querySelector('.tech-chip');
+      const ри = имя ? имя.getBoundingClientRect() : null, рч = чип && чип.offsetWidth ? чип.getBoundingClientRect() : null;
+      const поле = до.content !== 'none' ? { w: r.width - 2 * parseFloat(до.left), h: r.height - 2 * parseFloat(до.top) } : { w: r.width, h: r.height };
+      return { доПрава: Math.round(кр.right - r.right), доВерха: Math.round(r.top - кр.top),
+               коробка: parseFloat(cs.borderTopWidth) > 0 || !/rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor),
+               поле: Math.round(Math.min(поле.w, поле.h)), наИмени: !!(ри && пересечение(r, ри)),
+               наЧипе: !!(рч && пересечение(r, рч)), доЧипа: рч ? Math.round(Math.min(Math.abs(рч.left - r.right), Math.abs(r.left - рч.right))) : null,
                подпись: у.getAttribute('aria-label') }; }),
     автор: карт.map(к => { const а = к.querySelector('.shared-author-av') || к.querySelector('.shared-author-name');
       if (!а || !а.offsetWidth) return null; const низ = а.getBoundingClientRect().bottom;
@@ -125,14 +129,16 @@ def главная():
                     for код, к in zip(р["карточки"], р["кнопки"]):
                         if not к:
                             плохо(f"{н} у карточки {код} нет кнопки «Убрать из списка»"); continue
-                        if not к["последняя"]:
-                            плохо(f"{н} у {код} кнопка убрать не последняя в ряду действий")
-                        if к["hСкач"] and abs(к["h"] - к["hСкач"]) > 1:
-                            плохо(f"{н} у {код} кнопка убрать высотой {к['h']} против {к['hСкач']} у скачивания")
-                        if к["зазор"] is None or к["зазор"] < 4 or к["зазор"] > 26:
-                            плохо(f"{н} у {код} зазор до соседа {к['зазор']} px")
-                        if к["заКрай"]:
-                            плохо(f"{н} у {код} кнопка убрать за краем карточки")
+                        if not (0 <= к["доПрава"] <= 14 and 0 <= к["доВерха"] <= 14):
+                            плохо(f"{н} у {код} крестик не в углу: до правого края {к['доПрава']}, до верха {к['доВерха']} px")
+                        if к["коробка"]:
+                            плохо(f"{н} у {код} у крестика коробка — просили без неё")
+                        if к["поле"] < 40:
+                            плохо(f"{н} у {код} поле нажатия крестика {к['поле']} px")
+                        if к["наИмени"] or к["наЧипе"]:
+                            плохо(f"{н} у {код} крестик наезжает на {'название' if к['наИмени'] else 'метку технологии'}")
+                        if к["доЧипа"] is not None and к["доЧипа"] < 4 and not к["наЧипе"]:
+                            плохо(f"{н} у {код} крестик прижат к метке технологии: {к['доЧипа']} px")
                     for код, з in zip(р["карточки"], р["автор"]):
                         if з is not None and з < 4:
                             плохо(f"{н} у {код} строка автора прижата к нижней полосе: зазор {з} px")
@@ -176,7 +182,7 @@ def главная():
         for н in НАХОДКИ:
             print("  ✗", н)
         raise SystemExit(1)
-    print("Чисто: в «По коду» у каждой карточки последней стоит «Убрать из списка» той же высоты, с зазором; "
+    print("Чисто: в «По коду» у каждой карточки в углу крестик «Убрать из списка» без коробки, с полем 40+ px, не на названии и метке; "
           "нажатие убирает ровно её и записывает список аккаунта, найденная набранным кодом уходит вместе с кодом в поле; "
           "на «Общих» кнопки нет — на 390 и 1440, в обеих темах.")
 
