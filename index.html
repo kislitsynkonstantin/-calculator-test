@@ -8735,6 +8735,9 @@ body.ui-blank #presetPanel .shared-pcard-author {
      а над кнопками обрывалась. В одной полосе он не нужен. */
   body.ui-blank #presetPanel .pcard-actions,
   body.ui-blank #presetPanel .shared-pcard-actions { margin-top: 0 !important; }
+  /* Строка автора стоит прямо над нижней полосой, и без отступа снизу кружок
+     с инициалами ложился на её линейку (замечено на снимке 27.09.2026). */
+  body.ui-blank #presetPanel .shared-pcard-author { padding-bottom: 8px !important; }
 }
 
 
@@ -31744,6 +31747,27 @@ function запомнитьНайденный(код) {
   appSettings.codeFound = стало;
   if (было.join() !== стало.join()) { try { saveSettings(); } catch (e) {} }
 }
+// «По коду» — по сути результаты поиска, поэтому каждый можно убрать из
+// списка, по одному (Константин, 27.09.2026: «нужно иметь возможность очищать
+// пресеты… Очистка по одному пресету должна быть, не все сразу»). Сам пресет
+// не трогаем — он остаётся в базе и находится тем же кодом снова. Если этот
+// код стоит в поиске, поле очищается: иначе список тут же нашёл бы и
+// запомнил его заново.
+function убратьНайденный(код) {
+  if (!/^\d{6}$/.test(String(код || ''))) return;
+  const было = кодыНайденных();
+  appSettings.codeFound = было.filter(к => к !== код);
+  if (было.length !== appSettings.codeFound.length) { try { saveSettings(); } catch (e) {} }
+  const поле = document.getElementById('codeSearchInput');
+  if (поле && поле.value.replace(/\s/g, '') === код) { поле.value = ''; syncPresetSearch(поле); }
+  try { лёгкийОтклик(); } catch (e) {}
+  renderCodeList();
+  showToast('Пресет ' + код.slice(0, 3) + ' ' + код.slice(3) + ' убран из списка «По коду»');
+}
+function кнопкаУбратьНайденный(код) {
+  return `<button type="button" class="btn-shared-act pcode-drop" title="Убрать из списка" aria-label="Убрать из списка «По коду»" onclick="event.stopPropagation();убратьНайденный('${код}')">`
+    + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></button>';
+}
 // Строка для карточки: из общих, если она там целиком, иначе из найденного.
 function строкаПоКоду(код) {
   const общ = _sharedPresets.find(sp => sp.short_code === код && sp.name && sp.author_name);
@@ -33539,6 +33563,7 @@ function карточкаОбщего(sp, поКоду) {
 
 
       ${/* Чужой пресет снимает с публикации только администратор; свой — автор кнопкой «Отозвать» (Константин, 26.09.2026). */ !isMine && публ && _sbProfile?.role === 'admin' ? `<button class="btn-shared-act danger" style="border:1px solid var(--br-83а);background:#f4f9f9;" title="Снять с публикации" onclick="adminRemoveShared('${sc}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>` : ''}
+      ${/* Во вкладке «По коду» — последней: убрать карточку из списка найденных. */ поКоду ? кнопкаУбратьНайденный(sc) : ''}
     </div>
     ${sp.short_code ? `<div class="pcard-code-row">
       ${значок}<span class="pcard-code-label">Код</span>
