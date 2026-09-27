@@ -176,6 +176,38 @@ def прогон(бр, порт, ш, тон, ночь):
             }''')
             if кадр.locator(".toc-panel.open").count():
                 плохо(f"{н} свайп вправо не закрыл «Оглавление»")
+            # свайп влево из середины статьи открывает — без прокрутки к кнопке
+            # (Константин, 27.09.2026); вертикальная прокрутка и жест от самого
+            # края панель не трогают.
+            жесты = кадр.locator("body").evaluate('''async () => {
+              const ждать = мс => new Promise(r => setTimeout(r, мс));
+              const п = document.getElementById('tocPanel'), ф = document.getElementById('tocFon');
+              const жест = async (x0, y0, шаги) => {
+                const цель = document.elementFromPoint(x0, y0) || document.body;
+                const т = (x, y) => new Touch({ identifier: 2, target: цель, clientX: x, clientY: y });
+                цель.dispatchEvent(new TouchEvent('touchstart', { touches: [т(x0, y0)], bubbles: true }));
+                for (const [x, y] of шаги) цель.dispatchEvent(new TouchEvent('touchmove', { touches: [т(x, y)], bubbles: true }));
+                цель.dispatchEvent(new TouchEvent('touchend', { touches: [], bubbles: true }));
+                await ждать(400);
+                const открыта = п.classList.contains('open');
+                if (открыта) { ф.click(); await ждать(400); }
+                return открыта;
+              };
+              const y = Math.round(innerHeight / 2), x = Math.round(innerWidth * 0.75);
+              return {
+                влево: await жест(x, y, [[x - 20, y + 2], [x - 70, y + 4], [x - 140, y + 6]]),
+                короткий: await жест(x, y, [[x - 20, y], [x - 40, y]]),
+                вертикаль: await жест(x, y, [[x - 6, y - 40], [x - 20, y - 120], [x - 40, y - 200]]),
+                сКрая: await жест(innerWidth - 6, y, [[innerWidth - 60, y], [innerWidth - 160, y]]),
+                вправо: await жест(Math.round(innerWidth * 0.3), y, [[Math.round(innerWidth * 0.3) + 80, y], [Math.round(innerWidth * 0.3) + 160, y]]),
+                середина: Math.round(scrollY),
+              };
+            }''')
+            if not жесты["влево"]:
+                плохо(f"{н} свайп влево из середины статьи не выдвинул «Оглавление»: {жесты}")
+            for что in ("короткий", "вертикаль", "сКрая", "вправо"):
+                if жесты[что]:
+                    плохо(f"{н} «Оглавление» выехало от жеста, который его открывать не должен ({что}): {жесты}")
     else:
         цель = ".sb-s[data-to='spec-2']"
         if not кадр.locator(цель).count():
