@@ -119,8 +119,8 @@ def главная():
                 стр.evaluate(ПОДГОТОВКА)
                 # 1. замок закрыт — загрузка из «Моих», без полоски, правка уходит в общую копию
                 стр.evaluate("async () => { await loadPreset('p1'); await new Promise(r => setTimeout(r, 2300)); }")
-                р = стр.evaluate("""() => { const п = document.getElementById('sharedModeIndicator');
-                  return { активный: activePresetId, общий: _activeSharedCode, полоска: !!(п && п.offsetWidth && getComputedStyle(п).display !== 'none'),
+                р = стр.evaluate("""() => { const п = document.getElementById('presetChip');
+                  return { активный: activePresetId, общий: _activeSharedCode, полоска: !!(п && п.classList.contains('pc-shared') && п.offsetWidth),
                            закрыт: замокПресетаЗакрыт() }; }""")
                 if р["активный"] != "p1" or р["общий"] or р["полоска"] or р["закрыт"]:
                     плохо(f"{н} 1: загрузка из «Моих» под замком: {р} — ждали активный p1 без полоски и без запрета правки")

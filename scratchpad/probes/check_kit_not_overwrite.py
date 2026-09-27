@@ -62,18 +62,19 @@ def плохо(т):
 
 
 ПОЛОСКА = """() => {
-  const п = document.getElementById('saveReminder');
-  if (!п) return { есть: false };
+  // Полоска «Пресет не сохранён» стала значком в правом нижнем углу
+  // (Константин, 27.09.2026). Проба читает значок в состоянии «Не сохранён».
+  const п = document.getElementById('presetChip');
+  if (!п || !п.classList.contains('pc-unsaved')) return { есть: false };
   const к = п.getBoundingClientRect();
-  const кн = п.querySelector('.sv-go');
-  const кр = п.querySelector('.sv-x');
+  const тело = п.querySelector('.pc-body');
   const поле = э => { if (!э) return 0;
     const b = э.getBoundingClientRect();
     const с = getComputedStyle(э, '::before');
-    return Math.round(b.height - 2 * (parseFloat(с.top) || 0)); };
+    return Math.round(b.height - (parseFloat(с.top) || 0) - (parseFloat(с.bottom) || 0)); };
   return {
     есть: true,
-    видна: getComputedStyle(п).display !== 'none' && к.height > 0,
+    видна: getComputedStyle(п).display !== 'none' && parseFloat(getComputedStyle(п).opacity) > 0.5 && к.height > 0,
     текст: (п.textContent || '').trim(),
     фон: getComputedStyle(п).backgroundColor,
     зеленее: (() => { const ф = getComputedStyle(п).backgroundColor.match(/\\d+/g) || [];
@@ -81,27 +82,14 @@ def плохо(т):
       return g > r + 24 && g > b + 24; })(),
     вОкне: к.left >= -1 && к.right <= window.innerWidth + 1
            && к.bottom <= window.innerHeight + 1,
-    полеКнопки: поле(кн), полеКрестика: поле(кр),
-    // Два расширенных поля рядом перекрываются молча: каждое по отдельности
-    // 44 px, а нажатие у края уходит соседу — и «убрать напоминание»
-    // оказывается «сохранить», или наоборот.
-    поляНаходят: (() => {
-      const поле = э => { const b = э.getBoundingClientRect();
-        const с = getComputedStyle(э, '::before');
-        const вв = parseFloat(с.left) || 0;
-        return { l: b.left + вв, r: b.right - вв }; };
-      if (!кн || !кр) return false;
-      const a = поле(кн), b = поле(кр);
-      return a.r > b.l + 0.5 && a.l < b.r - 0.5;
-    })(),
+    полеКнопки: поле(тело),
   };
 }"""
 
 # Всё, что стоит внизу по центру и способно закрыть соседа: сообщение,
 # напоминание сохранить, полоска общего расчёта, полоска итога.
 НИЗ = """() => {
-  const кто = { тост: 'toastMsg', напоминание: 'saveReminder',
-                общий: 'sharedModeIndicator', итог: 'totalStrip' };
+  const кто = { тост: 'toastMsg', напоминание: 'presetChip', итог: 'totalStrip' };
   const вышло = {};
   for (const [имя, ид] of Object.entries(кто)) {
     const э = document.getElementById(ид);
@@ -172,21 +160,16 @@ def главная():
                     плохо("напоминание в разметке есть, но не видно")
                 # Слова — «Пресет не сохранён»: сохраняется расчёт пресетом, и
                 # полоска называет то, что появится (Константин, 25.09.2026).
-                if "Пресет не сохранён" not in п1["текст"]:
-                    плохо(f"напоминание не говорит «Пресет не сохранён»: «{п1['текст'][:60]}»")
+                if "Не сохранён" not in п1["текст"]:
+                    плохо(f"значок не говорит «Не сохранён»: «{п1['текст'][:60]}»")
                 if п1["зеленее"]:
                     плохо(f"напоминание зелёное ({п1['фон']}) — зелёным помечен "
                           "общий расчёт, у которого правки как раз сохраняются; "
                           "одинаковый вид у противоположных состояний")
                 if not п1["вОкне"]:
                     плохо("напоминание вылезло за край окна")
-                if п1.get("поляНаходят"):
-                    плохо("поля нажатия «Сохранить» и крестика перекрываются — "
-                          "нажатие у края уйдёт соседу")
-                for имя, в in (("«Сохранить»", п1["полеКнопки"]),
-                               ("крестика", п1["полеКрестика"])):
-                    if в < 44:
-                        плохо(f"поле нажатия {имя} в напоминании {в} px — меньше 44")
+                if п1["полеКнопки"] < 44:
+                    плохо(f"поле нажатия значка «Не сохранён» {п1['полеКнопки']} px — меньше 44")
 
             # ── 2. Сохранили расчёт в пресет — напоминание гаснет ──
             снимок = стр.evaluate("""async () => {

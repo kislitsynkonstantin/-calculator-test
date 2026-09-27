@@ -80,8 +80,9 @@ def сервер():
   const кнопка = [...document.querySelectorAll('.btn-shared-use')].find(к => /365484/.test(к.getAttribute('onclick') || '') && к.offsetWidth);
   if (!кнопка) return { нетКнопки: true, html: (document.getElementById(список) || {}).innerHTML?.slice(0, 200) };
   кнопка.click(); await ждать(900);
-  const полоска = document.getElementById('sharedModeIndicator');
-  return { тосты, активный: _activeSharedCode, полоска: !!(полоска && полоска.offsetWidth),
+  // Полоска общего пресета стала значком в углу (27.09.2026).
+  const полоска = document.getElementById('presetChip');
+  return { тосты, активный: _activeSharedCode, полоска: !!(полоска && полоска.classList.contains('pc-shared') && полоска.offsetWidth),
     проект: selectedProject && selectedProject[0], проектПресета, правка: canEditPublic(),
     вОбщих: (() => { try { return _sharedPresets.filter(sp => sp.is_public).some(sp => sp.short_code === '365484'); } catch (e) { return null; } })() };
 }"""

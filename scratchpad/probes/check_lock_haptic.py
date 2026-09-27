@@ -78,7 +78,7 @@ def сервер():
   вибр.length = 0; щелчки.length = 0;
   closePresetPanel();
   _activeSharedCode = '235788'; updateSharedModeIndicator(); await ждать(100);
-  document.getElementById('presetLockBtn')?.click();
+  document.querySelector('#presetChip .pc-lk')?.click();
   const полоска = { вибр: вибр.slice(), щелчков: щелчки.length };
   отпустить && отпустить(); await ждать(200);
   // Переключатель живёт одно мгновение: создан, нажат, убран. После нажатия в

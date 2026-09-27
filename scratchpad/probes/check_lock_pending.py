@@ -108,15 +108,16 @@ def сервер():
   // Полоска открытого пресета.
   вызовы.length = 0;
   _activeSharedCode = '235788'; updateSharedModeIndicator(); await ждать(100);
-  const lb = () => document.getElementById('presetLockBtn');
+  const lb = () => document.querySelector('#presetChip .pc-lk');
+  const ждётЗ = () => !!document.querySelector('#presetChip.pc-wait');
   const есть = !!lb();
-  const подписьДо = lb()?.textContent.trim();
+  const подписьДо = lb()?.getAttribute('aria-label');
   lb()?.click();
-  const подписьСразу = document.getElementById('presetLockBtn')?.textContent.trim();
+  const подписьСразу = lb()?.getAttribute('aria-label');
   for (let i = 0; i < 2; i++) { lb()?.click(); await ждать(30); }
-  const полоска = { есть, запросов: вызовы.length, ждёт: !!lb()?.classList.contains('wait'), подписьДо, подписьСразу };
+  const полоска = { есть, запросов: вызовы.length, ждёт: ждётЗ(), подписьДо, подписьСразу };
   отпустить && отпустить(); await ждать(200);
-  полоска.послеЖдёт = !!lb()?.classList.contains('wait');
+  полоска.послеЖдёт = ждётЗ();
   _activeSharedCode = null; updateSharedModeIndicator();
   window.showToast = былТост; _sb.rpc = былRpc;
   closePresetPanel();

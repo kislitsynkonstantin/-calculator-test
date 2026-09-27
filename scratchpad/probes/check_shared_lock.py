@@ -146,12 +146,15 @@ def спросить(стр, js, *арг):
 }""" % (Я, Я)
 
 СНЯТЬ = """() => {
-  const полоска = document.getElementById('sharedModeIndicator');
+  // Состояние теперь говорит карточка значка в углу (27.09.2026): заполняем её
+  // и читаем, не раскрывая.
+  try { заполнитьКарточкуЗначка(); } catch (e) {}
+  const полоска = document.getElementById('presetChipCard');
   return {
     правка: canEditPublic(),
     заперто: замокПресетаЗакрыт(),
     замокДоступен: canToggleLock(),
-    полоска: (полоска ? (полоска.innerText || '') : '').replace(/\\s+/g, ' ').trim(),
+    полоска: (полоска ? (полоска.textContent || '') : '').replace(/\\s+/g, ' ').trim(),
   };
 }"""
 

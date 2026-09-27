@@ -94,13 +94,13 @@ def сервер():
   try { openSideNav(); } catch (e) {}
   await ждать(300);
   const разделы = SECTIONS.map(s => (document.getElementById('snVal_' + s.key) || {}).textContent || '');
-  const полоска = document.getElementById('sharedModeIndicator');
+  const полоска = document.getElementById('presetChip'); // значок общего пресета в углу
   return { итог: _currentTotal, код: _activeSharedCode, проект: selectedProject && selectedProject[0],
     имя: (document.getElementById('snHeadName') || {}).textContent || '',
     сумма: (document.getElementById('snHeadSum') || {}).textContent || '',
     база: (document.getElementById('snHeadBase') || {}).textContent || '',
     разделыСЦифрами: разделы.filter(т => /\\d/.test(т)),
-    полоска: !!(полоска && полоска.offsetWidth), тосты: window.__т };
+    полоска: !!(полоска && полоска.classList.contains('pc-shared') && полоска.offsetWidth), тосты: window.__т };
 }"""
 
 

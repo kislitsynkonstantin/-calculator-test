@@ -222,7 +222,9 @@
     from: запрос,
     rpc: function (имя, арг) {
       var д = window.__RPC[имя];
-      return Promise.resolve({ data: typeof д === 'function' ? д(арг) : (д === undefined ? null : д), error: null });
+      // Функция может вернуть обещание — так проба задерживает ответ базы.
+      return Promise.resolve(typeof д === 'function' ? д(арг) : (д === undefined ? null : д))
+        .then(function (з) { return { data: з, error: null }; });
     },
     channel: function () { return канал; },
     removeChannel: function () { return Promise.resolve('ok'); },
