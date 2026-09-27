@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Убрать из «По коду» — варианты</title>
+<style>
+:root {
+  --page: #f7fbfb; --sheet: #fff; --ink: #12262a; --ink2: #5b7376; --ink3: #8da3a5;
+  --rule: #dceaeb; --rule2: #bcd9db; --acc: #1e6c72; --acc2: #2a8f97; --tint: #e4f5f6; --on-acc: #fff;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --page: #0e1a1c; --sheet: #132528; --ink: #e6f3f3; --ink2: #9db6b8; --ink3: #8aa4a6;
+    --rule: #224347; --rule2: #2d585d; --acc: #8fd6dc; --acc2: #5fc2ca; --tint: #173338; --on-acc: #08181a; }
+}
+* { box-sizing: border-box; margin: 0; }
+body { background: var(--page); color: var(--ink); font: 400 15px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 22px 16px 60px; }
+.eyebrow { font-size: .68rem; letter-spacing: .18em; text-transform: uppercase; color: var(--ink3); }
+h1 { font-size: 1.25rem; margin: 4px 0 6px; }
+.lead { color: var(--ink2); max-width: 720px; margin-bottom: 18px; }
+.vars { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0; border-top: 2px solid var(--acc); margin-bottom: 14px; }
+.var { text-align: left; background: none; border: none; border-bottom: 1px solid var(--rule); padding: 12px 12px 12px 14px; cursor: pointer; color: inherit; font: inherit; position: relative; }
+.var b { display: block; font-size: .92rem; }
+.var span { display: block; color: var(--ink2); font-size: .8rem; margin-top: 2px; }
+.var.on { background: linear-gradient(90deg, var(--tint), transparent 300px); }
+.var.on::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--acc2); }
+.var .n { color: var(--acc); font-weight: 700; margin-right: 6px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin: 4px 0 18px; }
+.seg { display: inline-flex; border-bottom: 1px solid var(--rule2); }
+.seg button { background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 8px 10px; min-height: 40px; font: inherit; font-size: .85rem; color: var(--ink2); cursor: pointer; }
+.seg button.on { color: var(--ink); font-weight: 600; border-bottom-color: var(--acc); }
+.frames { display: grid; grid-template-columns: minmax(0, 390px) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 860px) { .frames { grid-template-columns: minmax(0, 1fr); } }
+.frame h2 { font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink3); font-weight: 600; margin-bottom: 6px; }
+.box { width: 100%; overflow: hidden; overflow-x: auto; border: 1px solid var(--rule2); border-radius: 12px; background: #8a9a9c; position: relative; }
+.box iframe { border: 0; transform-origin: 0 0; display: block; position: absolute; left: 0; top: 0; }
+.box .pad { height: 1px; }
+.hint { color: var(--ink3); font-size: .75rem; margin-top: 4px; display: none; }
+.box.wide + .hint { display: block; }
+.note { color: var(--ink2); font-size: .82rem; margin-top: 16px; max-width: 760px; }
+button:focus-visible { outline: 2px solid var(--acc2); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Окно «Пресеты» · вкладка «По коду»</div>
+  <h1>Как убирать найденный пресет из списка</h1>
+  <p class="lead">Окно снято с настоящей страницы; имена и суммы выдуманы. Три карточки: свой опубликованный, чужой неопубликованный, чужой опубликованный под замком. Нажатия в макете не работают — он показывает вид.</p>
+
+  <div class="vars" id="vars">
+    <button class="var" data-v="0"><b><span class="n">0</span>Сейчас</b><span>Кружок с крестиком в коробке, последним в ряду действий</span></button>
+    <button class="var on" data-v="1"><b><span class="n">1</span>Крестик в углу карточки</b><span>Без коробки, как у закрываемой подсказки; метка и сумма сдвинуты</span></button>
+    <button class="var" data-v="2"><b><span class="n">2</span>«Убрать» в полосе кода</b><span>Словом рядом со «Скопировать», тише его; на телефоне — крестик у края полосы</span></button>
+    <button class="var" data-v="3"><b><span class="n">3</span>«Убрать» в ряду действий</b><span>Словом без коробки вместо кружка</span></button>
+  </div>
+
+  <div class="row">
+    <div class="seg" id="theme"><button data-t="blank" class="on">Бланк</button><button data-t="light">Модерн</button></div>
+    <div class="seg" id="tone"><button data-c="" class="on">Бирюзовый</button><button data-c="bmsk">Зелёный</button></div>
+    <div class="seg" id="night"><button data-d="0" class="on">День</button><button data-d="1">Ночь</button></div>
+  </div>
+
+  <div class="frames">
+    <div class="frame"><h2>Телефон · 390</h2><div class="box" data-w="390" data-h="780"><iframe title="Телефон 390"></iframe></div></div>
+    <div class="frame"><h2>Компьютер · 1280</h2><div class="box" data-w="1280" data-h="800" data-min="0.55"><iframe title="Компьютер 1280"></iframe><div class="pad"></div></div><div class="hint">Кадр шире экрана — сдвигается пальцем вбок.</div></div>
+  </div>
+  <p class="note">Во всех вариантах пресет уходит только из списка «По коду»: сам он остаётся в базе, и тот же код найдёт его снова. Кнопки «убрать всё» нет ни в одном.</p>
+</div>
+<script>
+const ДОК = /*@@ДОКУМЕНТ@@*/null;
+const с = { v: '1', t: 'blank', c: '', d: '0' };
+const рамки = [...document.querySelectorAll('.box')];
+function применить(ф) {
+  const д = ф.contentDocument; if (!д || !д.body) return;
+  д.body.className = (с.t === 'blank' ? 'ui-blank' : 'ui-light') + ' v' + с.v + (с.d === '1' ? ' dark' : '');
+  if (с.c) д.documentElement.setAttribute('data-tone', с.c); else д.documentElement.removeAttribute('data-tone');
+}
+function размер() {
+  рамки.forEach(б => {
+    const w = +б.dataset.w, h = +б.dataset.h, ф = б.querySelector('iframe');
+    // Компьютерный кадр на телефоне не ужимается мельче половины: окно
+    // «Пресеты» в нём стоит посередине, и его проще сдвинуть, чем разглядывать.
+    const к = Math.max(+(б.dataset.min || 0), Math.min(1, б.clientWidth / w));
+    ф.style.width = w + 'px'; ф.style.height = h + 'px'; ф.style.transform = 'scale(' + к + ')';
+    б.style.height = Math.round(h * к) + 'px';
+    const пад = б.querySelector('.pad'); if (пад) пад.style.width = Math.round(w * к) + 'px';
+    const широк = w * к > б.clientWidth + 1;
+    б.classList.toggle('wide', широк);
+    if (широк && !б.dataset.сдвинут) { б.scrollLeft = (w * к - б.clientWidth) / 2; б.dataset.сдвинут = '1'; }
+  });
+}
+рамки.forEach(б => { const ф = б.querySelector('iframe'); ф.addEventListener('load', () => применить(ф)); ф.srcdoc = ДОК; });
+function все() { рамки.forEach(б => применить(б.querySelector('iframe'))); }
+function выбор(ид, ключ, атр) {
+  document.getElementById(ид).addEventListener('click', e => {
+    const к = e.target.closest('button'); if (!к) return;
+    document.querySelectorAll('#' + ид + ' button').forEach(x => x.classList.toggle('on', x === к));
+    с[ключ] = к.dataset[атр]; все();
+  });
+}
+выбор('vars', 'v', 'v'); выбор('theme', 't', 't'); выбор('tone', 'c', 'c'); выбор('night', 'd', 'd');
+addEventListener('resize', размер); размер();
+</script>
+</body>
+</html>
