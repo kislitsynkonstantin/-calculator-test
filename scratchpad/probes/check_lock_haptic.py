@@ -10,7 +10,9 @@
     navigator.vibrate не длиннее 20 мс; четыре быстрых нажатия, пока база не
     ответила, — всё равно один вызов;
   • сенсорный экран без вибрации (iPhone): переключается спрятанный системный
-    переключатель — ровно раз на нажатие, и он не виден и не ловит нажатий;
+    переключатель — ровно раз на нажатие; он создаётся на это нажатие и сразу
+    убирается, в документе его не остаётся (27.09.2026: прежний, постоянный
+    переключатель за краем экрана на iOS 27 щелчка не дал);
   • мышь (1440): ни вибрации, ни переключателя;
   • на карточке и в полоске открытого пресета одинаково.
 
@@ -73,7 +75,7 @@ def сервер():
     const c = document.getElementById('ptab-content-' + t); if (c) c.style.display = t === 'shared' ? 'flex' : 'none'; });
   setSharedFilter('mine'); await ждать(200);
   const щелчки = [];
-  document.addEventListener('change', e => { if (e.target && e.target.closest && e.target.closest('#bmHaptic')) щелчки.push(1); }, true);
+  document.addEventListener('change', e => { if (e.target && e.target.hasAttribute && e.target.hasAttribute('switch')) щелчки.push(1); }, true);
   const кнопка = () => document.querySelector('.shared-pcard[data-scode="321910"] .btn-shared-lock');
   for (let i = 0; i < 4; i++) { кнопка()?.click(); await ждать(30); }
   const карточка = { вибр: вибр.slice(), щелчков: щелчки.length };
@@ -84,8 +86,10 @@ def сервер():
   document.getElementById('presetLockBtn')?.click();
   const полоска = { вибр: вибр.slice(), щелчков: щелчки.length };
   отпустить && отпустить(); await ждать(200);
-  const п = document.getElementById('bmHaptic');
-  const скрыт = п ? (() => { const r = п.getBoundingClientRect(); return (r.right <= 0 || r.left >= innerWidth || getComputedStyle(п).opacity === '0') && getComputedStyle(п).pointerEvents === 'none'; })() : null;
+  // Переключатель живёт одно мгновение: создан, нажат, убран. После нажатия в
+  // документе его быть не должно — ни видимого, ни забытого.
+  const п = document.querySelector('input[switch]');
+  const скрыт = !п;
   _activeSharedCode = null; updateSharedModeIndicator(); _sb.rpc = былRpc;
   return { карточка, полоска, переключатель: !!п, скрыт };
 }"""
@@ -123,7 +127,7 @@ def главная():
                         if x["вибр"] or x["щелчков"]:
                             плохо(н + f" {где}: мышью отклика быть не должно ({x})")
                 if имя == "iPhone" and not р["скрыт"]:
-                    плохо(н + " переключатель виден или ловит нажатия")
+                    плохо(н + " переключатель остался в документе после нажатия")
                 if имя == "мышь" and р["переключатель"]:
                     плохо(н + " при мыши на странице появился переключатель")
                 for о in [о for о in ошибки if "supabase.co" not in о][:3]:
