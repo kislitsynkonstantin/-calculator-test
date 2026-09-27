@@ -18,7 +18,9 @@
   • чужой общий — «Общий · Имя Ф.», замок не нажимается, в карточке полное имя
     автора и «Заблокирован — только просмотр»;
   • цвет общего значка — акцент оформления и тона, а не зашитая бирюза;
-  • сообщение внизу экрана встаёт над значком, а не на него.
+  • сообщение внизу экрана встаёт над значком, а не на него;
+  • на 1024–1920 значок в углу калькулятора, а не экрана: правый край — как у суммы
+    в полоске итога, карточка растёт из того же угла, открытая боковая панель его не накрывает.
 
     python3 check_preset_chip.py
 """
@@ -215,6 +217,43 @@ def прогон(бр, порт, ш, ui, ночь):
     стр.close()
 
 
+def угол(бр, порт):
+    """Значок стоит в углу калькулятора, а не экрана: правый край — там же, где сумма
+    в полоске итога (Константин, 27.09.2026: «угол калькулятора ставь, а не угол
+    всего экрана»). И не ложится на боковую панель, открытую за краем расчёта."""
+    for ш in (1024, 1280, 1440, 1920):
+        for ui in ("blank", "light"):
+            стр = бр.new_page(viewport={"width": ш, "height": 900})
+            стр.add_init_script(ЗАГЛУШКА); стр.add_init_script(ТАБЛИЦЫ_JS)
+            стр.goto(f"http://127.0.0.1:{порт}/index.html", wait_until="load"); ждать(стр, 2500)
+            р = стр.evaluate("""async (ui) => { const б = document.getElementById('pricingErrorScreen'); if (б) б.style.display = 'none';
+              applyUiStyle(ui, false); selectProjectOption(0); await new Promise(r => setTimeout(r, 900));
+              window.scrollTo(0, document.body.scrollHeight); await new Promise(r => setTimeout(r, 700));
+              const з = document.getElementById('presetChip').getBoundingClientRect();
+              const с = document.querySelector('#totalStrip .ts-inner'); const сс = с ? с.getBoundingClientRect() : null;
+              const л = document.querySelector('.page-wrap').getBoundingClientRect();
+              document.querySelector('#presetChip .pc-body').click(); await new Promise(r => setTimeout(r, 350));
+              const к = document.getElementById('presetChipCard').getBoundingClientRect();
+              закрытьКарточкуЗначка(); try { openSideNav(); } catch (e) {} await new Promise(r => setTimeout(r, 500));
+              const п = document.getElementById('sideNav'); const пп = п && getComputedStyle(п).display !== 'none' ? п.getBoundingClientRect() : null;
+              const з2 = document.getElementById('presetChip').getBoundingClientRect();
+              return { з: з.right, лев: з.left, полоса: сс && сс.width ? сс.right : null, лист: л.right, к: к.right,
+                       панель: пп && пп.width > 0 && пп.left < innerWidth ? [пп.left, пп.right, пп.top, пп.bottom] : null,
+                       з2: [з2.left, з2.right, з2.top, з2.bottom] }; }""", ui)
+            н = f"[угол {ш} {ui}]"
+            if р["полоса"] is not None and abs(р["з"] - р["полоса"]) > 1.5:
+                плохо(f"{н} правый край значка {р['з']:.0f}, а суммы в полоске итога {р['полоса']:.0f} — значок не в углу калькулятора")
+            if р["з"] > р["лист"] + 0.5:
+                плохо(f"{н} значок заходит за край калькулятора: {р['з']:.0f} > {р['лист']:.0f}")
+            if abs(р["к"] - р["з"]) > 1.5:
+                плохо(f"{н} карточка не из угла значка: {р['к']:.0f} против {р['з']:.0f}")
+            if р["панель"]:
+                л, п_, в, н_ = р["панель"]; зл, зп, зв, зн = р["з2"]
+                if зл < п_ and зп > л and зв < н_ and зн > в:
+                    плохо(f"{н} значок лёг на открытую боковую панель: значок {р['з2']}, панель {р['панель']}")
+            стр.close()
+
+
 def тон(бр, порт):
     """Цвет значка идёт за тоном: у «Зелёного-графита» он не бирюзовый."""
     стр = бр.new_page(viewport={"width": 1440, "height": 900})
@@ -241,6 +280,7 @@ def главная():
                     for ночь in (False, True):
                         прогон(бр, порт, ш, ui, ночь)
             тон(бр, порт)
+            угол(бр, порт)
             бр.close()
     finally:
         с.shutdown()
@@ -251,7 +291,7 @@ def главная():
         raise SystemExit(1)
     print("Чисто: вместо двух полосок — значок в правом нижнем углу: «Не сохранён» с карточкой, «Позже» до следующей "
           "правки, «Сохранено» после записи; общий — «Общий · автор», замок отвечает сразу и объясняет себя надписью; "
-          "цвет от темы и тона; сообщения встают над значком — на 390 и 1440, «Бланк» и «Модерн», день и ночь.")
+          "цвет от темы и тона; сообщения встают над значком; на широком экране — в углу калькулятора, мимо боковой панели — на 390 и 1440, «Бланк» и «Модерн», день и ночь.")
 
 
 if __name__ == "__main__":
