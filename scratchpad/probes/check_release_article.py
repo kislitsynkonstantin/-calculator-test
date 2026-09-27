@@ -290,6 +290,13 @@ def прогон(бр, порт, ш, тон, ночь):
             стр.evaluate("""() => { const к = document.getElementById('manualFrame'); к.style.minHeight = ''; document.getElementById('manualPanel').style.minHeight = '';
               document.getElementById('manualOverlay').scrollTop = 0; }""")
             стр.set_viewport_size({"width": ш, "height": 900})
+            # заголовок панели ведёт к началу статьи и закрывает панель (Константин, 27.09.2026)
+            кадр.locator("body").evaluate("() => document.getElementById('spec').scrollIntoView()"); стр.wait_for_timeout(300)
+            кадр.locator("#tocBtn").evaluate("к => к.click()"); стр.wait_for_timeout(450)
+            кадр.locator("#tocPanel .toc-h").click(); стр.wait_for_timeout(1100)
+            нач = кадр.locator("body").evaluate("() => ({ y: Math.round(scrollY), открыта: document.getElementById('tocPanel').classList.contains('open') })")
+            if нач["y"] > 30 or нач["открыта"]:
+                плохо(f"{н} нажатие по заголовку «Оглавления» не привело к началу статьи: {нач}")
             if not жесты["влево"]:
                 плохо(f"{н} свайп влево из середины статьи не выдвинул «Оглавление»: {жесты}")
             for что in ("короткий", "вертикаль", "сКрая", "вправо"):
