@@ -6,7 +6,8 @@
 (облако, глобус и глобус закрашенный)».
 
 Проба держит, на 390 и 1440, в «Бланке» и «Модерне», днём и ночью:
-  • ничего не открыто — прежняя дискета;
+  • проект не выбран — стопка пресетов, и после «Сбросить всё» тоже;
+  • проект выбран, пресет не открыт — дискета;
   • свой пресет в базе — облако, как на его карточке;
   • свой, ждущий связи в браузере, — экран тёплым цветом, как на карточке, и сразу, как пресет лёг в очередь, без
     перерисовки списка; очередь ушла в базу — снова облако;
@@ -50,7 +51,7 @@ def сервер():
   const к = document.getElementById('presetsBtn'), м = к && к.querySelector('#presetsIco, svg');
   const svg = м ? (м.tagName.toLowerCase() === 'svg' ? м : м.querySelector('svg')) : null;
   const р = svg ? svg.innerHTML : '';
-  const форма = /M17\\.5 19H9a7/.test(р) ? 'облако' : /rect x="3" y="4"/.test(р) ? 'экран'
+  const форма = /M12\\.83 2\\.18/.test(р) ? 'стопка' : /M17\\.5 19H9a7/.test(р) ? 'облако' : /rect x="3" y="4"/.test(р) ? 'экран'
     : /circle cx="12" cy="12" r="9\\.2"/.test(р) ? 'глобус' : /polyline points="17 21 17 13/.test(р) ? 'дискета' : '?';
   const б = svg ? svg.getBoundingClientRect() : { width: 0, height: 0, top: 0, bottom: 0 };
   const т = [...к.childNodes].find(у => у.nodeType === 3 && у.textContent.trim());
@@ -80,6 +81,10 @@ def прогон(бр, порт, ш, ui, ночь):
     стр.goto(f"http://127.0.0.1:{порт}/index.html", wait_until="load"); стр.wait_for_timeout(2500)
     стр.evaluate("""([ui, ночь]) => { const б = document.getElementById('pricingErrorScreen'); if (б) б.style.display = 'none';
       applyUiStyle(ui, false); document.body.classList.toggle('dark', ночь); }""", [ui, ночь])
+    # Проект не выбран — стопка пресетов (Константин, 27.09.2026, вариант 01 макета)
+    пусто = стр.evaluate(ВИД)
+    if пусто["форма"] != "стопка":
+        НАХОДКИ.append(f"{н} без проекта на кнопке «{пусто['форма']}», ждали стопку пресетов")
     стр.evaluate("async () => { selectProjectOption(0); await new Promise(r => setTimeout(r, 700)); }")
     до = стр.evaluate(ВИД)
     свой_цвет = стр.evaluate(ЦВЕТ_СВОЕГО)
@@ -102,7 +107,7 @@ def прогон(бр, порт, ш, ui, ночь):
         return в
 
     if до["форма"] != "дискета":
-        НАХОДКИ.append(f"{н} без пресета на кнопке «{до['форма']}», ждали дискету")
+        НАХОДКИ.append(f"{н} проект выбран, пресет не открыт — на кнопке «{до['форма']}», ждали дискету")
     шаг("свой в базе", """() => { const в = loadAllPresets(); в['проба-зн'] = { id: 'проба-зн', name: 'Проба значка',
           savedAt: new Date().toISOString(), state: collectState() }; saveAllPresets(в); setActivePreset('проба-зн'); }""", "облако")
     # Без связи пресет ложится в очередь браузера настоящим путём — и только им:
@@ -119,6 +124,13 @@ def прогон(бр, порт, ш, ui, ночь):
     шаг("свой общий из «Общих»", """() => { _sharedPresets.push({ short_code: '777999', id: '777999', name: 'Свой', author_id: _sbUser.id,
           is_public: true, locked: true, state: {} }); _activeSharedCode = '777999'; updateSharedModeIndicator(); }""", "глобус", "свой")
     шаг("закрыли", "() => { _activeSharedCode = null; setActivePreset(null); updateSharedModeIndicator(); }", "дискета")
+    # «Сбросить всё» — проекта снова нет, снова стопка
+    стр.evaluate("() => { resetEverything(); }"); стр.wait_for_timeout(300)
+    стр.evaluate("() => { const д = document.getElementById('confirmDialog'); if (д && д.classList.contains('show')) document.getElementById('confirmDialogOk').click(); }")
+    стр.wait_for_timeout(500)
+    сб = стр.evaluate(ВИД)
+    if сб["форма"] != "стопка":
+        НАХОДКИ.append(f"{н} после «Сбросить всё» на кнопке «{сб['форма']}», ждали стопку пресетов")
     for о in [о for о in ошибки if "supabase.co" not in о][:3]:
         НАХОДКИ.append(f"{н} ошибка страницы: {о[:160]}")
     стр.close()
@@ -141,7 +153,7 @@ def главная():
         for н in НАХОДКИ[:40]:
             print("  ✗", н)
         raise SystemExit(1)
-    print("Чисто: на кнопке «Пресеты» значок открытого пресета — дискета, облако, экран тёплым цветом, глобус цветом схемы у своего "
+    print("Чисто: на кнопке «Пресеты» значок открытого пресета — стопка без проекта, дискета, облако, экран тёплым цветом, глобус цветом схемы у своего "
           "опубликованного, серый у чужого; меняется с публикацией и отзывом, 13 px в строке с подписью — "
           "на 390 и 1440, днём и ночью.")
 
