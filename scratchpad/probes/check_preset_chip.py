@@ -402,6 +402,7 @@ def тон(бр, порт):
     цвета = стр.evaluate("""async () => { const б = document.getElementById('pricingErrorScreen'); if (б) б.style.display = 'none';
       const я = _sbUser && _sbUser.id; _sharedPresets.length = 0;
       _sharedPresets.push({ short_code: '235788', id: '235788', name: 'Проба', author_id: я, is_public: true, locked: true, state: {} });
+      applyTone('teal', false);  // с 27.09.2026 по умолчанию «Зелёный-графит» — бирюзу ставим сами
       _activeSharedCode = '235788'; updateSharedModeIndicator(); await new Promise(r => setTimeout(r, 300));
       const ц = () => getComputedStyle(document.getElementById('presetChip')).borderTopColor;
       const бирюза = ц(); applyTone('bmsk', false); await new Promise(r => setTimeout(r, 300)); return [бирюза, ц()]; }""")

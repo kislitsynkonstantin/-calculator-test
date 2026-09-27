@@ -304,14 +304,14 @@ def главная():
         with sync_playwright() as pw:
             бр = pw.chromium.launch(executable_path=хром(), args=["--no-sandbox"])
             for пара in ПАРЫ:
-                for бланк in (False, True):
+                for бланк in (True,):  # «Модерн» снят 27.09.2026 (86): гоняем только «Бланк»
                     for ночь in (False, True):
                         for ш, в in ((390, 844), (768, 1024), (1440, 900)):
                             try:
                                 проверить(бр, порт, ш, в, бланк, ночь, пара, снимки)
                             except Exception as e:
                                 плохо(f"{пара}/{бланк}/{ночь}/{ш}", f"проба оборвалась: {e!s:.300}")
-            for бланк in (False, True):
+            for бланк in (True,):
                 try:
                     проверить(бр, порт, 1440, 900, бланк, False, "teal")
                 except Exception as e:

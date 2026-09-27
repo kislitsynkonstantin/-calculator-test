@@ -81,6 +81,13 @@ def ждать_кадр(стр, признак):
     return None
 
 
+def раскрыть_выпуск(кадр):
+    """Карточка v2.5.12 может быть не первой — над ней карточка следующей версии
+    «на тесте», и раскрыта по умолчанию та. Раскрываем v2.5.12, как менеджер."""
+    кадр.locator("body").evaluate('''() => { const к = [...document.querySelectorAll('#ch-updates .upd')]
+      .find(у => (у.querySelector('.upd-ver') || {}).textContent === 'v2.5.12'); if (к && !к.classList.contains('open')) к.querySelector('.upd-head').click(); }''')
+
+
 def прогон(бр, порт, ш, тон, ночь):
     н = f"[{ш} {тон or 'бирюза'}{' ночь' if ночь else ''}]"
     стр = бр.new_page(viewport={"width": ш, "height": 900})
@@ -93,13 +100,14 @@ def прогон(бр, порт, ш, тон, ночь):
     стр.goto(f"http://127.0.0.1:{порт}/index.html", wait_until="load")
     стр.wait_for_timeout(2500)
     стр.evaluate("""([тон, ночь]) => { const б = document.getElementById('pricingErrorScreen'); if (б) б.style.display = 'none';
-      if (тон) applyTone(тон, false); document.body.classList.toggle('dark', ночь); try { localStorage.setItem('banya_dark', ночь ? '1' : '0'); } catch (e) {} }""", [тон, ночь])
+      applyTone(тон || 'teal', false); document.body.classList.toggle('dark', ночь); try { localStorage.setItem('banya_dark', ночь ? '1' : '0'); } catch (e) {} }""", [тон, ночь])
     стр.evaluate("async () => { await openManual(); closeManual(); }"); стр.wait_for_timeout(300)
     стр.evaluate("() => openManual()")
     кадр = ждать_кадр(стр, "#ch-updates")
     if not кадр:
         плохо(f"{н} справка не открылась"); стр.close(); return
     стр.wait_for_timeout(700)
+    раскрыть_выпуск(кадр); стр.wait_for_timeout(300)
     ссылка = кадр.locator('[data-release="2.5.12"]')
     видна = ссылка.count() and ссылка.evaluate("э => getComputedStyle(э).display !== 'none' && э.getBoundingClientRect().height > 0")
     if not видна:
@@ -146,6 +154,7 @@ def прогон(бр, порт, ш, тон, ночь):
     if ждать_кадр(стр, "h1"):
         стр.evaluate("() => { const ф = document.getElementById('manualFrame'); ф.contentWindow.postMessage({ type: 'backToManual' }, '*'); }")
         стр.evaluate("() => openManual()"); кадр = ждать_кадр(стр, "#ch-updates"); стр.wait_for_timeout(700)
+        раскрыть_выпуск(кадр); стр.wait_for_timeout(300)
         ссылка = кадр.locator('[data-release="2.5.12"]')
     else:
         плохо(f"{н} нажатие по значку статьи статью не открыло")
