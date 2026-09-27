@@ -203,6 +203,37 @@ def прогон(бр, порт, ш, тон, ночь):
                 середина: Math.round(scrollY),
               };
             }''')
+            # Панель — в видимой полосе кадра, ниже крестика окна, со своей
+            # прокруткой (Константин, 27.09.2026: панель закрывала крестик и
+            # верх, а низ уходил под панель браузера). Safari моделируем так:
+            # кадр выше экрана на высоту нижней панели браузера, окно справки
+            # прокручено, экран короткий.
+            for высота, сдвиг in ((стр.viewport_size["height"], 0), (600, 70)):
+                стр.set_viewport_size({"width": ш, "height": высота}); стр.wait_for_timeout(200)
+                стр.evaluate("""(сдвиг) => { const к = document.getElementById('manualFrame'), о = document.getElementById('manualOverlay');
+                  к.style.minHeight = сдвиг ? (innerHeight + 90) + 'px' : ''; document.getElementById('manualPanel').style.minHeight = к.style.minHeight;
+                  о.scrollTop = сдвиг; }""", сдвиг)
+                стр.wait_for_timeout(200)
+                кадр.locator("#tocBtn").evaluate("к => к.click()"); стр.wait_for_timeout(450)
+                г = стр.evaluate("""() => { const к = document.getElementById('manualFrame'), р = к.getBoundingClientRect(), д = к.contentDocument;
+                  const п = д.getElementById('tocPanel').getBoundingClientRect(), сп = д.getElementById('tocList');
+                  const х = document.getElementById('manualCloseBtn').getBoundingClientRect();
+                  сп.scrollTop = сп.scrollHeight; const посл = [...сп.querySelectorAll('a')].pop().getBoundingClientRect();
+                  return { верх: р.top + п.top, низ: р.top + п.bottom, экран: innerHeight, крестик: х.bottom, крестикВиден: х.bottom > 0,
+                           прокрутка: сп.scrollHeight > сп.clientHeight + 1, последнийНиз: р.top + посл.bottom, последнийВерх: р.top + посл.top }; }""")
+                ярлык = f"{н} [экран {высота}, окно прокручено на {сдвиг}]"
+                if г["верх"] < 0 or (г["крестикВиден"] and г["верх"] < г["крестик"] + 4):
+                    плохо(f"{ярлык} «Оглавление» заходит под крестик окна или за верх экрана: {г}")
+                if г["низ"] > г["экран"] + 0.5:
+                    плохо(f"{ярлык} низ «Оглавления» уходит за экран: {г}")
+                if г["последнийНиз"] > г["низ"] + 0.5 or г["последнийВерх"] < г["верх"]:
+                    плохо(f"{ярлык} последний пункт не виден и после прокрутки списка: {г}")
+                if высота == 600 and not г["прокрутка"]:
+                    плохо(f"{ярлык} на коротком экране список «Оглавления» не прокручивается: {г}")
+                кадр.locator("#tocFon").evaluate("ф => ф.click()"); стр.wait_for_timeout(400)
+            стр.evaluate("""() => { const к = document.getElementById('manualFrame'); к.style.minHeight = ''; document.getElementById('manualPanel').style.minHeight = '';
+              document.getElementById('manualOverlay').scrollTop = 0; }""")
+            стр.set_viewport_size({"width": ш, "height": 900})
             if not жесты["влево"]:
                 плохо(f"{н} свайп влево из середины статьи не выдвинул «Оглавление»: {жесты}")
             for что in ("короткий", "вертикаль", "сКрая", "вправо"):
