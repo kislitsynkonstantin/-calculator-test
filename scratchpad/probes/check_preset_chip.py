@@ -151,7 +151,7 @@ def прогон(бр, порт, ш, ui, ночь):
     # ── свой общий ──
     стр.evaluate("""() => { const я = _sbUser && _sbUser.id;
       window.__RPC = window.__RPC || {};
-      window.__RPC.set_preset_lock = () => new Promise(r => setTimeout(() => r(true), 600));
+      window.__RPC.set_preset_lock = () => new Promise(r => setTimeout(() => r(true), 1200));  // с запасом: нажатие под нагрузкой бывает дольше 400 мс
       _sharedPresets.length = 0;
       _sharedPresets.push({ short_code: '235788', id: '235788', name: 'Баня «Берлин» 6×8 · 24.09.26', author_name: 'Проба',
         author_id: я, is_public: true, visibility: 'public', locked: true, created_at: '2026-09-24T08:40:00Z', updated_at: '2026-09-24T08:40:00Z',
@@ -178,6 +178,7 @@ def прогон(бр, порт, ш, ui, ночь):
         плохо(f"{н} поле нажатия замка {round(лк['в'])} px — меньше 44")
     if лк["стык"] < -0.5:
         плохо(f"{н} поле замка заходит на тело значка на {-round(лк['стык'])} px — нажатие у стыка уйдёт соседу")
+    вид_закрыт = стр.evaluate("() => { const с = getComputedStyle(document.getElementById('presetChip')); return [с.backgroundColor, с.borderTopColor, с.borderTopStyle, с.color]; }")
     стр.locator("#presetChip .pc-lk").click(); ждать(стр, 150)
     # дужка откинута как у карточек и проигрывает открытие, а перерисовка после
     # ответа базы анимацию не обрывает (Константин, 27.09.2026)
@@ -185,6 +186,11 @@ def прогон(бр, порт, ш, ui, ночь):
       return д ? { d: д.getAttribute('d'), кл: д.getAttribute('class'), идёт: д.getAnimations().length } : null; }""")
     if not дужка or not дужка["d"].startswith("M14 11") or "lk-open" not in дужка["кл"] or not дужка["идёт"]:
         плохо(f"{н} замок значка не откинул дужку или не проиграл открытие: {дужка}")
+    ждать(стр, 400)   # переходы цвета значка доиграли
+    вид_открыт = стр.evaluate("() => { const с = getComputedStyle(document.getElementById('presetChip')); return [с.backgroundColor, с.borderTopColor, с.borderTopStyle, с.color]; }")
+    if вид_открыт != вид_закрыт:
+        # открытый выглядит как закрытый, отличается только дужка (Константин, 27.09.2026)
+        плохо(f"{н} значок с открытым замком выглядит иначе, чем с закрытым: {вид_открыт} против {вид_закрыт}")
     рамка = стр.evaluate("() => getComputedStyle(document.getElementById('presetChip')).borderTopStyle")
     if рамка != "solid":
         плохо(f"{н} рамка значка открытого общего пресета «{рамка}» — нужна обычная, без пунктира")
