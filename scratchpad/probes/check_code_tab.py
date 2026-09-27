@@ -168,8 +168,12 @@ def главная():
                 открыт = стр.evaluate("() => _activeSharedCode")
                 if открыт != "365484":
                     плохо(f"{н} пресет не открылся с карточки ({открыт!r})")
-                стр.evaluate("() => document.getElementById('presetStarBtn').click()")
+                # Звезда открытого общего пресета — в карточке значка в правом нижнем
+                # углу: полоска внизу с кнопкой-звездой снята в (72).
+                стр.evaluate("() => { document.querySelector('#presetChip .pc-body').click(); }"); стр.wait_for_timeout(350)
+                стр.evaluate("() => document.querySelector('#presetChipCard .pc-star').click()")
                 стр.wait_for_timeout(300)
+                стр.evaluate("() => { закрытьКарточкуЗначка(); }")
                 стр.evaluate("() => { openPresetPanel(); }"); стр.wait_for_timeout(300)
                 стр.click("#ptab-code"); стр.wait_for_timeout(300)
                 стр.evaluate("() => { const п = document.getElementById('codeSearchInput'); п.value = ''; п.dispatchEvent(new Event('input', { bubbles: true })); }")
@@ -216,7 +220,7 @@ def главная():
         for н in НАХОДКИ[:40]:
             print("  ✗", н)
         raise SystemExit(1)
-    print("Чисто: вкладка «По коду» собирает найденные по коду пресеты, звезда с полоски ставит пресет "
+    print("Чисто: вкладка «По коду» собирает найденные по коду пресеты, звезда в карточке значка в углу ставит пресет "
           "в её «Избранные», список живёт в аккаунте и дочитывается из базы; «Мои» с кодом в поле не уводят обратно.")
 
 
