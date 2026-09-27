@@ -273,12 +273,26 @@ def прогон(бр, порт, ш, ui, ночь):
     стр.screenshot(path=str(СНИМКИ / f"chip-all-{ш}-{ui}{'-n' if ночь else ''}.png"))
     стр.evaluate("() => { closePresetPanel(); _sharedPresets.splice(0, 24); }"); ждать(стр, 300)
     # сообщение внизу экрана — над значком
-    стр.evaluate("() => showToast('Проба сообщения')"); ждать(стр, 400)
-    т = стр.evaluate("""() => { const т = document.getElementById('toastMsg'), з = document.getElementById('presetChip');
-      if (!т || !з) return null; const а = т.getBoundingClientRect(), б = з.getBoundingClientRect();
-      const пересек = а.left < б.right && а.right > б.left && а.top < б.bottom && а.bottom > б.top; return { пересек }; }""")
-    if т and т["пересек"]:
-        плохо(f"{н} сообщение внизу экрана легло на значок")
+    # Меряем зазор, а не одно пересечение, и в трёх положениях: значок давно на
+    # месте; тост показан в тот же миг, что и значок (так приходит «Открыт общий
+    # пресет» — прежде тост вставал по замеру въезжающего значка и ложился на его
+    # кромку, Константин 27.09.2026 со снимком iPhone); внизу полоска итога.
+    ЗАЗОР = """() => { const т = document.getElementById('toastMsg'), з = document.getElementById('presetChip');
+      if (!т || !з || !т.classList.contains('show')) return null; const а = т.getBoundingClientRect(), б = з.getBoundingClientRect();
+      return { зазор: Math.round(б.top - а.bottom), полоса: document.body.classList.contains('total-strip-on') }; }"""
+    стр.evaluate("() => { window.scrollTo(0, 0); }"); ждать(стр, 500)
+    for что, js in (("значок давно на месте", "() => showToast('Проба сообщения')"),
+                    ("тост вместе с появлением значка", """async () => { const к = _activeSharedCode; _activeSharedCode = null; updateSharedModeIndicator();
+                        await new Promise(r => setTimeout(r, 450));  // значок успел спрятаться — дальше он въезжает, как при открытии пресета
+                        _activeSharedCode = к; updateSharedModeIndicator(); showToast('Открыт общий пресет: проба длинного имени, которое на телефоне идёт в две строки'); }"""),
+                    ("внизу полоска итога", "() => { window.scrollTo(0, document.body.scrollHeight); setTimeout(() => showToast('Проба над полоской'), 600); }")):
+        стр.evaluate(js); ждать(стр, 1100)
+        т = стр.evaluate(ЗАЗОР)
+        if т is None:
+            плохо(f"{н} {что}: тост не показался — зазор не измерен")
+        elif т["зазор"] < 6:
+            плохо(f"{н} {что}: сообщение внизу экрана на {т['зазор']} px от значка — ложится на него или впритык (полоска итога: {т['полоса']})")
+        стр.evaluate("() => { document.getElementById('toastMsg').classList.remove('show'); }"); ждать(стр, 400)
     for о in [о for о in ошибки if "supabase.co" not in о][:3]:
         плохо(f"{н} ошибка страницы: {о[:160]}")
     стр.close()
