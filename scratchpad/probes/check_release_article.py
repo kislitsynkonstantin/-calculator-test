@@ -24,7 +24,7 @@
 
     python3 check_release_article.py
 """
-import functools, http.server, json, os, pathlib, socketserver, sys, threading
+import re, functools, http.server, json, os, pathlib, socketserver, sys, threading
 from playwright.sync_api import sync_playwright
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
@@ -34,6 +34,8 @@ import справка  # noqa: E402
 ЗДЕСЬ = pathlib.Path(__file__).parent
 ЗАГЛУШКА = (ЗДЕСЬ / "stub_sb.js").read_text(encoding="utf-8")
 СТАТЬЯ = (справка.ПАПКА / "release--2.5.12.html").read_text(encoding="utf-8").strip("\n")
+# Число пунктов берётся из самой статьи: пункт добавили — проба не требует правки.
+ПУНКТОВ = len(re.findall(r'<div class="it">\s*<h3', СТАТЬЯ))
 СНИМКИ = pathlib.Path(os.environ.get("BM_SHOTS") or "/tmp")
 НАХОДКИ = []
 ЦЕНЫ = {"pricing_projects": [{"product": "frame", "sort": 1, "slug": "проба", "name": "Проба 6×4",
@@ -141,14 +143,14 @@ def прогон(бр, порт, ш, тон, ночь):
       return { номера, подменю: document.querySelectorAll('.sb .sb-s').length, меню: вид(document.querySelector('.sb')),
                кнопка: вид(к), кнопкаВысота: кр ? Math.round(кр.height) : 0, вПанели: document.querySelectorAll('#tocList a.s').length };
     }''')
-    if len(п["номера"]) != 12 or п["номера"][0] != "1.1" or п["номера"][-1] != "4.1":
+    if len(п["номера"]) != ПУНКТОВ or п["номера"][0] != "1.1" or п["номера"][-1] != "4.1":
         плохо(f"{н} пункты разделов не пронумерованы: {п['номера'][:4]}…")
-    if ш >= 900 and (not п["меню"] or п["подменю"] != 12):
+    if ш >= 900 and (not п["меню"] or п["подменю"] != ПУНКТОВ):
         плохо(f"{н} в меню статьи нет подпунктов разделов: {п['подменю']}")
     до = None
     if ш < 720:
-        if not п["кнопка"] or п["кнопкаВысота"] < 36 or п["вПанели"] != 12:
-            плохо(f"{н} на телефоне нет «Оглавления» с 12 подпунктами: {п}")
+        if not п["кнопка"] or п["кнопкаВысота"] < 36 or п["вПанели"] != ПУНКТОВ:
+            плохо(f"{н} на телефоне нет «Оглавления» с {ПУНКТОВ} подпунктами: {п}")
         else:
             # крестик окна справки стоит поверх кадра — кнопка не должна под ним прятаться
             кр = кадр.locator("#tocBtn").bounding_box(); кх = стр.locator("#manualCloseBtn").bounding_box()
