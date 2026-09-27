@@ -104,6 +104,48 @@ def прогон(бр, порт, ш, тон, ночь):
     видна = ссылка.count() and ссылка.evaluate("э => getComputedStyle(э).display !== 'none' && э.getBoundingClientRect().height > 0")
     if not видна:
         плохо(f"{н} в карточке v2.5.12 нет видимой ссылки на статью"); стр.close(); return
+    # Значок статьи в шапке свёрнутой карточки (Константин, 27.09.2026): виден
+    # только свёрнутой, стоит вплотную к стрелке, поле нажатия 44 px, нажатие
+    # открывает статью, а не раскрывает карточку. Без класса от калькулятора
+    # (так в бою, где статей ещё нет) его нет вовсе.
+    знач = кадр.locator("body").evaluate("""async () => {
+      const ждать = мс => new Promise(r => setTimeout(r, мс));
+      const к = document.querySelector('[data-release-ico="2.5.12"]').closest('.upd'), ш = к.querySelector('.upd-head');
+      const и = к.querySelector('.upd-art'), с = к.querySelector('.upd-chev');
+      const вид = э => getComputedStyle(э).display !== 'none' && э.getBoundingClientRect().width > 0;
+      const открытВид = вид(и);
+      ш.click(); await ждать(250);
+      const свёрнут = !к.classList.contains('open');
+      const а = и.getBoundingClientRect(), б = с.getBoundingClientRect(), ш2 = ш.getBoundingClientRect(), п = getComputedStyle(и, '::before');
+      const состояние = к.querySelector('.upd-state').getBoundingClientRect();
+      const r = { открытВид, свёрнут, виден: вид(и), зазорСтрелка: Math.round(б.left - а.right), доКраяШапки: Math.round(ш2.right - б.right),
+        поле: Math.round(а.height - 2 * (parseFloat(п.top) || 0)), отМетки: Math.round(а.left - состояние.right) };
+      // Шапка — одной строкой, и с запасом по ширине: в пробе нет фирменных
+      // шрифтов, а Unbounded и Geologica шире подменных — на снимке 390 с ними
+      // стрелка ушла на вторую строку, а проба этого не видела.
+      const дети = [...ш.children].filter(э => getComputedStyle(э).display !== 'none'), сш = getComputedStyle(ш);
+      r.строк = new Set(дети.map(э => Math.round((э.getBoundingClientRect().top + э.getBoundingClientRect().bottom) / 8))).size;
+      r.запас = Math.round(ш.clientWidth - parseFloat(сш.paddingLeft) - parseFloat(сш.paddingRight)
+        - дети.reduce((s, э) => s + э.getBoundingClientRect().width, 0) - (дети.length - 1) * parseFloat(сш.columnGap));
+      к.classList.remove('upd-art-on'); r.безКласса = вид(и); к.classList.add('upd-art-on');
+      return r; }""")
+    if знач["открытВид"]:
+        плохо(f"{н} значок статьи виден и в развёрнутой карточке, рядом с блоком «Журнал выпуска»: {знач}")
+    if not знач["свёрнут"] or not знач["виден"]:
+        плохо(f"{н} в свёрнутой карточке v2.5.12 нет значка статьи: {знач}")
+    elif not (4 <= знач["зазорСтрелка"] <= 16) or знач["поле"] < 44:
+        плохо(f"{н} значок статьи не у стрелки или поле нажатия меньше 44 px: {знач}")
+    if знач.get("строк", 1) > 1 or знач.get("запас", 99) < 30:
+        плохо(f"{н} шапка свёрнутой карточки v2.5.12 со значком не в одну строку или впритык (запас {знач.get('запас')} px без фирменных шрифтов, нужно от 30): {знач}")
+    if знач["безКласса"]:
+        плохо(f"{н} значок статьи виден без класса от калькулятора — в бою он появился бы без статьи: {знач}")
+    кадр.locator('[data-release-ico="2.5.12"]').click()
+    if ждать_кадр(стр, "h1"):
+        стр.evaluate("() => { const ф = document.getElementById('manualFrame'); ф.contentWindow.postMessage({ type: 'backToManual' }, '*'); }")
+        стр.evaluate("() => openManual()"); кадр = ждать_кадр(стр, "#ch-updates"); стр.wait_for_timeout(700)
+        ссылка = кадр.locator('[data-release="2.5.12"]')
+    else:
+        плохо(f"{н} нажатие по значку статьи статью не открыло")
     ссылка.locator("[role=link]").click()
     кадр = ждать_кадр(стр, "h1")
     if not кадр:
