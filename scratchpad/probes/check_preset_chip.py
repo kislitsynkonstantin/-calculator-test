@@ -179,6 +179,12 @@ def прогон(бр, порт, ш, ui, ночь):
     if лк["стык"] < -0.5:
         плохо(f"{н} поле замка заходит на тело значка на {-round(лк['стык'])} px — нажатие у стыка уйдёт соседу")
     стр.locator("#presetChip .pc-lk").click(); ждать(стр, 150)
+    # дужка откинута как у карточек и проигрывает открытие, а перерисовка после
+    # ответа базы анимацию не обрывает (Константин, 27.09.2026)
+    дужка = стр.evaluate("""() => { const д = document.querySelector('#presetChip .lk-sh');
+      return д ? { d: д.getAttribute('d'), кл: д.getAttribute('class'), идёт: д.getAnimations().length } : null; }""")
+    if not дужка or not дужка["d"].startswith("M14 11") or "lk-open" not in дужка["кл"] or not дужка["идёт"]:
+        плохо(f"{н} замок значка не откинул дужку или не проиграл открытие: {дужка}")
     рамка = стр.evaluate("() => getComputedStyle(document.getElementById('presetChip')).borderTopStyle")
     if рамка != "solid":
         плохо(f"{н} рамка значка открытого общего пресета «{рамка}» — нужна обычная, без пунктира")
