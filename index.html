@@ -33067,7 +33067,10 @@ async function togglePresetLock(код) {
     updateSharedModeIndicator();
     if (typeof renderPresetList === 'function') renderPresetList();
     if (typeof renderSharedList === 'function') renderSharedList();
-    showToast(newLocked ? 'Пресет заблокирован' : 'Замок снят');
+    // Состояние, которое раньше говорила плашка над замком, теперь говорит
+    // сообщение внизу экрана (Константин 27.09.2026: «Открыт для правки
+    // напиши снизу, возле сообщения „Замок снят“»).
+    showToast(newLocked ? 'Пресет заблокирован' : 'Замок снят — пресет открыт для правки');
   } catch(e) {
     showToast('Ошибка замка');
   } finally {
