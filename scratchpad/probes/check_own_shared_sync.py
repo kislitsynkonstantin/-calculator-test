@@ -20,7 +20,10 @@
   4. правку другого человека в общей копии «Мои» забирают себе — в память
      страницы и в строку presets;
   5. закрыли замок — на экран ложится то, что направили в «Общих»;
-  6. загрузка из «Моих» сначала забирает ушедшую вперёд общую копию.
+  6. загрузка из «Моих» забирает ушедшую вперёд общую копию;
+  7. при медленной базе загрузка не ждёт сверки: пресет на экране сразу, а
+     ушедшая вперёд копия ложится следом (27.09.2026: «загрузка стала
+     подтормаживать»).
 
     python3 check_own_shared_sync.py
 """
@@ -191,6 +194,28 @@ def главная():
                 }}""")
                 if р["активный"] != "p1" or р["опция"]:
                     плохо(f"{н} 6: загрузка из «Моих» не забрала общую копию: {р}")
+                # 7. медленная база — загрузка не ждёт сверки (27.09.2026: «загрузка стала подтормаживать»)
+                р = стр.evaluate(f"""async () => {{
+                  setActivePreset(null);
+                  const с = window.__ТАБЛИЦЫ.preset_links[0];
+                  const ст = JSON.parse(JSON.stringify(с.state)); ст.checkedOptions['{оп[0]}'] = true;
+                  Object.assign(с, {{ state: ст, ...splitStateToGranular(ст), updated_at: new Date(Date.now() + 600000).toISOString(), last_edited_by: 'u-другой', locked: true }});
+                  delete _sharedPresets[0].updated_at;
+                  const был = _sb.from.bind(_sb);
+                  _sb.from = т => {{ const з = был(т); if (т !== 'preset_links') return з;
+                    const t = з.then.bind(з); з.then = (ok, err) => new Promise(r => setTimeout(r, 3000)).then(() => t(ok, err)); return з; }};
+                  const t0 = performance.now();
+                  loadPreset('p1');
+                  await new Promise(r => setTimeout(r, 50));
+                  const сразу = {{ активный: activePresetId, мс: Math.round(performance.now() - t0) }};
+                  await new Promise(r => setTimeout(r, 5800));
+                  _sb.from = был;
+                  return {{ сразу, потом: !!checkedOptions['{оп[0]}'] }};
+                }}""")
+                if р["сразу"]["активный"] != "p1":
+                    плохо(f"{н} 7: при медленной базе загрузка ждёт сверки: через 50 мс активный {р['сразу']}")
+                if not р["потом"]:
+                    плохо(f"{н} 7: сверка в фоне не положила ушедшую вперёд копию на экран")
                 for о in [о for о in ошибки if "supabase.co" not in о][:3]:
                     плохо(f"{н} ошибка страницы: {о[:160]}")
                 стр.close()
