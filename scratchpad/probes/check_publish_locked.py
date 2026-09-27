@@ -7,13 +7,18 @@
 следом: «появляется замок с открытой душкой и потом закрывается. Сделай,
 чтобы сразу появлялся закрытый».
 
-Проба держит:
-  • первая публикация — строка уходит в базу уже запертой (locked в самой
-    записи), а не запирается следом: иначе открытый замок мелькал бы и на
-    карточке, и у всех по подписке; ни одна перерисовка карточки не показала
-    открытый замок; строка в базе и в памяти страницы заперта; «Загрузить» в
-    «Моих» рабочая; сообщение говорит «под замком»;
-  • повторная публикация отозванного пресета с открытым замком тоже запирает;
+Следом — снимок «new row violates row-level security policy for table
+"preset_links"»: (69) писала строку сразу запертой, а правило доступа это
+запрещает. Прежняя проба правила не знала и пропустила отказ.
+
+Проба держит, на заглушке с правилом доступа как в базе (обновить можно
+только открытую строку, и новая строка обязана остаться открытой) и с эхом
+подписки, приходящим после конца публикации:
+  • новый пресет, пресет с кодом (строка есть, не опубликована) и отозванный
+    под замком — все три публикуются и встают под замок, в базе и в памяти;
+  • ни одна перерисовка карточки, в том числе между эхом записи и эхом замка,
+    не показала открытый замок; сообщение говорит «под замком»;
+  • замок не встал — сообщение так и говорит, страница пресет не запирает;
   • запись не легла, а замок перед ней снимали, — замок возвращается.
 
     python3 check_publish_locked.py
@@ -52,7 +57,8 @@ def сервер():
     return с, с.server_address[1]
 
 
-ПОДГОТОВКА = """async (отказ) => {
+ПОДГОТОВКА = """async (режим) => {
+  const отказ = режим === 'отказ', безЗамка = режим === 'замок';
   const ждать = мс => new Promise(r => setTimeout(r, мс));
   const б = document.getElementById('pricingErrorScreen'); if (б) б.style.display = 'none';
   applyUiStyle('blank', false);
@@ -60,42 +66,62 @@ def сервер():
   const снимок = collectState();
   window.__тосты = []; window.showToast = т => window.__тосты.push(String(т));
   window.__замок = [];
+  const строка = к => (window.__ТАБЛИЦЫ.preset_links || []).find(r => r.short_code === к);
+  // Эхо подписки: база рассылает строку такой, какой она легла, с задержкой —
+  // и эхо может прийти уже после того, как публикация закончилась.
+  const эхо = (вид, было, стало, мс) => { const н = JSON.parse(JSON.stringify(стало)), с = было ? JSON.parse(JSON.stringify(было)) : null;
+    setTimeout(() => приходОбщего({ eventType: вид, new: н, old: с }), мс); };
   window.__RPC.set_preset_lock = а => { window.__замок.push(а.p_locked);
-    const с = (window.__ТАБЛИЦЫ.preset_links || []).find(r => r.short_code === а.p_code); if (с) с.locked = а.p_locked; return true; };
+    if (безЗамка && а.p_locked) return false;
+    const с = строка(а.p_code); if (с) { const было = { ...с }; с.locked = а.p_locked; эхо('UPDATE', было, с, 260); } return true; };
   window.__RPC.preset_short_code_free = () => true;
-  // Что уходит в запись строки, и — по заказу пробы — отказ базы в ней.
   window.__записи = [];
   const былFrom = _sb.from.bind(_sb);
   _sb.from = т => { const з = былFrom(т); if (т !== 'preset_links') return з;
     const u = з.upsert; з.upsert = (зн, н) => { window.__записи.push(JSON.parse(JSON.stringify(зн)));
-      if (отказ) return Promise.resolve({ data: null, error: { message: 'отказ пробы' } }); return u.call(з, зн, н); }; return з; };
+      if (отказ) return Promise.resolve({ data: null, error: { message: 'отказ пробы' } });
+      // Правило доступа базы, как оно есть: обновить можно только открытую
+      // строку, и новая строка обязана остаться открытой (у правила обновления
+      // нет отдельной проверки — условие USING проверяет и новую строку).
+      const было = строка(зн.short_code);
+      if (было && (было.locked === true || зн.locked === true))
+        return Promise.resolve({ data: null, error: { code: '42501', message: 'new row violates row-level security policy for table "preset_links"' } });
+      const копия = было ? { ...было } : null;
+      return u.call(з, зн, н).then(р => { const с = строка(зн.short_code);
+        if (с && с.locked === undefined) с.locked = false;
+        if (с) эхо(копия ? 'UPDATE' : 'INSERT', копия, с, 160); return р; }); }; return з; };
   window.__ТАБЛИЦЫ.preset_links = [];
-  saveAllPresets({ p1: { id: 'p1', name: 'Новый пресет', state: снимок, savedAt: new Date().toISOString() },
-                   p2: { id: 'p2', name: 'Отозванный', state: снимок, savedAt: new Date().toISOString(), shortCode: '222222', sharedId: '222222' } });
+  const т0 = new Date().toISOString();
+  saveAllPresets({ p1: { id: 'p1', name: 'Новый пресет', state: снимок, savedAt: т0 },
+                   p2: { id: 'p2', name: 'Отозванный', state: снимок, savedAt: т0, shortCode: '222222', sharedId: '222222' },
+                   p3: { id: 'p3', name: 'С кодом', state: снимок, savedAt: т0, shortCode: '333333', sharedId: '333333' } });
   _sharedPresets.length = 0;
-  const отозван = { short_code: '222222', id: '222222', preset_id: 'p2', author_id: _sbUser.id, author_name: 'Проба', name: 'Отозванный',
-    state: снимок, is_public: false, visibility: 'public', locked: отказ, created_at: '2026-09-20T10:00:00Z' };
-  _sharedPresets.push(Object.assign({}, отозван)); window.__ТАБЛИЦЫ.preset_links.push(Object.assign({}, отозван));
+  const свой = (к, ид, имя, зап) => ({ short_code: к, id: к, preset_id: ид, author_id: _sbUser.id, author_name: 'Проба', name: имя,
+    state: снимок, is_public: false, visibility: 'public', locked: зап, created_at: '2026-09-20T10:00:00Z' });
+  // p2 — отозванный под замком; p3 — пресет с кодом, строка которого есть, но не
+  // опубликована (как «Виго» на снимке Константина).
+  [свой('222222', 'p2', 'Отозванный', true), свой('333333', 'p3', 'С кодом', false)].forEach(р => {
+    _sharedPresets.push(Object.assign({}, р)); window.__ТАБЛИЦЫ.preset_links.push(Object.assign({}, р)); });
   try { _общиеЗагружены = true; } catch (e) {}
   openPresetPanel(); await ждать(300); switchPresetTab('my');
-  window.__виды = [];
-  const набл = new MutationObserver(() => { const з = document.querySelector('#presetList .pcard[data-pid="p1"] .btn-shared-lock');
-    if (з) window.__виды.push(з.classList.contains('on') ? 'закрыт' : 'открыт'); });
-  набл.observe(document.getElementById('presetList'), { childList: true, subtree: true, attributes: true });
-  await publishPreset('p1', 'public'); await ждать(300);
-  набл.disconnect();
-  const код1 = loadAllPresets().p1.shortCode;
-  const р1 = { код: код1, запись: (window.__записи[0] || {}).locked, виды: [...new Set(window.__виды)],
-    вБазе: (window.__ТАБЛИЦЫ.preset_links.find(r => r.short_code === код1) || {}).locked,
-    вПамяти: (_sharedPresets.find(r => r.short_code === код1) || {}).locked, тосты: window.__тосты.slice(),
-    приглушена: (document.querySelector('#presetList .pcard[data-pid="p1"] .pcard-use') || {}).getAttribute?.('aria-disabled') === 'true' };
-  window.__замок.length = 0; window.__тосты.length = 0; window.__записи.length = 0;
-  await publishPreset('p2', 'public'); await ждать(300);
-  const р2 = { запись: (window.__записи[0] || {}).locked, вызовы: window.__замок.slice(),
-    вБазе: (window.__ТАБЛИЦЫ.preset_links.find(r => r.short_code === '222222') || {}).locked,
-    вПамяти: (_sharedPresets.find(r => r.short_code === '222222') || {}).locked, тосты: window.__тосты.slice() };
+  const итог = {};
+  for (const [ид, к] of [['p1', null], ['p2', '222222'], ['p3', '333333']]) {
+    window.__виды = []; window.__тосты.length = 0; window.__записи.length = 0; window.__замок.length = 0;
+    const набл = new MutationObserver(() => { const з = document.querySelector('#presetList .pcard[data-pid="' + ид + '"] .btn-shared-lock');
+      if (з) window.__виды.push(з.classList.contains('on') ? 'закрыт' : 'открыт'); });
+    набл.observe(document.getElementById('presetList'), { childList: true, subtree: true, attributes: true });
+    // Между эхом записи (160 мс) и эхом замка (260 мс) список перерисовывается —
+    // как от любой другой строки подписки или переключения вкладки.
+    const перерисовка = setTimeout(() => renderPresetList(), 210);
+    await publishPreset(ид, 'public'); await ждать(700); clearTimeout(перерисовка);
+    набл.disconnect();
+    const код = к || loadAllPresets()[ид].shortCode;
+    итог[ид] = { код, виды: [...new Set(window.__виды)], вызовы: window.__замок.slice(),
+      вБазе: (строка(код) || {}).locked, опубл: (строка(код) || {}).is_public,
+      вПамяти: (_sharedPresets.find(r => r.short_code === код) || {}).locked, тосты: window.__тосты.slice() };
+  }
   _sb.from = былFrom;
-  return { р1, р2 };
+  return итог;
 }"""
 
 def главная():
@@ -103,34 +129,36 @@ def главная():
     try:
         with sync_playwright() as pw:
             бр = pw.chromium.launch(executable_path=хром(), args=["--no-sandbox"])
-            for отказ in (False, True):
-                н = "[база отказала]" if отказ else "[обычно]"
+            for режим in ("обычно", "замок", "отказ"):
+                н = {"обычно": "[обычно]", "замок": "[замок не встал]", "отказ": "[запись отказала]"}[режим]
                 стр = бр.new_page(viewport={"width": 1440, "height": 900})
                 ошибки = []
                 стр.on("pageerror", lambda e: ошибки.append(str(e)))
                 стр.add_init_script(ЗАГЛУШКА); стр.add_init_script(ТАБЛИЦЫ_JS)
                 стр.goto(f"http://127.0.0.1:{порт}/index.html", wait_until="load"); стр.wait_for_timeout(2500)
-                р = стр.evaluate(ПОДГОТОВКА, отказ)
-                print("  " + н, json.dumps(р, ensure_ascii=False)[:600])
-                р1, р2 = р["р1"], р["р2"]
-                if not отказ:
-                    if р1["запись"] is not True:
-                        плохо(f"{н} строка уходит в базу открытой и запирается следом — замок мелькнёт открытым: {р1}")
-                    if "открыт" in р1["виды"]:
-                        плохо(f"{н} во время публикации на карточке мелькнул открытый замок: {р1['виды']}")
-                    if not р1["вБазе"] or not р1["вПамяти"]:
-                        плохо(f"{н} первая публикация не заперла пресет: {р1}")
-                    if р1["приглушена"]:
-                        плохо(f"{н} после публикации «Загрузить» в «Моих» приглушена — замок должен быть закрыт")
-                    if not any("под замком" in т for т in р1["тосты"]):
-                        плохо(f"{н} сообщение о публикации не говорит про замок: {р1['тосты']}")
-                    if р2["запись"] is not True or not р2["вБазе"] or not р2["вПамяти"]:
-                        плохо(f"{н} повторная публикация с открытым замком не заперла пресет: {р2}")
-                else:
-                    if not р2["вызовы"] or р2["вызовы"][-1] is not True:
-                        плохо(f"{н} запись отказала, а снятый перед ней замок не вернулся: {р2}")
-                    if any("под замком" in т for т in р1["тосты"] + р2["тосты"]):
-                        плохо(f"{н} при отказе базы сказано «под замком»: {р1['тосты'] + р2['тосты']}")
+                р = стр.evaluate(ПОДГОТОВКА, режим)
+                for ид, р1 in р.items():
+                    print("  " + н, ид, json.dumps(р1, ensure_ascii=False)[:400])
+                    тосты = " | ".join(р1["тосты"])
+                    if режим == "обычно":
+                        if "Ошибка" in тосты:
+                            плохо(f"{н} {ид}: публикация не прошла: {тосты}")
+                        if "открыт" in р1["виды"]:
+                            плохо(f"{ид}: во время публикации на карточке мелькнул открытый замок: {р1['виды']}")
+                        if not (р1["опубл"] and р1["вБазе"] and р1["вПамяти"]):
+                            плохо(f"{ид}: публикация не заперла пресет: {р1}")
+                        if "под замком" not in тосты:
+                            плохо(f"{ид}: сообщение о публикации не говорит про замок: {тосты}")
+                    elif режим == "замок":
+                        if "под замком" in тосты or "замок закрыть не удалось" not in тосты:
+                            плохо(f"{н} {ид}: база замок не закрыла, а сообщение другое: {тосты}")
+                        if р1["вПамяти"] is not False:
+                            плохо(f"{н} {ид}: база замок не закрыла, а страница считает пресет запертым: {р1}")
+                    else:
+                        if "под замком" in тосты:
+                            плохо(f"{н} {ид}: при отказе записи сказано «под замком»: {тосты}")
+                        if ид == "p2" and (not р1["вызовы"] or р1["вызовы"][-1] is not True):
+                            плохо(f"{н} p2: запись отказала, а снятый перед ней замок не вернулся: {р1}")
                 for о in [о for о in ошибки if "supabase.co" not in о][:3]:
                     плохо(f"{н} ошибка страницы: {о[:160]}")
                 стр.close()
@@ -142,8 +170,9 @@ def главная():
         for н in НАХОДКИ:
             print("  ✗", н)
         raise SystemExit(1)
-    print("Чисто: публикация пишет строку уже запертой — открытый замок не мелькает; и первая, и повторная ставят "
-          "пресет под замок, «Загрузить» в «Моих» рабочая; при отказе записи снятый замок возвращается.")
+    print("Чисто: публикация проходит правило доступа и для новой строки, и для пресета с кодом, и для отозванного под "
+          "замком; все три встают под замок, и открытый замок не мелькает даже от запоздалого эха подписки; не встал "
+          "замок — так и сказано; отказала запись — снятый замок возвращается.")
 
 
 if __name__ == "__main__":
