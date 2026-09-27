@@ -248,6 +248,22 @@ def прогон(бр, порт, ш, тон, ночь):
                 середина: Math.round(scrollY),
               };
             }''')
+            # Статья в начале — панель встаёт под ряд «К журналу» / «Оглавление»,
+            # а не на него: ряд ниже крестика окна, и по одному крестику панель
+            # чуть заходила на кнопки (Константин, 27.09.2026, снимок iPhone).
+            for сдвиг in (0, 70):
+                стр.evaluate("(с) => { document.getElementById('manualOverlay').scrollTop = с; }", сдвиг)
+                кадр.locator("body").evaluate("() => window.scrollTo(0, 0)"); стр.wait_for_timeout(200)
+                кадр.locator("#tocBtn").evaluate("к => к.click()"); стр.wait_for_timeout(450)
+                ряд = кадр.locator("body").evaluate("""() => { const п = document.getElementById('tocPanel').getBoundingClientRect();
+                  const к = [document.getElementById('tocBtn'), document.querySelector('.topbar .back')].map(э => э.getBoundingClientRect());
+                  return { зазор: Math.round(Math.min(...к.map(б => п.top - б.bottom))), верх: Math.round(п.top) }; }""")
+                if ряд["зазор"] < 6:
+                    плохо(f"{н} [окно прокручено на {сдвиг}] «Оглавление» в начале статьи ложится на кнопки «К журналу» / «Оглавление»: зазор {ряд['зазор']} px")
+                if not сдвиг:
+                    стр.screenshot(path=str(СНИМКИ / f"release-toc-{ш}-{тон or 'teal'}{'-n' if ночь else ''}.png"))
+                кадр.locator("#tocFon").evaluate("ф => ф.click()"); стр.wait_for_timeout(400)
+            стр.evaluate("() => { document.getElementById('manualOverlay').scrollTop = 0; }")
             # Панель — в видимой полосе кадра, ниже крестика окна, со своей
             # прокруткой (Константин, 27.09.2026: панель закрывала крестик и
             # верх, а низ уходил под панель браузера). Safari моделируем так:
