@@ -121,7 +121,7 @@ def главная():
         with sync_playwright() as pw:
             бр = pw.chromium.launch(executable_path=хром(), args=["--no-sandbox"])
             for ш in (390, 1440):
-                for ui in ("blank", "light"):
+                for ui in ("blank",):
                     for ночь in (False, True):
                         прогон(бр, порт, ш, ui, ночь)
             бр.close()

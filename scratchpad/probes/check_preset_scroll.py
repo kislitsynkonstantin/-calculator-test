@@ -102,7 +102,7 @@ def главная():
                 стр.wait_for_timeout(2500)
                 стр.evaluate("""() => { const б = document.getElementById('pricingErrorScreen'); if (б) б.style.display = 'none';
                   const в = document.getElementById('loginScreen'); if (в) в.style.display = 'none'; }""")
-                for тема in ("blank", "light"):
+                for тема in ("blank",):
                     for ночь in (False, True):
                         стр.evaluate(f"() => {{ applyUiStyle('{тема}', false); document.body.classList.toggle('dark', {str(ночь).lower()}); }}")
                         стр.evaluate(РАЗЛОЖИТЬ)

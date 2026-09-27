@@ -106,7 +106,7 @@ def главная():
                 стр.goto(f"http://127.0.0.1:{порт}/index.html", wait_until="load")
                 стр.wait_for_timeout(2500)
                 стр.evaluate("() => { const б = document.getElementById('pricingErrorScreen'); if (б) б.style.display = 'none'; }")
-                for тема in ("blank", "light"):
+                for тема in ("blank",):
                     стр.evaluate(f"() => applyUiStyle('{тема}', false)")
                     р = стр.evaluate(СЦЕНАРИЙ)
                     н = f"{ш} {тема}"

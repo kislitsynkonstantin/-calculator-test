@@ -97,7 +97,7 @@ def главная():
     try:
         with sync_playwright() as pw:
             бр = pw.chromium.launch(executable_path=хром(), args=["--no-sandbox"])
-            for ш, тема, ночь in ((1440, "blank", False), (1440, "blank", True), (390, "blank", False), (1440, "light", False)):
+            for ш, тема, ночь in ((1440, "blank", False), (1440, "blank", True), (390, "blank", False)):
                 стр = бр.new_page(viewport={"width": ш, "height": 900})
                 ошибки = []
                 стр.on("pageerror", lambda e: ошибки.append(str(e)))

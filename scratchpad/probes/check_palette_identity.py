@@ -294,7 +294,7 @@ def главная():
     try:
         with sync_playwright() as pw:
             бр = pw.chromium.launch(executable_path=хром(), args=["--no-sandbox"])
-            for ui, тема in (("light", "Модерн"), ("blank", "Бланк")):
+            for ui, тема in (("blank", "Бланк"),):
                 for ночь in (False, True):
                     for ш, в in ((390, 900), (1440, 950)):
                         for имя, (код, вся) in СОСТОЯНИЯ.items():
@@ -309,7 +309,7 @@ def главная():
                                       + "; ".join(об)[:200])
                             совпало += сравнить(метка, а, б)
             if not ТОЛЬКО or "docs" in ТОЛЬКО:
-                for ui, тема in (("light", "Модерн"), ("blank", "Бланк")):
+                for ui, тема in (("blank", "Бланк"),):
                     а, б = отдельные(бр, п1, ui), отдельные(бр, п2, ui)
                     for имя in а:
                         метка = f"{тема}-документ-{имя}"

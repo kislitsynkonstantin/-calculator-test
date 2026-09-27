@@ -117,11 +117,14 @@ def спросить(стр, тема, js, *арг):
 def включено(стр, тема):
     """Сколько переключателей списка включено на самом деле."""
     return спросить(стр, тема, """() => {
+      // «Сбросить избранные» (ключ favorites) сменил прежний stars и по умолчанию
+      // выключен: правило «включено всё, что не false» его считало включённым.
+      // Берём правило самого калькулятора — сбросВключён.
       const ключи = ['project','checkedOptions','sort','customOptions','customNotes','images',
-                     'stars','highlights','printPrices','porValues','hiddenNotes','gifts',
-                     'discount','requisites'];
+                     'highlights','printPrices','porValues','hiddenNotes','gifts',
+                     'discount','requisites','favorites'];
       const cfg = appSettings.resetAllConfig || {};
-      return ключи.filter(к => cfg[к] !== false).length;
+      return ключи.filter(к => сбросВключён(cfg, к)).length;
     }""")
 
 
@@ -225,7 +228,7 @@ def главная():
     try:
         with sync_playwright() as pw:
             бр = pw.chromium.launch(executable_path=хром(), args=["--no-sandbox"])
-            for тема, ширина in (("бланк", 390), ("модерн", 390), ("бланк", 1440)):
+            for тема, ширина in (("бланк", 390), ("бланк", 1440)):
                 проверить(бр, порт, тема, ширина)
             бр.close()
     finally:

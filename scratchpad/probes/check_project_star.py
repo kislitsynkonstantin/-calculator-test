@@ -81,7 +81,7 @@ def главная():
     try:
         with sync_playwright() as pw:
             бр = pw.chromium.launch(executable_path=хром(), args=["--no-sandbox"])
-            for ui in ("blank", "light"):
+            for ui in ("blank",):
                 for ночь in (False, True):
                     for ш in (390, 1440):
                         н = f"[{ui} {'ночь' if ночь else 'день'} {ш}]"

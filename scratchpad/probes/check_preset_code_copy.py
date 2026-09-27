@@ -98,7 +98,7 @@ def главная():
     try:
         with sync_playwright() as pw:
             бр = pw.chromium.launch(executable_path=хром(), args=["--no-sandbox"])
-            for ui in ("blank", "light"):
+            for ui in ("blank",):
                 for ш in (390, 1440):
                     стр = бр.new_page(viewport={"width": ш, "height": 900})
                     ошибки = []

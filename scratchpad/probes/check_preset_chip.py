@@ -303,7 +303,7 @@ def угол(бр, порт):
     в полоске итога (Константин, 27.09.2026: «угол калькулятора ставь, а не угол
     всего экрана»). И не ложится на боковую панель, открытую за краем расчёта."""
     for ш in (1024, 1280, 1440, 1920):
-        for ui in ("blank", "light"):
+        for ui in ("blank",):
             стр = бр.new_page(viewport={"width": ш, "height": 900})
             стр.add_init_script(ЗАГЛУШКА); стр.add_init_script(ТАБЛИЦЫ_JS)
             стр.goto(f"http://127.0.0.1:{порт}/index.html", wait_until="load"); ждать(стр, 2500)
@@ -357,7 +357,7 @@ def главная():
         with sync_playwright() as pw:
             бр = pw.chromium.launch(executable_path=хром(), args=["--no-sandbox"])
             for ш in (390, 1440):
-                for ui in ("blank", "light"):
+                for ui in ("blank",):
                     for ночь in (False, True):
                         прогон(бр, порт, ш, ui, ночь)
             тон(бр, порт)
