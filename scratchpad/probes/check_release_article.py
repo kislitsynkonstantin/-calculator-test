@@ -15,8 +15,9 @@
     «Зелёного-графита» — графитовое; ночью фон тёмный;
   • переходы по разделам не уводят кадр со статьи (в srcdoc «#раздел»
     открыл бы в кадре сам калькулятор);
-  • пункты разделов пронумерованы «1.1…4.1»; в меню статьи они подпунктами;
-    на телефоне меню выдвигается круглой кнопкой 44 px и прячется после перехода; нажатие по подпункту
+  • пункты разделов пронумерованы «1.1…4.1»; на компьютере они подпунктами в
+    меню, на телефоне — в панели «Оглавление», которая выезжает справа, как в
+    базе знаний, закрывается после перехода и уходит свайпом вправо; нажатие по подпункту
     приводит к его пункту и отмечает его в меню (Константин, 27.09.2026:
     «внутри в разделах подпункты поставь»);
   • «Журнал обновлений» наверху статьи возвращает в журнал.
@@ -131,40 +132,59 @@ def прогон(бр, порт, ш, тон, ночь):
     if ночь and (not р["тёмная"] or р["фон"] in ("rgb(255, 255, 255)", "rgb(240, 246, 246)")):
         плохо(f"{н} ночью статья светлая: {р['фон']}")
     стр.screenshot(path=str(СНИМКИ / f"release-{ш}-{тон or 'teal'}{'-n' if ночь else ''}.png"))
-    # подпункты: номера «1.1…», вложенное меню; на телефоне меню выдвигается круглой кнопкой
+    # подпункты: номера «1.1…»; на компьютере — вложенное меню, на телефоне — панель
+    # «Оглавление» справа, как в базе знаний, уходящая свайпом вправо
     п = кадр.locator("body").evaluate('''() => {
       const номера = [...document.querySelectorAll('.it h3 .num')].map(н => н.textContent);
       const вид = э => !!э && getComputedStyle(э).display !== 'none' && э.getBoundingClientRect().height > 0;
-      const к = document.getElementById('mobBtn'), кр = к ? к.getBoundingClientRect() : null;
+      const к = document.getElementById('tocBtn'), кр = к ? к.getBoundingClientRect() : null;
       return { номера, подменю: document.querySelectorAll('.sb .sb-s').length, меню: вид(document.querySelector('.sb')),
-               кнопка: вид(к), кнопкаРазмер: кр ? Math.round(Math.min(кр.width, кр.height)) : 0 };
+               кнопка: вид(к), кнопкаВысота: кр ? Math.round(кр.height) : 0, вПанели: document.querySelectorAll('#tocList a.s').length };
     }''')
     if len(п["номера"]) != 12 or п["номера"][0] != "1.1" or п["номера"][-1] != "4.1":
         плохо(f"{н} пункты разделов не пронумерованы: {п['номера'][:4]}…")
-    if п["подменю"] != 12:
+    if ш >= 900 and (not п["меню"] or п["подменю"] != 12):
         плохо(f"{н} в меню статьи нет подпунктов разделов: {п['подменю']}")
-    if ш >= 900 and not п["меню"]:
-        плохо(f"{н} на компьютере не видно меню статьи")
+    до = None
     if ш < 720:
-        if not п["кнопка"] or п["кнопкаРазмер"] < 44:
-            плохо(f"{н} на телефоне нет кнопки меню статьи 44 px: {п}")
+        if not п["кнопка"] or п["кнопкаВысота"] < 36 or п["вПанели"] != 12:
+            плохо(f"{н} на телефоне нет «Оглавления» с 12 подпунктами: {п}")
         else:
-            кадр.locator("#mobBtn").click(); стр.wait_for_timeout(400)
-            if not кадр.locator(".sb.mob-open").count():
-                плохо(f"{н} кнопка не выдвигает меню статьи")
-    цель = ".sb-s[data-to='spec-2']"
-    if not кадр.locator(цель).count() or not кадр.locator(цель).is_visible():
-        плохо(f"{н} подпункт 2.2 не виден в меню")
-        до = None
+            # крестик окна справки стоит поверх кадра — кнопка не должна под ним прятаться
+            кр = кадр.locator("#tocBtn").bounding_box(); кх = стр.locator("#manualCloseBtn").bounding_box()
+            if кр and кх and кр["x"] + кр["width"] > кх["x"] - 4 and кр["y"] < кх["y"] + кх["height"] and кр["y"] + кр["height"] > кх["y"]:
+                плохо(f"{н} «Оглавление» заходит под крестик окна справки: {кр} / {кх}")
+            кадр.locator("#tocBtn").click(); стр.wait_for_timeout(450)
+            справа = кадр.locator("body").evaluate("() => { const к = document.getElementById('tocPanel').getBoundingClientRect(); return { открыта: document.getElementById('tocPanel').classList.contains('open'), справа: Math.round(innerWidth - к.right), слева: Math.round(к.left) }; }")
+            if not справа["открыта"] or abs(справа["справа"]) > 1 or справа["слева"] < 30:
+                плохо(f"{н} «Оглавление» не выехало панелью справа: {справа}")
+            кадр.locator("#tocList a[data-to='spec-2']").click(); стр.wait_for_timeout(900)
+            до = кадр.locator("body").evaluate("() => Math.round(document.getElementById('spec-2').getBoundingClientRect().top)")
+            if кадр.locator(".toc-panel.open").count():
+                плохо(f"{н} после перехода «Оглавление» осталось открытым")
+            # свайп вправо закрывает
+            кадр.locator("#tocBtn").click(); стр.wait_for_timeout(450)
+            кадр.locator("body").evaluate('''async () => {
+              const п = document.getElementById('tocPanel'), к = п.getBoundingClientRect(), y = к.top + 200;
+              const т = x => new Touch({ identifier: 1, target: п, clientX: x, clientY: y });
+              п.dispatchEvent(new TouchEvent('touchstart', { touches: [т(к.left + 40)], bubbles: true }));
+              for (const x of [к.left + 90, к.left + 160, к.left + 240]) п.dispatchEvent(new TouchEvent('touchmove', { touches: [т(x)], bubbles: true }));
+              п.dispatchEvent(new TouchEvent('touchend', { touches: [], bubbles: true }));
+              await new Promise(r => setTimeout(r, 400));
+            }''')
+            if кадр.locator(".toc-panel.open").count():
+                плохо(f"{н} свайп вправо не закрыл «Оглавление»")
     else:
-        кадр.locator(цель).click(); стр.wait_for_timeout(900)
-        до = кадр.locator("body").evaluate("() => Math.round(document.getElementById('spec-2').getBoundingClientRect().top)")
-        if ш < 720 and кадр.locator(".sb.mob-open").count():
-            плохо(f"{н} после перехода меню статьи осталось выдвинутым")
+        цель = ".sb-s[data-to='spec-2']"
+        if not кадр.locator(цель).count():
+            плохо(f"{н} подпункта 2.2 нет в меню")
+        else:
+            кадр.locator(цель).click(); стр.wait_for_timeout(900)
+            до = кадр.locator("body").evaluate("() => Math.round(document.getElementById('spec-2').getBoundingClientRect().top)")
+            if not кадр.locator(".sb-s.on[data-to='spec-2']").count():
+                плохо(f"{н} в меню не отмечен подпункт 2.2, к которому прокрутили")
     if до is not None and not (-5 <= до <= 60):
         плохо(f"{н} подпункт 2.2 не прокрутился к своему пункту: верх на {до} px")
-    if ш >= 900 and not кадр.locator(".sb-s.on[data-to='spec-2']").count():
-        плохо(f"{н} в меню не отмечен подпункт 2.2, к которому прокрутили")
     # переход по разделу не уводит кадр
     if ш >= 900:
         кадр.locator('.sb-a[data-to="log"]').click(); стр.wait_for_timeout(700)
