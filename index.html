@@ -5150,6 +5150,9 @@ body.dark .opt-info-popover { box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
 }
 .pcard-code-label { font-size:0.6rem;color:var(--gray-light);white-space:nowrap; }
 .pcard-code-value { font-size:0.78rem;font-weight:700;font-family:'Unbounded',sans-serif;color:var(--green-dark);letter-spacing:0.12em;flex-shrink:0; }
+/* Двойное нажатие копирует код само (`_кодСобытия`): выделение текста и меню
+   касания поверх него только мешали бы и прятали сообщение «Код скопирован». */
+.pcard-code-value { cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation; }
 .pcard-code-sep { width:1px;height:12px;background:var(--border);flex-shrink:0; }
 .pcard-code-link { font-size:0.6rem;color:var(--gray-light);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0; }
 .btn-copy-link { display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--green-dark);font-size:0.65rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.15s;font-family:'Geologica',sans-serif;flex-shrink:0; }
@@ -29650,9 +29653,20 @@ function всплытьПодКнопкой(узел, текст) {
 // Двойное касание пальцем `dblclick` на телефоне даёт не всегда, поэтому рядом
 // стоит собственный счёт касаний: два касания по одному коду за 400 мс. Второе
 // касание гасим — иначе браузер примет его за двойной тап и увеличит страницу.
+//
+// Тем же двойным нажатием копируется код на карточке окна «Пресеты» — «Мои»,
+// «Общие», «По коду» (Константин, 27.09.2026: «двойное нажатие на код его
+// копирует — только цифры, без других слов и пробелов»). На карточке код
+// набран тройками через пробел, поэтому цифры берутся из текста; пока кода нет
+// («— — —»), копировать нечего.
 function _кодСобытия(цель) {
-  const э = цель && цель.closest ? цель.closest('.al-code') : null;
-  const код = э && э.dataset ? String(э.dataset.code || '') : '';
+  const э = цель && цель.closest ? цель.closest('.al-code, .pcard-code-value') : null;
+  if (!э) return null;
+  if (э.classList.contains('pcard-code-value')) {
+    const цифры = (э.textContent || '').replace(/\D/g, '');
+    return /^\d{6}$/.test(цифры) ? { э, код: цифры } : null;
+  }
+  const код = э.dataset ? String(э.dataset.code || '') : '';
   return код ? { э, код } : null;
 }
 
