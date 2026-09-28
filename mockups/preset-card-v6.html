@@ -89,7 +89,9 @@ body.dark .chip .cb.loc svg,body.dark .tbp.loc .pi{color:#e0b070}
 @media (min-width:1008px){.chip,.card{right:calc((100% - 960px) / 2)}}
 
 /* ── Карточка ── */
-.card{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:811;width:300px;max-width:calc(100vw - 28px);padding:14px 16px 16px;
+/* 316, а не 300: три кнопки «Опубликовать», звезда и «Все пресеты» встают в одну
+   строку с зазором от поля карточки (при 300 последняя заходила в поле на 14 px). */
+.card{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:811;width:316px;max-width:calc(100vw - 28px);padding:14px 16px 16px;
   background:var(--sheet);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);color:var(--ink);
   opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .14s,transform .18s}
 .card.show{opacity:1;transform:none;pointer-events:auto;transition:opacity .18s cubic-bezier(.2,.8,.2,1),transform .24s cubic-bezier(.2,.8,.2,1)}
@@ -152,7 +154,9 @@ body.dark .chip .cb.loc svg,body.dark .tbp.loc .pi{color:#e0b070}
 .meta b{color:var(--ink);font-weight:600}
 .st{display:flex;align-items:flex-start;gap:6px;margin-top:10px;padding:8px 10px;border-left:3px solid var(--acc-l);border-radius:0 8px 8px 0;background:var(--tint);font-size:.7rem;line-height:1.45;color:var(--acc)}
 .st svg{flex:none;margin-top:2px}
-.row{display:flex;gap:8px;margin-top:12px}
+.row{display:flex;gap:6px;margin-top:12px}
+/* Самые узкие телефоны: строка без значков, иначе не помещается. */
+@media (max-width:359px){.row button:not(.star) svg{display:none}}
 .row button{position:relative;flex:1 1 auto;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;height:36px;border:1px solid var(--line);border-radius:9px;background:none;font-size:.72rem;font-weight:600;cursor:pointer}
 .row button::before{content:'';position:absolute;inset:-5px -3px}
 .row .pri{background:var(--fill);border-color:transparent;color:var(--on-fill)}
@@ -365,8 +369,7 @@ body.dark .chip .cb.loc svg,body.dark .tbp.loc .pi{color:#e0b070}
         + (вБраузере()
           ? '<div class="st warm">' + З.экран + '<span>Нет связи — сохранён пока только в этом браузере, в облако уйдёт сам</span></div>'
           : '<div class="st">' + З.облако + '<span>Сохранён в облаке — в «Общих» его нет</span></div>')
-        + '<div class="row"><button type="button" class="pri" id="pub">' + З.глобус + 'Опубликовать</button></div>'
-        + '<div class="row" style="margin-top:8px">' + звезда + все + '</div>';
+        + '<div class="row"><button type="button" class="pri" id="pub">' + З.глобус + 'Опубликовать</button>' + звезда + все + '</div>';
     } else if (с.вид === 'pub') {
       var открыт = !с.замок;
       var вар = с.вар;
