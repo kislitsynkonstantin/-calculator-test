@@ -10,12 +10,12 @@
     сразу на статье, и адрес в строке браузера остаётся тем же;
   • у невошедшего по той же ссылке — экран входа, окна нет и текст статьи
     из базы не запрашивается; после входа статья открывается сама;
-  • «Скопировать ссылку» в статье видна, стоит в строке надзаголовка без
-    наездов и кладёт в буфер именно этот адрес; подпись сообщает об успехе;
+  • ссылка, вставленная в строку уже открытого калькулятора, тоже открывает
+    статью: такой переход страницу не перезагружает, и ловит его hashchange;
+  • кнопки «Скопировать ссылку» в статье нет — Константин снял её в тот же
+    день: «из поля браузера скопирую»; поэтому адрес обязан стоять в строке;
   • статья, открытая из журнала, ставит адрес в строку браузера; «К журналу»
-    и крестик окна его снимают, а история браузера не растёт;
-  • статья, открытая сама по себе (без калькулятора, который ссылку примет),
-    кнопку не показывает — так она выглядит в прежней версии в бою.
+    и крестик окна его снимают, а история браузера не растёт.
 На 390 и 1440 px.
 """
 import functools, http.server, json, os, pathlib, re, socketserver, sys, threading
@@ -88,19 +88,15 @@ def страница(бр, ш, вход=True):
     стр.add_init_script("window.__ТАБЛИЦЫ = window.__ТАБЛИЦЫ || {};\nwindow.__ТАБЛИЦЫ.app_docs = "
                         + json.dumps(ряды(), ensure_ascii=False) + ";\nObject.assign(window.__ТАБЛИЦЫ, "
                         + json.dumps(ЦЕНЫ, ensure_ascii=False) + ");")
-    # Буфер обмена: запись перехватывается, чтобы прочитать, что туда легло.
-    стр.add_init_script("""(() => { window.__БУФЕР = null;
-      const пост = (т) => { try { window.top.__БУФЕР = т; } catch (e) {} return Promise.resolve(); };
-      try { Object.defineProperty(navigator, 'clipboard', { value: { writeText: пост }, configurable: true }); } catch (e) {} })();""")
     return конт, стр
 
 
 def состояние(стр):
     return стр.evaluate("""() => {
       const ов = document.getElementById('manualOverlay'), к = document.getElementById('manualFrame');
-      let статья = false, кнопка = null;
+      let статья = false, кнопка = false;
       try { const д = к.contentDocument; статья = !!(д && д.querySelector('h1') && /2\\.5\\.12/.test(д.querySelector('h1').textContent));
-        const б = д && д.getElementById('shareBtn'); if (б) { const р = б.getBoundingClientRect(); кнопка = { видна: !б.hidden && р.width > 0, р: [р.left, р.top, р.right, р.bottom] }; } } catch (e) {}
+        кнопка = !!(д && (д.getElementById('shareBtn') || [...д.querySelectorAll('button')].some(б => /скопировать/i.test(б.textContent)))); } catch (e) {}
       const вход = document.getElementById('loginScreen');
       return { окно: !!ов && ов.style.display === 'block', статья, кнопка, хэш: location.hash, история: history.length,
                экранВхода: !!вход && getComputedStyle(вход).display !== 'none' && вход.getBoundingClientRect().height > 0 };
@@ -116,7 +112,7 @@ def ждать(стр, условие, раз=40):
 
 
 СТАТЬЯ_ОТКРЫТА = """() => { try { const д = document.getElementById('manualFrame').contentDocument;
-  return document.getElementById('manualOverlay').style.display === 'block' && !!д.getElementById('shareBtn')
+  return document.getElementById('manualOverlay').style.display === 'block' && !!д.querySelector('.topbar')
     && /2\\.5\\.12/.test(д.querySelector('h1').textContent); } catch (e) { return false; } }"""
 
 
@@ -133,36 +129,9 @@ def прогон(бр, порт, ш):
     с = состояние(стр)
     if с["хэш"] != "#release=2.5.12":
         плохо(f"{н} вошедший по ссылке: адрес в строке стал {с['хэш']!r}")
-    if not (с["кнопка"] and с["кнопка"]["видна"]):
-        плохо(f"{н} в статье нет видимой «Скопировать ссылку»")
-    # Место и вес кнопки: в строке надзаголовка, не налезает на него, в кадре,
-    # поле нажатия не меньше 32 px по высоте.
-    м = стр.frame_locator("#manualFrame").locator("body").evaluate("""() => {
-      const б = document.getElementById('shareBtn'), т = document.querySelector('.tagrow .tag');
-      const рб = б.getBoundingClientRect(), рт = т.getBoundingClientRect(), п = getComputedStyle(б, '::before');
-      return { зазор: Math.round(рб.left - рт.right), одинРяд: рб.top < рт.bottom && рб.bottom > рт.top,
-               справа: Math.round(document.documentElement.clientWidth - рб.right), вКадре: рб.right <= document.documentElement.clientWidth,
-               поле: Math.round(рб.height - 2 * (parseFloat(п.top) || 0)), высота: Math.round(рб.height), шрифт: parseFloat(getComputedStyle(б).fontSize) };
-    }""")
-    print(н, "кнопка:", м)
-    if not м["вКадре"]:
-        плохо(f"{н} кнопка ссылки выходит за край статьи")
-    if м["одинРяд"] and м["зазор"] < 12:
-        плохо(f"{н} кнопка ссылки прижата к надзаголовку: {м['зазор']} px")
-    if м["поле"] < 32:
-        плохо(f"{н} поле нажатия кнопки ссылки {м['поле']} px — меньше 32")
-    if м["высота"] > 24:
-        плохо(f"{н} кнопка ссылки раздута до {м['высота']} px — вес второстепенный")
-    # Копирование.
+    if с["кнопка"]:
+        плохо(f"{н} в статье осталась кнопка «Скопировать ссылку» — её сняли, адрес берут из строки браузера")
     кадр = стр.frame_locator("#manualFrame")
-    кадр.locator("#shareBtn").click()
-    стр.wait_for_timeout(300)
-    буфер = стр.evaluate("() => window.__БУФЕР")
-    if буфер != адрес:
-        плохо(f"{н} в буфер легло {буфер!r}, ждали {адрес!r}")
-    подпись = кадр.locator("#shareTxt").text_content()
-    if подпись != "Ссылка скопирована":
-        плохо(f"{н} после нажатия подпись {подпись!r}")
     стр.screenshot(path=f"/tmp/release_link_{ш}.png")
     # «К журналу» снимает адрес, статья из журнала ставит его снова, крестик снимает.
     история = стр.evaluate("() => history.length")
@@ -200,13 +169,17 @@ def прогон(бр, порт, ш):
         плохо(f"{н} невошедший: ошибки скрипта: {стр.ошибки}")
     конт.close()
 
-    # ── статья сама по себе: кнопки нет ───────────────────────────────────────
-    конт = бр.new_context(viewport={"width": ш, "height": 900})
-    стр = конт.new_page()
-    стр.set_content(СТАТЬЯ)
-    стр.wait_for_timeout(300)
-    if стр.evaluate("() => { const б = document.getElementById('shareBtn'); return !!б && !б.hidden && б.getBoundingClientRect().width > 0; }"):
-        плохо(f"{н} статья без калькулятора показывает «Скопировать ссылку» — в прежней версии она вела бы в никуда")
+    # ── ссылка вставлена в строку уже открытого калькулятора ──────────────────
+    конт, стр = страница(бр, ш)
+    стр.goto(f"http://127.0.0.1:{порт}/index.html", wait_until="load")
+    стр.wait_for_timeout(2500)
+    if стр.evaluate("() => document.getElementById('manualOverlay').style.display === 'block'"):
+        плохо(f"{н} без ссылки справка открылась сама")
+    стр.evaluate("() => { location.hash = '#release=2.5.12'; }")
+    if not ждать(стр, СТАТЬЯ_ОТКРЫТА):
+        плохо(f"{н} ссылка, вставленная в открытый калькулятор, статью не открыла — {состояние(стр)}")
+    if стр.ошибки:
+        плохо(f"{н} вставленная ссылка: ошибки скрипта: {стр.ошибки}")
     конт.close()
 
 
@@ -223,8 +196,9 @@ def main():
         for н in НАХОДКИ:
             print("  ✗", н)
         sys.exit(1)
-    print("\nЧисто: ссылка на статью открывает её вошедшему и ждёт входа у невошедшего, копируется из статьи "
-          "тем же адресом, стоит в строке браузера, пока статья открыта, и снимается без следа в истории — на 390 и 1440.")
+    print("\nЧисто: ссылка на статью открывает её вошедшему — и при загрузке, и вставленная в открытый калькулятор, "
+          "ждёт входа у невошедшего, стоит в строке браузера, пока статья открыта, и снимается без следа в истории; "
+          "кнопки копирования в статье нет — на 390 и 1440.")
 
 
 if __name__ == "__main__":
