@@ -62,6 +62,15 @@ button{font:inherit;color:inherit}
 .chip .cb{position:relative;display:flex;align-items:center;gap:7px;padding:0 13px 0 11px;border:0;border-radius:20px;background:none;color:inherit;cursor:pointer}
 .chip .cb::before{content:'';position:absolute;inset:-3px 0 -3px -4px}
 .chip .cn{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--warm-tint);color:var(--warm-ink);font-size:.62rem}
+/* Анимация замка — из калькулятора: открытие выводит дужку вверх и
+   откидывает вправо, закрытие возвращает и защёлкивает с отдачей корпуса. */
+.lk-sh.lk-open{animation:bmLkOpen .46s cubic-bezier(.3,.7,.3,1) both}
+.lk-sh.lk-close{animation:bmLkClose .46s cubic-bezier(.3,.7,.3,1) both}
+.lk-body.lk-close{transform-box:fill-box;transform-origin:50% 100%;animation:bmLkThud .46s ease-out both}
+@keyframes bmLkOpen{0%{transform:translate(-6.5px,0)}40%{transform:translate(-6.5px,-1.5px)}100%{transform:none}}
+@keyframes bmLkClose{0%{transform:translate(6.5px,-2px)}50%{transform:translate(0,-3px)}82%{transform:translate(0,.8px)}100%{transform:none}}
+@keyframes bmLkThud{0%,76%{transform:none}86%{transform:scaleY(.9)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.lk-sh.lk-open,.lk-sh.lk-close,.lk-body.lk-close{animation:none}}
 .chip .cb span{display:inline-block;max-width:min(52vw,300px);overflow:hidden;text-overflow:ellipsis}
 .chip .lk{position:relative;display:none;align-items:center;justify-content:center;width:40px;border:0;border-left:1px solid var(--rule);border-radius:0 20px 20px 0;background:none;color:inherit;cursor:pointer}
 .chip .lk::before{content:'';position:absolute;inset:-3px -4px -3px 0}
@@ -248,13 +257,19 @@ button{font:inherit;color:inherit}
   var З = {
     глобус: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>',
     мой: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>',
-    замокЗ: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
-    замокО: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.8-1.2"/></svg>',
     звезда: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></svg>',
     глобусНет: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/><path d="M4 4l16 16"/></svg>',
     список: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
     стрелка: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>'
   };
+  // Замок — тот же рисунок, что в калькуляторе (значокЗамка): у открытого
+  // дужка откинута вправо. Сменившийся замок проигрывает открытие/закрытие.
+  function замокSVG(закрыт, р) {
+    var дужка = закрыт ? 'M7.5 11V7.5a4 4 0 0 1 8 0V11' : 'M14 11V5.5a4 4 0 0 1 8 0V9';
+    var кач = с.анимЗамка && (с.анимЗамка === 'close') === !!закрыт ? (закрыт ? ' lk-close' : ' lk-open') : '';
+    return '<svg width="' + р + '" height="' + р + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<rect class="lk-body' + кач + '" x="4.5" y="11" width="14" height="10" rx="2.5" ry="2.5"/><path class="lk-sh' + кач + '" d="' + дужка + '"/></svg>';
+  }
   var с = { вид: 'pub', режим: 'мои', замок: true, звезда: true, открыта: false, вкладка: 'p' };
   var карточка = document.getElementById('card'), значок = document.getElementById('chipBtn');
 
@@ -307,12 +322,12 @@ button{font:inherit;color:inherit}
         + '<div class="seg-n">' + (открыт
             ? 'Пока замок открыт, пресет правят в «Общих» — и ты, и коллеги; в «Моих» он не открывается.'
             : (с.режим === 'мои' ? 'Правишь как свой расчёт; коллеги видят результат в «Общих».' : 'Открыт как общий: под замком коллеги его только смотрят.')) + '</div></div>'
-        + '<div class="st">' + (с.замок ? З.замокЗ : З.замокО) + '<span>' + (с.замок ? 'Под замком — меняешь только ты' : 'Открыт для правки — изменения сохраняются') + '</span></div>'
+        + '<div class="st">' + замокSVG(с.замок, 14) + '<span>' + (с.замок ? 'Под замком — меняешь только ты' : 'Открыт для правки — изменения сохраняются') + '</span></div>'
         + '<div class="row"><button type="button" class="pri" id="lock">' + (с.замок ? 'Снять замок' : 'Закрыть замок') + '</button>' + звезда + все + '</div>'
         + '<div class="row unpub"><button type="button" id="unpub">' + З.глобусНет + 'Снять с публикации</button></div>';
     } else {
       h += '<div class="meta">Автор: <b>Сергей Волков</b><br>Сохранён 28.09.26, 19:20 · код 928 911</div>'
-        + '<div class="st">' + З.замокО + '<span>Открыт для правки — изменения сохраняются</span></div>'
+        + '<div class="st">' + замокSVG(false, 14) + '<span>Открыт для правки — изменения сохраняются</span></div>'
         + '<div class="row">' + звезда + все + '</div>';
     }
     return h;
@@ -329,7 +344,7 @@ button{font:inherit;color:inherit}
     ч.classList.toggle('has-lk', есть);
     if (есть) {
       var свой = с.вид === 'pub';
-      к.innerHTML = с.замок ? З.замокЗ : З.замокО;
+      к.innerHTML = замокSVG(с.замок, 16);
       к.setAttribute('aria-disabled', !свой);
       к.setAttribute('aria-label', (с.замок ? 'Замок закрыт' : 'Замок открыт') + (свой ? (с.замок ? ' — открыть' : ' — закрыть') : ''));
       к.title = свой ? (с.замок ? 'Снять замок' : 'Закрыть замок') : (с.замок ? 'Под замком' : 'Открыт для правки');
@@ -351,7 +366,7 @@ button{font:inherit;color:inherit}
     значокУгла();
     привязать();
   }
-  function замок() { с.замок = !с.замок; if (!с.замок) с.режим = 'общие'; нарисовать(); тост(с.замок ? 'Замок закрыт' : 'Замок снят — правят и коллеги'); }
+  function замок() { с.замок = !с.замок; с.анимЗамка = с.замок ? 'close' : 'open'; clearTimeout(замок.т); замок.т = setTimeout(function () { с.анимЗамка = null; }, 500); if (!с.замок) с.режим = 'общие'; нарисовать(); тост(с.замок ? 'Замок закрыт' : 'Замок снят — правят и коллеги'); }
   function тост(т) {
     var э = document.getElementById('toast'); э.textContent = т; э.classList.add('show');
     clearTimeout(тост.т); тост.т = setTimeout(function () { э.classList.remove('show'); }, 2600);
