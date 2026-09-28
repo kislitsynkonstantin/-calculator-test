@@ -101,11 +101,14 @@ def сервер():
   document.querySelector('.shared-pcard[data-scode="222222"] .btn-shared-lock')?.click(); await ждать(150);
   const чужаяНажата = document.querySelector('.shared-pcard[data-scode="333333"] .btn-shared-lock'); чужаяНажата?.click(); await ждать(100);
   const после = карта();
+  // С (6) «Отозвать» сначала спрашивает (retractPreset открывает окно, его
+  // держит check_retract_confirm.py); здесь проверяется сам отзыв — то, что
+  // идёт после «Отозвать» в окне.
   ответОтзыва = false;
-  await retractPreset('222222'); await ждать(150);
+  await снятьСПубликации('222222'); await ждать(150);
   const неСнят = { вОбщих: !!document.querySelector('.shared-pcard[data-scode="222222"]'), тост: тосты[тосты.length - 1] || '' };
   ответОтзыва = true;
-  await retractPreset('222222'); await ждать(150);
+  await снятьСПубликации('222222'); await ждать(150);
   const снят = { вОбщих: !!document.querySelector('.shared-pcard[data-scode="222222"]'), тост: тосты[тосты.length - 1] || '' };
   window.showToast = былТост;
   closePresetPanel();

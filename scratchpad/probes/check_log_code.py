@@ -42,18 +42,25 @@ from playwright.sync_api import sync_playwright
 ЗАГЛУШКА = (pathlib.Path(__file__).parent / "stub_sb.js").read_text(encoding="utf-8")
 НАХОДКИ = []
 
+# Даты — от сегодняшнего дня: журнал по умолчанию показывает 7 дней, и
+# зашитое «19.09» через неделю ушло за край периода — проба падала сама.
+import datetime as _дт
+def СВЕЖО(часов):
+    return (_дт.datetime.now(_дт.timezone.utc) - _дт.timedelta(hours=часов)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 СОБЫТИЯ = [
     {"id": 1, "user_id": "u-проба", "event_type": "preset_saved",
      "project_name": "Фахверковая баня «Берлин» 9×5", "total_price": 6386520,
      "options_count": 12, "thickness": 150, "discount": 3, "cash_discount": False,
-     "checked_options": {}, "created_at": "2026-09-19T12:28:00Z",
+     "checked_options": {}, "created_at": СВЕЖО(2),
      "details": {"obj": "Антон · Фахверковая баня «Берлин» 8×6 · 18.09.26",
                  "preset": "Антон · Фахверковая баня «Берлин» 8×6 · 18.09.26",
                  "presetCode": "386520", "rows": []}},
     {"id": 2, "user_id": "u-проба", "event_type": "print",
      "project_name": "Фахверковая баня «Магдебург» 6×6", "total_price": 4241082,
      "options_count": 8, "thickness": 150, "discount": 0, "cash_discount": False,
-     "checked_options": {}, "created_at": "2026-09-19T12:37:00Z",
+     "checked_options": {}, "created_at": СВЕЖО(1),
      "details": {"obj": "Фахверковая баня «Магдебург» 6×6", "rows": []}},
 ]
 
