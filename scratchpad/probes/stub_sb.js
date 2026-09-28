@@ -162,8 +162,16 @@
         });
       }
     }
+    /* Поле внутри jsonb — `details->>presetCode`: страница так отбирает
+       действия одного пресета, и без разбора пути отбор отдавал бы пустоту. */
+    function значение(р, поле) {
+      var м = /^(\w+)->>(\w+)$/.exec(поле);
+      if (!м) return р[поле];
+      var в = (р[м[1]] || {})[м[2]];
+      return в == null ? null : String(в);
+    }
     о.eq = function (поле, знач) {
-      строки = строки.filter(function (р) { return String(р[поле]) === String(знач); });
+      строки = строки.filter(function (р) { return String(значение(р, поле)) === String(знач); });
       return о;
     };
     о.neq = function (поле, знач) {
