@@ -29888,7 +29888,7 @@ function всплытьПодКнопкой(узел, текст) {
 // набран тройками через пробел, поэтому цифры берутся из текста; пока кода нет
 // («— — —»), копировать нечего.
 function _кодСобытия(цель) {
-  const э = цель && цель.closest ? цель.closest('.al-code, .pcard-code-value') : null;
+  const э = цель && цель.closest ? цель.closest('.al-code, .pcard-code-value, .pc-code') : null;
   if (!э) return null;
   if (э.classList.contains('pcard-code-value')) {
     const цифры = (э.textContent || '').replace(/\D/g, '');
@@ -33916,6 +33916,15 @@ function имяПроектаЗначка() {
   try { return selectedProject ? String(selectedProject[0] || '') : ''; } catch (e) { return ''; }
 }
 function кодКрасиво(к) { return String(к || '').replace(/^(\d{3})(\d{3})$/, '$1 $2'); }
+// Код в мини-окне копируется двойным нажатием — только цифры, как на карточке
+// в окне «Пресеты» (Константин, 29.09.2026: «тут тоже двойное нажатие на код
+// пресета сделай, чтобы копировался в буфер только цифры кода»). Ловит его
+// общий обработчик _кодСобытия по классу pc-code.
+function кодМиниОкна(код, тихо) {
+  const цифры = String(код || '').replace(/\D/g, '');
+  const т = escapeHtml(кодКрасиво(код));
+  return '<span class="pc-code" data-code="' + цифры + '" title="Двойное нажатие — скопировать код">' + (тихо ? т : '<b>' + т + '</b>') + '</span>';
+}
 /* Значок на кнопке «Пресеты» в шапке — тот же, что на карточке открытого
    пресета (Константин, 27.09.2026: «на кнопке Пресеты показывай иконку
    активного пресета — облако, глобус и глобус закрашенный»): облако — свой
@@ -34136,7 +34145,7 @@ function панельПресетаКарточки(о) {
   if (о.вид === 'own') {
     const дата = датаКарточки(о.p.savedAt);
     h += '<div class="pc-meta">' + (дата ? 'Сохранён <b>' + escapeHtml(дата) + '</b>' : 'Сохранён')
-      + (о.код ? ' · код <b>' + escapeHtml(кодКрасиво(о.код)) + '</b>' : '') + '</div>'
+      + (о.код ? ' · код ' + кодМиниОкна(о.код) : '') + '</div>'
       + (о.здесь ? связи
         : '<div class="pc-st">' + значокРазмером(ЗНАЧОК_В_БАЗЕ, 14) + '<span>Сохранён в облаке — в «Общих» его нет</span></div>')
       + '<div class="pc-row"><button type="button" class="pc-pri" data-act="publish">' + значокРазмером(ЗНАЧОК_ДЛЯ_ВСЕХ, 14) + 'Опубликовать</button>'
@@ -34150,7 +34159,7 @@ function панельПресетаКарточки(о) {
     const состояние = поКоду ? 'Открыт по коду — только просмотр, в «Общих» его нет'
       : заперт ? 'Заблокирован — только просмотр' : (canEditPublic() ? 'Открыт для правки — изменения сохраняются' : 'Только просмотр');
     h += '<div class="pc-meta">Автор: <b>' + escapeHtml(о.sp.author_name || '—') + '</b><br>'
-      + (дата ? 'Сохранён ' + escapeHtml(дата) + ' · ' : '') + 'код ' + escapeHtml(кодКрасиво(о.код)) + '</div>'
+      + (дата ? 'Сохранён ' + escapeHtml(дата) + ' · ' : '') + 'код ' + кодМиниОкна(о.код, true) + '</div>'
       + '<div class="pc-st">' + замокЗначка(заперт, 13, о.код) + '<span>' + состояние + '</span></div>'
       + '<div class="pc-row">' + звезда + все + '</div>';
     return h;
@@ -34166,7 +34175,7 @@ function панельПресетаКарточки(о) {
     : !о.p ? 'В «Моих» этого пресета нет — он открыт как общий.'
     : вМоих ? 'Правишь как свой расчёт; коллеги видят результат в «Общих».'
     : 'Открыт как общий: под замком коллеги его только смотрят.';
-  h += '<div class="pc-meta">' + (дата ? 'Сохранён <b>' + escapeHtml(дата) + '</b> · ' : '') + 'код <b>' + escapeHtml(кодКрасиво(о.код)) + '</b></div>';
+  h += '<div class="pc-meta">' + (дата ? 'Сохранён <b>' + escapeHtml(дата) + '</b> · ' : '') + 'код ' + кодМиниОкна(о.код) + '</div>';
   if (_пкПодтв) {
     // Подтверждение — в самой карточке, на месте переключателя: окно поверх
     // окна теряло бы, о каком пресете речь. Слов о клиенте нет: ссылка клиенту
@@ -41653,6 +41662,7 @@ body.total-strip-on .pc-card{bottom:calc(var(--strip-h, 68px) + 10px)}
 .pc-card .pc-nm{margin-top:4px;padding-right:26px;font-family:'Unbounded',sans-serif;font-weight:700;font-size:.8rem;line-height:1.35;letter-spacing:-.01em;color:var(--pc-ink);white-space:normal}
 .pc-card .pc-meta{margin-top:8px;font-size:.72rem;line-height:1.55;color:var(--pc-ink2)}
 .pc-card .pc-meta b{color:var(--pc-ink);font-weight:600}
+.pc-card .pc-code{cursor:copy;-webkit-touch-callout:none;touch-action:manipulation}
 .pc-card .pc-st{display:flex;align-items:flex-start;gap:6px;margin-top:10px;padding:8px 10px;border-left:3px solid var(--pc-acc);border-radius:0 8px 8px 0;background:var(--pc-tint);font-size:.7rem;line-height:1.45;color:var(--pc-acc)}
 .pc-card .pc-st svg{flex:none;margin-top:2px}
 .pc-card .pc-st.pc-warm{border-left-color:var(--pc-warm);background:var(--pc-warm-tint);color:var(--pc-warm-ink)}
