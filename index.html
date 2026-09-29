@@ -33861,8 +33861,8 @@ function элементыЗначка() {
       if (e.target && e.target.id === 'pcName' && e.key === 'Enter') { e.preventDefault(); сохранитьИзМиниОкна(); return; }
       const т = e.target.closest ? e.target.closest('.pc-tab') : null;
       if (!т || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
-      const все = ['p', 'l', 'c'];
-      const н = (все.indexOf(т.getAttribute('data-tab')) + (e.key === 'ArrowRight' ? 1 : 2)) % 3;
+      const все = ['p', 's', 'l', 'c'];
+      const н = (все.indexOf(т.getAttribute('data-tab')) + (e.key === 'ArrowRight' ? 1 : все.length - 1)) % все.length;
       e.preventDefault();
       const след = к.querySelector('#pcTab-' + все[н]); if (след) след.click();
     });
@@ -34103,6 +34103,8 @@ function переключитьКарточкуЗначка() {
   const з = document.getElementById('presetChip');
   const т = з && з.querySelector('.pc-body'); if (т) т.setAttribute('aria-expanded', 'true');
   if (_пкВкладка === 'l') загрузитьЖурналПресета();
+  if (_пкВкладка === 's') загрузитьСводкуПресета();
+  нарисоватьГрафикСводки();
   // Открылось само (вернулось напоминание «Сохранить»), а панель открыта и
   // накрыла бы окно — оно сразу сворачивается, как при открытии панели.
   try { значокМимоПанели(); } catch (e) {}
@@ -34123,7 +34125,7 @@ function закрытьКарточкуЗначка() {
    Перерисовка идёт по состоянию, а не по событию: карточку зовут из десятка
    мест (замок, очередь, публикация, список), и если разметка не изменилась,
    она не трогается — иначе сбивались бы прокрутка журнала и фокус. */
-let _пкВкладка = 'p';      // p — пресет, l — журнал, c — проверка
+let _пкВкладка = 'p';      // p — пресет, s — сводка, l — журнал, c — проверка
 let _пкМеню = false;       // открыто меню «⋯»
 let _пкПодтв = false;      // идёт подтверждение снятия с публикации
 let _пкПресет = '';        // для какого пресета нарисована карточка
@@ -34335,7 +34337,7 @@ function панельЖурналаКарточки(о) {
     const ид = String(с.id != null ? с.id : (с.created_at + ':' + с.event_type));
     const есть = строки.length > 1 || строки.some(р => частиЗначения(р).length > 1);
     const открыт = есть && _пкЖурналОткрыт.has(ид);
-    из += '<li' + (есть ? ' class="pc-lg-has' + (открыт ? ' open' : '') + '"' : '') + '><span class="pc-lg-t">' + (датаЕсть ? д.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '') + '</span>'
+    из += '<li data-ev="' + escapeHtml(ид) + '"' + (есть ? ' class="pc-lg-has' + (открыт ? ' open' : '') + '"' : '') + '><span class="pc-lg-t">' + (датаЕсть ? д.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '') + '</span>'
       + '<span class="pc-lg-w">' + (кто ? '<b>' + escapeHtml(кто) + '</b> — ' : '') + escapeHtml(что) + '</span>'
       + (есть ? '<button type="button" class="pc-lg-chev" data-act="lg-x" data-ev="' + escapeHtml(ид) + '" aria-expanded="' + открыт + '" aria-label="' + (открыт ? 'Свернуть подробности' : 'Подробности') + '">'
           + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></button>' : '')
@@ -34344,6 +34346,314 @@ function панельЖурналаКарточки(о) {
   });
   if (ж.события.length >= ЖП_ПОТОЛОК) из += '<li class="pc-lg-cap">Показаны последние ' + ЖП_ПОТОЛОК + ' действий — остальные в полном журнале.</li>';
   return '<div class="pc-lg-sc"><ul class="pc-lg">' + из + '</ul></div>' + низ(ж.события.length);
+}
+
+/* ── Вкладка «Сводка»: как шёл расчёт этого пресета ──
+   Макет mockups/preset-summary-v2.html, числа — вариант А (Константин,
+   29.09.2026: «вот этот делаем»). Итог сейчас и разница с сохранением, график
+   итога по правкам, счёт работы, три крупные правки, кто правил и состояние
+   расчёта. Полосы диапазона нет — снята им же.
+   Счёт идёт по всей истории пресета, а не по последним 300 действиям, которые
+   грузит «Журнал»: правки, открытия и печать считает сама база. График строится
+   по последним СВ_ПОТОЛОК правкам — больше на ширине мини-окна не различить. */
+let _сводкаПресета = { код: '', данные: null, ошибка: '', грузится: false, когда: 0 };
+const СВ_ПОТОЛОК = 1000;
+// Правки подряд за три минуты — одна ступень графика: подарки, отмечаемые
+// одна за другой, иначе рисовали ложный пик на несколько секунд.
+const СВ_СЛИЯНИЕ = 3 * 60 * 1000;
+// Не правки: открытие, печать, публикация и ссылка клиенту, выбор проекта при
+// открытии, сохранение (с него график начинается) и старый чек-лист.
+const СВ_НЕ_ПРАВКИ = ['preset_saved', 'preset_opened', 'print', 'share_created', 'share_revoked',
+  'client_link_created', 'client_link_updated', 'client_link_revoked', 'project_changed', 'checklist_done'];
+function видыПравокПресета() { return видыЖурналаПресета().filter(в => СВ_НЕ_ПРАВКИ.indexOf(в) === -1); }
+async function загрузитьСводкуПресета(заново) {
+  const о = пресетКарточки();
+  const код = о && о.код;
+  if (!код || !_sb || !_sbUser) return;
+  const с = _сводкаПресета;
+  if (с.код === код && (с.грузится || (!заново && Date.now() - с.когда < 30000))) return;
+  _сводкаПресета = { код, данные: с.код === код ? с.данные : null, ошибка: '', грузится: true, когда: 0 };
+  заполнитьКарточкуЗначка();
+  const события = () => _sb.from('events');
+  const счёт = (виды) => события().select('id', { count: 'exact', head: true })
+    .eq('details->>presetCode', код).in('event_type', виды)
+    .then(р => { if (р.error) throw р.error; return р.count || 0; });
+  let данные = null, ошибка = '';
+  try {
+    const правкиВиды = видыПравокПресета();
+    const [лента, начало, правок, открыт, печать, ссылка] = await Promise.all([
+      события().select('id,created_at,event_type,user_id,total_price,details')
+        .eq('details->>presetCode', код).in('event_type', правкиВиды.concat(['preset_saved']))
+        .order('created_at', { ascending: false }).limit(СВ_ПОТОЛОК)
+        .then(р => { if (р.error) throw р.error; return (р.data || []).reverse(); }),
+      // Сохранение, с которого считается разница, — самое первое, даже когда
+      // лента графика до него не достаёт.
+      события().select('id,created_at,event_type,user_id,total_price')
+        .eq('details->>presetCode', код).eq('event_type', 'preset_saved').gt('total_price', 0)
+        .order('created_at', { ascending: true }).limit(1)
+        .then(р => { if (р.error) throw р.error; return (р.data || [])[0] || null; }),
+      счёт(правкиВиды), счёт(['preset_opened']), счёт(['print']),
+      ссылкаКлиентуПресета(о),
+    ]);
+    const ид = [...new Set(лента.map(х => х.user_id).filter(u => u && !_alИмена[u]))];
+    if (ид.length) {
+      try {
+        const { data: пр } = await _sb.from('profiles').select('id,first_name,last_name,email').in('id', ид);
+        (пр || []).forEach(x => { _alИмена[x.id] = [x.first_name, x.last_name].filter(Boolean).join(' ') || x.email || 'Сотрудник'; });
+      } catch (e) {}
+    }
+    данные = { лента, начало, правок, открыт, печать, ссылка, упёрлись: лента.length >= СВ_ПОТОЛОК };
+  } catch (e) { ошибка = (e && e.message) || 'нет связи'; }
+  if (_сводкаПресета.код !== код) return;
+  _сводкаПресета = { код, данные: данные || _сводкаПресета.данные, ошибка, грузится: false, когда: Date.now() };
+  заполнитьКарточкуЗначка();
+}
+// Ссылка клиенту — только у своего пресета: чужие ссылки база не отдаёт, и
+// «не выдавалась» было бы неправдой.
+async function ссылкаКлиентуПресета(о) {
+  if (!о || о.вид === 'other' || !о.id) return undefined;
+  try {
+    const { data, error } = await _sb.from('client_links').select('code,revoked,created_at')
+      .eq('author_id', _sbUser.id).eq('preset_id', String(о.id))
+      .order('created_at', { ascending: false }).limit(1);
+    if (error) throw error;
+    const л = (data || [])[0];
+    if (!л) return null;
+    const { data: з } = await _sb.from('client_link_visits').select('seen_at')
+      .eq('code', л.code).order('seen_at', { ascending: false });
+    return { отозвана: !!л.revoked, заходов: (з || []).length, последний: (з && з[0] && з[0].seen_at) || '' };
+  } catch (e) { return undefined; }
+}
+function рубСводки(н) { return fmt(Math.abs(н)); }
+function дельтаСводки(н) { return (н > 0 ? '+' : '−') + рубСводки(н); }
+function деньКоротко(д) { return д.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }); }
+function времяКоротко(д) { return д.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }); }
+// Правка одной строкой: что сделали, а длинный список — первым пунктом и
+// числом остальных.
+function описаниеПравки(с, имяПресета) {
+  const строки = строкиЖурналаПресета(с, имяПресета);
+  const р = строки.find(х => х.k !== 'Итог');
+  if (р && !р.a) {
+    const ч = частиЗначения(р);
+    if (ч.length > 1) return (р.k ? р.k + ': ' : '') + ч[0] + ' и ещё ' + (ч.length - 1);
+  }
+  return подробностьЖурналаПресета(с, имяПресета, строки) || AL_ВСЕ_ВИДЫ[с.event_type] || с.event_type;
+}
+// Точки графика: сохранение, затем ступени — правки подряд за три минуты одного
+// человека сводятся в одну с итогом в конце. Нулевой итог (записанный до
+// пересчёта) и ступени без сдвига итога в график не идут.
+function точкиСводки(д, имяПресета) {
+  const итог = с => Math.round(Number(с.total_price) || 0);
+  const нач = д.начало || д.лента.find(с => итог(с) > 0) || null;
+  if (!нач) return [];
+  const точки = [{ с: нач, время: new Date(нач.created_at), итог: итог(нач), кто: нач.user_id, начало: true, событий: 1 }];
+  let г = null, было = итог(нач);
+  const закрыть = () => {
+    if (г && г.итог !== точки[точки.length - 1].итог) точки.push(г);
+    г = null;
+  };
+  д.лента.forEach(с => {
+    if (с === нач || с.id === нач.id) return;
+    const т = new Date(с.created_at);
+    if (isNaN(т) || т < точки[0].время || с.event_type === 'preset_saved') return;
+    const и = итог(с);
+    if (!(и > 0)) return;
+    if (!г || т - г.конец > СВ_СЛИЯНИЕ || с.user_id !== г.кто) {
+      закрыть();
+      г = { с, время: т, конец: т, итог: и, кто: с.user_id, событий: 0, вес: -1 };
+    }
+    // Главной в ступени стоит правка, сильнее всех сдвинувшая итог.
+    const сдвиг = Math.abs(и - было);
+    if (сдвиг > г.вес) { г.вес = сдвиг; г.с = с; }
+    г.событий++; г.конец = т; г.итог = и; было = и;
+  });
+  закрыть();
+  точки.forEach(т => { т.что = т.начало ? (т.с.event_type === 'preset_saved' ? 'Сохранён в пресет' : 'Начало журнала') : описаниеПравки(т.с, имяПресета); });
+  return точки;
+}
+let _свТочки = [];
+function ктоСводки(uid) {
+  if (!uid) return '';
+  return uid === (_sbUser || {}).id ? 'Вы' : имяКратко(alИмя(uid));
+}
+function строкаОпределения(к, з) {
+  return '<div><span class="sv-kk">' + escapeHtml(к) + '</span><span class="sv-dots" aria-hidden="true"></span><span class="sv-vv">' + escapeHtml(з) + '</span></div>';
+}
+function состояниеСводки(о, д) {
+  const р = [];
+  const пр = parseFloat((document.getElementById('discountPctInput') || {}).value) || 0;
+  const нал = !!(document.getElementById('cashDiscountCheck') || {}).checked;
+  р.push(['Скидка', пр ? String(пр).replace('.', ',') + ' %' + (нал ? ' · за наличные' : '') : 'нет']);
+  let штук = 0, сумма = 0;
+  giftedOpts.forEach(id => {
+    if (!checkedOptions[id]) return;
+    const оп = getOpt(id); if (!оп) return;
+    штук++; сумма += Number(getOptPrice(оп)) || 0;
+  });
+  р.push(['Подарком', штук ? штук + ' ' + alСклонение(штук, 'позиция', 'позиции', 'позиций') + (сумма ? ' · ' + fmt(сумма) : '') : 'нет']);
+  const заперт = _замокВПути.has(о.код) ? _замокВПути.get(о.код) : о.sp.locked !== false;
+  const с = о.sp.created_at ? new Date(о.sp.created_at) : null;
+  if (о.вид === 'own') р.push(['Публикация', 'не опубликован']);
+  else if (о.вид === 'other' && открытПоКоду(о.sp)) р.push(['Публикация', 'не опубликован · открыт по коду']);
+  else р.push(['Публикация', (с && !isNaN(с) ? 'с ' + деньКоротко(с) + ' · ' : '') + (заперт ? 'замок закрыт' : 'замок открыт')]);
+  const л = д && д.ссылка;
+  if (л === null) р.push(['Ссылка клиенту', 'не выдавалась']);
+  else if (л) {
+    const посл = л.последний ? new Date(л.последний) : null;
+    р.push(['Ссылка клиенту', л.отозвана ? 'отозвана'
+      : л.заходов ? л.заходов + ' ' + alСклонение(л.заходов, 'заход', 'захода', 'заходов') + (посл && !isNaN(посл) ? ' · ' + деньКоротко(посл) : '')
+      : 'выдана, заходов нет']);
+  }
+  return р;
+}
+function панельСводкиКарточки(о) {
+  const пусто = (заголовок, текст) => '<div class="pc-lg-empty"><b>' + заголовок + '</b>' + текст + '</div>';
+  if (!о.код) return пусто('Код ещё выдаётся', 'Сводка появится вместе с кодом.');
+  if (!_sbUser) return пусто('Нужен вход', 'Сводка доступна после входа в аккаунт.');
+  const св = _сводкаПресета;
+  if (св.код !== о.код || !св.данные) return св.код === о.код && св.ошибка && !св.грузится ? пусто('Не удалось загрузить', escapeHtml(св.ошибка)) : пусто('Сводка загружается…', '');
+  const д = св.данные;
+  const т = _свТочки = точкиСводки(д, о.имя);
+  const сейчас = Math.round(Number(_currentTotal) || 0);
+  let h = '<div class="sv-hero"><div class="sv-k">Итог сейчас</div><div class="sv-now">' + fmt(сейчас) + '</div>';
+  if (т.length) {
+    const нач = т[0], раз = сейчас - нач.итог;
+    const сегодня = new Date().toDateString() === нач.время.toDateString();
+    const когда = (нач.с.event_type === 'preset_saved' ? 'с сохранения ' : 'с ') + (сегодня ? 'сегодня в ' + времяКоротко(нач.время) : деньКоротко(нач.время));
+    h += '<div class="sv-dl">' + (раз && нач.итог ? '<b class="' + (раз > 0 ? 'up' : 'dn') + '">' + дельтаСводки(раз) + ' · ' + (раз > 0 ? '+' : '−') + Math.abs(Math.round(раз / нач.итог * 100)) + ' %</b>' : '<b>без изменений</b>')
+      + '<span class="s">' + когда + '</span></div>';
+  }
+  h += '</div>';
+  if (т.length >= 3) {
+    h += '<div class="sv-ch" tabindex="0" role="group" aria-roledescription="график" aria-label="Итог по правкам. Стрелки влево и вправо — к соседней правке"><svg aria-hidden="true"></svg></div>'
+      + '<div class="sv-days" aria-hidden="true"></div><div class="sv-rd" aria-live="polite"></div>';
+  } else if (т.length) {
+    h += '<div class="sv-empty">' + (т.length === 1 ? 'Итог после сохранения не менялся — графику пока не из чего строиться.'
+      : 'График появится со второй правкой, меняющей итог, — пока она одна.') + '</div>';
+  }
+  // Работа с пресетом — строки с отточием (вариант А).
+  const дни = new Set(), края = [];
+  д.лента.forEach(с => { const в = new Date(с.created_at); if (!isNaN(в)) { дни.add(в.toDateString()); края.push(в); } });
+  const пер = края.length ? края[0] : null, посл = края.length ? края[края.length - 1] : null;
+  const нДней = дни.size;
+  h += '<div class="sv-h">Работа с пресетом</div><div class="sv-df">'
+    + строкаОпределения('Правок', String(д.правок))
+    + (нДней ? строкаОпределения('В работе', нДней + ' ' + alСклонение(нДней, 'день', 'дня', 'дней')
+        + (пер && посл && пер.toDateString() !== посл.toDateString() ? ' · ' + деньКоротко(пер) + '–' + деньКоротко(посл) : '')) : '')
+    + строкаОпределения('Открыт', д.открыт ? д.открыт + ' ' + alСклонение(д.открыт, 'раз', 'раза', 'раз') : 'ещё нет')
+    + строкаОпределения('Напечатан', д.печать ? д.печать + ' ' + alСклонение(д.печать, 'раз', 'раза', 'раз') : 'ещё нет')
+    + '</div>';
+  // Крупные правки — три, что сильнее всего сдвинули итог.
+  const шаги = т.slice(1).map((х, и) => ({ х, д: х.итог - т[и].итог })).sort((а, б) => Math.abs(б.д) - Math.abs(а.д)).slice(0, 3);
+  const подписывать = alStaff() || т.some(х => х.кто && х.кто !== (_sbUser || {}).id);
+  if (шаги.length) {
+    h += '<div class="sv-h">Крупные правки</div><ul class="sv-top">' + шаги.map(ш => {
+      const ид = String(ш.х.с.id != null ? ш.х.с.id : (ш.х.с.created_at + ':' + ш.х.с.event_type));
+      return '<li><button type="button" data-act="sv-go" data-ev="' + escapeHtml(ид) + '"><span class="sv-d ' + (ш.д > 0 ? 'up' : 'dn') + '">' + дельтаСводки(ш.д) + '</span>'
+        + '<span class="sv-w">' + escapeHtml(ш.х.что) + '<small>' + деньКоротко(ш.х.время) + ', ' + времяКоротко(ш.х.время)
+        + (подписывать && ш.х.кто ? ' · ' + escapeHtml(ктоСводки(ш.х.кто)) : '') + (ш.х.событий > 1 ? ' · ' + ш.х.событий + ' ' + alСклонение(ш.х.событий, 'правка', 'правки', 'правок') + ' подряд' : '') + '</small></span>'
+        + '<span class="sv-g" aria-hidden="true">→</span></button></li>';
+    }).join('') + '</ul>';
+  }
+  // Кто правил — когда правили двое и больше.
+  const кто = {};
+  д.лента.forEach(с => { if (с.user_id && СВ_НЕ_ПРАВКИ.indexOf(с.event_type) === -1) кто[с.user_id] = (кто[с.user_id] || 0) + 1; });
+  const люди = Object.keys(кто).sort((а, б) => кто[б] - кто[а]);
+  if (люди.length > 1) {
+    const всего = люди.reduce((с, u) => с + кто[u], 0);
+    h += '<div class="sv-h">Кто правил</div><div class="sv-who">' + люди.map(u => {
+      const имя = ктоСводки(u);
+      const ин = имя === 'Вы' ? 'ВЫ' : String(alИмя(u) || '').split(/\s+/).filter(Boolean).slice(0, 2).map(ч => ч.charAt(0)).join('').toUpperCase();
+      return '<div><span class="sv-av" aria-hidden="true">' + escapeHtml(ин) + '</span><span class="sv-nb">' + escapeHtml(имя)
+        + '<span class="sv-bar" style="width:' + Math.max(4, Math.round(кто[u] / всего * 100)) + '%"></span></span><span class="sv-n">' + кто[u] + '</span></div>';
+    }).join('') + '</div>';
+  }
+  h += '<div class="sv-h">Состояние</div><div class="sv-df">' + состояниеСводки(о, д).map(р => строкаОпределения(р[0], р[1])).join('') + '</div>';
+  if (т.length) {
+    h += '<div class="sv-ft">' + (д.упёрлись ? 'График — по последним ' + СВ_ПОТОЛОК + ' правкам; счёт — за всё время. ' : 'По журналу действий с ' + деньКоротко(т[0].время) + '. ')
+      + 'Правки подряд за три минуты — одна ступень графика.</div>';
+  }
+  return h;
+}
+// График рисуется после разметки: ширину он берёт у мини-окна. Скрытое окно
+// ширины не имеет, поэтому рисунок повторяется, когда окно откроют.
+function нарисоватьГрафикСводки() {
+  const к = document.getElementById('presetChipCard');
+  const бл = к && к.classList.contains('show') ? к.querySelector('#pcPane-s.on .sv-ch') : null;
+  if (!бл) return;
+  const т = _свТочки;
+  const W = Math.round(бл.clientWidth);
+  if (!W || т.length < 3) return;
+  const svg = бл.querySelector('svg');
+  const отпечаток = W + ':' + т.map(х => х.итог).join(',');
+  if (бл.dataset.w === отпечаток) return;
+  бл.dataset.w = отпечаток;
+  const H = 92, П = 8, К = 6, шаг = (W - 2 * К) / (т.length - 1);
+  const зн = т.map(х => х.итог), мин = Math.min(...зн), макс = Math.max(...зн);
+  const x = и => К + и * шаг;
+  const y = в => П + (H - 2 * П) * (1 - (в - мин) / ((макс - мин) || 1));
+  let путь = 'M' + x(0) + ' ' + y(зн[0]).toFixed(1);
+  зн.forEach((в, и) => { if (и) путь += ' H' + x(и).toFixed(1) + ' V' + y(в).toFixed(1); });
+  // Дни — тонкими линиями между ступенями, подпись дня посередине его ступеней;
+  // тесно соседней — пропускается.
+  let линии = '', дни = '', нач = 0, прошлая = -99;
+  const день = и => т[и].время.toDateString();
+  т.forEach((р, и) => {
+    if (и && день(и) !== день(и - 1)) линии += '<line class="dv" x1="' + (x(и) - шаг / 2).toFixed(1) + '" x2="' + (x(и) - шаг / 2).toFixed(1) + '" y1="0" y2="' + H + '"/>';
+    if (и === т.length - 1 || день(и + 1) !== день(и)) {
+      const ц = (x(нач) + x(и)) / 2;
+      if (ц - прошлая >= 38) { дни += '<span style="left:' + Math.min(W - 17, Math.max(17, ц)).toFixed(1) + 'px">' + деньКоротко(р.время) + '</span>'; прошлая = ц; }
+      нач = и + 1;
+    }
+  });
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.innerHTML = линии + '<line class="bs" x1="0" x2="' + W + '" y1="' + H + '" y2="' + H + '"/>'
+    + '<path class="ar" d="' + путь + ' V' + H + ' H' + x(0) + ' Z"/><path class="ln" d="' + путь + '"/>'
+    + '<circle class="p0" cx="' + x(0) + '" cy="' + y(зн[0]).toFixed(1) + '" r="4"/>'
+    + '<circle class="pn" cx="' + x(зн.length - 1) + '" cy="' + y(зн[зн.length - 1]).toFixed(1) + '" r="4.5"/>'
+    + '<g class="cg" style="display:none"><line class="cur" y1="0" y2="' + H + '"/><circle class="cp" r="4"/></g>';
+  const панель = бл.parentNode;
+  панель.querySelector('.sv-days').innerHTML = дни;
+  const cg = svg.querySelector('.cg'), cl = cg.querySelector('line'), cp = cg.querySelector('circle'), рд = панель.querySelector('.sv-rd');
+  const подписывать = alStaff() || т.some(х => х.кто && х.кто !== (_sbUser || {}).id);
+  const показать = (и, курсор) => {
+    const р = т[и], дл = и ? р.итог - т[и - 1].итог : 0;
+    рд.innerHTML = '<div class="a"><span>' + деньКоротко(р.время) + ', ' + времяКоротко(р.время) + '</span>'
+      + (подписывать && р.кто ? '<span>· ' + escapeHtml(ктоСводки(р.кто)) + '</span>' : '')
+      + (и === т.length - 1 ? '<span>· последняя правка</span>' : '') + '</div>'
+      + '<div class="w">' + escapeHtml(р.что) + '</div><div class="p"><b>' + fmt(р.итог) + '</b>'
+      + (дл ? '<span class="' + (дл > 0 ? 'up' : 'dn') + '">' + дельтаСводки(дл) + '</span>' : '') + '</div>';
+    if (курсор) { cg.style.display = ''; cl.setAttribute('x1', x(и)); cl.setAttribute('x2', x(и)); cp.setAttribute('cx', x(и)); cp.setAttribute('cy', y(р.итог)); }
+    else cg.style.display = 'none';
+    бл.dataset.at = и;
+  };
+  показать(т.length - 1, false);
+  const поТочке = e => { const r = бл.getBoundingClientRect(); показать(Math.max(0, Math.min(т.length - 1, Math.round((e.clientX - r.left - К) / шаг))), true); };
+  бл.onpointermove = поТочке;
+  бл.onpointerdown = поТочке;
+  бл.onpointerleave = e => { if (e.pointerType === 'mouse') показать(т.length - 1, false); };
+  бл.onkeydown = e => {
+    let и = +бл.dataset.at;
+    if (e.key === 'ArrowLeft') и = Math.max(0, и - 1); else if (e.key === 'ArrowRight') и = Math.min(т.length - 1, и + 1);
+    else if (e.key === 'Home') и = 0; else if (e.key === 'End') и = т.length - 1; else return;
+    e.preventDefault(); e.stopPropagation(); показать(и, true);
+  };
+  бл.onblur = () => показать(т.length - 1, false);
+}
+// Переход из «Крупных правок»: событие во вкладке «Журнал» встаёт посередине
+// ленты и коротко подсвечивается. Ждёт, пока журнал загрузится; события нет
+// среди последних 300 — лента остаётся сверху.
+let _пкКСобытию = '';
+function кСобытиюЖурнала(к) {
+  if (!_пкКСобытию || _пкВкладка !== 'l') return;
+  const ж = _журналПресета;
+  const лента = к.querySelector('.pc-lg-sc');
+  const цель = лента && [...лента.querySelectorAll('li[data-ev]')].find(л => л.getAttribute('data-ev') === _пкКСобытию);
+  if (!цель) { if (ж.события && !ж.грузится) _пкКСобытию = ''; return; }
+  _пкКСобытию = '';
+  лента.scrollTop = Math.max(0, лента.scrollTop + цель.getBoundingClientRect().top - лента.getBoundingClientRect().top - (лента.clientHeight - цель.offsetHeight) / 2);
+  цель.classList.add('pc-lg-flash');
+  setTimeout(() => цель.classList.remove('pc-lg-flash'), 2200);
 }
 
 /* ── Вкладка «Проверка»: пункты чек-листа, которые видно по отметкам ──
@@ -34561,15 +34871,16 @@ function заполнитьКарточкуЗначка() {
       + '<button class="pc-x" type="button" data-act="close" aria-label="Закрыть">' + ЗНАЧОК_КРЕСТ + '</button>'
       + '<div class="pc-k">' + надзаг + '</div><div class="pc-nm">' + escapeHtml(о.имя || о.код) + '</div>'
       + '<div class="pc-tabs" role="tablist">'
-      + вкладка('p', 'Пресет') + вкладка('l', 'Журнал')
+      + вкладка('p', 'Пресет') + вкладка('s', 'Сводка') + вкладка('l', 'Журнал')
       + вкладка('c', 'Проверка', н ? ' <span class="pc-cnt pc-cnt-w">' + н + '</span>' : '')
       + '</div>'
       + панель('p', панельПресетаКарточки(о))
+      + панель('s', _пкВкладка === 's' ? панельСводкиКарточки(о) : '')
       + панель('l', _пкВкладка === 'l' ? панельЖурналаКарточки(о) : '')
       + панель('c', _пкВкладка === 'c' ? панельПроверкиКарточки(пр) : '');
     к.className = 'pc-card pc-tabbed' + (о.вид === 'pub' ? ' pc-pub' : '') + (к.classList.contains('show') ? ' show' : '');
   } else { закрытьКарточкуЗначка(); return; }
-  if (к.dataset.h === h) return;
+  if (к.dataset.h === h) { нарисоватьГрафикСводки(); return; }
   // Прокрутка журнала переживает перерисовку: карточку перерисовывают и
   // замок, и очередь, и ответ базы.
   const лента = к.querySelector('.pc-lg-sc');
@@ -34585,6 +34896,8 @@ function заполнитьКарточкуЗначка() {
     край();
   }
   if (фокус) { const ф = к.querySelector('[data-act="' + фокус + '"]'); if (ф) ф.focus(); }
+  нарисоватьГрафикСводки();
+  кСобытиюЖурнала(к);
   // Набранное имя переживает перерисовку: в разметке только исходное.
   const поле = к.querySelector('#pcName');
   if (поле && _пкИмя) {
@@ -34625,6 +34938,7 @@ function нажатиеВКарточке(e) {
       _пкВкладка = кн.getAttribute('data-tab') || 'p'; _пкПодтв = false;
       заполнитьКарточкуЗначка();
       if (_пкВкладка === 'l') загрузитьЖурналПресета();
+      if (_пкВкладка === 's') загрузитьСводкуПресета();
       { const т = к.querySelector('#pcTab-' + _пкВкладка); if (т) т.focus(); }
       break;
     case 'star':
@@ -34668,6 +34982,16 @@ function нажатиеВКарточке(e) {
       _alСобытия = [];
       openActionLog();
       break;
+    // Крупная правка из сводки открывает себя во вкладке «Журнал»: раскрытой,
+    // посередине ленты и с короткой подсветкой.
+    case 'sv-go': {
+      const ид = кн.getAttribute('data-ev') || '';
+      _пкВкладка = 'l'; _пкКСобытию = ид;
+      if (ид) _пкЖурналОткрыт.add(ид);
+      заполнитьКарточкуЗначка();
+      загрузитьЖурналПресета();
+      break;
+    }
     case 'ck': кРазделуИзПроверки(кн.getAttribute('data-sec'), кн.getAttribute('data-el')); break;
     case 'lg-x': {
       const ид = кн.getAttribute('data-ev') || '';
@@ -41755,6 +42079,60 @@ body.total-strip-on .pc-card{bottom:calc(var(--strip-h, 68px) + 10px)}
 .pc-card .pc-lg-w{font-size:.72rem;line-height:1.4;color:var(--pc-ink);min-width:0;overflow-wrap:anywhere}
 .pc-card .pc-lg-w b{font-weight:600}
 .pc-card .pc-lg-d{grid-column:2;font-size:.68rem;line-height:1.4;color:var(--pc-ink2);min-width:0;overflow-wrap:anywhere}
+.pc-card .pc-lg li.pc-lg-flash{animation:pcLgFlash 2.1s ease}
+@keyframes pcLgFlash{0%,55%{background:var(--pc-tint)}100%{background:transparent}}
+/* Сводка — макет mockups/preset-summary-v2.html, числа вариантом А. */
+body{--pc-down:#a4502a}
+body.dark,body.ui-blank.dark{--pc-down:#e6a27c}
+.pc-card .sv-hero{padding:12px 0 2px}
+.pc-card .sv-k,.pc-card .sv-h{font-size:.56rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--pc-ink3)}
+.pc-card .sv-now{margin-top:3px;font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.26rem;line-height:1.15;letter-spacing:-.02em;color:var(--pc-ink);font-variant-numeric:tabular-nums}
+.pc-card .sv-dl{margin-top:5px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;font-size:.72rem}
+.pc-card .sv-dl b{font-weight:600}
+.pc-card .sv-dl .s{color:var(--pc-ink2)}
+.pc-card :is(.sv-dl,.sv-rd,.sv-top) .up{color:var(--pc-acc)}
+.pc-card :is(.sv-dl,.sv-rd,.sv-top) .dn{color:var(--pc-down)}
+.pc-card .sv-ch{position:relative;margin-top:12px;outline:none;touch-action:pan-y;cursor:crosshair;border-radius:6px}
+.pc-card .sv-ch:focus-visible{outline:2px solid var(--pc-acc);outline-offset:2px}
+.pc-card .sv-ch svg{display:block;width:100%;height:92px;overflow:visible}
+.pc-card .sv-ch .ar{fill:var(--pc-acc);fill-opacity:.12}
+.pc-card .sv-ch .ln{fill:none;stroke:var(--pc-acc);stroke-width:2;stroke-linejoin:round}
+.pc-card .sv-ch .dv{stroke:var(--pc-rule);stroke-width:1}
+.pc-card .sv-ch .bs{stroke:var(--pc-line);stroke-width:1}
+.pc-card .sv-ch .p0{fill:var(--pc-bg);stroke:var(--pc-acc);stroke-width:1.6}
+.pc-card .sv-ch .pn{fill:var(--pc-acc);stroke:var(--pc-bg);stroke-width:2}
+.pc-card .sv-ch .cur{stroke:var(--pc-ink3);stroke-width:1;stroke-dasharray:2 3}
+.pc-card .sv-ch .cp{fill:var(--pc-bg);stroke:var(--pc-ink);stroke-width:1.8}
+.pc-card .sv-days{position:relative;height:16px;margin-top:4px;font-size:.6rem;color:var(--pc-ink3)}
+.pc-card .sv-days span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.pc-card .sv-rd{margin-top:6px;padding:8px 10px;border-radius:9px;background:var(--pc-tint);min-height:52px}
+.pc-card .sv-rd .a{display:flex;gap:6px;font-size:.64rem;color:var(--pc-ink2)}
+.pc-card .sv-rd .w{margin-top:1px;font-size:.72rem;line-height:1.35;color:var(--pc-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc-card .sv-rd .p{display:flex;gap:8px;align-items:baseline;margin-top:1px;font-size:.72rem;color:var(--pc-ink)}
+.pc-card .sv-rd .p b,.pc-card .sv-rd .up,.pc-card .sv-rd .dn{font-weight:600}
+.pc-card .sv-empty{margin-top:12px;padding:12px;border:1px dashed var(--pc-line);border-radius:10px;font-size:.7rem;line-height:1.45;color:var(--pc-ink2)}
+.pc-card .sv-h{margin-top:18px}
+.pc-card .sv-df{margin-top:6px}
+.pc-card .sv-df div{display:flex;align-items:baseline;gap:8px;padding:5px 0;font-size:.7rem}
+.pc-card .sv-kk{color:var(--pc-ink2);white-space:nowrap}
+.pc-card .sv-dots{flex:1;min-width:10px;height:2px;align-self:center;margin-top:5px;background:radial-gradient(circle,var(--pc-line) 1px,transparent 1.2px) 0 0/6px 2px repeat-x}
+.pc-card .sv-vv{font-weight:600;text-align:right;color:var(--pc-ink)}
+.pc-card .sv-top{list-style:none;padding:0;margin:6px 0 0}
+.pc-card .sv-top li + li{border-top:1px solid var(--pc-rule)}
+.pc-card .sv-top button{position:relative;display:grid;grid-template-columns:auto 1fr auto;gap:0 10px;align-items:baseline;width:100%;min-height:44px;padding:8px 0;border:0;background:none;color:var(--pc-ink);font:inherit;text-align:left;cursor:pointer}
+.pc-card .sv-d{font-weight:600;font-size:.72rem;white-space:nowrap;min-width:78px}
+.pc-card .sv-w{font-size:.7rem;line-height:1.35;min-width:0;overflow-wrap:anywhere}
+.pc-card .sv-w small{display:block;font-size:.62rem;color:var(--pc-ink3)}
+.pc-card .sv-g{color:var(--pc-ink3);font-size:.72rem;transition:transform .15s}
+.pc-card .sv-who{margin-top:8px}
+.pc-card .sv-who div{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center;padding:4px 0;font-size:.7rem;color:var(--pc-ink)}
+.pc-card .sv-av{width:22px;height:22px;border-radius:50%;background:var(--pc-tint);color:var(--pc-acc);font-family:'Unbounded',sans-serif;font-size:.5rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pc-card .sv-nb{min-width:0}
+.pc-card .sv-bar{display:block;height:4px;border-radius:2px;background:var(--pc-acc);opacity:.45;margin-top:4px}
+.pc-card .sv-n{font-weight:600}
+.pc-card .sv-ft{margin:16px 0 4px;font-size:.62rem;color:var(--pc-ink3);line-height:1.45}
+@media (hover:hover){.pc-card .sv-top button:hover .sv-g{transform:translateX(3px)}.pc-card .sv-top button:hover .sv-w{color:var(--pc-acc)}}
+@media (prefers-reduced-motion:reduce){.pc-card .sv-g{transition:none}.pc-card .pc-lg li.pc-lg-flash{animation:none;background:var(--pc-tint)}}
 .pc-card .pc-lg-empty{padding:18px 0 8px;font-size:.72rem;line-height:1.5;color:var(--pc-ink2)}
 .pc-card .pc-lg-empty b{display:block;color:var(--pc-ink);font-weight:600}
 .pc-card .pc-wide{width:100%}
