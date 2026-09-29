@@ -3763,7 +3763,12 @@ body.ui-blank .btn-hide-global.btn-icon:active { color: var(--bl-acc); }
   pointer-events: auto;
   cursor: default;
   display: none;
-  z-index: 9999;
+  /* Под всплывающими окнами, а не над ними: уголок (810–811), боковая панель
+     «Спецификация» (999) и окна (5000+) закрывают подсказку, а не она их
+     (Константин, 29.09.2026: «окна должны быть сверху»). Прежние 9999 клали
+     её поверх всего. Над страницей она по-прежнему; от липкой шапки (2000)
+     её уводит расстановка — см. поставитьПодсказкуУ. */
+  z-index: 805;
   box-shadow: 0 2px 10px rgba(0,0,0,0.4);
 }
 /* PAYMENT PLAN */
@@ -16194,6 +16199,9 @@ function ужатьПодсказку(tip) {
 // координат меряется у самой плашки: так не важно, от какого предка она
 // отсчитывается.
 function поставитьПодсказкуУ(tip, rr, снизу) {
+  // Над строкой не хватает места до липкой шапки — под строку: шапка теперь
+  // выше подсказки и закрыла бы её.
+  if (!снизу) { let шапка = 8; try { шапка = getStickyOffset(); } catch (e) {} if (rr.top - tip.offsetHeight - 8 < шапка) снизу = true; }
   tip.style.left = '0px'; tip.style.top = '0px';
   const о = tip.getBoundingClientRect();
   const left = Math.max(8, Math.min(rr.left + 12, window.innerWidth - tip.offsetWidth - 12));
