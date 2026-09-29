@@ -13,9 +13,9 @@
   • ни значок, ни мини-окно не выходят за левый край экрана;
   • сдвинутые — не заходят под панель: если сдвиг есть, мини-окно целиком
     левее её кромки; если места нет — они на месте, а панель стоит слоем
-    выше и накрывает их; из-под панели не торчит полоса мини-окна — оно
-    скрыто целиком;
-  • закрыли панель — мини-окно снова видно, на своём месте.
+    выше; накрытое мини-окно сворачивается в значок, а не лежит под панелью;
+  • закрыли панель — по нажатию на значок мини-окно открывается на месте;
+  • открылось само при открытой панели — сразу сворачивается.
 
     python3 check_preset_card_sidepanel.py
 """
@@ -32,7 +32,8 @@ from playwright.sync_api import sync_playwright
   const zп = +getComputedStyle(п).zIndex || 0, zо = +getComputedStyle(document.getElementById('presetChipCard')).zIndex || 0;
   return { сдвиг: document.body.classList.contains('pc-shift'), панель: document.body.classList.contains('side-nav-open'),
     значок: [Math.round(з.left), Math.round(з.right)], окно: [Math.round(о.left), Math.round(о.right)], кромка: Math.round(пп.left), ширПанели: Math.round(пп.width),
-    выше: zп > zо, видно: getComputedStyle(document.getElementById('presetChipCard')).visibility !== 'hidden' && document.getElementById('presetChipCard').classList.contains('show') }; }"""
+    выше: zп > zо, видно: getComputedStyle(document.getElementById('presetChipCard')).visibility !== 'hidden' && document.getElementById('presetChipCard').classList.contains('show'),
+    открыто: document.getElementById('presetChipCard').classList.contains('show') }; }"""
 
 
 ШРИФТЫ = (pathlib.Path(__file__).parent / "шрифты_google.css").read_text(encoding="utf-8")
@@ -67,14 +68,24 @@ def прогон(бр, порт, ш, в, касание):
         НАХОДКИ.append(f"{н} мини-окно сдвинуто, но заходит под панель: {г}")
     elif not г["сдвиг"] and г["окно"][1] > г["кромка"] and not г["выше"]:
         НАХОДКИ.append(f"{н} места нет, а панель не накрывает мини-окно: {г}")
-    elif not г["сдвиг"] and г["окно"][0] < г["кромка"] and г["окно"][1] > г["кромка"] and г["видно"]:
-        НАХОДКИ.append(f"{н} из-под панели торчит полоса мини-окна: окно {г['окно']}, кромка панели {г['кромка']}")
+    elif not г["сдвиг"] and г["окно"][1] > г["кромка"] and г["открыто"]:
+        НАХОДКИ.append(f"{н} панель накрыла мини-окно, а оно не свернулось: окно {г['окно']}, кромка панели {г['кромка']}")
     стр.screenshot(path=str(м.СНИМКИ / f"card-sidepanel-{ш}.png"))
-    # Закрыли панель — мини-окно снова видно, на своём месте.
+    # Свернулось — значок на месте; нажали на него после закрытия панели —
+    # мини-окно открывается, где ему положено.
     стр.evaluate("() => closeSideNav()"); стр.wait_for_timeout(500)
+    if not стр.evaluate("() => document.getElementById('presetChipCard').classList.contains('show')"):
+        стр.locator("#presetChip .pc-body").click(); стр.wait_for_timeout(400)
     г2 = стр.evaluate(ГДЕ)
     if not г2["видно"] or г2["окно"][0] < 0 or г2["сдвиг"]:
-        НАХОДКИ.append(f"{н} после закрытия панели мини-окно не вернулось: {г2}")
+        НАХОДКИ.append(f"{н} после закрытия панели мини-окно не открывается на месте: {г2}")
+    # Открылось само при открытой панели (вернулось напоминание) — сворачивается.
+    стр.evaluate("() => { закрытьКарточкуЗначка(); openSideNav(); }"); стр.wait_for_timeout(700)
+    стр.evaluate("() => переключитьКарточкуЗначка()"); стр.wait_for_timeout(300)
+    г3 = стр.evaluate(ГДЕ)
+    if not г3["сдвиг"] and г3["окно"][1] > г3["кромка"] and г3["открыто"]:
+        НАХОДКИ.append(f"{н} мини-окно открылось само поверх открытой панели и не свернулось: {г3}")
+    стр.evaluate("() => closeSideNav()")
     for о in [о for о in ошибки if "supabase.co" not in о][:3]:
         НАХОДКИ.append(f"{н} ошибка страницы: {о[:160]}")
     стр.close()
@@ -100,7 +111,7 @@ def главная():
             print("  ✗", н)
         raise SystemExit(1)
     print("Чисто: при открытой боковой панели мини-окно и значок не выходят за край экрана — сдвинуты целиком левее "
-          "панели, а где места нет, стоят на месте под панелью — на телефонах 390, 414 и 430, на 768 и 1440.")
+          "панели, а где места нет, мини-окно сворачивается в значок под панелью — на телефонах 390, 414 и 430, на 768 и 1440.")
 
 
 if __name__ == "__main__":
