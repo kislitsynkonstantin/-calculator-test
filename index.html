@@ -30111,6 +30111,11 @@ function alСклонение(н, один, два, много) {
 // Итог расчёта показываем только там, где событие про сам расчёт: у правки
 // справочника или удаления ручного проекта общая стоимость открытого на тот
 // момент расчёта к делу не относится и вводила бы в заблуждение.
+// «Пресет открыт как мой / как общий». До 29.09.2026 открытие писалось только
+// из «Моих» (loadPreset), поэтому запись без метки — открыт как мой.
+function названиеОткрытия(с) {
+  return ((с && с.details) || {}).opened === 'shared' ? 'Пресет открыт как общий' : 'Пресет открыт как мой';
+}
 const AL_С_ИТОГОМ = ['preset_saved', 'preset_opened', 'print', 'share_created', 'discount_changed'];
 function alСумма(с) {
   const д = (с || {}).details || {};
@@ -30448,6 +30453,7 @@ function alРисовать() {
         !(р && !р.a && видно.has(String(р.b == null ? '' : р.b).trim())));
     })();
     let названиеВида = AL_ВСЕ_ВИДЫ[с.event_type] || с.event_type;
+    if (с.event_type === 'preset_opened') названиеВида = названиеОткрытия(с);
     if (с.event_type === 'print') {
       const где = подробности.findIndex(р => р && р.k === 'Шаблон');
       const ключСтиля = где >= 0 ? String(подробности[где].b || '') : '';
@@ -32163,7 +32169,9 @@ async function loadPreset(id) {
   // Проект в подробностях не пишем: он и так уходит в колонку project_name
   // и стоит в самой строке журнала. Раньше строка «Пресет открыт» держала
   // птичку ради подробности, которая дословно повторяла её же.
-  logEvent('preset_opened', logDetails(p.name, []));
+  // Где открыт — в «Моих» или в «Общих»: журнал пишет «как мой» / «как общий»
+  // (Константин, 29.09.2026). Метку `opened` кладут оба места открытия.
+  logEvent('preset_opened', Object.assign(logDetails(p.name, []), { opened: 'mine' }));
   // Снимки этого расчёта — и только его: на пустом списке холст очищается,
   // а не остаётся с картинками прежнего пресета. Старые записи, сделанные
   // до хранилища, держат картинки строкой в `canvasImages` — их и берём,
@@ -33502,6 +33510,9 @@ function openSharedPreset(shortCode) {
 
   closePresetPanel();
   showToast('Открыт общий пресет: ' + sp.name);
+  // Открытие в «Общих» тоже в журнале — с меткой, что открыт как общий. Имя
+  // пресета кладём сами: у общего его не знает _активныйПресетИмя.
+  logEvent('preset_opened', Object.assign(logDetails(sp.name, []), { preset: sp.name, opened: 'shared' }));
 }
 
 // Helper for «open by code» button (fetched preset not yet in _sharedPresets)
@@ -34098,6 +34109,7 @@ function панельЖурналаКарточки(о) {
     const метка = датаЕсть ? деньЖурналаПресета(д) : '';
     if (метка && метка !== день) { из += '<li class="pc-lg-day">' + escapeHtml(метка) + '</li>'; день = метка; }
     let что = AL_ВСЕ_ВИДЫ[с.event_type] || с.event_type;
+    if (с.event_type === 'preset_opened') что = названиеОткрытия(с);
     if (с.event_type === 'print') {
       const ш = ((с.details || {}).rows || []).find(р => р && р.k === 'Шаблон');
       const имя = ш && typeof PRINT_STYLE_LABELS !== 'undefined' && PRINT_STYLE_LABELS[String(ш.b || '')];
