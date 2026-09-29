@@ -134,6 +134,19 @@ def прогон(бр, порт, шир, выс, ночь):
     for т in стр.evaluate(ВЁРСТКА):
         НАХОДКИ.append(f"{н} {т}")
     стр.screenshot(path=str(СНИМКИ / f"summary-{шир}{'-n' if ночь else ''}.png"))
+    # Двузначное число замечаний: вкладка «Проверка» с ним не уходит за край ряда.
+    за = стр.evaluate("""() => { const был = проверкаПоЧекЛисту;
+      window.проверкаПоЧекЛисту = () => ({ замечания: Array.from({ length: 12 }, () => ({ раздел: 'roof', т: 'проба', стоп: false, эл: '' })), вопросы: [] });
+      заполнитьКарточкуЗначка(); const к = document.getElementById('presetChipCard'), р = к.querySelector('.pc-tabs').getBoundingClientRect();
+      const вк = [...к.querySelectorAll('.pc-tab')], п = вк.map(т => т.getBoundingClientRect());
+      // Сжатая вкладка остаётся в ряду, но текст в ней переносится или вылезает.
+      // Меряется сам текст, а не scrollWidth: невидимое поле нажатия вкладки шире её и дало бы ложную находку.
+      const сжата = вк.filter(т => { const д = document.createRange(); д.selectNodeContents(т); const пр = [...д.getClientRects()].filter(x => x.width > 0);
+        const в = т.getBoundingClientRect(); const верх = пр.map(x => x.top); return Math.max(...верх) - Math.min(...верх) > 8 || пр.some(x => x.right > в.right + 1 || x.left < в.left - 1); }).map(т => т.textContent.trim());
+      window.проверкаПоЧекЛисту = был; заполнитьКарточкуЗначка();
+      return { за: Math.round(Math.max(...п.map(x => x.right)) - р.right), зазор: Math.round(Math.min(...п.slice(1).map((x, и) => x.left - п[и].right))), сжата }; }""")
+    if за["за"] > 0 or за["зазор"] < 8 or за["сжата"]:
+        НАХОДКИ.append(f"{н} вкладки при 12 замечаниях: за краем на {за['за']} px, наименьший зазор {за['зазор']} px, сжаты {за['сжата']}")
     # ── график ведётся клавишами и указателем ──
     гр = стр.locator("#pcPane-s .sv-ch")
     if гр.count():
@@ -175,7 +188,7 @@ def главная():
     try:
         with sync_playwright() as pw:
             бр = pw.chromium.launch(executable_path=м.хром(), args=["--no-sandbox"])
-            for шир, выс, ночь in ((1440, 900, False), (390, 844, False), (360, 740, False), (390, 844, True)):
+            for шир, выс, ночь in ((1440, 900, False), (390, 844, False), (360, 740, False), (320, 640, False), (390, 844, True)):
                 прогон(бр, порт, шир, выс, ночь)
             бр.close()
     finally:
@@ -186,7 +199,7 @@ def главная():
             print("  ✗", н)
         raise SystemExit(1)
     print("Чисто: «Сводка» стоит второй вкладкой, считает правки по всей истории, сводит правки подряд в ступень, "
-          "ведётся клавишами и указателем, ведёт крупную правку в журнал и не выходит за край — на 1440, 390 и 360, днём и ночью.")
+          "ведётся клавишами и указателем, ведёт крупную правку в журнал и не выходит за край — на 1440, 390, 360 и 320, днём и ночью; вкладки держатся и при двузначном числе замечаний.")
 
 
 if __name__ == "__main__":
