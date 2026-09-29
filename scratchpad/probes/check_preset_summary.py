@@ -165,6 +165,31 @@ def прогон(бр, порт, шир, выс, ночь):
         стр.mouse.move(б["x"] + 3, б["y"] + б["height"] / 2); стр.wait_for_timeout(100)
         if "Сохранён в пресет" not in стр.evaluate(ЧТЕНИЕ):
             НАХОДКИ.append(f"{н} указатель у левого края не показал сохранение")
+    # ── плашка под графиком открывает свою правку в журнале ──
+    # Нажатие по графику закрепляет точку: мышь, уходящая к плашке, её не сбрасывает.
+    if гр.count():
+        б = гр.bounding_box()
+        x2 = стр.evaluate("(W) => 6 + 2 * (W - 12) / (_свТочки.length - 1)", б["width"])
+        стр.mouse.click(б["x"] + x2, б["y"] + б["height"] / 2); стр.wait_for_timeout(120)
+        рд = стр.locator("#pcPane-s .sv-rd")
+        рб = рд.bounding_box()
+        стр.mouse.move(рб["x"] + рб["width"] / 2, рб["y"] + рб["height"] / 2, steps=6); стр.wait_for_timeout(150)
+        до = стр.evaluate(ЧТЕНИЕ)
+        if "Метка-печь" not in до:
+            НАХОДКИ.append(f"{н} точка, закреплённая нажатием, сбросилась, пока мышь шла к плашке: «{до[:60]}»")
+        ид = рд.get_attribute("data-ev")
+        if рб["height"] < 44:
+            НАХОДКИ.append(f"{н} плашка под графиком ниже 44 px: {рб['height']:.0f}")
+        рд.click(); стр.wait_for_timeout(900)
+        ж = стр.evaluate("""(ид) => { const к = document.getElementById('presetChipCard'), л = к.querySelector('.pc-lg-sc');
+          const с = л && [...л.querySelectorAll('li[data-ev]')].find(x => x.getAttribute('data-ev') === ид);
+          const в = (к.querySelector('.pc-tab[aria-selected="true"]') || {}).id;
+          if (!с) return { выбрана: в };
+          const r = с.getBoundingClientRect(), рл = л.getBoundingClientRect();
+          return { выбрана: в, есть: true, видна: r.top >= рл.top - 1 && r.bottom <= рл.bottom + 1, свет: с.classList.contains('pc-lg-flash'), текст: с.innerText.slice(0, 80) }; }""", ид)
+        if ж.get("выбрана") != "pcTab-l" or not ж.get("есть") or not ж.get("видна") or not ж.get("свет") or "Метка-печь" not in (ж.get("текст") or ""):
+            НАХОДКИ.append(f"{н} плашка под графиком не открыла свою правку в журнале: {ж}")
+        стр.locator("#pcTab-s").click(); стр.wait_for_timeout(500)
     # ── крупная правка открывает себя в журнале ──
     перв = стр.locator("#pcPane-s .sv-top button").first
     if перв.count():
@@ -199,7 +224,7 @@ def главная():
             print("  ✗", н)
         raise SystemExit(1)
     print("Чисто: «Сводка» стоит второй вкладкой, считает правки по всей истории, сводит правки подряд в ступень, "
-          "ведётся клавишами и указателем, ведёт крупную правку в журнал и не выходит за край — на 1440, 390, 360 и 320, днём и ночью; вкладки держатся и при двузначном числе замечаний.")
+          "ведётся клавишами и указателем, ведёт в журнал крупную правку и правку из плашки под графиком, точка, закреплённая нажатием, не сбрасывается — и не выходит за край — на 1440, 390, 360 и 320, днём и ночью; вкладки держатся и при двузначном числе замечаний.")
 
 
 if __name__ == "__main__":
