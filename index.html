@@ -34006,7 +34006,7 @@ function отрисоватьЗначокПресета() {
    полоски итога. Мерим после того, как панель доехала. */
 function значокМимоПанели() {
   const з = document.getElementById('presetChip');
-  document.body.classList.remove('pc-shift');
+  document.body.classList.remove('pc-shift', 'pc-under-panel');
   const п = document.getElementById('sideNav');
   if (!з || !п || !document.body.classList.contains('side-nav-open')) return;
   const пп = п.getBoundingClientRect(), зз = з.getBoundingClientRect();
@@ -34018,7 +34018,7 @@ function значокМимоПанели() {
   // стоит слоем выше значка. «Не сохранён» короткий — его сдвиг остаётся.
   // Телефон — по тому же признаку, по которому панель там растягивается:
   // сенсорный экран (pointer: coarse).
-  if (_значокРежим === 'shared' && window.matchMedia && matchMedia('(pointer: coarse)').matches) return;
+  if (_значокРежим === 'shared' && window.matchMedia && matchMedia('(pointer: coarse)').matches) { document.body.classList.add('pc-under-panel'); return; }
   // Сдвиг — только когда значок целиком помещается левее панели. На телефоне
   // шириной 390 там около 90 px, и «Не сохранён» уезжал за левый край на 27 px:
   // обрезанный значок хуже накрытого, так что панель накрывает и его.
@@ -34029,7 +34029,13 @@ function значокМимоПанели() {
   // места»). Не хватает — не сдвигаем ничего, панель стоит слоем выше.
   const к = document.getElementById('presetChipCard');
   const ширОкна = к ? (к.getBoundingClientRect().width || parseFloat(getComputedStyle(к).width) || 0) : 0;
-  if (пп.left - 12 - Math.max(зз.width, ширОкна) < 8) return;
+  if (пп.left - 12 - Math.max(зз.width, ширОкна) < 8) {
+    // Накрыто частично — из-под панели торчала бы левая полоса мини-окна с
+    // обрезанным текстом. Пока панель открыта, окно скрыто целиком, а
+    // закрыли панель — оно на месте, с той же вкладкой.
+    document.body.classList.add('pc-under-panel');
+    return;
+  }
   document.body.style.setProperty('--pc-right', Math.round(window.innerWidth - пп.left + 12) + 'px');
   document.body.classList.add('pc-shift');
 }
@@ -41769,6 +41775,7 @@ body.total-strip-on.pchip-on{padding-bottom:calc(var(--strip-h, 68px) + 60px)}
    На мониторе значок иначе уезжал к краю экрана, за версту от расчёта. */
 @media (min-width:1008px){.pchip,.pc-card{right:calc((100% - 960px) / 2)}}
 body.pc-shift .pchip,body.pc-shift .pc-card{right:var(--pc-right)}
+body.pc-under-panel .pc-card{visibility:hidden}
 @media (prefers-reduced-motion:reduce){.section-header.pc-flash{animation:none}.opt-item.pc-flash-row,.note-item.pc-flash-row{animation:none;outline:2px solid var(--pc-acc);outline-offset:2px}.pchip,.pc-card{transition:none}.pc-tick path,.pchip.pc-pulse .pc-disk,.pchip.pc-wait .pc-lk{animation:none}.pc-tick path{stroke-dashoffset:0}}
 @media print{.pchip,.pc-card{display:none!important}}
 body.total-strip-on .save-ind{bottom:calc(var(--strip-h, 68px) + 10px);}
