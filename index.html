@@ -31160,7 +31160,9 @@ function logDetails(объект, пары, сумма) {
   return { obj: объект || null, rows: из, sum: сумма || '' };
 }
 
-function savePreset() {
+// Снимок расчёта и имя по умолчанию для нового пресета — общее у окна имени и
+// у мини-окна, где имя спрашивается прямо в нём.
+function данныеНовогоПресета() {
   // Force recalc to ensure totalNum/total are up-to-date before collecting state
   if (typeof calc === 'function') calc();
   reInitSession(); // фоновое восстановление сессии без UI
@@ -31169,6 +31171,10 @@ function savePreset() {
   const client = state.client || '';
   const date = new Date().toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit', year:'2-digit'});
   const autoName = [client, proj, date].filter(Boolean).join(' · ');
+  return { state, autoName };
+}
+function savePreset() {
+  const { state, autoName } = данныеНовогоПресета();
   // Колбэк async: любое исключение внутри превращалось в необработанный
   // rejection — ни тоста, ни записи в список, ни следа в интерфейсе. Ловим сами,
   // и обязательно раздельно: сохранение на устройстве и отправка в облако —
@@ -33745,11 +33751,13 @@ function элементыЗначка() {
       if (e.key !== 'Escape' || !к.classList.contains('show')) return;
       if (_пкМеню) { _пкМеню = false; заполнитьКарточкуЗначка(); const м = к.querySelector('[data-act="more"]'); if (м) м.focus(); return; }
       if (_пкПодтв) { _пкПодтв = false; заполнитьКарточкуЗначка(); return; }
+      if (_пкИмя) { _пкИмя = null; заполнитьКарточкуЗначка(); const с = к.querySelector('[data-act="save"]'); if (с) с.focus(); return; }
       закрытьКарточкуЗначка();
       const т = з.querySelector('.pc-body'); if (т) т.focus();
     });
     // Стрелки переводят между вкладками, как в любом списке вкладок.
     к.addEventListener('keydown', function (e) {
+      if (e.target && e.target.id === 'pcName' && e.key === 'Enter') { e.preventDefault(); сохранитьИзМиниОкна(); return; }
       const т = e.target.closest ? e.target.closest('.pc-tab') : null;
       if (!т || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
       const все = ['p', 'l', 'c'];
@@ -33954,7 +33962,7 @@ function авторКратко(sp) {
 function переключитьКарточкуЗначка() {
   const { к } = элементыЗначка();
   if (к.classList.contains('show')) { закрытьКарточкуЗначка(); return; }
-  _пкМеню = false; _пкПодтв = false;
+  _пкМеню = false; _пкПодтв = false; _пкИмя = null;
   заполнитьКарточкуЗначка();
   к.classList.add('show');
   document.body.classList.add('pc-card-open');
@@ -33966,7 +33974,7 @@ function закрытьКарточкуЗначка() {
   const к = document.getElementById('presetChipCard');
   if (к) к.classList.remove('show');
   document.body.classList.remove('pc-card-open');
-  _пкМеню = false; _пкПодтв = false;
+  _пкМеню = false; _пкПодтв = false; _пкИмя = null;
   const з = document.getElementById('presetChip');
   const т = з && з.querySelector('.pc-body'); if (т) т.setAttribute('aria-expanded', 'false');
 }
@@ -33982,6 +33990,7 @@ let _пкВкладка = 'p';      // p — пресет, l — журнал, c
 let _пкМеню = false;       // открыто меню «⋯»
 let _пкПодтв = false;      // идёт подтверждение снятия с публикации
 let _пкПресет = '';        // для какого пресета нарисована карточка
+let _пкИмя = null;         // имя нового пресета спрашивается в мини-окне: { исходное, имя }
 
 const ЗНАЧОК_ЕЩЁ = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>';
 const ЗНАЧОК_ГЛОБУС_НЕТ = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/><path d="M4 4l16 16"/></svg>';
@@ -34314,7 +34323,19 @@ function заполнитьКарточкуЗначка() {
   const { к } = элементыЗначка();
   const режим = _значокРежим;
   let h = '';
-  if (режим === 'unsaved') {
+  if (режим === 'unsaved' && _пкИмя) {
+    // «Сохранить» в мини-окне спрашивает имя здесь же, а не отдельным окном
+    // поверх (Константин, 29.09.2026: «если из мини-окна нажимаю сохранить —
+    // функционал должен быть также в мини-окне»). Окно имени остаётся у
+    // остальных кнопок «Сохранить пресет».
+    h = '<button class="pc-x" type="button" data-act="close" aria-label="Закрыть">' + ЗНАЧОК_КРЕСТ + '</button>'
+      + '<div class="pc-k">Новый пресет</div><div class="pc-nm">' + escapeHtml(имяПроектаЗначка() || 'Новый расчёт') + '</div>'
+      + '<label class="pc-name-l" for="pcName">Название пресета</label>'
+      + '<input class="pc-name" id="pcName" type="text" autocomplete="off" enterkeyhint="done" value="' + escapeHtml(_пкИмя.исходное) + '">'
+      + '<div class="pc-row"><button type="button" data-act="name-no">Отмена</button>'
+      + '<button type="button" class="pc-pri" data-act="name-yes">' + ЗНАЧОК_ДИСК + 'Сохранить</button></div>';
+    к.className = 'pc-card' + (к.classList.contains('show') ? ' show' : '');
+  } else if (режим === 'unsaved') {
     h = '<button class="pc-x" type="button" data-act="close" aria-label="Закрыть">' + ЗНАЧОК_КРЕСТ + '</button>'
       + '<div class="pc-k">Пресет</div><div class="pc-nm">' + escapeHtml(имяПроектаЗначка() || 'Новый расчёт') + '</div>'
       + '<div class="pc-st pc-warm">Не сохранён — правки пока только на этом экране</div>'
@@ -34365,6 +34386,12 @@ function заполнитьКарточкуЗначка() {
     край();
   }
   if (фокус) { const ф = к.querySelector('[data-act="' + фокус + '"]'); if (ф) ф.focus(); }
+  // Набранное имя переживает перерисовку: в разметке только исходное.
+  const поле = к.querySelector('#pcName');
+  if (поле && _пкИмя) {
+    if (поле.value !== _пкИмя.имя) поле.value = _пкИмя.имя;
+    поле.oninput = function () { _пкИмя.имя = поле.value; };
+  }
 }
 // Нажатия в карточке — одним обработчиком по data-act: карточка
 // перерисовывается целиком, и привязка к каждой кнопке терялась бы.
@@ -34383,7 +34410,18 @@ function нажатиеВКарточке(e) {
   switch (act) {
     case 'close': закрытьКарточкуЗначка(); break;
     case 'later': закрытьКарточкуЗначка(); снятьНапоминаниеСохранить(); break;
-    case 'save': закрытьКарточкуЗначка(); savePreset(); break;
+    case 'save': {
+      const { autoName } = данныеНовогоПресета();
+      _пкИмя = { исходное: autoName, имя: autoName };
+      заполнитьКарточкуЗначка();
+      const п = к.querySelector('#pcName'); if (п) { п.focus(); п.select(); }
+      break;
+    }
+    case 'name-no':
+      _пкИмя = null; заполнитьКарточкуЗначка();
+      { const с = к.querySelector('[data-act="save"]'); if (с) с.focus(); }
+      break;
+    case 'name-yes': сохранитьИзМиниОкна(); break;
     case 'tab':
       _пкВкладка = кн.getAttribute('data-tab') || 'p'; _пкПодтв = false;
       заполнитьКарточкуЗначка();
@@ -34440,6 +34478,15 @@ function нажатиеВКарточке(e) {
       break;
     }
   }
+}
+// Имя из поля мини-окна: пустое — имя по умолчанию, как в окне имени.
+function сохранитьИзМиниОкна() {
+  const поле = document.getElementById('pcName');
+  const { state, autoName } = данныеНовогоПресета();
+  const имя = (поле ? поле.value : (_пкИмя && _пкИмя.имя) || '').trim() || autoName;
+  _пкИмя = null;
+  закрытьКарточкуЗначка();
+  сохранитьНовыйПресет(имя, autoName, state);
 }
 // Свой опубликованный из «Моих» — в «Общие»: отложенная правка сначала уходит
 // в базу, иначе общая копия открылась бы без неё.
@@ -41424,6 +41471,11 @@ body.total-strip-on .pc-card{bottom:calc(var(--strip-h, 68px) + 10px)}
    строку с зазором от поля карточки; на самых узких телефонах строка без
    значков. Вкладки — подчёркиванием, как в окнах «Бланка». */
 .pc-card.pc-tabbed .pc-row .pc-pri{flex:1 1 100%}
+/* Имя нового пресета в мини-окне. Шрифт поля 16 px: мельче — и iPhone
+   увеличивает страницу при вводе. */
+.pc-card .pc-name-l{display:block;margin-top:12px;font-size:.62rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--pc-ink2)}
+.pc-card .pc-name{display:block;width:100%;height:44px;margin-top:6px;padding:0 12px;border:1px solid var(--pc-line);border-radius:9px;background:none;color:var(--pc-ink);font-family:'Geologica',sans-serif;font-size:16px}
+.pc-card .pc-name:focus{outline:2px solid var(--pc-acc);outline-offset:1px;border-color:transparent}
 .pc-card:not(.pc-tabbed) .pc-row button{flex:1}
 @media (max-width:359px){.pc-card .pc-row button:not(.pc-star) svg{display:none}}
 .pc-card .pc-tabs{display:flex;gap:18px;margin-top:10px;border-bottom:1px solid var(--pc-rule)}

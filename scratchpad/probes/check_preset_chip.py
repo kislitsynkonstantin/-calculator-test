@@ -13,7 +13,8 @@
   • «Позже» прячет значок на три минуты — правки и нажатия его не возвращают; потом
     карточка «Сохранить / Позже» возвращается при первом нажатии или возврате на
     вкладку, но не при скрытой вкладке;
-  • «Сохранить» → имя → значок говорит «Сохранено» и становится «Мой пресет»;
+  • «Сохранить» → имя спрашивается в самом мини-окне (Escape — назад, Enter —
+    сохранить) → значок говорит «Сохранено» и становится «Мой пресет»;
   • свой общий пресет — «Общий пресет · ваш», замок нажимается и отвечает сразу
     (мерцает, пока база молчит), потом надпись «Замок снят…» и никакого
     сообщения внизу экрана; карточка называет имя, «Общий пресет · мой», код и кнопку замка;
@@ -176,9 +177,30 @@ def прогон(бр, порт, ш, ui, ночь):
     # сохранение
     стр.locator("#presetChip .pc-body").click(); ждать(стр, 300)
     стр.locator("#presetChipCard .pc-save").click(); ждать(стр, 300)
-    if стр.locator("#presetNameDialog input").count():
+    # Имя спрашивается в самом мини-окне, а не отдельным окном поверх
+    # (Константин, 29.09.2026): поле в фокусе с именем по умолчанию, Escape
+    # возвращает «Позже / Сохранить», набранное имя уходит в пресет.
+    им = стр.evaluate("""() => { const п = document.querySelector('#presetChipCard.show #pcName');
+      return { окно: !!document.getElementById('presetNameDialog'), поле: !!п, фокус: document.activeElement === п, имя: п ? п.value : '' }; }""")
+    if им["окно"] or not им["поле"] or not им["фокус"] or not им["имя"]:
+        плохо(f"{н} «Сохранить» в мини-окне не спросило имя в нём самом: {им}")
+    if им["поле"]:
+        р = стр.evaluate("""() => { const п = document.getElementById('pcName'), к = document.getElementById('presetChipCard').getBoundingClientRect(), б = п.getBoundingClientRect();
+          return { шрифт: parseFloat(getComputedStyle(п).fontSize), в: Math.round(б.height), внутри: б.left >= к.left + 8 && б.right <= к.right - 8 }; }""")
+        if р["шрифт"] < 16 or р["в"] < 44 or not р["внутри"]:
+            плохо(f"{н} поле имени: шрифт мельче 16 px (телефон увеличит страницу), ниже 44 px или у края окна: {р}")
+        стр.screenshot(path=str(СНИМКИ / f"chip-name-{ш}-{ui}{'-n' if ночь else ''}.png"))
+        стр.keyboard.press("Escape"); ждать(стр, 250)
+        if not стр.evaluate("() => !!document.querySelector('#presetChipCard.show .pc-later') && !document.getElementById('pcName')"):
+            плохо(f"{н} Escape в поле имени не вернул «Позже / Сохранить»")
+        стр.locator("#presetChipCard .pc-save").click(); ждать(стр, 250)
+        стр.locator("#pcName").fill("Проба имени из мини-окна")
+        стр.locator("#pcName").press("Enter")
+    elif стр.locator("#presetNameDialog input").count():
         стр.locator("#presetNameDialog input").press("Enter")
     ждать(стр, 250)
+    if им["поле"] and стр.evaluate("() => (loadAllPresets()[activePresetId] || {}).name") != "Проба имени из мини-окна":
+        плохо(f"{н} пресет сохранился не под набранным в мини-окне именем")
     в = стр.evaluate(ВИД)
     if "Сохранено" not in в["надпись"]:
         плохо(f"{н} после сохранения значок не сказал «Сохранено»: «{в['надпись']}» {в['класс']}")

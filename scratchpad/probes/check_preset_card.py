@@ -145,7 +145,9 @@ def начать(бр, порт, ш, в, ночь):
       selectProjectOption(0); await new Promise(r => setTimeout(r, 900)); }""", ночь)
     стр.locator("#presetChip .pc-body").click(); стр.wait_for_timeout(300)
     стр.locator("#presetChipCard .pc-save").click(); стр.wait_for_timeout(300)
-    if стр.locator("#presetNameDialog input").count():
+    if стр.locator("#pcName").count():
+        стр.locator("#pcName").press("Enter")
+    elif стр.locator("#presetNameDialog input").count():
         стр.locator("#presetNameDialog input").press("Enter")
     стр.wait_for_timeout(2600)
     return стр, ошибки
