@@ -25668,9 +25668,10 @@ function optSearchScrollTo(type, id) {
   closeOptSearch();
   setTimeout(() => {
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    el.style.outline = '2px solid var(--green-mid)';
-    el.style.outlineOffset = '2px';
-    setTimeout(() => { el.style.outline = ''; el.style.outlineOffset = ''; }, 1400);
+    // Та же рамка, что у перехода из замечания: левая сторона на полоске
+    // выбранных строк, а не обводка с отступом.
+    el.classList.remove('pc-flash-row'); void el.offsetWidth; el.classList.add('pc-flash-row');
+    setTimeout(() => el.classList.remove('pc-flash-row'), 2200);
   }, 200);
 }
 
@@ -41789,10 +41790,16 @@ body.total-strip-on .pc-card{bottom:calc(var(--strip-h, 68px) + 10px)}
 @media (hover:hover){.pc-card .pc-menu button:hover,.pc-card .pc-more:hover,.pc-card .pc-ck button:hover{background:var(--pc-tint)}.pc-card .pc-tab:hover{color:var(--pc-ink)}}
 /* Раздел, к которому перешли из замечания, коротко подсвечивается. */
 .section-header.pc-flash{animation:pcFlash 1.6s ease}
-/* Строка, к которой привело замечание, — рамкой цвета схемы, гаснущей за две
-   секунды: заливку у отмеченной строки уже держит своя подсветка. */
-.opt-item.pc-flash-row,.note-item.pc-flash-row{animation:pcFlashRow 2.1s ease}
-@keyframes pcFlashRow{0%,55%{outline:2px solid var(--pc-acc);outline-offset:2px}100%{outline:2px solid transparent;outline-offset:2px}}
+/* Строка, к которой привели замечание или поиск опций, — рамкой той же
+   геометрии, что у опции, закрывшей нажатую (.opt-culprit): левая сторона
+   ровно на полоске выбранных строк (left:-8px, 2px, --bl-acc2), и с полосками
+   соседей рамка складывается в одну прямую (Константин, 29.09.2026: «левая
+   кромка должна совпадать с полоской выделенной опции — как одна линия»).
+   Рамка гаснет за две секунды. */
+.opt-item.pc-flash-row,.note-item.pc-flash-row{position:relative}
+.opt-item.pc-flash-row::after,.note-item.pc-flash-row::after{content:"";position:absolute;left:-8px;right:-8px;top:0;bottom:-1px;
+  border:2px solid var(--bl-acc2, var(--pc-acc));pointer-events:none;animation:pcFlashRow 2.1s ease forwards}
+@keyframes pcFlashRow{0%,70%{opacity:1}100%{opacity:0}}
 @keyframes pcFlash{0%,40%{background-color:var(--pc-tint)}}
 /* Пока карточка открыта, сообщение встаёт сверху экрана: снизу его закрывала
    бы сама карточка. */
@@ -41818,7 +41825,7 @@ body.total-strip-on.pchip-on{padding-bottom:calc(var(--strip-h, 68px) + 60px)}
 @media (min-width:1008px){.pchip,.pc-card{right:calc((100% - 960px) / 2)}}
 body.pc-shift .pchip,body.pc-shift .pc-card{right:var(--pc-right)}
 body.pc-under-panel .pc-card{visibility:hidden}
-@media (prefers-reduced-motion:reduce){.section-header.pc-flash{animation:none}.opt-item.pc-flash-row,.note-item.pc-flash-row{animation:none;outline:2px solid var(--pc-acc);outline-offset:2px}.pchip,.pc-card{transition:none}.pc-tick path,.pchip.pc-pulse .pc-disk,.pchip.pc-wait .pc-lk{animation:none}.pc-tick path{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.section-header.pc-flash{animation:none}.opt-item.pc-flash-row::after,.note-item.pc-flash-row::after{animation:none}.pchip,.pc-card{transition:none}.pc-tick path,.pchip.pc-pulse .pc-disk,.pchip.pc-wait .pc-lk{animation:none}.pc-tick path{stroke-dashoffset:0}}
 @media print{.pchip,.pc-card{display:none!important}}
 body.total-strip-on .save-ind{bottom:calc(var(--strip-h, 68px) + 10px);}
 /* На телефоне полоска остаётся по своему содержимому и стоит по центру —

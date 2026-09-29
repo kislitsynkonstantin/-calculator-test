@@ -12,7 +12,8 @@
     пробное бурение → «Пробное бурение», водосток → опция водосточной
     системы, Rockwool в своём примечании → это примечание;
   • нажатие закрывает мини-окно, строка встаёт целиком между липкой шапкой и
-    полоской итога и подсвечивается;
+    полоской итога и подсвечивается рамкой, чья левая сторона — продолжение
+    полоски выбранных строк: там же, той же толщины и того же цвета;
   • строки нет (адрес пустой или неверный) — переход, как прежде, к шапке
     раздела.
 
@@ -70,6 +71,19 @@ def прогон(бр, порт, ш, в):
             НАХОДКИ.append(f"{н} «{текст}»: строка не подсвечена")
         if текст == "пробное бурение":
             стр.screenshot(path=str(м.СНИМКИ / f"check-jump-{ш}.png"))
+            # Рамка и полоска выбранных строк — одна прямая: левая сторона рамки
+            # там же, той же толщины и того же цвета, что полоска соседа сверху.
+            л = стр.evaluate("""(ид) => { const э = document.getElementById(ид), р = getComputedStyle(э, '::after');
+              const сосед = [...э.parentElement.querySelectorAll('.opt-item.active')].filter(x => x !== э).pop();
+              if (!сосед) return { нетСоседа: true };
+              const п = getComputedStyle(сосед, '::before'), rэ = э.getBoundingClientRect(), rс = сосед.getBoundingClientRect();
+              return { рамкаX: Math.round(rэ.left + parseFloat(р.left)), полоскаX: Math.round(rс.left + parseFloat(п.left)),
+                       рамкаТ: р.borderLeftWidth, полоскаТ: п.width, рамкаЦ: р.borderLeftColor, полоскаЦ: п.backgroundColor,
+                       обводка: getComputedStyle(э).outlineStyle, есть: р.content !== 'none' }; }""", ид)
+            if л.get("нетСоседа"):
+                НАХОДКИ.append(f"{н} над пробным бурением нет выбранной строки — совпадение с полоской не проверено")
+            elif not л["есть"] or л["рамкаX"] != л["полоскаX"] or л["рамкаТ"] != л["полоскаТ"] or л["рамкаЦ"] != л["полоскаЦ"] or л["обводка"] not in ("none", ""):
+                НАХОДКИ.append(f"{н} рамка строки не продолжает полоску выбранных: {л}")
     # Строки нет — к шапке раздела.
     стр.evaluate("() => { window.scrollTo(0, 0); кРазделуИзПроверки('roof', 'lbl_нет_такой'); }"); стр.wait_for_timeout(1100)
     шапка = стр.evaluate("""() => { const э = document.getElementById('sec_opts_roof'); const ш = э && э.closest('.card') && э.closest('.card').querySelector('.section-header');
