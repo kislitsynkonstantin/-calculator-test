@@ -31,7 +31,8 @@ import check_preset_card as к
 from playwright.sync_api import sync_playwright
 
 НАХОДКИ = []
-ТЁПЛЫЙ = "rgb(224, 163, 58)"
+# Медовый, вариант 01 макета check-counter-colors-v1 без ободка (30.09.2026).
+ТЁПЛЫЙ = {False: "rgb(234, 168, 72)", True: "rgb(227, 162, 74)"}
 
 КРУЖОК = """() => { const з = document.getElementById('presetChip'), с = з && з.querySelector('.pc-ckn');
   const пр = проверкаПоЧекЛисту();
@@ -40,7 +41,7 @@ from playwright.sync_api import sync_playwright
               метка: (з.querySelector('.pc-body') || {}).getAttribute ? з.querySelector('.pc-body').getAttribute('aria-label') : '',
               шир: innerWidth, зн: { l: r.left, t: r.top, r: r.right, b: r.bottom } };
   if (с) { const k = с.getBoundingClientRect(), cs = getComputedStyle(с);
-    о.текст = с.textContent; о.фон = cs.backgroundColor; о.видим = cs.display !== 'none' && cs.visibility !== 'hidden' && k.width > 0;
+    о.текст = с.textContent; о.фон = cs.backgroundColor; о.тень = cs.boxShadow; о.ночь = document.body.classList.contains('dark'); о.видим = cs.display !== 'none' && cs.visibility !== 'hidden' && k.width > 0;
     о.к = { l: k.left, t: k.top, r: k.right, b: k.bottom }; }
   const лк = з.querySelector('.pc-lk svg');
   if (лк) { const л = лк.getBoundingClientRect(); о.замок = { l: л.left, t: л.top, r: л.right, b: л.bottom }; }
@@ -59,8 +60,11 @@ def проверить_кружок(н, с, что):
         НАХОДКИ.append(f"{н} {что}: кружка с числом замечаний на значке нет ({с['число']} замечаний)"); return
     if с["текст"] != str(с["число"]):
         НАХОДКИ.append(f"{н} {что}: на кружке «{с['текст']}», а замечаний {с['число']}")
-    if с["фон"] != ТЁПЛЫЙ:
-        НАХОДКИ.append(f"{н} {что}: кружок не тёплый: {с['фон']} (стопов {с['стоп']})")
+    if с["фон"] != ТЁПЛЫЙ[с["ночь"]]:
+        НАХОДКИ.append(f"{н} {что}: кружок не медовый: {с['фон']} (стопов {с['стоп']})")
+    # Ободка нет: у тени кружка нулевое размытие давало бы ровное кольцо.
+    if " 0px 0px 0px 2px" in (с.get("тень") or "") or "0px 0px 0px" in (с.get("тень") or ""):
+        НАХОДКИ.append(f"{н} {что}: у кружка ободок: {с['тень']}")
     к_, з = с["к"], с["зн"]
     # на правом верхнем углу: заходит за верх и за правый край значка, но не дальше половины себя
     if not (к_["t"] < з["t"] < к_["b"]) or not (к_["l"] < з["r"] < к_["r"]):
