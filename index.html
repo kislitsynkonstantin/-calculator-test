@@ -34261,10 +34261,11 @@ function панельЖурналаКарточки(о) {
    Это подсказки: сохранить и напечатать расчёт они не мешают. */
 function текстыРасчёта() {
   const т = [];
-  (OPTIONS || []).forEach(o => { if (checkedOptions[o.id]) т.push({ раздел: o.section, т: String(o.name || '') }); });
+  // `эл` — строка на листе, к которой ведёт замечание про этот текст.
+  (OPTIONS || []).forEach(o => { if (checkedOptions[o.id]) т.push({ раздел: o.section, т: String(o.name || ''), эл: 'lbl_' + o.id }); });
   SECTIONS.forEach(с => {
-    (customOptions[с.key] || []).forEach(co => { if (co && co.checked && co.name) т.push({ раздел: с.key, т: String(co.name) }); });
-    (customNotes[с.key] || []).forEach(n => { if (n && n.text) т.push({ раздел: с.key, т: String(n.text) }); });
+    (customOptions[с.key] || []).forEach(co => { if (co && co.checked && co.name) т.push({ раздел: с.key, т: String(co.name), эл: 'lbl_custom_' + co.id }); });
+    (customNotes[с.key] || []).forEach(n => { if (n && n.text) т.push({ раздел: с.key, т: String(n.text), эл: n.id ? 'note_' + с.key + '_' + n.id : '' }); });
   });
   return т;
 }
@@ -34275,54 +34276,61 @@ function проверкаПоЧекЛисту() {
   const найти = (рв, раздел) => тексты.find(х => рв.test(х.т) && (!раздел || х.раздел === раздел));
   const своиВРазделе = раздел => (customOptions[раздел] || []).some(co => co && co.checked);
   const замечания = [], вопросы = [];
-  const добавить = (раздел, т, стоп) => замечания.push({ раздел, т, стоп: !!стоп });
+  // `эл` — строка, которую надо отметить или снять: замечание ведёт прямо к
+  // ней, а не к шапке раздела (Константин, 29.09.2026: «тут должно
+  // перекидывать прямо на опцию, чтобы просто нажать»).
+  const добавить = (раздел, т, стоп, эл) => замечания.push({ раздел, т, стоп: !!стоп, эл: эл || '' });
+  const строка = id => (id && getOpt(id)) ? 'lbl_' + id : '';
+  const перваяИз = ids => строка(ids.find(id => getOpt(id)));
+  const отмеченнаяИз = ids => строка(ids.find(есть));
+  const поИмени = (раздел, рв) => { const о = (OPTIONS || []).find(o => o.section === раздел && рв.test(o.name || '') && !checkedOptions[o.id]); return о ? 'lbl_' + о.id : ''; };
   const проект = String((selectedProject && selectedProject[0]) || '');
 
   // Фундамент: пробное бурение (каркас и клеёный брус).
-  if (!есть('f3') && !найти(/пробн\S*\s+бурен/i)) добавить('foundation', 'Добавить пробное бурение');
+  if (!есть('f3') && !найти(/пробн\S*\s+бурен/i)) добавить('foundation', 'Добавить пробное бурение', false, строка('f3'));
 
   // Кровля: водосток продаётся с внешней отделкой фасада (кроме барнхауса) — стоп.
   const фасад = (OPTIONS || []).some(o => o.section === 'exterior' && checkedOptions[o.id] && /^Обшивка стен/i.test(o.name || ''))
     || (customOptions.exterior || []).some(co => co && co.checked && /обшивк|планкен|имитаци|фасад/i.test(co.name || ''));
-  if (фасад && !найти(/водост/i) && !/барнхаус|barnhouse/i.test(проект)) добавить('roof', 'Добавить водосточную систему', true);
+  if (фасад && !найти(/водост/i) && !/барнхаус|barnhouse/i.test(проект)) добавить('roof', 'Добавить водосточную систему', true, поИмени('roof', /водост/i));
   // Плоская кровля: без карнизной и ветровой планок и без снегозадержателей.
   const плоская = хоть(['r15', 'r17']);
-  if (плоская && есть('r3')) добавить('roof', 'Убрать карнизную и ветровую планки, кровля плоская');
-  if (плоская && хоть(['r8', 'r10', 'r11'])) добавить('roof', 'Убрать снегозадержатели, кровля плоская');
+  if (плоская && есть('r3')) добавить('roof', 'Убрать карнизную и ветровую планки, кровля плоская', false, строка('r3'));
+  if (плоская && хоть(['r8', 'r10', 'r11'])) добавить('roof', 'Убрать снегозадержатели, кровля плоская', false, отмеченнаяИз(['r8', 'r10', 'r11']));
 
   // Окна: окно в парную 500×500 — всегда отдельной строкой.
   const парная = (OPTIONS || []).some(o => o.section === 'steam' && checkedOptions[o.id]);
-  if (парная && !есть('w7') && !найти(/окн[^\n]*500\s*[×xх*]\s*500|500\s*[×xх*]\s*500[^\n]*окн/i)) добавить('windows', 'Добавить окно в парную 500×500');
+  if (парная && !есть('w7') && !найти(/окн[^\n]*500\s*[×xх*]\s*500|500\s*[×xх*]\s*500[^\n]*окн/i)) добавить('windows', 'Добавить окно в парную 500×500', false, строка('w7'));
 
   // Парная: сборка премиальной парной при трёх и больше премиальных опциях.
   const премиум = [['s19', 's20'], ['s27'], ['s23'], ['s24', 's25'], ['s17'], ['s32']].filter(хоть).length
     + ((OPTIONS || []).some(o => o.section === 'steam' && checkedOptions[o.id] && /кедр/i.test(o.name || '')) ? 1 : 0);
-  if (премиум >= 3 && !есть('s34') && !найти(/сборк\S*\s+премиальн/i)) добавить('steam', 'Добавить сборку премиальной парной');
+  if (премиум >= 3 && !есть('s34') && !найти(/сборк\S*\s+премиальн/i)) добавить('steam', 'Добавить сборку премиальной парной', false, строка('s34'));
 
   // Печь: модель, кассеты и пароиспаритель у Ферингера, одна облицовка.
   const дрова = ['st16', 'st17', 'st18', 'st19', 'st21', 'st22', 'st23', 'st24', 'st25'];
-  if (хоть(['st1', 'st2']) && !хоть(дрова) && !своиВРазделе('stove')) добавить('stove', 'Указать модель печи');
+  if (хоть(['st1', 'st2']) && !хоть(дрова) && !своиВРазделе('stove')) добавить('stove', 'Указать модель печи', false, перваяИз(дрова));
   const ферингер = хоть(['st16', 'st17', 'st18', 'st19', 'st21', 'st22', 'st23', 'st24']);
   if (ферингер) {
     const кассет = хоть(['st29', 'st30']) || !!найти(/кассет/i);
     const пиф = хоть(['st31', 's30']) || !!найти(/пароиспарител|\bПИФ\b/i);
-    if (!кассет && !пиф) добавить('stove', 'Печь Ферингер без кассет и пароиспарителя, добавить');
-    else if (!кассет) добавить('stove', 'Печь Ферингер без кассет, добавить');
-    else if (!пиф) добавить('stove', 'Печь Ферингер без пароиспарителя ПИФ, добавить');
+    if (!кассет && !пиф) добавить('stove', 'Печь Ферингер без кассет и пароиспарителя, добавить', false, перваяИз(['st29', 'st30']));
+    else if (!кассет) добавить('stove', 'Печь Ферингер без кассет, добавить', false, перваяИз(['st29', 'st30']));
+    else if (!пиф) добавить('stove', 'Печь Ферингер без пароиспарителя ПИФ, добавить', false, перваяИз(['st31', 's30']));
   }
   const печьКамень = хоть(['st21', 'st22', 'st23', 'st24']);
   const печьМеталл = хоть(['st16', 'st17', 'st18', 'st19', 'st25']);
   const порталКамень = хоть(['st32', 'st33']);
-  if (печьМеталл && порталКамень) добавить('stove', 'Печь в металле, портал в камне — привести к одной облицовке');
-  if ((печьКамень || порталКамень) && хоть(['st26', 'st27', 'st28'])) добавить('stove', 'Дымоход в металле при печи или портале в камне — привести к одной облицовке');
+  if (печьМеталл && порталКамень) добавить('stove', 'Печь в металле, портал в камне — привести к одной облицовке', false, отмеченнаяИз(['st32', 'st33']));
+  if ((печьКамень || порталКамень) && хоть(['st26', 'st27', 'st28'])) добавить('stove', 'Дымоход в металле при печи или портале в камне — привести к одной облицовке', false, отмеченнаяИз(['st26', 'st27', 'st28']));
 
   // Сквозные: Rockwool нигде, плёнки только FINKA, никаких «либо».
   const ро = найти(/rockwool|роквул|роквол/i);
-  if (ро) добавить(ро.раздел, 'Rockwool в расчёте, заменить на Knauf');
+  if (ро) добавить(ро.раздел, 'Rockwool в расчёте, заменить на Knauf', false, ро.эл);
   const плёнка = найти(/изоспан|izospan|ондутис|ondutis|ютафол|juta|тайвек|tyvek/i);
-  if (плёнка) добавить(плёнка.раздел, 'Плёнки не FINKA, заменить на FINKA Premium');
+  if (плёнка) добавить(плёнка.раздел, 'Плёнки не FINKA, заменить на FINKA Premium', false, плёнка.эл);
   const либо = найти(/(^|[^а-яё])либо([^а-яё]|$)/i);
-  if (либо) добавить(либо.раздел, 'Убрать «либо», зафиксировать один материал');
+  if (либо) добавить(либо.раздел, 'Убрать «либо», зафиксировать один материал', false, либо.эл);
 
   // Вопросы — то, чего по расчёту не видно.
   const наличные = !!(document.getElementById('cashDiscountCheck') || {}).checked;
@@ -34347,7 +34355,7 @@ function панельПроверкиКарточки(пр) {
     : 'По чек-листу замечаний нет') + '</div>';
   if (н) {
     h += '<ul class="pc-ck">' + пр.замечания.map((з, i) =>
-      '<li><button type="button" data-act="ck" data-sec="' + escapeHtml(з.раздел) + '"><span class="pc-ck-tx">'
+      '<li><button type="button" data-act="ck" data-sec="' + escapeHtml(з.раздел) + '" data-el="' + escapeHtml(з.эл || '') + '"><span class="pc-ck-tx">'
       + (з.стоп ? '<span class="pc-stop">СТОП</span>' : '') + escapeHtml(з.т) + '</span>'
       + '<span class="pc-ck-sx">' + escapeHtml(имяРаздела(з.раздел)) + '</span><span class="pc-ck-go">' + ЗНАЧОК_СТРЕЛКА + '</span></button></li>').join('') + '</ul>';
   }
@@ -34389,8 +34397,22 @@ function запланироватьСчётчикПроверки() {
 }
 // Переход к разделу из замечания: карточка закрывается, раздел встаёт под
 // шапку и коротко подсвечивается.
-function кРазделуИзПроверки(ключ) {
+function кРазделуИзПроверки(ключ, строкаИд) {
   закрытьКарточкуЗначка();
+  // Строка есть и видна — встаёт посередине между шапкой и полоской итога и
+  // коротко подсвечивается. Скрыта «глазом» или её нет в этой технологии —
+  // переход, как прежде, к шапке раздела.
+  const цель = строкаИд ? document.getElementById(строкаИд) : null;
+  if (цель && цель.getClientRects().length && getComputedStyle(цель).visibility !== 'hidden') {
+    const сверху = getStickyOffset();
+    let снизу = 0;
+    if (document.body.classList.contains('total-strip-on')) снизу = parseFloat(getComputedStyle(document.body).getPropertyValue('--strip-h')) || 68;
+    const поле = Math.max(0, window.innerHeight - сверху - снизу - цель.offsetHeight);
+    window.scrollTo({ top: цель.getBoundingClientRect().top + window.scrollY - сверху - поле / 2, behavior: 'smooth' });
+    цель.classList.remove('pc-flash-row'); void цель.offsetWidth; цель.classList.add('pc-flash-row');
+    setTimeout(() => цель.classList.remove('pc-flash-row'), 2200);
+    return;
+  }
   const н = SECTIONS.findIndex(с => с.key === ключ);
   if (н < 0) return;
   scrollToSectionByNum(н + 1);
@@ -34551,7 +34573,7 @@ function нажатиеВКарточке(e) {
       _alСобытия = [];
       openActionLog();
       break;
-    case 'ck': кРазделуИзПроверки(кн.getAttribute('data-sec')); break;
+    case 'ck': кРазделуИзПроверки(кн.getAttribute('data-sec'), кн.getAttribute('data-el')); break;
     case 'lg-x': {
       const ид = кн.getAttribute('data-ev') || '';
       if (_пкЖурналОткрыт.has(ид)) _пкЖурналОткрыт.delete(ид); else _пкЖурналОткрыт.add(ид);
@@ -41675,6 +41697,10 @@ body.total-strip-on .pc-card{bottom:calc(var(--strip-h, 68px) + 10px)}
 @media (hover:hover){.pc-card .pc-menu button:hover,.pc-card .pc-more:hover,.pc-card .pc-ck button:hover{background:var(--pc-tint)}.pc-card .pc-tab:hover{color:var(--pc-ink)}}
 /* Раздел, к которому перешли из замечания, коротко подсвечивается. */
 .section-header.pc-flash{animation:pcFlash 1.6s ease}
+/* Строка, к которой привело замечание, — рамкой цвета схемы, гаснущей за две
+   секунды: заливку у отмеченной строки уже держит своя подсветка. */
+.opt-item.pc-flash-row,.note-item.pc-flash-row{animation:pcFlashRow 2.1s ease}
+@keyframes pcFlashRow{0%,55%{outline:2px solid var(--pc-acc);outline-offset:2px}100%{outline:2px solid transparent;outline-offset:2px}}
 @keyframes pcFlash{0%,40%{background-color:var(--pc-tint)}}
 /* Пока карточка открыта, сообщение встаёт сверху экрана: снизу его закрывала
    бы сама карточка. */
@@ -41699,7 +41725,7 @@ body.total-strip-on.pchip-on{padding-bottom:calc(var(--strip-h, 68px) + 60px)}
    На мониторе значок иначе уезжал к краю экрана, за версту от расчёта. */
 @media (min-width:1008px){.pchip,.pc-card{right:calc((100% - 960px) / 2)}}
 body.pc-shift .pchip,body.pc-shift .pc-card{right:var(--pc-right)}
-@media (prefers-reduced-motion:reduce){.section-header.pc-flash{animation:none}.pchip,.pc-card{transition:none}.pc-tick path,.pchip.pc-pulse .pc-disk,.pchip.pc-wait .pc-lk{animation:none}.pc-tick path{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.section-header.pc-flash{animation:none}.opt-item.pc-flash-row,.note-item.pc-flash-row{animation:none;outline:2px solid var(--pc-acc);outline-offset:2px}.pchip,.pc-card{transition:none}.pc-tick path,.pchip.pc-pulse .pc-disk,.pchip.pc-wait .pc-lk{animation:none}.pc-tick path{stroke-dashoffset:0}}
 @media print{.pchip,.pc-card{display:none!important}}
 body.total-strip-on .save-ind{bottom:calc(var(--strip-h, 68px) + 10px);}
 /* На телефоне полоска остаётся по своему содержимому и стоит по центру —

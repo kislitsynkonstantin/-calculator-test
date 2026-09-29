@@ -255,11 +255,17 @@ def полный(бр, порт, ш, в, ночь):
         плохо(f"{н} проверка: нет стопа о водостоке или счётчик не равен числу замечаний: {пр}")
     вёрстка(стр, н, "«Проверка»")
     снимок(стр, f"check-{ш}{'-n' if ночь else ''}")
-    стр.locator("#presetChipCard .pc-ck button").first.click(); стр.wait_for_timeout(900)
-    пер = стр.evaluate("""() => { const ш = document.querySelector('#sec_opts_roof').closest('.card').querySelector('.section-header');
-      const б = ш.getBoundingClientRect(); return { вспышка: ш.classList.contains('pc-flash'), верх: Math.round(б.top), карточка: document.getElementById('presetChipCard').classList.contains('show') }; }""")
-    if not пер["вспышка"] or пер["карточка"] or not (0 <= пер["верх"] <= 260):
-        плохо(f"{н} переход к разделу «Кровля» из замечания: {пер}")
+    # С 29.09.2026 замечание ведёт к самой строке опции водостока, а не к шапке
+    # раздела (подробно держит check_preset_check_jump.py); здесь — что переход
+    # пришёл в раздел «Кровля»: к строке в нём или, если строки нет, к шапке.
+    строка_ид = стр.locator("#presetChipCard .pc-ck button").first.get_attribute("data-el") or ""
+    стр.locator("#presetChipCard .pc-ck button").first.click(); стр.wait_for_timeout(1100)
+    пер = стр.evaluate("""(ид) => { const ш = document.querySelector('#sec_opts_roof').closest('.card').querySelector('.section-header');
+      const с = ид && document.getElementById(ид), б = (с || ш).getBoundingClientRect();
+      return { строка: !!с && с.closest('#sec_opts_roof') !== null, вспышка: с ? с.classList.contains('pc-flash-row') : ш.classList.contains('pc-flash'),
+               верх: Math.round(б.top), низ: Math.round(б.bottom), карточка: document.getElementById('presetChipCard').classList.contains('show') }; }""", строка_ид)
+    if not пер["вспышка"] or пер["карточка"] or пер["верх"] < 0 or пер["низ"] > стр.viewport_size["height"] or (строка_ид and not пер["строка"]):
+        плохо(f"{н} переход в раздел «Кровля» из замечания: {пер}")
     стр.evaluate("""() => { toggleOpt('r6'); customOptions.insulation = customOptions.insulation || [];
       customOptions.insulation.push({ id: 99991, name: 'Утеплитель Rockwool Лайт Баттс 50 мм', price: 0, checked: true }); }""")
     стр.wait_for_timeout(400)
