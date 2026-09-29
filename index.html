@@ -21572,9 +21572,11 @@ const appSettings = {
   showDisclaimer: true,
   showAutoToasts: true,
   // Число замечаний по чек-листу на значке мини-окна. Настройка аккаунта:
-  // скрыв его однажды, менеджер не видит его ни на одном устройстве
-  // (Константин, 29.09.2026).
-  showCheckBadge: true,
+  // включив или выключив его однажды, менеджер получает то же на любом
+  // устройстве. По умолчанию выключено (Константин, 29.09.2026: «по
+  // умолчанию при первой загрузке этот тоггл поставь выключен. Также пиши в
+  // аккаунт эту настройку»).
+  showCheckBadge: false,
   // Полоска «Ссылка» в панели печати. Настройка аккаунта, а не устройства:
   // менеджер, который ссылками не пользуется, убирает её один раз и не видит
   // ни на телефоне, ни на компьютере (Константин, 17.09.2026).
@@ -25999,7 +26001,7 @@ function renderSettingsBody() {
       </div>
       <div class="st-row">
         <div><div class="st-label">Замечания проверки на значке пресета</div><div class="st-sub">Число замечаний по чек-листу на значке в правом нижнем углу. Во вкладке «Проверка» оно видно всегда</div></div>
-        <label class="st-toggle"><input type="checkbox" aria-label="Замечания проверки на значке пресета" ${appSettings.showCheckBadge!==false?'checked':''} onchange="appSettings.showCheckBadge=this.checked;saveSettings();try{обновитьСчётчикПроверки()}catch(e){}"><span class="st-toggle-slider"></span></label>
+        <label class="st-toggle"><input type="checkbox" aria-label="Замечания проверки на значке пресета" ${appSettings.showCheckBadge===true?'checked':''} onchange="appSettings.showCheckBadge=this.checked;saveSettings();try{обновитьСчётчикПроверки()}catch(e){}"><span class="st-toggle-slider"></span></label>
       </div>
       <div class="st-section-title">Настройка кнопки «глаз»</div>
       <div class="st-row" style="border-bottom:none;">
@@ -34322,14 +34324,14 @@ function панельПроверкиКарточки(пр) {
    вариант 01 макета mockups/mini-window-check-badge-v2.html: «внедряй только
    оранжевый без стопа»). Цвет один: стоп счётчик не выделяет, он виден во
    вкладке «Проверка». Скрывается настройкой «Замечания проверки на значке
-   пресета». Значок перерисовывается редко, поэтому счётчик обновляется и сам,
+   пресета», по умолчанию выключенной. Значок перерисовывается редко, поэтому счётчик обновляется и сам,
    из calc(), не трогая остального значка. */
 let _счётчикПроверкиЖдёт = false;
 function обновитьСчётчикПроверки() {
   const з = document.getElementById('presetChip');
   if (!з) return;
   let н = 0;
-  if ((_значокРежим === 'own' || _значокРежим === 'shared') && appSettings.showCheckBadge !== false) {
+  if ((_значокРежим === 'own' || _значокРежим === 'shared') && appSettings.showCheckBadge === true) {
     try { н = проверкаПоЧекЛисту().замечания.length; } catch (e) { н = 0; }
   }
   let с = з.querySelector('.pc-ckn');
@@ -41041,6 +41043,9 @@ async function loadSbProfile() {
     try { if (data && data.full_name && _sbUser.email) входЗапомнить(_sbUser.email, data.full_name); } catch (e) {}
     if (data && data.app_settings && typeof data.app_settings === 'object') {
       const тронуты = слитьНастройкиИзПрофиля(data.app_settings);
+      // Счётчик замечаний на значке мини-окна — настройка аккаунта: включён в
+      // профиле — появляется и здесь, без перерисовки значка.
+      try { обновитьСчётчикПроверки(); } catch (e) {}
       // Тема — настройка аккаунта. Один раз, при переезде, последний выбор
       // этого устройства главнее профиля и уезжает в него.
       if (_темаСУстройства) {

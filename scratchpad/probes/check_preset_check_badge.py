@@ -18,7 +18,9 @@
   • у общего пресета кружок стоит над замком и сам замок не закрывает;
   • у несохранённого расчёта кружка нет; у раскрытого мини-окна кружок не
     выглядывает из-под окна краем;
-  • переключатель в «Настройках» убирает кружок со значка и возвращает его.
+  • при первой загрузке счётчик выключен; переключатель в «Настройках»
+    включает и выключает его и пишет настройку в профиль аккаунта, а
+    включённая в профиле настройка приходит на новое устройство.
 
     python3 check_preset_check_badge.py
 """
@@ -78,6 +80,31 @@ def прогон(бр, порт, ш, в, ночь):
     стр.evaluate("""() => { const о = (OPTIONS || []).find(o => o.section === 'exterior' && /^Обшивка стен/i.test(o.name || '') && !checkedOptions[o.id]);
       if (о) toggleOpt(о.id); }""")
     стр.wait_for_timeout(500)
+    # По умолчанию счётчик выключен; переключатель в «Настройках» включает его
+    # и пишет в профиль аккаунта.
+    с = кружок(стр)
+    if с["есть"] or стр.evaluate("() => appSettings.showCheckBadge") is not False:
+        НАХОДКИ.append(f"{н} при первой загрузке счётчик не выключен: кружок {с['есть']}, настройка {стр.evaluate('() => appSettings.showCheckBadge')}")
+    стр.evaluate("() => openSettings()"); стр.wait_for_timeout(500)
+    пер = стр.locator('input[aria-label="Замечания проверки на значке пресета"]')
+    ПРОФИЛЬ = "() => { const п = (window.__ТАБЛИЦЫ.profiles || [])[0]; return п && п.app_settings ? п.app_settings.showCheckBadge : undefined; }"
+    if not пер.count():
+        НАХОДКИ.append(f"{н} в «Настройках» нет переключателя «Замечания проверки на значке пресета»")
+        стр.evaluate("() => { appSettings.showCheckBadge = true; }")
+    else:
+        if пер.first.is_checked():
+            НАХОДКИ.append(f"{н} переключатель при первой загрузке включён")
+        for вкл in (True, False, True):
+            пер.first.evaluate(f"e => {{ e.checked = {'true' if вкл else 'false'}; e.dispatchEvent(new Event('change')); }}"); стр.wait_for_timeout(300)
+            с = кружок(стр)
+            if с["есть"] != вкл:
+                НАХОДКИ.append(f"{н} переключатель {'включён' if вкл else 'выключен'}, а кружок {'не появился' if вкл else 'остался'}")
+            if стр.evaluate(ПРОФИЛЬ) is not вкл:
+                НАХОДКИ.append(f"{н} переключатель {'включён' if вкл else 'выключен'}, а в профиль аккаунта ушло {стр.evaluate(ПРОФИЛЬ)}")
+    стр.evaluate("() => { try { closeSettings(); } catch (e) {} const о = document.getElementById('settingsOverlay'); if (о) о.classList.remove('show'); }")
+    стр.wait_for_timeout(300)
+    обновить = "() => { try { обновитьСчётчикПроверки(); } catch (e) {} }"
+    стр.evaluate(обновить)
     с = кружок(стр)
     проверить_кружок(н, с, "свой пресет")
     if с["число"] and not с["стоп"]:
@@ -108,23 +135,6 @@ def прогон(бр, порт, ш, в, ночь):
             НАХОДКИ.append(f"{н} вернули пробное бурение, а кружок не вернулся к {было}: «{с.get('текст')}»")
     else:
         НАХОДКИ.append(f"{н} пробное бурение не отмечено — правка расчёта не проверена")
-    # Переключатель в «Настройках».
-    стр.evaluate("() => openSettings()"); стр.wait_for_timeout(500)
-    пер = стр.locator('input[aria-label="Замечания проверки на значке пресета"]')
-    if not пер.count():
-        НАХОДКИ.append(f"{н} в «Настройках» нет переключателя «Замечания проверки на значке пресета»")
-    else:
-        пер.first.evaluate("e => { e.checked = false; e.dispatchEvent(new Event('change')); }"); стр.wait_for_timeout(200)
-        с = кружок(стр)
-        if с["есть"]:
-            НАХОДКИ.append(f"{н} переключатель выключен, а кружок на значке остался")
-        if стр.evaluate("() => appSettings.showCheckBadge") is not False:
-            НАХОДКИ.append(f"{н} переключатель не записал настройку")
-        пер.first.evaluate("e => { e.checked = true; e.dispatchEvent(new Event('change')); }"); стр.wait_for_timeout(200)
-        if not кружок(стр)["есть"]:
-            НАХОДКИ.append(f"{н} переключатель включён снова, а кружок не вернулся")
-    стр.evaluate("() => { try { closeSettings(); } catch (e) {} const о = document.getElementById('settingsOverlay'); if (о) о.classList.remove('show'); }")
-    стр.wait_for_timeout(300)
     # Чужой общий — серый значок с замком.
     стр.evaluate("""() => { закрытьКарточкуЗначка(); _sharedPresets.push({ short_code: '111222', id: '111222', name: 'Баня «Лейпциг» 5×7', author_name: 'Сергей Волков',
       author_id: 'u-другой', is_public: true, visibility: 'public', locked: true, created_at: '2026-09-22T13:05:00Z', updated_at: '2026-09-22T13:05:00Z', state: {} });
@@ -153,6 +163,23 @@ def прогон(бр, порт, ш, в, ночь):
     стр.close()
 
 
+def из_профиля(бр, порт, ш, в):
+    """Настройка аккаунта: включена в профиле — счётчик есть и на новом устройстве."""
+    н = f"[{ш} из профиля]"
+    было = м.ТАБЛИЦЫ_JS
+    м.ТАБЛИЦЫ_JS = было + "\n;window.__ТАБЛИЦЫ.profiles.forEach(п => { п.app_settings = Object.assign({}, п.app_settings, { showCheckBadge: true }); });"
+    try:
+        стр, ошибки = к.начать(бр, порт, ш, в, False)
+    finally:
+        м.ТАБЛИЦЫ_JS = было
+    if стр.evaluate("() => appSettings.showCheckBadge") is not True:
+        НАХОДКИ.append(f"{н} включённая в профиле настройка не пришла на устройство")
+    с = кружок(стр)
+    if с["число"] and not с["есть"]:
+        НАХОДКИ.append(f"{н} в профиле счётчик включён, а на значке его нет")
+    стр.close()
+
+
 def главная():
     с, порт = м.сервер()
     try:
@@ -160,6 +187,7 @@ def главная():
             бр = pw.chromium.launch(executable_path=м.хром(), args=["--no-sandbox"])
             for ш, в, ночь in ((390, 844, False), (390, 844, True), (1440, 900, False), (1440, 900, True)):
                 прогон(бр, порт, ш, в, ночь)
+            из_профиля(бр, порт, 390, 844)
             бр.close()
     finally:
         с.shutdown()
@@ -170,7 +198,7 @@ def главная():
         raise SystemExit(1)
     print("Чисто: на значке своего и чужого общего пресета кружок с числом замечаний — тёплый и при стопе, на правом "
           "верхнем углу, над замком, не у края экрана; число меняется с расчётом; у несохранённого кружка нет; "
-          "переключатель в «Настройках» убирает и возвращает его — на 390 и 1440, днём и ночью.")
+          "по умолчанию он выключен, переключатель в «Настройках» включает его и пишет в профиль, профиль включает его на новом устройстве — на 390 и 1440, днём и ночью.")
 
 
 if __name__ == "__main__":
