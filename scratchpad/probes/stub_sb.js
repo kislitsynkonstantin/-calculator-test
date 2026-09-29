@@ -33,6 +33,15 @@
     ],
   };
   window.__RPC = window.__RPC || {};
+  // События пресета — как функция базы preset_events: все строки с кодом
+  // пресета, свежие сверху, с именем автора. Проба может подменить её своей.
+  if (!window.__RPC.preset_events) window.__RPC.preset_events = function (арг) {
+    var т = window.__ТАБЛИЦЫ || {}, имена = {};
+    (т.profiles || []).forEach(function (п) { имена[п.id] = [п.first_name, п.last_name].filter(Boolean).join(' ') || null; });
+    return (т.events || []).filter(function (е) { return е.details && String(е.details.presetCode) === String(арг.p_code); })
+      .map(function (е) { return Object.assign({}, е, { user_name: имена[е.user_id] || null }); })
+      .sort(function (а, б) { return String(б.created_at).localeCompare(String(а.created_at)); });
+  };
 
   /* Ответ базы — всегда копия, прошедшая через JSON, как поле jsonb.
      Прежняя заглушка отдавала тот же объект, что положила страница, и проба
