@@ -58,9 +58,11 @@ def проверить_кружок(н, с, что):
         НАХОДКИ.append(f"{н} {что}: в расчёте нет замечаний — проверять нечего"); return
     if not с["есть"] or not с.get("видим"):
         НАХОДКИ.append(f"{н} {что}: кружка с числом замечаний на значке нет ({с['число']} замечаний)"); return
-    # Размер — 19 px, на 5 % меньше прежних 20 (30.09.2026).
-    if abs((с["к"]["b"] - с["к"]["t"]) - 19) > 0.6:
-        НАХОДКИ.append(f"{н} {что}: высота кружка {с['к']['b'] - с['к']['t']:.1f} px, ждали 19")
+    # Размер — как у числа на вкладке «Проверка», 18 px (30.09.2026: «сделай
+    # этот бейдж размером как этот, но цвет оставь»); с самой вкладкой кружок
+    # сверяется там, где проба раскрывает мини-окно.
+    if abs((с["к"]["b"] - с["к"]["t"]) - 18) > 0.6 or abs((с["к"]["r"] - с["к"]["l"]) - 18) > 0.6:
+        НАХОДКИ.append(f"{н} {что}: кружок {с['к']['r'] - с['к']['l']:.1f}×{с['к']['b'] - с['к']['t']:.1f} px, ждали 18×18")
     if с["текст"] != str(с["число"]):
         НАХОДКИ.append(f"{н} {что}: на кружке «{с['текст']}», а замечаний {с['число']}")
     if с["фон"] != ТЁПЛЫЙ[с["ночь"]]:
@@ -119,6 +121,13 @@ def прогон(бр, порт, ш, в, ночь):
     стр.screenshot(path=str(м.СНИМКИ / f"check-badge-own-{ш}{'-n' if ночь else ''}.png"))
     # Раскрытое мини-окно закрывает значок — кружок не выглядывает из-под него краем.
     к.открыть(стр); стр.wait_for_timeout(300)
+    вкл = стр.evaluate("""() => { const в = document.querySelector('#presetChipCard .pc-cnt-w'), c = document.querySelector('#presetChip .pc-ckn');
+      if (!в || !c) return null; const a = в.getBoundingClientRect(), b = c.getBoundingClientRect(), x = getComputedStyle(в), y = getComputedStyle(c);
+      return { вш: a.width, вв: a.height, кш: b.width, кв: b.height, вшр: x.fontSize, кшр: y.fontSize }; }""")
+    if not вкл:
+        НАХОДКИ.append(f"{н} на вкладке «Проверка» нет числа — сравнить размер не с чем")
+    elif abs(вкл["вш"] - вкл["кш"]) > 0.6 or abs(вкл["вв"] - вкл["кв"]) > 0.6 or вкл["вшр"] != вкл["кшр"]:
+        НАХОДКИ.append(f"{н} кружок на значке не того размера, что число на вкладке «Проверка»: {вкл}")
     ви = стр.evaluate("""() => { const c = document.querySelector('#presetChip .pc-ckn'), k = document.getElementById('presetChipCard');
       if (!c || !k.classList.contains('show')) return null; const a = c.getBoundingClientRect(), b = k.getBoundingClientRect();
       const снаружи = a.right > b.right + .5 || a.left < b.left - .5 || a.top < b.top - .5 || a.bottom > b.bottom + .5;
