@@ -13525,11 +13525,13 @@ function confirmCustomProject() {
 
 function deleteCustomProject() {
   try {
+    // Ручной проект — справочник, а не расчёт: к открытому пресету строку не
+    // цепляем (см. НЕ_О_РАСЧЁТЕ).
     if (selectedProject) logEvent('custom_project_deleted', logDetails(selectedProject[0], [
       ['Цена 100 мм', '', fmt(selectedProject[1])],
       ['Цена 150 мм', '', fmt(selectedProject[2])],
       ['Цена 200 мм', '', fmt(selectedProject[3])],
-    ]));
+    ]), { безРасчёта: true });
   } catch (e) {}
   if (!selectedProject || !customProjects.includes(selectedProject)) return;
   const projectToDelete = selectedProject;
@@ -14104,7 +14106,7 @@ function confirmEditProject() {
       }
     });
     const д = logDetails(selectedProject[0], пары);
-    if (д.rows.length) logEvent('base_price_changed', д);
+    if (д.rows.length) logEvent('base_price_changed', д, { безРасчёта: true });
   } catch (e) {}
 
   closeEditProject();
@@ -29963,6 +29965,14 @@ const AL_ВИДЫ_2 = {
   checklist_done:        'Чек-лист пройден',
 };
 const AL_ВСЕ_ВИДЫ = Object.assign({}, AL_ВИДЫ, AL_ВИДЫ_2);
+// События о справочнике, а не о расчёте: ручные проекты, цены проекта и опций,
+// комплектации. До 29.09.2026 первые четыре уносили код пресета, открытого в
+// ту минуту, и в журнале пресета стояли чужие правки (Константин: «в мини-окне
+// должна быть только история по текущему пресету. Сейчас залетает от других»).
+// Теперь они пишутся без пресета, а в журнал пресета не берутся и старые.
+const НЕ_О_РАСЧЁТЕ = ['custom_project_saved', 'custom_project_deleted', 'base_price_changed', 'option_price_changed',
+  'kit_created', 'kit_edited', 'kit_cleared', 'kit_seeded', 'kit_locked', 'kit_unlocked'];
+function видыЖурналаПресета() { return Object.keys(AL_ВСЕ_ВИДЫ).filter(в => НЕ_О_РАСЧЁТЕ.indexOf(в) === -1); }
 // Показывать ли второй уровень. Решено 02.09.2026: видно всем, но отдельным
 // переключателем, по умолчанию выключенным.
 let _alПодробно = false;
@@ -29975,7 +29985,8 @@ let _alПресет = null;
 function alФильтрПресета(код) {
   const к = код ? String(код) : null;
   _alПресет = (к && к !== _alПресет) ? к : null;
-  alРисовать();
+  // Отбор меняет запрос к базе, а не только показ: перечитываем.
+  loadActionLog(true);
   const лента = document.getElementById('alFeed');
   if (лента && лента.scrollIntoView) лента.scrollIntoView({ block: 'start', behavior: 'smooth' });
 }
@@ -30223,7 +30234,11 @@ async function loadActionLog(заново, тихо) {
   try {
     if (!_sb || !_sbUser) { лента.innerHTML = '<div class="al-empty"><b>Нужен вход</b>Журнал доступен после входа в аккаунт.</div>'; return; }
     const гр = alГраницы();
-    let запрос = _sb.from('events').select('*').in('event_type', Object.keys(AL_ВСЕ_ВИДЫ));
+    // С отбором по пресету база отдаёт его события сама: прежде отбор шёл по
+    // последним 500 событиям всех, и у пресета постарше в журнале оставалась
+    // одна строка из многих (Константин, 29.09.2026).
+    let запрос = _sb.from('events').select('*').in('event_type', _alПресет ? видыЖурналаПресета() : Object.keys(AL_ВСЕ_ВИДЫ));
+    if (_alПресет) запрос = запрос.eq('details->>presetCode', _alПресет);
     if (гр.от) запрос = запрос.gte('created_at', гр.от.toISOString());
     // Верхняя граница строго меньше: у прошлого месяца это первое число
     // текущего, и оно принадлежит уже текущему месяцу.
@@ -30909,6 +30924,15 @@ function al2РеквизитыПроверить() {
 let _al2КартинокБыло = 0, _al2КартинкиТаймер = null;
 function al2КартинкиТронуты() {
   if (!_sbUser) return;
+  // Раскладка снимков при открытии пресета — не правка: счёт принимает новое
+  // число без строки в журнале. Прежде каждое открытие пресета со снимками
+  // писало «Изображения изменены 0 → 2» от имени открывшего (Константин,
+  // 29.09.2026, снимком журнала мини-окна).
+  if (typeof _идётВосстановление !== 'undefined' && _идётВосстановление > 0) {
+    if (_al2КартинкиТаймер) { clearTimeout(_al2КартинкиТаймер); _al2КартинкиТаймер = null; }
+    _al2КартинокБыло = (typeof canvasItems !== 'undefined' && canvasItems) ? canvasItems.length : 0;
+    return;
+  }
   if (_al2КартинкиТаймер) clearTimeout(_al2КартинкиТаймер);
   // Загрузка нескольких файлов разом — одна строка, а не пять.
   _al2КартинкиТаймер = setTimeout(function () {
@@ -34027,7 +34051,7 @@ async function загрузитьЖурналПресета(заново) {
     const { data, error } = await _sb.from('events')
       .select('id,created_at,event_type,user_id,project_name,details')
       .eq('details->>presetCode', код)
-      .in('event_type', Object.keys(AL_ВСЕ_ВИДЫ))
+      .in('event_type', видыЖурналаПресета())
       .order('created_at', { ascending: false }).limit(ЖП_ПОТОЛОК);
     if (error) throw error;
     события = data || [];
@@ -34369,6 +34393,9 @@ function нажатиеВКарточке(e) {
       // Журнал открывается на этом пресете и за всё время: список в карточке
       // тоже за всё время, и неделя по умолчанию показала бы меньше.
       _alПресет = String(о.код); _alПериод = 'всё';
+      // Прежняя лента не мелькает, пока идёт запрос: окно открывается с
+      // полоской загрузки и сразу показывает события этого пресета.
+      _alСобытия = [];
       openActionLog();
       break;
     case 'ck': кРазделуИзПроверки(кн.getAttribute('data-sec')); break;
@@ -35996,7 +36023,7 @@ async function saveCustomProjectToCloud(proj, правка) {
       ['Цена ' + т[1], '', proj ? fmt(proj[2]) : ''],
       ['Цена ' + т[2], '', proj ? fmt(proj[3]) : ''],
     ].concat(proj && proj._params && proj._params.noFinish ? [['Без отделки', '', 'да']] : []),
-    proj ? fmt(proj[2]) : ''));
+    proj ? fmt(proj[2]) : ''), { безРасчёта: true });
   } catch (e) {}
   if (!_sbUser || !_sb) return;
   const id = proj._cloudId || ('cp_' + _sbUser.id.slice(0,8) + '_' + Date.now());
@@ -40741,7 +40768,7 @@ async function saveOptPrice(optionId, price) {
       logEvent('option_price_changed', logDetails(оп ? оп.name : String(optionId), [
         ['Цена опции', было != null ? fmt(было) : '—', fmt(val)],
         ['Проект', '', selectedProject ? selectedProject[0] : ''],
-      ]));
+      ]), { безРасчёта: true });
     } catch (e) {}
   } catch (e) { showToast('Ошибка сохранения цены'); return false; }
   return true;
