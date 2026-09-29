@@ -16835,6 +16835,9 @@ function calc() {
   try { applyNoteAutoHide(); } catch (e) {}
   try { applyNoteAdapt(); } catch (e) {}
   try { автоУсловныеПримечания(); } catch (e) {}
+  // Замечания проверки меняются с каждой галочкой, а значок мини-окна
+  // перерисовывается редко — счётчик на нём обновляется отсюда, после расчёта.
+  try { запланироватьСчётчикПроверки(); } catch (e) {}
   // Имя позиции с выбором материала — до расчёта, чтобы в документ ушло то,
   // что стоит на экране.
   try { применитьВариантыИмён(); } catch (e) {}
@@ -21568,6 +21571,10 @@ const appSettings = {
   contractorName: 'ООО «ПСК Вега»',
   showDisclaimer: true,
   showAutoToasts: true,
+  // Число замечаний по чек-листу на значке мини-окна. Настройка аккаунта:
+  // скрыв его однажды, менеджер не видит его ни на одном устройстве
+  // (Константин, 29.09.2026).
+  showCheckBadge: true,
   // Полоска «Ссылка» в панели печати. Настройка аккаунта, а не устройства:
   // менеджер, который ссылками не пользуется, убирает её один раз и не видит
   // ни на телефоне, ни на компьютере (Константин, 17.09.2026).
@@ -25989,6 +25996,10 @@ function renderSettingsBody() {
       <div class="st-row">
         <div><div class="st-label">Уведомления об авто-действиях</div><div class="st-sub">Тосты при блокировке и автодобавлении опций</div></div>
         <label class="st-toggle"><input type="checkbox" ${appSettings.showAutoToasts?'checked':''} onchange="appSettings.showAutoToasts=this.checked;saveSettings()"><span class="st-toggle-slider"></span></label>
+      </div>
+      <div class="st-row">
+        <div><div class="st-label">Замечания проверки на значке пресета</div><div class="st-sub">Число замечаний по чек-листу на значке в правом нижнем углу. Во вкладке «Проверка» оно видно всегда</div></div>
+        <label class="st-toggle"><input type="checkbox" aria-label="Замечания проверки на значке пресета" ${appSettings.showCheckBadge!==false?'checked':''} onchange="appSettings.showCheckBadge=this.checked;saveSettings();try{обновитьСчётчикПроверки()}catch(e){}"><span class="st-toggle-slider"></span></label>
       </div>
       <div class="st-section-title">Настройка кнопки «глаз»</div>
       <div class="st-row" style="border-bottom:none;">
@@ -33921,6 +33932,7 @@ function отрисоватьЗначокПресета() {
     if (свой) з.querySelector('.pc-lk').onclick = function (e) { e.stopPropagation(); togglePresetLock(код, true); };
   }
   if (к.classList.contains('show')) заполнитьКарточкуЗначка();
+  обновитьСчётчикПроверки();
   document.body.classList.add('pchip-on');
   requestAnimationFrame(function () { try { значокМимоПанели(); } catch (e) {} });
 }
@@ -34304,6 +34316,38 @@ function панельПроверкиКарточки(пр) {
   h += пр.вопросы.map(в => '<div class="pc-q">' + escapeHtml(в) + '</div>').join('');
   h += '<div class="pc-ck-f">Подсказки по чек-листу — сохранить и напечатать расчёт они не мешают.</div>';
   return h;
+}
+/* Счётчик замечаний проверки на значке мини-окна — оранжевый кружок на правом
+   верхнем углу значка, у общего пресета над замком (Константин, 29.09.2026,
+   вариант 01 макета mockups/mini-window-check-badge-v2.html: «внедряй только
+   оранжевый без стопа»). Цвет один: стоп счётчик не выделяет, он виден во
+   вкладке «Проверка». Скрывается настройкой «Замечания проверки на значке
+   пресета». Значок перерисовывается редко, поэтому счётчик обновляется и сам,
+   из calc(), не трогая остального значка. */
+let _счётчикПроверкиЖдёт = false;
+function обновитьСчётчикПроверки() {
+  const з = document.getElementById('presetChip');
+  if (!з) return;
+  let н = 0;
+  if ((_значокРежим === 'own' || _значокРежим === 'shared') && appSettings.showCheckBadge !== false) {
+    try { н = проверкаПоЧекЛисту().замечания.length; } catch (e) { н = 0; }
+  }
+  let с = з.querySelector('.pc-ckn');
+  const т = з.querySelector('.pc-body');
+  if (т && т.dataset.ar === undefined) т.dataset.ar = т.getAttribute('aria-label') || '';
+  if (!н) {
+    if (с) с.remove();
+    if (т) т.setAttribute('aria-label', т.dataset.ar);
+    return;
+  }
+  if (!с) { с = document.createElement('span'); с.className = 'pc-ckn'; с.setAttribute('aria-hidden', 'true'); з.appendChild(с); }
+  if (с.textContent !== String(н)) с.textContent = String(н);
+  if (т) т.setAttribute('aria-label', т.dataset.ar + ' · ' + н + ' ' + склонЗамечаний(н) + ' по чек-листу');
+}
+function запланироватьСчётчикПроверки() {
+  if (_счётчикПроверкиЖдёт) return;
+  _счётчикПроверкиЖдёт = true;
+  requestAnimationFrame(function () { _счётчикПроверкиЖдёт = false; try { обновитьСчётчикПроверки(); } catch (e) {} });
 }
 // Переход к разделу из замечания: карточка закрывается, раздел встаёт под
 // шапку и коротко подсвечивается.
@@ -41440,6 +41484,14 @@ body.dark .pchip.pc-loc .pc-body svg{color:#e0b070}
 .pchip .pc-lk::before{content:'';position:absolute;inset:-3px -4px -3px 0}
 .pchip .pc-lk[disabled]{cursor:default;opacity:.75}
 .pchip.pc-wait .pc-lk{animation:pcBlink .7s ease-in-out infinite;cursor:progress}
+/* Счётчик замечаний проверки — на правом верхнем углу значка, над замком, а
+   не на нём. Тёплый, как «Проверка», и один для всех тем и тонов: у серого
+   чужого значка тоже. Нажатие проходит сквозь него к значку. */
+.pchip .pc-ckn{position:absolute;top:-8px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--pc-warm);color:#2b1a00;
+  font-size:.64rem;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--pc-bg);pointer-events:none}
+/* Мини-окно раскрыто — число уже стоит на вкладке «Проверка», а кружок из-под
+   окна выглядывал бы оранжевым краем сбоку. */
+body.pc-card-open .pchip .pc-ckn{visibility:hidden}
 @keyframes pcBlink{50%{opacity:.35}}
 .pchip.pc-done{border-color:var(--pc-acc);color:var(--pc-acc)}
 .pc-tick path{stroke-dasharray:24;stroke-dashoffset:24;animation:pcDraw .36s cubic-bezier(.2,.8,.2,1) .05s forwards}
