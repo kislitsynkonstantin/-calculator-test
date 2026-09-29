@@ -33,7 +33,9 @@ import справка  # noqa: E402
 КОРЕНЬ = pathlib.Path(os.environ.get("BM_ROOT") or pathlib.Path(__file__).resolve().parent.parent.parent)
 ЗДЕСЬ = pathlib.Path(__file__).parent
 ЗАГЛУШКА = (ЗДЕСЬ / "stub_sb.js").read_text(encoding="utf-8")
-СТАТЬЯ = (справка.ПАПКА / "release--2.5.12.html").read_text(encoding="utf-8").strip("\n")
+# Версия статьи: BM_RELEASE=2.5.13 python3 check_release_article.py
+ВЕРСИЯ = os.environ.get("BM_RELEASE", "2.5.12")
+СТАТЬЯ = (справка.ПАПКА / f"release--{ВЕРСИЯ}.html").read_text(encoding="utf-8").strip("\n")
 # Число пунктов берётся из самой статьи: пункт добавили — проба не требует правки.
 ПУНКТОВ = len(re.findall(r'<div class="it">\s*<h3', СТАТЬЯ))
 СНИМКИ = pathlib.Path(os.environ.get("BM_SHOTS") or "/tmp")
@@ -66,7 +68,7 @@ def сервер():
 def ряды():
     р = [{"doc": ч["doc"], "part": ч["part"], "ord": ч["ord"], "staff_only": ч["staff_only"], "html": ч["html"]}
          for ч in справка.части("manual") if not ч["staff_only"]]
-    р.append({"doc": "release", "part": "2.5.12", "ord": 0, "staff_only": False, "html": СТАТЬЯ})
+    р.append({"doc": "release", "part": ВЕРСИЯ, "ord": 0, "staff_only": False, "html": СТАТЬЯ})
     return р
 
 
@@ -82,10 +84,10 @@ def ждать_кадр(стр, признак):
 
 
 def раскрыть_выпуск(кадр):
-    """Карточка v2.5.12 может быть не первой — над ней карточка следующей версии
-    «на тесте», и раскрыта по умолчанию та. Раскрываем v2.5.12, как менеджер."""
-    кадр.locator("body").evaluate('''() => { const к = [...document.querySelectorAll('#ch-updates .upd')]
-      .find(у => (у.querySelector('.upd-ver') || {}).textContent === 'v2.5.12'); if (к && !к.classList.contains('open')) к.querySelector('.upd-head').click(); }''')
+    """Карточка выпуска может быть не первой — над ней карточка следующей версии
+    «на тесте», и раскрыта по умолчанию та. Раскрываем её, как менеджер."""
+    кадр.locator("body").evaluate('''(_, в) => { const к = [...document.querySelectorAll('#ch-updates .upd')]
+      .find(у => (у.querySelector('.upd-ver') || {}).textContent === 'v' + в); if (к && !к.classList.contains('open')) к.querySelector('.upd-head').click(); }''', ВЕРСИЯ)
 
 
 def прогон(бр, порт, ш, тон, ночь):
@@ -108,17 +110,17 @@ def прогон(бр, порт, ш, тон, ночь):
         плохо(f"{н} справка не открылась"); стр.close(); return
     стр.wait_for_timeout(700)
     раскрыть_выпуск(кадр); стр.wait_for_timeout(300)
-    ссылка = кадр.locator('[data-release="2.5.12"]')
+    ссылка = кадр.locator(f'[data-release="{ВЕРСИЯ}"]')
     видна = ссылка.count() and ссылка.evaluate("э => getComputedStyle(э).display !== 'none' && э.getBoundingClientRect().height > 0")
     if not видна:
-        плохо(f"{н} в карточке v2.5.12 нет видимой ссылки на статью"); стр.close(); return
+        плохо(f"{н} в карточке v{ВЕРСИЯ} нет видимой ссылки на статью"); стр.close(); return
     # Значок статьи в шапке свёрнутой карточки (Константин, 27.09.2026): виден
     # только свёрнутой, стоит справа от счёта правок, поле нажатия 44 px, нажатие
     # открывает статью, а не раскрывает карточку. Без класса от калькулятора
     # (так в бою, где статей ещё нет) его нет вовсе.
-    знач = кадр.locator("body").evaluate("""async () => {
+    знач = кадр.locator("body").evaluate("""async (_, в) => {
       const ждать = мс => new Promise(r => setTimeout(r, мс));
-      const к = document.querySelector('[data-release-ico="2.5.12"]').closest('.upd'), ш = к.querySelector('.upd-head');
+      const к = document.querySelector('[data-release-ico="' + в + '"]').closest('.upd'), ш = к.querySelector('.upd-head');
       const и = к.querySelector('.upd-art'), с = к.querySelector('.upd-chev');
       const вид = э => getComputedStyle(э).display !== 'none' && э.getBoundingClientRect().width > 0;
       const открытВид = вид(и);
@@ -138,24 +140,24 @@ def прогон(бр, порт, ш, тон, ночь):
       r.запас = Math.round(ш.clientWidth - parseFloat(сш.paddingLeft) - parseFloat(сш.paddingRight)
         - дети.reduce((s, э) => s + э.getBoundingClientRect().width, 0) - (дети.length - 1) * parseFloat(сш.columnGap));
       к.classList.remove('upd-art-on'); r.безКласса = вид(и); к.classList.add('upd-art-on');
-      return r; }""")
+      return r; }""", ВЕРСИЯ)
     if знач["открытВид"]:
         плохо(f"{н} значок статьи виден и в развёрнутой карточке, рядом с блоком «Журнал выпуска»: {знач}")
     if not знач["свёрнут"] or not знач["виден"]:
-        плохо(f"{н} в свёрнутой карточке v2.5.12 нет значка статьи: {знач}")
+        плохо(f"{н} в свёрнутой карточке v{ВЕРСИЯ} нет значка статьи: {знач}")
     elif not (6 <= знач["отСчёта"] <= 18) or not (6 <= знач["доМетки"] <= 18) or знач["поле"] < 44 or знач["стрелкаСправа"] > 8:
         # справа от счёта правок, перед меткой (Константин, 27.09.2026), стрелка — у правого края
         плохо(f"{н} значок статьи не между счётом правок и меткой, поле меньше 44 px или стрелка не у края: {знач}")
     if знач.get("строк", 1) > 1 or знач.get("запас", 99) < 30:
-        плохо(f"{н} шапка свёрнутой карточки v2.5.12 со значком не в одну строку или впритык (запас {знач.get('запас')} px без фирменных шрифтов, нужно от 30): {знач}")
+        плохо(f"{н} шапка свёрнутой карточки v{ВЕРСИЯ} со значком не в одну строку или впритык (запас {знач.get('запас')} px без фирменных шрифтов, нужно от 30): {знач}")
     if знач["безКласса"]:
         плохо(f"{н} значок статьи виден без класса от калькулятора — в бою он появился бы без статьи: {знач}")
-    кадр.locator('[data-release-ico="2.5.12"]').click()
+    кадр.locator(f'[data-release-ico="{ВЕРСИЯ}"]').click()
     if ждать_кадр(стр, "h1"):
         стр.evaluate("() => { const ф = document.getElementById('manualFrame'); ф.contentWindow.postMessage({ type: 'backToManual' }, '*'); }")
         стр.evaluate("() => openManual()"); кадр = ждать_кадр(стр, "#ch-updates"); стр.wait_for_timeout(700)
         раскрыть_выпуск(кадр); стр.wait_for_timeout(300)
-        ссылка = кадр.locator('[data-release="2.5.12"]')
+        ссылка = кадр.locator(f'[data-release="{ВЕРСИЯ}"]')
     else:
         плохо(f"{н} нажатие по значку статьи статью не открыло")
     ссылка.locator("[role=link]").click()
@@ -173,7 +175,7 @@ def прогон(бр, порт, ш, тон, ночь):
         скролл: document.documentElement.scrollWidth > innerWidth + 1 };
     }""")
     print("  " + н, json.dumps(р, ensure_ascii=False))
-    if "2.5.12" not in р["заголовок"]:
+    if ВЕРСИЯ not in р["заголовок"]:
         плохо(f"{н} открылась не статья: «{р['заголовок']}»")
     if р["снимков"] < 8 or р["пустых"]:
         плохо(f"{н} снимки не загрузились: {р['пустых'][:3]} из {р['снимков']}")
@@ -384,7 +386,7 @@ def главная():
         for н in НАХОДКИ:
             print("  ✗", н)
         raise SystemExit(1)
-    print("Чисто: в карточке v2.5.12 ссылка на статью; статья открывается в окне справки со всеми снимками, "
+    print(f"Чисто: в карточке v{ВЕРСИЯ} ссылка на статью; статья открывается в окне справки со всеми снимками, "
           "в цвете калькулятора — бирюзой, «Зелёным-графитом» и ночью; разделы листаются на месте, "
           "«Журнал обновлений» возвращает в журнал — на 390 и 1440.")
 
