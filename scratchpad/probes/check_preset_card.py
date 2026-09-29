@@ -33,7 +33,7 @@
 
     python3 check_preset_card.py
 """
-import os, pathlib, sys
+import os, pathlib, re, sys
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import check_preset_chip as м
 from playwright.sync_api import sync_playwright
@@ -226,6 +226,16 @@ def полный(бр, порт, ш, в, ночь):
         стр.locator("#presetChipCard .pc-lg li.open .pc-lg-chev").click(); стр.wait_for_timeout(250)
         if стр.evaluate("() => !!document.querySelector('#presetChipCard .pc-lg li.open')"):
             плохо(f"{н} журнал: второе нажатие птички не свернуло строку")
+    # Подвал плашкой (вариант 06, Константин 29.09.2026): слева число действий,
+    # справа ссылка, плашка нажимается целиком и не выше строки ленты по весу.
+    пл = стр.evaluate("""() => { const б = document.querySelector('#presetChipCard .pc-lg-plate'); if (!б) return null;
+      const r = б.getBoundingClientRect(), к = document.getElementById('presetChipCard').getBoundingClientRect();
+      const н = б.querySelector('.pc-lg-pn'), л = б.querySelector('.pc-lg-pl');
+      return { число: н ? н.textContent : '', ссылка: л ? л.textContent : '', в: Math.round(r.height), ш: Math.round(r.width),
+               слева: н && л ? н.getBoundingClientRect().right < л.getBoundingClientRect().left : false,
+               рамка: getComputedStyle(б).borderTopWidth, фон: getComputedStyle(б).backgroundColor }; }""")
+    if not пл or not re.match(r"^\d+\+? действ", пл["число"]) or "Открыть в журнале действий" not in пл["ссылка"] or пл["в"] < 44 or not пл["слева"] or пл["рамка"] != "0px" or пл["фон"] in ("rgba(0, 0, 0, 0)", "transparent"):
+        плохо(f"{н} подвал журнала не плашкой с числом слева и ссылкой справа: {пл}")
     вёрстка(стр, н, "«Журнал»")
     снимок(стр, f"log-{ш}{'-n' if ночь else ''}")
     стр.locator("#presetChipCard [data-act='to-log']").click(); стр.wait_for_timeout(900)
