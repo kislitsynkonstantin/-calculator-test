@@ -13641,7 +13641,8 @@ function updateBaseItemNames() {
   });
 }
 
-function setThickness(idx) {
+// `безЖурнала` — толщина пришла с открываемым расчётом, а не выбрана кнопкой.
+function setThickness(idx, опц) {
   const _былаТолщина = [100,150,200][currentThickness] || 150;
   const _итогДо = al2ИтогДо();
   clearAppliedKit();
@@ -13654,7 +13655,7 @@ function setThickness(idx) {
   calc();
   try {
     const стало = [100,150,200][idx] || 150;
-    if (стало !== _былаТолщина) {
+    if (стало !== _былаТолщина && !(опц && опц.безЖурнала) && !_раскладкаРасчёта) {
       logEvent('thickness_changed', logDetails(selectedProject ? selectedProject[0] : '', [
         ['Толщина', _былаТолщина + ' мм', стало + ' мм'],
         ['Итог', fmt(_итогДо), fmt(al2ИтогДо())],
@@ -27641,7 +27642,25 @@ function теньБазового(п) {
   return !!(п && !п._cloudId && PROJECTS.some(b => b[0] === п[0]));
 }
 
+// Раскладка сохранённого расчёта — не правка того, кто его открыл. Пока она
+// идёт, журнал не пишет ни толщину, ни «Реквизиты заполнены»: иначе открытие
+// чужого пресета записывалось бы правками открывшего с кодом пресета, и в
+// журнале мини-окна у пресета Максима стояло «Вы — Толщина утепления
+// изменена» от имени администратора (Константин, 29.09.2026, снимком).
+// Счётчик, а не флаг: при расчёте другой технологии раскладка вызывает себя
+// ещё раз после смены технологии.
+let _раскладкаРасчёта = 0;
 function restoreState(state) {
+  _раскладкаРасчёта++;
+  try { return разложитьРасчёт(state); }
+  finally {
+    _раскладкаРасчёта--;
+    // Реквизиты, пришедшие с расчётом, уже заполнены — позже «Реквизиты
+    // заполнены» про них не пишется.
+    if (_раскладкаРасчёта === 0) { try { al2РеквизитыКакЕсть(); } catch (e) {} }
+  }
+}
+function разложитьРасчёт(state) {
   if (!state || state.version !== 1) {
     showToast('Неверный формат пресета');
     return;
@@ -27670,7 +27689,7 @@ function restoreState(state) {
 
   // Restore thickness
   if (state.thickness != null) {
-    setThickness(state.thickness);
+    setThickness(state.thickness, { безЖурнала: true });
   }
 
   // Тени базовых проектов, попавшие в память раньше, снимаются: проект из
@@ -30959,8 +30978,13 @@ function al2ИтогДо() { return (typeof _currentTotal === 'number' ? _curren
 // смене проекта, а не хранится вечно.
 let _al2РеквизитыОтмечены = false;
 function al2РеквизитыСброс() { _al2РеквизитыОтмечены = false; }
+function al2РеквизитыКакЕсть() {
+  const зн = ид => (document.getElementById(ид)?.value || '').trim();
+  if (зн('managerName') && зн('clientName') && зн('contractNumber') && зн('contractDate')) _al2РеквизитыОтмечены = true;
+}
 function al2РеквизитыПроверить() {
   if (_al2РеквизитыОтмечены || !_sbUser || !selectedProject) return;
+  if (typeof _раскладкаРасчёта !== 'undefined' && _раскладкаРасчёта > 0) return;
   const зн = ид => (document.getElementById(ид)?.value || '').trim();
   if (!зн('managerName') || !зн('clientName') || !зн('contractNumber') || !зн('contractDate')) return;
   _al2РеквизитыОтмечены = true;
@@ -34004,6 +34028,10 @@ function значокМимоПанели() {
 }
 function значокМимоПанелиПозже() { значокМимоПанели(); setTimeout(значокМимоПанели, 360); }
 window.addEventListener('resize', () => { try { значокМимоПанели(); } catch (e) {} });
+function имяКратко(полное) {
+  const ч = String(полное || '').trim().split(/\s+/).filter(Boolean);
+  return ч.length < 2 ? ч.join(' ') : ч[0] + ' ' + ч[1].charAt(0) + '.';
+}
 function авторКратко(sp) {
   const полное = String((sp && sp.author_name) || '').trim();
   if (!полное) return '';
@@ -34222,6 +34250,11 @@ function панельЖурналаКарточки(о) {
   if (!ж.события.length) return пусто('Действий пока нет', 'Правки этого пресета появятся здесь.') + низ();
   const штат = alStaff();
   const свой = (_sbUser || {}).id;
+  // Кто сделал — у администратора и редактора всегда, у менеджера — когда в
+  // ленте есть чужие действия: «Вы» — свои, остальные — «Имя Ф.», как на
+  // значке общего пресета (Константин, 29.09.2026: «писать просто „Максим Г.“,
+  // а у него „Вы“»).
+  const подписывать = штат || (ж.события || []).some(с => с.user_id && с.user_id !== свой);
   let из = '', день = '';
   ж.события.forEach(с => {
     const д = new Date(с.created_at);
@@ -34235,7 +34268,7 @@ function панельЖурналаКарточки(о) {
       const имя = ш && typeof PRINT_STYLE_LABELS !== 'undefined' && PRINT_STYLE_LABELS[String(ш.b || '')];
       if (имя) что = 'Спецификация в теме «' + имя + '» отправлена на печать';
     }
-    const кто = штат ? (с.user_id === свой ? 'Вы' : alИмя(с.user_id)) : '';
+    const кто = подписывать ? (с.user_id === свой ? 'Вы' : имяКратко(alИмя(с.user_id))) : '';
     const строки = строкиЖурналаПресета(с, о.имя);
     const подр = подробностьЖурналаПресета(с, о.имя, строки);
     // Птичка — там, где раскрытие добавит что-то к строке под действием:
