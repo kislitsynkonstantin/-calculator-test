@@ -34033,22 +34033,44 @@ function деньЖурналаПресета(д) {
   return д.toLocaleDateString('ru-RU', т.getFullYear() === с.getFullYear()
     ? { day: 'numeric', month: 'long' } : { day: 'numeric', month: 'long', year: 'numeric' });
 }
-// Подробность строки — одна: перемена «было → стало» или список, свёрнутый в
-// строку. Всё остальное — в полном журнале.
-function подробностьЖурналаПресета(с, имяПресета) {
+// Подробности события — те же строки, что под птичкой в полном журнале: без
+// пустых, без шаблона печати (он уже в самой строке) и без повтора того, что
+// строка и так называет.
+function строкиЖурналаПресета(с, имяПресета) {
   const д = с.details || {};
-  // Шаблон печати уже стоит в самой строке («в теме «Бланк»»), второй раз не пишем.
-  const строки = (д.rows || []).filter(р => р && (р.b != null && р.b !== '' || р.a)
-    && !(с.event_type === 'print' && р.k === 'Шаблон'));
-  const перемена = строки.find(р => р.a);
+  const видно = new Set([д.obj, с.project_name, д.preset, имяПресета].filter(Boolean).map(т => String(т).trim()));
+  return (д.rows || []).filter(р => р && (р.b != null && р.b !== '' || р.a)
+    && !(с.event_type === 'print' && р.k === 'Шаблон')
+    && !(!р.a && видно.has(String(р.b).trim())));
+}
+// Значение списком — набор опций, свои опции, отметки: по ключу, как в полном
+// журнале, или когда в значении несколько строк.
+const ЖП_СПИСКОМ = /^(Добавлены|Убраны|Список|Сняты|Закреплены|Откреплены|Выделены|Снято выделение|Цена в печати|Примечания|Ручные|Базовые)/;
+function частиЗначения(р) { return String(р.b == null ? '' : р.b).split('\n').filter(Boolean); }
+// Строка под действием — одна и о сути: что добавили или убрали, а не итог.
+// Итог — только когда больше сказать нечего (Константин, 29.09.2026: вместо
+// «Итог: … → …» у «Набор опций изменён» нужно видеть сами опции).
+function подробностьЖурналаПресета(с, имяПресета, строки) {
+  строки = строки || строкиЖурналаПресета(с, имяПресета);
+  const р = строки.find(х => х.k !== 'Итог') || строки[0];
   let т = '';
-  if (перемена) т = (перемена.k ? перемена.k + ': ' : '') + перемена.a + ' → ' + перемена.b;
-  else if (строки.length) {
-    const р = строки[0];
-    т = (р.k ? р.k + ': ' : '') + String(р.b).split('\n').filter(Boolean).join(', ');
-  }
+  if (р) т = (р.k ? р.k + ': ' : '') + (р.a ? р.a + ' → ' + р.b : частиЗначения(р).join(', '));
+  const д = с.details || {};
   if (!т && д.obj && д.obj !== имяПресета && д.obj !== с.project_name) т = д.obj;
   return т.length > 140 ? т.slice(0, 139) + '…' : т;
+}
+// Раскрытые строки журнала карточки — по номеру события; переживают
+// перерисовку, сбрасываются со сменой пресета.
+const _пкЖурналОткрыт = new Set();
+function раскрытиеЖурналаПресета(строки) {
+  return строки.map(р => {
+    const части = частиЗначения(р);
+    const списком = ЖП_СПИСКОМ.test(р.k || '') || части.length > 1;
+    const знач = р.a ? '<span class="pc-lg-xa">' + escapeHtml(р.a) + '</span><span class="pc-lg-xar">→</span><b>' + escapeHtml(р.b) + '</b>'
+      : списком ? '<ul class="pc-lg-xl">' + части.map(ч => '<li>' + escapeHtml(ч) + '</li>').join('') + '</ul>'
+      : '<b>' + escapeHtml(р.b) + '</b>';
+    return '<div class="pc-lg-xr">' + (р.k ? '<span class="pc-lg-xk">' + escapeHtml(р.k) + '</span>' : '') + '<div class="pc-lg-xv">' + знач + '</div></div>';
+  }).join('');
 }
 function панельЖурналаКарточки(о) {
   const низ = '<div class="pc-row pc-lg-foot"><button type="button" class="pc-wide" data-act="to-log">' + ЗНАЧОК_СПИСОК + 'Открыть в журнале действий</button></div>';
@@ -34074,12 +34096,22 @@ function панельЖурналаКарточки(о) {
       if (имя) что = 'Спецификация в теме «' + имя + '» отправлена на печать';
     }
     const кто = штат ? (с.user_id === свой ? 'Вы' : alИмя(с.user_id)) : '';
-    const подр = подробностьЖурналаПресета(с, о.имя);
-    из += '<li><span class="pc-lg-t">' + (датаЕсть ? д.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '') + '</span>'
+    const строки = строкиЖурналаПресета(с, о.имя);
+    const подр = подробностьЖурналаПресета(с, о.имя, строки);
+    // Птичка — там, где раскрытие добавит что-то к строке под действием:
+    // несколько подробностей или список больше чем из одного пункта. Раскрывает
+    // она, а не строка целиком, — как в полном журнале.
+    const ид = String(с.id != null ? с.id : (с.created_at + ':' + с.event_type));
+    const есть = строки.length > 1 || строки.some(р => частиЗначения(р).length > 1);
+    const открыт = есть && _пкЖурналОткрыт.has(ид);
+    из += '<li' + (есть ? ' class="pc-lg-has' + (открыт ? ' open' : '') + '"' : '') + '><span class="pc-lg-t">' + (датаЕсть ? д.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '') + '</span>'
       + '<span class="pc-lg-w">' + (кто ? '<b>' + escapeHtml(кто) + '</b> — ' : '') + escapeHtml(что) + '</span>'
-      + (подр ? '<span class="pc-lg-d">' + escapeHtml(подр) + '</span>' : '') + '</li>';
+      + (есть ? '<button type="button" class="pc-lg-chev" data-act="lg-x" data-ev="' + escapeHtml(ид) + '" aria-expanded="' + открыт + '" aria-label="' + (открыт ? 'Свернуть подробности' : 'Подробности') + '">'
+          + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></button>' : '')
+      + (открыт ? '<div class="pc-lg-x">' + раскрытиеЖурналаПресета(строки) + '</div>'
+         : подр ? '<span class="pc-lg-d">' + escapeHtml(подр) + '</span>' : '') + '</li>';
   });
-  if (ж.события.length >= ЖП_ПОТОЛОК) из += '<li class="pc-lg-more">Показаны последние ' + ЖП_ПОТОЛОК + ' действий — остальные в полном журнале.</li>';
+  if (ж.события.length >= ЖП_ПОТОЛОК) из += '<li class="pc-lg-cap">Показаны последние ' + ЖП_ПОТОЛОК + ' действий — остальные в полном журнале.</li>';
   return '<div class="pc-lg-sc"><ul class="pc-lg">' + из + '</ul></div>' + низ;
 }
 
@@ -34217,7 +34249,7 @@ function заполнитьКарточкуЗначка() {
     if (!о) { закрытьКарточкуЗначка(); return; }
     // Другой пресет — карточка с первой вкладки и без начатого подтверждения.
     const ключ = (о.где === 'мои' ? 'м:' + о.id : 'о:' + о.код);
-    if (ключ !== _пкПресет) { _пкПресет = ключ; _пкМеню = false; _пкПодтв = false; }
+    if (ключ !== _пкПресет) { _пкПресет = ключ; _пкМеню = false; _пкПодтв = false; _пкЖурналОткрыт.clear(); }
     if (о.вид !== 'pub') { _пкМеню = false; _пкПодтв = false; }
     const пр = проверкаПоЧекЛисту();
     const н = пр.замечания.length;
@@ -34320,6 +34352,13 @@ function нажатиеВКарточке(e) {
       openActionLog();
       break;
     case 'ck': кРазделуИзПроверки(кн.getAttribute('data-sec')); break;
+    case 'lg-x': {
+      const ид = кн.getAttribute('data-ev') || '';
+      if (_пкЖурналОткрыт.has(ид)) _пкЖурналОткрыт.delete(ид); else _пкЖурналОткрыт.add(ид);
+      заполнитьКарточкуЗначка();
+      const с = [...к.querySelectorAll('[data-act="lg-x"]')].find(x => x.getAttribute('data-ev') === ид); if (с) с.focus();
+      break;
+    }
   }
 }
 // Свой опубликованный из «Моих» — в «Общие»: отложенная правка сначала уходит
@@ -41328,7 +41367,26 @@ body.total-strip-on .pc-card{bottom:calc(var(--strip-h, 68px) + 10px)}
 .pc-card .pc-lg li{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;padding:9px 0;border-bottom:1px solid var(--pc-rule)}
 .pc-card .pc-lg li:last-child{border-bottom:0}
 .pc-card .pc-lg .pc-lg-day{display:block;border:0;padding:10px 0 0;font-size:.58rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--pc-ink2)}
-.pc-card .pc-lg .pc-lg-more{display:block;border:0;font-size:.66rem;color:var(--pc-ink3)}
+.pc-card .pc-lg .pc-lg-cap{display:block;border:0;font-size:.66rem;color:var(--pc-ink3)}
+/* Строка с подробностями: птичка справа, как в полном журнале; раскрытая
+   строка вместо одной строки под действием показывает все подробности. */
+.pc-card .pc-lg li.pc-lg-has{grid-template-columns:auto 1fr 24px}
+.pc-card .pc-lg-chev{position:relative;grid-column:3;grid-row:1 / span 2;align-self:start;width:24px;height:28px;margin-top:-5px;display:flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:none;color:var(--pc-ink3);cursor:pointer}
+.pc-card .pc-lg-chev::before{content:'';position:absolute;inset:-8px -10px}
+.pc-card .pc-lg-chev svg{transition:transform .18s}
+.pc-card .pc-lg li.open .pc-lg-chev svg{transform:rotate(180deg)}
+.pc-card .pc-lg-chev:focus-visible{outline:2px solid var(--pc-acc);outline-offset:1px}
+.pc-card .pc-lg-x{grid-column:2 / span 2;display:grid;gap:8px;margin-top:6px}
+.pc-card .pc-lg-xk{display:block;font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--pc-ink3)}
+.pc-card .pc-lg-xv{margin-top:2px;font-size:.7rem;line-height:1.45;color:var(--pc-ink);min-width:0;overflow-wrap:anywhere}
+.pc-card .pc-lg-xv b{font-weight:600}
+.pc-card .pc-lg-xa{color:var(--pc-ink3);text-decoration:line-through}
+.pc-card .pc-lg-xar{margin:0 6px;color:var(--pc-ink3)}
+.pc-card .pc-lg-xl{margin:0;padding-left:14px;list-style:disc}
+.pc-card .pc-lg-xl li{display:list-item;padding:1px 0;border:0;font-weight:600}
+.pc-card .pc-lg-xl li::marker{color:var(--pc-acc)}
+@media (hover:hover){.pc-card .pc-lg-chev:hover{background:var(--pc-tint);color:var(--pc-ink)}}
+@media (prefers-reduced-motion:reduce){.pc-card .pc-lg-chev svg{transition:none}}
 .pc-card .pc-lg-t{font-size:.66rem;color:var(--pc-ink2);white-space:nowrap;padding-top:2px}
 .pc-card .pc-lg-w{font-size:.72rem;line-height:1.4;color:var(--pc-ink);min-width:0;overflow-wrap:anywhere}
 .pc-card .pc-lg-w b{font-weight:600}

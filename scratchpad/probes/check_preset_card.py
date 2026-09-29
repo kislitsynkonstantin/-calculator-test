@@ -16,7 +16,9 @@
   • «⋯» → «Снять с публикации» → подтверждение в карточке (без слов о клиенте,
     фокус на «Отмене», Escape снимает по слою) → снятие; открытый в «Общих»
     пресет после снятия открывается в «Моих»;
-  • «Журнал»: все действия этого пресета — и только его — листаются внутри,
+  • «Журнал»: все действия этого пресета — и только его — листаются внутри;
+    под набором опций — сами опции, птичка раскрывает все подробности и
+    переживает перерисовку,
     «Открыть в журнале действий» ведёт в журнал с фильтром по пресету за всё
     время;
   • «Проверка»: замечание о водостоке при фасаде без водостока (стоп), о
@@ -193,6 +195,35 @@ def полный(бр, порт, ш, в, ночь):
                листается: !!л && л.scrollHeight > л.clientHeight + 20, сдвиг: л ? л.scrollTop - было : 0 }; }""")
     if ж["строк"] < 30 or ж["чужие"] or not ж["свои"] or ж["дни"] < 2 or not ж["листается"] or ж["сдвиг"] < 100:
         плохо(f"{н} журнал пресета: {ж}")
+    # Подробности раскрываются птичкой, как в полном журнале (Константин,
+    # 29.09.2026): под «Набор опций изменён» — сами опции, а не только итог.
+    стр.evaluate("() => { const л = document.querySelector('#presetChipCard .pc-lg-sc'); if (л) л.scrollTop = 0; }")
+    рз = стр.evaluate("""() => { const к = document.getElementById('presetChipCard');
+      const стр_ = [...к.querySelectorAll('.pc-lg li.pc-lg-has')];
+      const первая = стр_[0]; if (!первая) return { нет: true };
+      const свод = (первая.querySelector('.pc-lg-d') || {}).textContent || '';
+      const кн = первая.querySelector('.pc-lg-chev'), b = кн.getBoundingClientRect(), с = getComputedStyle(кн, '::before');
+      const поле = [b.width - (parseFloat(с.left) || 0) - (parseFloat(с.right) || 0), b.height - (parseFloat(с.top) || 0) - (parseFloat(с.bottom) || 0)];
+      return { строк: стр_.length, свод, поле: поле.map(Math.round), итогВСводе: /^Итог/.test(свод) }; }""")
+    if рз.get("нет") or рз["итогВСводе"] or "Метка-этого" not in рз["свод"] or min(рз["поле"]) < 43.5:
+        плохо(f"{н} журнал: у строки с опциями нет птички, под действием итог вместо опций или поле птички мало: {рз}")
+    if not рз.get("нет"):
+        стр.locator("#presetChipCard .pc-lg-chev").first.click(); стр.wait_for_timeout(300)
+        от = стр.evaluate("""() => { const л = document.querySelector('#presetChipCard .pc-lg li.open'); if (!л) return null;
+          return { пункты: [...л.querySelectorAll('.pc-lg-xl li')].map(x => x.textContent), ключи: [...л.querySelectorAll('.pc-lg-xk')].map(x => x.textContent),
+                   нажата: л.querySelector('.pc-lg-chev').getAttribute('aria-expanded'), свод: !!л.querySelector('.pc-lg-d'),
+                   фокус: document.activeElement && document.activeElement.classList.contains('pc-lg-chev'),
+                   карточка: document.getElementById('presetChipCard').classList.contains('show') }; }""")
+        if not от or len(от["пункты"]) < 2 or "Вторая опция" not in от["пункты"] or "Добавлены" not in от["ключи"] or от["нажата"] != "true" or от["свод"] or not от["фокус"] or not от["карточка"]:
+            плохо(f"{н} журнал: раскрытая строка не показала список опций: {от}")
+        вёрстка(стр, н, "«Журнал», строка раскрыта")
+        снимок(стр, f"log-open-{ш}{'-n' if ночь else ''}")
+        стр.evaluate("() => { _журналПресета.когда = 0; заполнитьКарточкуЗначка(); }"); стр.wait_for_timeout(200)
+        if not стр.evaluate("() => !!document.querySelector('#presetChipCard .pc-lg li.open .pc-lg-xl')"):
+            плохо(f"{н} журнал: раскрытая строка свернулась от перерисовки карточки")
+        стр.locator("#presetChipCard .pc-lg li.open .pc-lg-chev").click(); стр.wait_for_timeout(250)
+        if стр.evaluate("() => !!document.querySelector('#presetChipCard .pc-lg li.open')"):
+            плохо(f"{н} журнал: второе нажатие птички не свернуло строку")
     вёрстка(стр, н, "«Журнал»")
     снимок(стр, f"log-{ш}{'-n' if ночь else ''}")
     стр.locator("#presetChipCard [data-act='to-log']").click(); стр.wait_for_timeout(900)
