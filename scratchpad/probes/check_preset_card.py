@@ -237,7 +237,7 @@ def полный(бр, порт, ш, в, ночь):
       return { число: н ? н.textContent : '', ссылка: л ? л.textContent : '', в: Math.round(r.height), ш: Math.round(r.width),
                слева: н && л ? н.getBoundingClientRect().right < л.getBoundingClientRect().left : false,
                рамка: getComputedStyle(б).borderTopWidth, фон: getComputedStyle(б).backgroundColor }; }""")
-    if not пл or not re.match(r"^\d+\+? действ", пл["число"]) or "Открыть в журнале действий" not in пл["ссылка"] or пл["в"] < 44 or not пл["слева"] or пл["рамка"] != "0px" or пл["фон"] in ("rgba(0, 0, 0, 0)", "transparent"):
+    if not пл or not re.match(r"^\d+\+? действ", пл["число"]) or "В журнал действий" not in пл["ссылка"] or пл["в"] < 44 or not пл["слева"] or пл["рамка"] != "0px" or пл["фон"] in ("rgba(0, 0, 0, 0)", "transparent"):
         плохо(f"{н} подвал журнала не плашкой с числом слева и ссылкой справа: {пл}")
     вёрстка(стр, н, "«Журнал»")
     снимок(стр, f"log-{ш}{'-n' if ночь else ''}")
