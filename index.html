@@ -34203,9 +34203,12 @@ function панельЖурналаКарточки(о) {
   // Подвал плашкой — вариант 06 макета mini-window-journal-link-v2 (Константин,
   // 29.09.2026: «да, вот так делай — супер»): слева число действий, справа
   // ссылка, нажимается вся плашка. Прежняя кнопка с рамкой весила как главная.
+  // Ссылка — первой: плашка раскладывается справа налево, и число, которому не
+  // хватило места, уходит под край, а не ссылка.
   const низ = (н) => '<div class="pc-lg-foot"><button type="button" class="pc-lg-plate" data-act="to-log">'
+    + '<span class="pc-lg-pl">Открыть в журнале действий<span class="pc-lg-ar" aria-hidden="true">→</span></span>'
     + (н != null ? '<span class="pc-lg-pn">' + (н >= ЖП_ПОТОЛОК ? ЖП_ПОТОЛОК + '+ действий' : н + ' ' + alСклонение(н, 'действие', 'действия', 'действий')) + '</span>' : '')
-    + '<span class="pc-lg-pl">Открыть в журнале действий<span class="pc-lg-ar" aria-hidden="true">→</span></span></button></div>';
+    + '</button></div>';
   const пусто = (заголовок, текст) => '<div class="pc-lg-sc"><div class="pc-lg-empty"><b>' + заголовок + '</b>' + текст + '</div></div>';
   if (!о.код) return пусто('Код ещё выдаётся', 'Журнал пресета появится вместе с кодом.') + низ();
   if (!_sbUser) return пусто('Нужен вход', 'Журнал доступен после входа в аккаунт.') + низ();
@@ -41588,11 +41591,17 @@ body.total-strip-on .pc-card{bottom:calc(var(--strip-h, 68px) + 10px)}
   -webkit-mask-image:linear-gradient(#000 calc(100% - 22px),transparent);mask-image:linear-gradient(#000 calc(100% - 22px),transparent)}
 .pc-card .pc-lg-sc.end{-webkit-mask-image:none;mask-image:none}
 .pc-card .pc-lg-foot{flex:none;margin-top:6px}
-.pc-card .pc-lg-plate{position:relative;display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:10px 12px;border:0;border-radius:10px;background:var(--pc-tint);font:inherit;text-align:left;cursor:pointer}
-.pc-card .pc-lg-pn{font-size:.66rem;color:var(--pc-ink2);white-space:nowrap}
-.pc-card .pc-lg-pl{margin-left:auto;display:flex;align-items:center;gap:6px;color:var(--pc-acc);font-size:.72rem;font-weight:600;white-space:nowrap}
+.pc-card .pc-lg-plate{position:relative;display:flex;flex-flow:row-reverse wrap;justify-content:space-between;align-items:center;column-gap:10px;row-gap:0;
+  width:100%;height:44px;padding:0 12px;overflow:hidden;border:0;border-radius:10px;background:var(--pc-tint);font:inherit;text-align:left;cursor:pointer}
+/* Ссылка стоит первой и справа, число — за ней, слева. Не влезает число —
+   оно уходит на вторую строку, а та целиком ниже края плашки: число либо
+   видно полностью, либо не видно вовсе, а ссылка со стрелкой всегда на месте.
+   Прежде число выталкивало ссылку, и в настоящей Geologica стрелка уходила
+   за край уже на 360 px (Константин, 29.09.2026: «тут стрелочка не
+   появляется»); пробы этого не видели — мерили подменным шрифтом. */
+.pc-card .pc-lg-pn{height:44px;display:flex;align-items:center;font-size:.66rem;color:var(--pc-ink2);white-space:nowrap}
+.pc-card .pc-lg-pl{height:44px;display:flex;align-items:center;gap:6px;color:var(--pc-acc);font-size:.72rem;font-weight:600;white-space:nowrap}
 .pc-card .pc-lg-ar{transition:transform .15s}
-@media (max-width:359px){.pc-card .pc-lg-pn{display:none}}
 @media (hover:hover){.pc-card .pc-lg-plate:hover .pc-lg-ar{transform:translateX(3px)}}
 @media (prefers-reduced-motion:reduce){.pc-card .pc-lg-ar{transition:none}}
 .pc-card .pc-lg{list-style:none;padding:0;margin:6px 0 0}
