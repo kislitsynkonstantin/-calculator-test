@@ -48,6 +48,8 @@ from playwright.sync_api import sync_playwright
     ("2-4", "отмостку", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; }", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; customNotes.foundation.push({ id: 'н2', text: 'Отмостка не входит' }); }"),
     ("2-6", "тепляк", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; document.getElementById('contractDate').value = '2026-12-10'; }", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; document.getElementById('contractDate').value = '2026-06-10'; }"),
     ("2-10", "Фундамент не выбран", "() => { checkedOptions.f5 = false; }", "() => { checkedOptions.f5 = false; customNotes.foundation.push({ id: 'н3', text: 'Фундамент не входит — заказчика' }); }"),
+    # Забивные сваи — тоже выбранный фундамент: «сваи», а не «свай» (30.09.2026, снимком).
+    ("2-10 сваи", "Фундамент не выбран", "() => { checkedOptions.f5 = false; }", "() => { checkedOptions.f5 = false; checkedOptions.f9 = true; }"),
     ("4-9", "Форма кровли не совпадает", "() => { checkedOptions.r17 = true; }", "() => {}"),
     ("5-1", "имитацию 20 мм", "() => { checkedOptions.ex6 = true; }", "() => { checkedOptions.ex6 = false; }"),
     ("5-11", "сорт древесины", "() => { своя('interior', 'Вагонка на потолок мансарды'); }", "() => { своя('interior', 'Вагонка на потолок мансарды, сорт АВ'); }"),
