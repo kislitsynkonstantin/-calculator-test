@@ -63,12 +63,16 @@ from playwright.sync_api import sync_playwright
     ("4-9", "Форма кровли не совпадает", "() => { checkedOptions.r17 = true; }", "() => {}"),
     ("5-1", "имитацию 20 мм", "() => { checkedOptions.ex6 = true; }", "() => { checkedOptions.ex6 = false; }"),
     ("5-11", "сорт древесины", "() => { своя('interior', 'Вагонка на потолок мансарды'); }", "() => { своя('interior', 'Вагонка на потолок мансарды, сорт АВ'); }"),
+    # У инженерной доски сорта нет — правку не пишем (30.09.2026, снимком).
+    ("5-11 инженерная доска", "сорт древесины", "() => { своя('interior', 'Вагонка на потолок мансарды'); }", "() => { своя('interior', 'Монтаж инженерной доски в комнате отдыха'); }"),
     ("6-6", "у панорамного окна", "() => { своя('windows', 'Панорамное окно в парную'); }", "() => { своя('windows', 'Панорамное окно в парную 1200×800 мм, подогрев, тонировка'); }"),
     ("6-6а", "Перенести окно в раздел", "() => { своя('steam', 'Окно в парную из липы'); }", "() => { своя('windows', 'Окно в парную из липы'); }"),
     ("6-10", "у мансардного окна", "() => { своя('windows', 'Мансардное окно Velux'); }", "() => { своя('windows', 'Мансардное окно Velux, дерево, открывание поворотное, клапан, однокамерное'); }"),
     ("7-1", "только заводская", "() => { checkedOptions.p2 = true; }", "() => { checkedOptions.p15 = true; }"),
     ("7-5", "шлифовку", "() => { checkedOptions.p4 = true; checkedOptions.ex9 = true; checkedOptions.ex2 = false; }", "() => { checkedOptions.p14 = true; }"),
     ("8-5", "камни для печи", "() => { checkedOptions.st1 = true; checkedOptions.st16 = true; checkedOptions.st29 = true; checkedOptions.st31 = true; }", "() => { checkedOptions.st1 = true; checkedOptions.st16 = true; checkedOptions.st29 = true; checkedOptions.st31 = true; checkedOptions.st20 = true; }"),
+    # Дымоход Экономайзер Ламели — не в металле: при портале в камне правки нет (30.09.2026, снимком).
+    ("дымоход ламели", "Дымоход в металле", "() => { checkedOptions.st17 = true; checkedOptions.st32 = true; checkedOptions.st27 = true; }", "() => { checkedOptions.st21 = true; checkedOptions.st32 = true; checkedOptions.st28 = true; }"),
     ("9-3", "стяжку", "() => { своя('engineering', 'Водяной тёплый пол в санузле'); }", "() => { своя('engineering', 'Водяной тёплый пол в санузле, стяжка 50 мм'); }"),
     ("9-6", "техническое помещение", "() => { checkedOptions.eng19 = true; }", "() => {}"),
     ("6-4", "Окна Blitz 60", "() => {}", "() => { checkedOptions.w8 = true; }"),
