@@ -48,6 +48,13 @@ from playwright.sync_api import sync_playwright
     ("1-12", "у купели", "() => { своя('extra', 'Купель'); }", "() => { своя('extra', 'Купель с внешней печью, 1800×1200 мм, кедр'); }"),
     ("1-14", "у бассейна приямок", "() => { своя('extra', 'Бассейн 3×4 м'); }", "() => { своя('extra', 'Бассейн 3×4 м, приямок не входит'); }"),
     ("1-15", "Выделить свою позицию цветом", "() => { своя('extra', 'Навес для дров', false); }", "() => { своя('extra', 'Навес для дров', true); }"),
+    # Своя позиция из комплектации этого проекта — выделять не нужно (30.09.2026, снимком).
+    ("1-15 комплектация", "Выделить свою позицию цветом",
+     "() => { своя('engineering', 'Внутренние скрытые электромонтажные работы', false); KOMPL_CUSTOM = []; }",
+     "() => { своя('engineering', 'Внутренние  скрытые электромонтажные работы', false); _kitsLoadedSlug = projectSlug(selectedProject[0]); KOMPL_CUSTOM = [{ id: 'к1', name: 'Внутренние скрытые электромонтажные работы', price: 1, section: 'engineering', kitChecked: { econom: false, standart: true } }]; }"),
+    ("1-15 чужой проект", "Выделить свою позицию цветом",
+     "() => { своя('engineering', 'Внутренние скрытые электромонтажные работы', false); _kitsLoadedSlug = 'другой-проект'; KOMPL_CUSTOM = [{ id: 'к1', name: 'Внутренние скрытые электромонтажные работы', price: 1, section: 'engineering', kitChecked: { standart: true } }]; }",
+     "() => { своя('engineering', 'Внутренние скрытые электромонтажные работы', true); }"),
     ("2-4", "отмостку", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; }", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; customNotes.foundation.push({ id: 'н2', text: 'Отмостка не входит' }); }"),
     ("2-6", "тепляк", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; document.getElementById('contractDate').value = '2026-12-10'; }", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; document.getElementById('contractDate').value = '2026-06-10'; }"),
     ("2-10", "Фундамент не выбран", "() => { checkedOptions.f5 = false; }", "() => { checkedOptions.f5 = false; customNotes.foundation.push({ id: 'н3', text: 'Фундамент не входит — заказчика' }); }"),
