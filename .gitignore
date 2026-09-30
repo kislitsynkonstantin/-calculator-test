@@ -6,3 +6,6 @@ scratchpad/probes/__pycache__/
 
 # Одноразовое согласие на опасный инструмент базы (см. auto-approve.py)
 .claude/hooks/.согласие
+
+# pdf.js для пробы PDF — ставится самой пробой из npm (check_pdf_plan.py)
+scratchpad/probes/pdfjs/

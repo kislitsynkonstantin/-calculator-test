@@ -80,6 +80,10 @@ def прогон(бр, порт, ш, в):
       openPrintPreview(); await new Promise(r => setTimeout(r, 400)); }""", [ВИЗ, ПЛАН])
     # Выбор документа — нажатием, как менеджер.
     стр.locator("#previewEntityBtn").click(); стр.wait_for_timeout(200)
+    # Порядок: сразу после спецификации (30.09.2026: «поставь после Спецификации в списке»).
+    порядок = стр.evaluate("() => [...document.querySelectorAll('#previewEntityMenu [data-entity]')].map(б => б.dataset.entity)")
+    if порядок != ["spec", "appx", "contract"]:
+        НАХОДКИ.append(f"{н} порядок документов в меню: {порядок}")
     пункт = стр.locator('#previewEntityMenu [data-entity="appx"]')
     if not пункт.count():
         НАХОДКИ.append(f"{н} в меню документа нет «Визуализация и планировка»"); стр.close(); return
