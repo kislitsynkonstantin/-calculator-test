@@ -40,7 +40,7 @@ from playwright.sync_api import sync_playwright
 
 ПРАВИЛА = [
     ("1-2", "Перенести раздел «", "() => { contractsConfig[1].sections.push('roof'); contractsConfig[0].sections = contractsConfig[0].sections.filter(к => к !== 'roof'); }", "() => {}"),
-    ("1-7", "Добавить два вида визуализации и планировку", "() => { canvasItems.push({}, {}); }", "() => { canvasItems.push({}, {}, {}); }"),
+    ("1-7", "Добавить два вида визуализации и планировку", "() => { canvasItems.push({}); }", "() => { canvasItems.push({}, {}); }"),
     # 1-10: подсказка выбрать опции; примечание «не входят» её не снимает (30.09.2026).
     ("1-10", "Выбрать опции бытовки и биотуалета", "() => { checkedOptions.e6 = false; checkedOptions.e7 = false; customNotes.extra.push({ id: 'н1', text: 'Бытовка и биотуалет не входят' }); }", "() => {}"),
     ("1-10 туалет", "Выбрать опцию биотуалета", "() => { checkedOptions.e7 = false; }", "() => {}"),
@@ -123,7 +123,7 @@ def прогон(бр, порт):
         if not any(х.startswith("СТОП") and часть in х for х in т):
             НАХОДКИ.append(f"[стоп] «{часть}» не стоп: {т}")
     # Чистый расчёт с фоном — без замечаний из новых правил.
-    стр.evaluate(СБРОС); стр.evaluate("() => { canvasItems.push({}, {}, {}); }")
+    стр.evaluate(СБРОС); стр.evaluate("() => { canvasItems.push({}, {}); }")
     т = [х for х in стр.evaluate(ТЕКСТЫ) if not х.startswith("? Скидка") and not х.startswith("? Окна Blitz 60") and "пробное бурение" not in х]
     if т:
         НАХОДКИ.append(f"[фон] на спокойном расчёте есть замечания: {т}")
