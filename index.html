@@ -11650,10 +11650,12 @@ const OPTIONS = [
   {"id":"p10","section":"paint","name":"Покраска террасы в 2 слоя маслом G-Nature (за 1 м²)","included":false,"status":"legacy"},
   {"id":"p11","section":"paint","name":"Заводская покраска фасада укрывной краской, включая декор-элементы (Sikkens, Zobel)","included":false,"status":"legacy"},
   {"id":"p12","section":"paint","name":"Заводская покраска фасада маслом, включая декор-элементы (Sikkens, Zobel)","included":false,"status":"legacy"},
-  {"id":"p13","section":"paint","name":"Покраска снаружи (укрывная краска Sikkens, Zobel или аналоги)","included":false,"status":"formula"},
-  {"id":"p14","section":"paint","name":"Покраска снаружи маслом со шлифовкой (Osmo или аналоги)","included":false,"status":"formula"},
+  // Заводская покраска — сразу после подбора цвета, ручная — за ней (Константин,
+  // 30.09.2026: «заводскую покраску поставь после подбора цвета, а потом ручную»).
   {"id":"p15","section":"paint","name":"Заводская покраска снаружи (укрывная краска Sikkens, Zobel или аналоги)","included":false,"status":"formula"},
   {"id":"p16","section":"paint","name":"Заводская покраска снаружи маслом (Osmo или аналоги)","included":false,"status":"formula"},
+  {"id":"p13","section":"paint","name":"Покраска снаружи (укрывная краска Sikkens, Zobel или аналоги)","included":false,"status":"formula"},
+  {"id":"p14","section":"paint","name":"Покраска снаружи маслом со шлифовкой (Osmo или аналоги)","included":false,"status":"formula"},
   {"id":"p17","section":"paint","name":"Покраска клеёного бруса со шлифовкой (укрывная краска Sikkens, Zobel или аналоги)","included":false,"status":"formula"},
   {"id":"p18","section":"paint","name":"Покраска террасной доски маслом G-Nature","included":false,"status":"formula"},
   {"id":"i1","section":"interior","name":"Чистовой пол — доска шпунтованная 27 мм (жилая зона)","included":true},
@@ -14602,7 +14604,10 @@ const LEGACY_ERA_IDS = [
 // «Проживание бригады (постройка бытовки на участке)» — у каркаса и у бруса —
 // снята «пока» (Константин, 30.09.2026: «вот эту опцию пока деактивируй»).
 // В сохранённых расчётах, где она отмечена, по-прежнему считается бытовкой.
-const ОПЦИИ_СНЯТЫ = new Set(['r5', 'e5', 'kb_e1']);
+// «Покраска клеёного бруса со шлифовкой» в каркасе — чужая технология, она
+// перенесена в брус (Константин, 30.09.2026: «опцию по покраске клеёного бруса
+// убери из каркаса… это относится к той технологии»).
+const ОПЦИИ_СНЯТЫ = new Set(['r5', 'e5', 'kb_e1', 'p17']);
 function isOptionVisible(opt) {
   if (!opt) return true;
   if (ОПЦИИ_СНЯТЫ.has(opt.id)) return checkedOptions[opt.id] === true;
@@ -14734,7 +14739,7 @@ const NOTE_AUTOHIDE = [
   // Условия складываются: хватит любого, чтобы примечание ушло.
   { section: 'paint',
     note: 'Лессирующий состав краски может удорожать стоимость покраски. Согласовывается при выборе цвета и состава перед началом окрашивания',
-    лессирующие: ['p13', 'p15', 'p17'],
+    лессирующие: ['p13', 'p15', 'p17', 'kb_p17'],
     // Любая покраска маслом: снаружи со шлифовкой и заводская, фасад и свесы,
     // стены и потолок внутри, пол, терраса, заводская покраска фасада.
     // Расширено по указанию Константина 04.09.2026 — лессирующего состава
@@ -27240,6 +27245,7 @@ function _doExcelExport() {
     sheet2Data.push([sec.name, '', '', ...allProjects.map(() => '')]);
     secOpts.forEach(opt => {
       const status = opt.status === 'legacy' ? 'неактивна'
+                   : ОПЦИИ_СНЯТЫ.has(opt.id) ? 'снята'
                    : opt.status === 'formula' ? 'формула'
                    : 'активна';
       sheet2Data.push([opt.id, имяДляВыгрузки(opt), status, ...allProjects.map(p => {
@@ -27260,7 +27266,7 @@ function _doExcelExport() {
   const calcOptData = [calcOptHeader];
   const SECTION_NAME_BY_KEY = Object.fromEntries(SECTIONS.map(s => [s.key, s.name]));
   const AREA_SRC_LABEL = { fasad:'Стен фасада', paint:'Покраски', roof:'Кровли', terrace:'Террасы (откр+крыт)' };
-  OPTIONS.filter(o => o.status === 'formula' && o.formula).forEach(opt => {
+  OPTIONS.filter(o => o.status === 'formula' && o.formula && !ОПЦИИ_СНЯТЫ.has(o.id)).forEach(opt => {
     const f = opt.formula;
     let formulaText = '';
     if (f.manualOnly) formulaText = '— (ручной ввод)';
