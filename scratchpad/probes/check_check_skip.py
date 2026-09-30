@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""«Проверка»: свайп вправо по пункту — пропустить его.
+
+Константин 30.09.2026, снимком вкладки «Проверка»: «тут на правках свайп
+вправо по ней делай её серой, но читаемой и индикатор убирай, когда серая.
+Это значит, что мы тут её пропускаем, но не устраняем».
+
+Проба на 390 и 1440, днём и ночью (итог проверки подменён: два замечания и
+вопрос), держит:
+  • свайп вправо по замечанию — пункт серый (класс, цвет второстепенного
+    текста, читаемость не ниже 3:1), число на значке и на вкладке меньше на
+    один, в сводке «пропущено 1», переход к месту не случился;
+  • свайп по вопросу — плашка без тёплого фона, подпись «пропущено»;
+  • свайп ещё раз — пункт вернулся, числа прежние;
+  • движение вниз по пункту — не пропуск; короткое нажатие — переход к месту;
+  • отметка — часть расчёта: в collectState() и обратно через restoreState().
+
+    python3 check_check_skip.py
+"""
+import pathlib, sys
+sys.path.insert(0, str(pathlib.Path(__file__).parent))
+import check_preset_chip as м
+import check_preset_card as к
+from check_pdf_pick import СоШрифтами
+from playwright.sync_api import sync_playwright
+
+НАХОДКИ = []
+ПОДМЕНА = """() => { window.проверкаПоЧекЛисту = () => ({
+    замечания: [{ раздел: 'roof', т: 'Указать сорт древесины', стоп: false, эл: '' }, { раздел: 'paint', т: 'Добавить полную шлифовку под масло', стоп: false, эл: '' }],
+    вопросы: ['Скидка за наличные не указана — была ли она?'], адреса: { 'Скидка за наличные не указана — была ли она?': { раздел: 'discount', эл: '' } } });
+  appSettings.showCheckBadge = true; обновитьСчётчикПроверки(); }"""
+СОСТ = """() => { const к = document.getElementById('presetChipCard'), з = document.querySelector('#presetChip .pc-ckn');
+  const пункты = [...к.querySelectorAll('[data-skip]')].map(э => { const т = э.querySelector('.pc-ck-tx, .pc-q-tx') || э; const ст = getComputedStyle(т);
+    return { серый: э.classList.contains('pc-skip'), цвет: ст.color, текст: э.innerText.replace(/\\s+/g, ' ').trim(), фон: getComputedStyle(э).backgroundColor }; });
+  const фонКарты = getComputedStyle(к).backgroundColor;
+  return { открыто: к.classList.contains('show'), значок: з ? з.textContent : '', вкладка: ((к.querySelector('#pcTab-c .pc-cnt') || {}).textContent || '').trim(),
+    сводка: (к.querySelector('.pc-ck-s') || {}).textContent || '', пункты, фонКарты }; }"""
+
+
+def яркость(rgb):
+    ч = [int(x) / 255 for x in rgb[rgb.index("(") + 1:rgb.index(")")].split(",")[:3]]
+    ч = [x / 12.92 if x <= 0.03928 else ((x + 0.055) / 1.055) ** 2.4 for x in ч]
+    return 0.2126 * ч[0] + 0.7152 * ч[1] + 0.0722 * ч[2]
+
+
+def контраст(а, б):
+    x, y = sorted((яркость(а), яркость(б)), reverse=True)
+    return (x + 0.05) / (y + 0.05)
+
+
+def свайп(стр, и, dx=110, dy=0):
+    п = стр.locator("#presetChipCard [data-skip]").nth(и)
+    п.scroll_into_view_if_needed()
+    б = п.bounding_box()
+    x, y = б["x"] + 30, б["y"] + б["height"] / 2
+    стр.mouse.move(x, y); стр.mouse.down()
+    for ш in range(1, 9):
+        стр.mouse.move(x + dx * ш / 8, y + dy * ш / 8); стр.wait_for_timeout(16)
+    стр.mouse.up(); стр.wait_for_timeout(350)
+
+
+def прогон(бр, порт, ш, в, ночь):
+    н = f"[{ш}{' ночь' if ночь else ''}]"
+    стр, ошибки = к.начать(СоШрифтами(бр), порт, ш, в, ночь)
+    стр.evaluate(ПОДМЕНА)
+    к.открыть(стр); к.вкладка(стр, "c"); стр.wait_for_timeout(400)
+    было = стр.evaluate(СОСТ)
+    if было["вкладка"] != "3" or было["значок"] != "3" or len(было["пункты"]) != 3:
+        НАХОДКИ.append(f"{н} до свайпа ждали 3 пункта и «3» на вкладке и значке: {было}")
+        стр.close(); return
+    свайп(стр, 0)
+    с = стр.evaluate(СОСТ)
+    if not с["открыто"]:
+        НАХОДКИ.append(f"{н} свайп по замечанию закрыл мини-окно — сработал переход к месту")
+    elif not с["пункты"][0]["серый"] or с["вкладка"] != "2" or с["значок"] != "2" or "пропущено 1" not in с["сводка"]:
+        НАХОДКИ.append(f"{н} свайп вправо не пропустил замечание: {с}")
+    else:
+        if с["пункты"][0]["цвет"] == было["пункты"][0]["цвет"]:
+            НАХОДКИ.append(f"{н} пропущенное замечание не стало серым: {с['пункты'][0]['цвет']}")
+        к_ = контраст(с["пункты"][0]["цвет"], с["фонКарты"])
+        if к_ < 3:
+            НАХОДКИ.append(f"{н} пропущенное замечание нечитаемо: контраст {к_:.2f}")
+    стр.screenshot(path=str(м.СНИМКИ / f"check-skip-{ш}{'-ночь' if ночь else ''}.png"))
+    # Вопрос.
+    свайп(стр, 2)
+    с = стр.evaluate(СОСТ)
+    q = с["пункты"][2]
+    if not q["серый"] or "пропущено" not in q["текст"] or с["значок"] != "1":
+        НАХОДКИ.append(f"{н} свайп по вопросу: {q}, значок «{с['значок']}»")
+    # Состояние расчёта.
+    сост = стр.evaluate("() => collectState().checkSkipped || []")
+    if len(сост) != 2:
+        НАХОДКИ.append(f"{н} пропуски не в состоянии расчёта: {сост}")
+    стр.evaluate("(с) => { const ст = collectState(); ст.checkSkipped = []; restoreState(ст); }", сост); стр.wait_for_timeout(500)
+    стр.evaluate("(с) => { const ст = collectState(); ст.checkSkipped = с; restoreState(ст); }", сост); стр.wait_for_timeout(700)
+    к.открыть(стр); к.вкладка(стр, "c"); стр.wait_for_timeout(400)
+    с = стр.evaluate(СОСТ)
+    if not (с["пункты"][0]["серый"] and с["пункты"][2]["серый"]) or с["значок"] != "1":
+        НАХОДКИ.append(f"{н} пропуски не вернулись из состояния расчёта: {[п['серый'] for п in с['пункты']]}, значок «{с['значок']}»")
+    # Вернуть.
+    свайп(стр, 0); свайп(стр, 2)
+    с = стр.evaluate(СОСТ)
+    if any(п["серый"] for п in с["пункты"]) or с["значок"] != "3":
+        НАХОДКИ.append(f"{н} свайп ещё раз не вернул пункты: {[п['серый'] for п in с['пункты']]}, значок «{с['значок']}»")
+    # Вниз — не пропуск.
+    свайп(стр, 1, dx=8, dy=90)
+    с = стр.evaluate(СОСТ)
+    if с["пункты"][1]["серый"]:
+        НАХОДКИ.append(f"{н} движение вниз пропустило пункт")
+    # Короткое нажатие — переход.
+    стр.locator("#presetChipCard [data-skip]").nth(1).locator("button").first.click(); стр.wait_for_timeout(700)
+    if стр.evaluate("() => document.getElementById('presetChipCard').classList.contains('show')"):
+        НАХОДКИ.append(f"{н} нажатие по замечанию не повело к месту")
+    for о in [о for о in ошибки if "supabase.co" not in о][:3]:
+        НАХОДКИ.append(f"{н} ошибка страницы: {о[:160]}")
+    стр.close()
+
+
+def главная():
+    с, порт = м.сервер()
+    try:
+        with sync_playwright() as pw:
+            бр = pw.chromium.launch(executable_path=м.хром(), args=["--no-sandbox"])
+            for ш, в in ((390, 844), (1440, 900)):
+                for ночь in (False, True):
+                    прогон(бр, порт, ш, в, ночь)
+            бр.close()
+    finally:
+        с.shutdown()
+    if НАХОДКИ:
+        print("НАХОДКИ:")
+        for н in НАХОДКИ:
+            print("  ✗", н)
+        raise SystemExit(1)
+    print("Чисто: свайп вправо по пункту «Проверки» делает его серым и читаемым, убирает из числа на значке и вкладке, "
+          "пишет «пропущено»; ещё свайп — возвращает; вниз — не пропуск, нажатие — переход; отметка живёт в расчёте — "
+          "на 390 и 1440, днём и ночью.")
+
+
+if __name__ == "__main__":
+    главная()
