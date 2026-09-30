@@ -28,7 +28,7 @@ from playwright.sync_api import sync_playwright
 НАХОДКИ = []
 # (начало вопроса, как проверить место: ('эл', id, класс) или ('раздел', ключ))
 ВОПРОСЫ = [
-    ("Визуализации нет", ("эл", "imageCanvasCard", "pc-flash-box")),
+    ("Добавить два вида визуализации", ("эл", "imageCanvasCard", "pc-flash-box")),
     ("Скидка за наличные", ("эл", "cashDiscountLabel", "pc-flash-box")),
     ("Тип отопления", ("раздел", "engineering")),
     ("Окна Blitz 60", ("текст", "blitz\\s*60", "pc-flash-row")),
