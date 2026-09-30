@@ -24542,7 +24542,11 @@ async function собратьПриложение2() {
   const в = typeof getContractVarsKar === 'function' ? getContractVarsKar() : {};
   const { виз, план } = await разложитьСнимки();
   const э = escapeHtml;
-  const номер = в.contractNumKar || '__________';
+  // Номер — тот же, что в шапке спецификации: с припиской выбранного состава
+  // (-КАР, -ОТД), а приписка, вписанная руками, главнее (Константин,
+  // 30.09.2026: «когда тут стоит -ОТД, то тоже должен быть ОТД. И наоборот,
+  // с -КАР»). Прежде номер всегда брался с -КАР.
+  const номер = номерСКодом((document.getElementById('contractNumber')?.value || '').trim()) || '__________';
   const дата = в.contractDate || '__.__.____';
   const подрядчик = (typeof appSettings !== 'undefined' && appSettings.signatoryName) || 'Баранов Г.Н.';
   const имяЗаказчика = (document.getElementById('clientName')?.value || '').trim();
