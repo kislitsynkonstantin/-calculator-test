@@ -17,7 +17,11 @@
     бирюзовые; логотип под тон;
   • шрифты легли (ширина строки в Unbounded не равна подменной), ничего не
     вылезает за лист, в кадре нет ошибок;
-  • «Печать / PDF» открывает окно с тем же документом.
+  • «Печать / PDF» открывает окно с тем же документом;
+  • печать трёх видов и планировки (три листа) — страниц столько же и со
+    своими полями, и с полями Safari по 20 мм; каждый лист на печати — простой
+    поток не выше 250 мм с подписями внутри (Константин, 30.09.2026, снимками
+    окна печати iPhone: «печать криво: пустые также листы»).
 
     python3 check_appendix2.py
 """
@@ -135,7 +139,7 @@ def прогон(бр, порт, ш, в):
         НАХОДКИ.append(f"{н} фото 4:3 в приложении обрезано или не встало: {фото}")
     elif фото["fit"] == "fill" and abs(фото["коробка"][0] / max(1, фото["коробка"][1]) - фото["д"]) > 0.04:
         НАХОДКИ.append(f"{н} фото 4:3 растянуто: {фото}")
-    стр.evaluate("async (s) => { canvasItems.length = 0; document.querySelectorAll('#imageCanvas .canvas-img-item').forEach(э => э.remove()); canvasAddImage(s[0]); canvasAddImage(s[1]); canvasAddImage(s[1]); await new Promise(r => setTimeout(r, 400)); }", [ПЛАН, ВИЗ])
+    стр.evaluate("async (s) => { canvasItems.length = 0; document.querySelectorAll('#imageCanvas .canvas-img-item').forEach(э => э.remove()); canvasAddImage(s[0]); canvasAddImage(s[1]); canvasAddImage(s[1]); canvasAddImage(s[2]); await new Promise(r => setTimeout(r, 400)); }", [ПЛАН, ВИЗ, "/scratchpad/probes/образцы_приложения2/фото_4x3.jpg"])
     # Бирюза — заголовок и черта бирюзовые, логотип свой.
     стр.evaluate("async () => { applyTone('teal', false); await показатьПриложение2(); await new Promise(r => setTimeout(r, 900)); }")
     с3 = стр.evaluate(ВИД)
@@ -144,28 +148,42 @@ def прогон(бр, порт, ш, в):
     # Печать — окно с тем же документом.
     печать = стр.evaluate("""async () => { let html = ''; const был = window.open;
       window.open = () => ({ document: { write: т => { html += т; }, close(){}, fonts: { ready: Promise.resolve() }, images: [] }, focus(){}, print(){} });
-      await печатьПриложения2(); window.open = был; return { листов: (html.match(/class="sheet"/g) || []).length, a4: /size:A4/.test(html) }; }""")
-    if печать["листов"] != 2 or not печать["a4"]:
+      await печатьПриложения2(); window.open = был; return { листов: (html.match(/class="sheet[ "]/g) || []).length, a4: /size:A4/.test(html) }; }""")
+    if печать["листов"] != 3 or not печать["a4"]:
         НАХОДКИ.append(f"{н} печать: {печать}")
     # Пустых листов в PDF нет: и со своими полями, и с полями Safari (по 12,7 мм,
     # с адресом и номером страницы) — страниц столько же, сколько листов.
     # 30.09.2026 Safari печатал пустую страницу за каждым листом.
     html = стр.evaluate("async () => сПалитрой(await собратьПриложение2())").replace('src="/scratchpad', f'src="http://127.0.0.1:{порт}/scratchpad')
-    листов = html.count('class="sheet"')
-    п = бр.new_page()
+    листов = html.count('class="sheet"') + html.count('class="sheet ')
+    п = бр.new_page(viewport={"width": 718, "height": 1000})
     п.route("**/fonts.googleapis.com/**", lambda r: r.fulfill(status=200, content_type="text/css", body=ШРИФТЫ))
     import pymupdf
     п.set_content(html); п.wait_for_timeout(800)
     страниц = pymupdf.open(stream=п.pdf(print_background=True, prefer_css_page_size=True), filetype="pdf").page_count
     if страниц != листов:
         НАХОДКИ.append(f"{н} печать: страниц {страниц} при {листов} листах — лишние пустые")
+    # Поля Safari на iPhone шире своих и несут адрес, дату и номер страницы
+    # (30.09.2026, снимок окна печати): поля по 20 мм сверху и снизу — и
+    # страниц всё равно столько же, сколько листов.
+    страниц = pymupdf.open(stream=п.pdf(print_background=True, prefer_css_page_size=False, format="A4",
+        margin={"top": "20mm", "bottom": "20mm", "left": "12mm", "right": "12mm"}), filetype="pdf").page_count
+    if страниц != листов:
+        НАХОДКИ.append(f"{н} печать с полями Safari: страниц {страниц} при {листов} листах — лишние пустые")
     # Safari правило страницы не слушает и ставит свои поля по 12,7 мм: лист
     # обязан поместиться в 297 − 25,4 = 271,6 мм, иначе его хвост уходит на
     # отдельную пустую страницу. Chromium этого не повторяет — меряется геометрия.
     п.emulate_media(media="print")
-    высоты = п.evaluate("() => [...document.querySelectorAll('.sheet')].map(л => л.getBoundingClientRect().height * 25.4 / 96)")
-    if any(в_ > 271.6 for в_ in высоты):
-        НАХОДКИ.append(f"{н} печать: лист выше страницы Safari (271,6 мм): {[round(в_) for в_ in высоты]} мм")
+    # Высоту листа на печати Safari не держит (снимки встают в свой рост), так
+    # что лист обязан быть коротким сам: всё его содержимое — не выше 250 мм
+    # при ширине страницы 190 мм, и подписи внутри листа.
+    высоты = п.evaluate("""() => [...document.querySelectorAll('.sheet')].map(л => { const р = л.getBoundingClientRect(), п = л.querySelector('.sign').getBoundingClientRect();
+      return { в: р.height * 25.4 / 96, подписи: п.bottom <= р.bottom + 1, фикс: getComputedStyle(л).height.endsWith('px') && л.style.height !== '' }; })""")
+    if any(в_["в"] > 250 or not в_["подписи"] for в_ in высоты):
+        НАХОДКИ.append(f"{н} печать: лист выше 250 мм или подписи вне листа: {[round(в_['в']) for в_ in высоты]} мм")
+    фикс = п.evaluate("() => [...document.querySelectorAll('.sheet')].map(л => getComputedStyle(л).display + ' ' + (л.style.height || ''))")
+    if any(ф.startswith("flex") for ф in фикс):
+        НАХОДКИ.append(f"{н} печать: лист по-прежнему растягивается flex по высоте: {фикс}")
     п.close()
     for о in [о for о in ошибки if "supabase.co" not in о][:3]:
         НАХОДКИ.append(f"{н} ошибка страницы: {о[:160]}")
