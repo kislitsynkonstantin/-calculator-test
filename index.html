@@ -35071,8 +35071,12 @@ function проверкаПоЧекЛисту() {
     const ид = new Set(в.map(ci => 'custom_' + ci.id)), имена = new Set(в.map(ci => норм(ci.name)));
     return х => ид.has(х.ид) || имена.has(норм(х.т));
   })();
-  const невыделенная = свои.find(х => !highlightedOpts.has(х.ид) && !изКомплектации(х));
-  if (невыделенная) добавить(невыделенная.раздел, 'Выделить свою позицию цветом', false, невыделенная.эл);
+  // Один общий пункт со списком позиций внутри, а не пункт на каждую
+  // (Константин, 30.09.2026: «сделай общий пункт выделить позиции цветом и
+  // чтобы можно было провалиться в список, где все эти ручные позиции указаны»).
+  const невыделенные = свои.filter(х => !highlightedOpts.has(х.ид) && !изКомплектации(х));
+  if (невыделенные.length) замечания.push({ раздел: невыделенные[0].раздел, т: 'Выделить свои позиции цветом', стоп: false, эл: '',
+    подпункты: невыделенные.map(х => ({ раздел: х.раздел, т: х.т, эл: х.эл })) });
 
   // 2-4, 2-6. Плита: отмостка и зимой тепляк.
   const плита = есть('f11') || !!найти(/плитн\S*\s+фундамент/i, 'foundation');
@@ -35176,17 +35180,28 @@ function имяРаздела(ключ) {
   const с = SECTIONS.find(x => x.key === ключ);
   return с ? с.name.replace(/^\d+\.\s*/, '') : '';
 }
+// Раскрыт ли во вкладке «Проверка» список своих позиций без цвета.
+let _пкПроверкаОткрыта = false;
 function склонЗамечаний(н) { return alСклонение(н, 'замечание', 'замечания', 'замечаний'); }
 function панельПроверкиКарточки(пр) {
   const н = пр.замечания.length, стоп = пр.замечания.filter(з => з.стоп).length;
   let h = '<div class="pc-ck-s">' + (н
     ? н + ' ' + склонЗамечаний(н) + ' по чек-листу' + (стоп ? ', ' + (стоп === 1 ? (н === 1 ? 'это — стоп' : 'одно — стоп') : стоп + ' — стоп') : '')
     : 'По чек-листу замечаний нет') + '</div>';
-  if (н) {
-    h += '<ul class="pc-ck">' + пр.замечания.map((з, i) =>
-      '<li><button type="button" data-act="ck" data-sec="' + escapeHtml(з.раздел) + '" data-el="' + escapeHtml(з.эл || '') + '"><span class="pc-ck-tx">'
+  const строка = з => '<button type="button" data-act="ck" data-sec="' + escapeHtml(з.раздел) + '" data-el="' + escapeHtml(з.эл || '') + '"><span class="pc-ck-tx">'
       + (з.стоп ? '<span class="pc-stop">СТОП</span>' : '') + escapeHtml(з.т) + '</span>'
-      + '<span class="pc-ck-sx">' + escapeHtml(имяРаздела(з.раздел)) + '</span><span class="pc-ck-go">' + ЗНАЧОК_СТРЕЛКА + '</span></button></li>').join('') + '</ul>';
+      + '<span class="pc-ck-sx">' + escapeHtml(имяРаздела(з.раздел)) + '</span><span class="pc-ck-go">' + ЗНАЧОК_СТРЕЛКА + '</span></button>';
+  // Пункт со списком внутри: нажатие раскрывает список, строка списка ведёт к
+  // своей позиции, как обычное замечание.
+  const группа = з => {
+    const разделы = [...new Set(з.подпункты.map(п => имяРаздела(п.раздел)))].join(', ');
+    return '<li class="pc-ck-grp' + (_пкПроверкаОткрыта ? ' open' : '') + '"><button type="button" data-act="ck-grp" aria-expanded="' + (_пкПроверкаОткрыта ? 'true' : 'false') + '">'
+      + '<span class="pc-ck-tx">' + escapeHtml(з.т) + ' <span class="pc-ck-n">' + з.подпункты.length + '</span></span>'
+      + '<span class="pc-ck-sx">' + escapeHtml(разделы) + '</span><span class="pc-ck-go pc-ck-chev">' + ЗНАЧОК_СТРЕЛКА + '</span></button>'
+      + '<ul class="pc-ck-sub">' + з.подпункты.map(п => '<li>' + строка(п) + '</li>').join('') + '</ul></li>';
+  };
+  if (н) {
+    h += '<ul class="pc-ck">' + пр.замечания.map(з => з.подпункты ? группа(з) : '<li>' + строка(з) + '</li>').join('') + '</ul>';
   }
   h += пр.вопросы.map(в => '<div class="pc-q">' + escapeHtml(в) + '</div>').join('');
   h += '<div class="pc-ck-f">Подсказки по чек-листу — сохранить и напечатать расчёт они не мешают.</div>';
@@ -35420,6 +35435,8 @@ function нажатиеВКарточке(e) {
       break;
     }
     case 'ck': кРазделуИзПроверки(кн.getAttribute('data-sec'), кн.getAttribute('data-el')); break;
+    case 'ck-grp': _пкПроверкаОткрыта = !_пкПроверкаОткрыта; заполнитьКарточкуЗначка();
+      { const г = к.querySelector('[data-act="ck-grp"]'); if (г) г.focus(); } break;
     case 'lg-x': {
       const ид = кн.getAttribute('data-ev') || '';
       if (_пкЖурналОткрыт.has(ид)) _пкЖурналОткрыт.delete(ид); else _пкЖурналОткрыт.add(ид);
@@ -42606,6 +42623,14 @@ body.dark,body.ui-blank.dark{--pc-down:#e6a27c}
 .pc-card .pc-ck-go{grid-row:1 / span 2;grid-column:2;align-self:center;display:flex;color:var(--pc-ink3)}
 .pc-card .pc-stop{display:inline-block;margin-right:6px;padding:1px 6px;border-radius:4px;background:var(--pc-warm-tint);color:var(--pc-warm-ink);font-size:.6rem;font-weight:700;letter-spacing:.08em;vertical-align:1px}
 .pc-card .pc-q{margin-top:8px;padding:8px 10px;border-left:3px solid var(--pc-warm);border-radius:0 8px 8px 0;background:var(--pc-warm-tint);color:var(--pc-warm-ink);font-size:.7rem;line-height:1.45}
+.pc-card .pc-ck-n{display:inline-block;min-width:18px;margin-left:4px;padding:0 5px;border-radius:9px;background:var(--pc-tint);color:var(--pc-ink2);font-size:.62rem;font-weight:600;text-align:center;vertical-align:1px}
+.pc-card .pc-ck-chev svg{transition:transform .2s}
+.pc-card .pc-ck-grp.open > button .pc-ck-chev svg{transform:rotate(90deg)}
+.pc-card .pc-ck-sub{display:none;list-style:none;margin:0 0 8px 2px;padding:0 0 0 12px;border-left:2px solid var(--pc-rule)}
+.pc-card .pc-ck-grp.open .pc-ck-sub{display:block}
+.pc-card .pc-ck-sub button{padding:7px 0}
+.pc-card .pc-ck-sub .pc-ck-tx{font-size:.7rem}
+@media (prefers-reduced-motion:reduce){.pc-card .pc-ck-chev svg{transition:none}}
 .pc-card .pc-ck-f{margin-top:10px;font-size:.64rem;line-height:1.45;color:var(--pc-ink3)}
 @media (hover:hover){.pc-card .pc-menu button:hover,.pc-card .pc-more:hover,.pc-card .pc-ck button:hover{background:var(--pc-tint)}.pc-card .pc-tab:hover{color:var(--pc-ink)}}
 /* Раздел, к которому перешли из замечания, коротко подсвечивается. */
