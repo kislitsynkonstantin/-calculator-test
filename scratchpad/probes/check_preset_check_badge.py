@@ -37,7 +37,7 @@ from playwright.sync_api import sync_playwright
 КРУЖОК = """() => { const з = document.getElementById('presetChip'), с = з && з.querySelector('.pc-ckn');
   const пр = проверкаПоЧекЛисту();
   const r = з.getBoundingClientRect();
-  const о = { есть: !!с, класс: з.className, число: пр.замечания.length, стоп: пр.замечания.filter(x => x.стоп).length,
+  const о = { есть: !!с, класс: з.className, число: пр.замечания.length + пр.вопросы.length, стоп: пр.замечания.filter(x => x.стоп).length,
               метка: (з.querySelector('.pc-body') || {}).getAttribute ? з.querySelector('.pc-body').getAttribute('aria-label') : '',
               шир: innerWidth, зн: { l: r.left, t: r.top, r: r.right, b: r.bottom } };
   if (с) { const k = с.getBoundingClientRect(), cs = getComputedStyle(с);

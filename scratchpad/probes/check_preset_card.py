@@ -249,10 +249,10 @@ def полный(бр, порт, ш, в, ночь):
     # ── проверка ──
     открыть(стр); вкладка(стр, "c")
     пр = стр.evaluate("""() => { const к = document.getElementById('presetChipCard');
-      return { текст: к.innerText.replace(/\\s+/g, ' '), замечаний: к.querySelectorAll('.pc-ck li').length,
+      return { текст: к.innerText.replace(/\\s+/g, ' '), замечаний: к.querySelectorAll('.pc-ck li').length + к.querySelectorAll('.pc-q').length,
                счёт: +(((к.querySelector('#pcTab-c .pc-cnt') || {}).textContent) || 0), стоп: к.querySelectorAll('.pc-ck .pc-stop').length }; }""")
     if "водосточную" not in пр["текст"] or пр["стоп"] < 1 or пр["счёт"] != пр["замечаний"]:
-        плохо(f"{н} проверка: нет стопа о водостоке или счётчик не равен числу замечаний: {пр}")
+        плохо(f"{н} проверка: нет стопа о водостоке или счётчик не равен числу замечаний и подсказок: {пр}")
     вёрстка(стр, н, "«Проверка»")
     снимок(стр, f"check-{ш}{'-n' if ночь else ''}")
     # С 29.09.2026 замечание ведёт к самой строке опции водостока, а не к шапке
