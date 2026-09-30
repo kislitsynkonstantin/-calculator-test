@@ -30,6 +30,7 @@ from playwright.sync_api import sync_playwright
     { id:1, name:'Основной договор', code:'КАР', color:'#16a34a', sections:['foundation','frame','insulation','exterior','windows','roof','paint','extra','engineering'] },
     { id:2, name:'Отделка', code:'ОТД', color:'#eab308', sections:['interior','steam','stove'] } ];
   if (typeof canvasItems !== 'undefined') canvasItems.length = 0;
+  document.querySelectorAll('#imageCanvas .canvas-img-item').forEach(э => э.remove());
   const д = document.getElementById('contractDate'); if (д) д.value = '2026-07-15';
   // Спокойный фон: фундамент, бытовка и биотуалет стоят, чтобы их правила не мешали остальным.
   checkedOptions.f5 = true; checkedOptions.e6 = true; checkedOptions.e7 = true; checkedOptions.r6 = true;
@@ -40,7 +41,9 @@ from playwright.sync_api import sync_playwright
 
 ПРАВИЛА = [
     ("1-2", "Перенести раздел «", "() => { contractsConfig[1].sections.push('roof'); contractsConfig[0].sections = contractsConfig[0].sections.filter(к => к !== 'roof'); }", "() => {}"),
-    ("1-7", "Добавить два вида визуализации и планировку", "() => { canvasItems.push({}); }", "() => { canvasItems.push({}, {}); }"),
+    # 1-7: вопрос знает, что добавлено (30.09.2026): один вид — просит ещё вид и
+    # планировку; вид и планировка — минимум соблюдён. Снимки настоящие, код их узнаёт.
+    ("1-7", "Добавить ещё один вид визуализации и планировку", "async () => { canvasAddImage(ВИЗ); await Promise.all(снимкиХолста().map(видКартинки)); }", "async () => { canvasAddImage(ВИЗ); canvasAddImage(ПЛАН); await Promise.all(снимкиХолста().map(видКартинки)); }"),
     # 1-10: подсказка выбрать опции; примечание «не входят» её не снимает (30.09.2026).
     ("1-10", "Выбрать опции бытовки и биотуалета", "() => { checkedOptions.e6 = false; checkedOptions.e7 = false; customNotes.extra.push({ id: 'н1', text: 'Бытовка и биотуалет не входят' }); }", "() => {}"),
     ("1-10 туалет", "Выбрать опцию биотуалета", "() => { checkedOptions.e7 = false; }", "() => {}"),
@@ -106,7 +109,7 @@ def прогон(бр, порт):
     стр.add_init_script(м.ЗАГЛУШКА); стр.add_init_script(м.ТАБЛИЦЫ_JS)
     стр.goto(f"http://127.0.0.1:{порт}/index.html", wait_until="load"); стр.wait_for_timeout(2500)
     стр.evaluate("""async () => { const б = document.getElementById('pricingErrorScreen'); if (б) б.style.display = 'none';
-      selectProjectOption(0); await new Promise(r => setTimeout(r, 900)); window.своя = """ + СВОЯ + """; }""")
+      selectProjectOption(0); await new Promise(r => setTimeout(r, 900)); window.своя = """ + СВОЯ + """; window.ВИЗ = '/scratchpad/probes/образцы_приложения2/визуализация.jpg'; window.ПЛАН = '/scratchpad/probes/образцы_приложения2/планировка.png'; }""")
     for ном, текст, вкл, выкл in ПРАВИЛА:
         стр.evaluate(СБРОС); стр.evaluate(вкл)
         есть = стр.evaluate(ТЕКСТЫ)
@@ -123,7 +126,7 @@ def прогон(бр, порт):
         if not any(х.startswith("СТОП") and часть in х for х in т):
             НАХОДКИ.append(f"[стоп] «{часть}» не стоп: {т}")
     # Чистый расчёт с фоном — без замечаний из новых правил.
-    стр.evaluate(СБРОС); стр.evaluate("() => { canvasItems.push({}, {}); }")
+    стр.evaluate(СБРОС); стр.evaluate("async () => { canvasAddImage(ВИЗ); canvasAddImage(ПЛАН); await Promise.all(снимкиХолста().map(видКартинки)); }")
     т = [х for х in стр.evaluate(ТЕКСТЫ) if not х.startswith("? Скидка") and not х.startswith("? Окна Blitz 60") and "пробное бурение" not in х]
     if т:
         НАХОДКИ.append(f"[фон] на спокойном расчёте есть замечания: {т}")
