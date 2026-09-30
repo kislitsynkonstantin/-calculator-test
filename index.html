@@ -17936,8 +17936,49 @@ function canvasAddImageAt(src, x, y, w, h) {
   return id;
 }
 
+// ── Уборка снимков в хранилище ───────────────────────────────────────────
+// Снимок, убранный с холста, оставался в хранилище навсегда: из PDF проекта
+// ложится 6–7 планировок, менеджер оставляет одну, а шесть файлов лежали
+// дальше (Константин, 30.09.2026: «остальные с базы пропадают? Чтобы не
+// забивать память картинками»; на тот день 151 файл из 252 не нужен никому).
+// Убранный свой снимок запоминается; через несколько секунд после следующего
+// сохранения база говорит, на какие из них больше нет ссылок — ни в пресетах,
+// ни в общих, ни в копиях по коду, ни в клиентских ссылках, — и только они
+// удаляются. Копия пресета или клиентская ссылка со снимком его удержат.
+const _снимкиНаУборку = new Set();
+let _уборкаСнимковТаймер = null;
+function имяСнимкаВХранилище(src) {
+  const м = /\/storage\/v1\/object\/(?:public|sign)\/preset-photos\/([^?#]+)/.exec(src || '');
+  try { return м ? decodeURIComponent(м[1]) : ''; } catch (e) { return ''; }
+}
+function отметитьСнимокНаУборку(src) {
+  const имя = имяСнимкаВХранилище(src);
+  if (имя && typeof _sbUser !== 'undefined' && _sbUser && имя.startsWith(_sbUser.id + '/')) _снимкиНаУборку.add(имя);
+}
+function запланироватьУборкуСнимков() {
+  if (!_снимкиНаУборку.size) return;
+  clearTimeout(_уборкаСнимковТаймер);
+  _уборкаСнимковТаймер = setTimeout(() => { убратьНенужныеСнимки().catch(e => console.warn('[снимки] уборка не удалась', e && e.message)); }, 4000);
+}
+async function убратьНенужныеСнимки() {
+  if (!_sb || !_sbUser || !_снимкиНаУборку.size) return;
+  // Снимок вернули на холст — он снова нужен.
+  const наХолсте = new Set(снимкиХолста().map(имяСнимкаВХранилище));
+  const имена = [..._снимкиНаУборку].filter(и => !наХолсте.has(и));
+  _снимкиНаУборку.clear();
+  if (!имена.length) return;
+  const { data, error } = await _sb.rpc('unreferenced_canvas_images', { p_names: имена });
+  if (error) { console.warn('[снимки] проверка ссылок не удалась', error.message); return; }
+  const лишние = (data || []).map(x => typeof x === 'string' ? x : Object.values(x || {})[0]).filter(Boolean);
+  if (!лишние.length) return;
+  const { error: е } = await _sb.storage.from(CANVAS_BUCKET).remove(лишние);
+  if (е) console.warn('[снимки] удалить не удалось', е.message);
+  else console.info('[снимки] убраны из хранилища:', лишние.length);
+}
+
 function canvasRemoveItem(id) {
   const el = document.getElementById(id);
+  if (el) { const к = el.querySelector('img'); if (к) отметитьСнимокНаУборку(к.getAttribute('src')); }
   if (el) el.remove();
   canvasItems = canvasItems.filter(i => i !== id);
   _слепокРаскладки = null;
@@ -17955,6 +17996,9 @@ function canvasRemoveItem(id) {
 function canvasClearAll() {
   canvasItems.forEach(id => {
     const el = document.getElementById(id);
+    // Снимки убранного расчёта остаются нужны его сохранённой записи — уборка
+    // сверяет ссылки в базе и такие не тронет.
+    if (el) { const к = el.querySelector('img'); if (к) отметитьСнимокНаУборку(к.getAttribute('src')); }
     if (el) el.remove();
   });
   canvasItems = [];
@@ -36138,6 +36182,7 @@ async function collabWriteSection(section) {
       if (свежо && typeof showToast === 'function')
         showToast('Правка не сохранена: этот расчёт чужой и не опубликован');
     } else {
+      запланироватьУборкуСнимков();
       // Update local cache so we see our own changes in the list
       const idx = _sharedPresets.findIndex(p => p.short_code === _activeSharedCode);
       if (idx !== -1) Object.assign(_sharedPresets[idx], payload);
@@ -36845,6 +36890,7 @@ async function sbSavePreset(preset) {
   } catch(e) { ок = false; console.warn('[sbSavePreset failed]', preset.id, e?.message); }
   if (ок) _изОчереди(preset.id, _когдаСохранён(preset));
   else _вОчередь(preset);
+  if (ок) запланироватьУборкуСнимков();
   return ок;
 }
 
