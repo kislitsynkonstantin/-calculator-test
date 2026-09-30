@@ -21,7 +21,12 @@
     руками не затирается;
   • свой пресет с пустым полем — при открытии своя фамилия, и она
     сохраняется в пресете; вписанная руками при открытии не меняется;
-  • пресет коллеги с пустым полем — в поле фамилия автора, а не своя.
+  • пресет коллеги с пустым полем — в поле фамилия автора, а не своя;
+    автор — администратор — поле остаётся пустым;
+  • администратор и редактор — поле не заполняется ни при входе, ни после
+    «Сбросить всё», ни в своём пресете; мини-окно «Профиль» без фамилии не
+    встаёт («сюда поле менеджер пусть только ставится для роли Менеджер.
+    Для других ролей не подставляй Фамилию Имя», 30.09.2026).
 
     python3 check_profile_name.py
 """
@@ -35,14 +40,15 @@ from playwright.sync_api import sync_playwright
 ПОЧТА = "proba@example.ru"
 
 
-def начать(бр, порт, ш, в, ночь, фамилия):
+def начать(бр, порт, ш, в, ночь, фамилия, роль="manager"):
     стр = СоШрифтами(бр).new_page(viewport={"width": ш, "height": в})
     ошибки = []
     стр.on("pageerror", lambda e: ошибки.append(str(e)))
     стр.add_init_script(м.ЗАГЛУШКА); стр.add_init_script(м.ТАБЛИЦЫ_JS)
     стр.add_init_script(f"""window.__ТАБЛИЦЫ.profiles = [
-      {{ id: 'u-проба', role: 'manager', first_name: 'Сергей', last_name: '{фамилия}', email: '{ПОЧТА}', app_settings: {{}} }},
-      {{ id: 'u-другой', role: 'manager', first_name: 'Павел', last_name: 'Волков', app_settings: {{}} }}];""")
+      {{ id: 'u-проба', role: '{роль}', first_name: 'Сергей', last_name: '{фамилия}', email: '{ПОЧТА}', app_settings: {{}} }},
+      {{ id: 'u-другой', role: 'manager', first_name: 'Павел', last_name: 'Волков', app_settings: {{}} }},
+      {{ id: 'u-админ', role: 'admin', first_name: 'Анна', last_name: 'Орлова', app_settings: {{}} }}];""")
     стр.goto(f"http://127.0.0.1:{порт}/index.html", wait_until="load"); стр.wait_for_timeout(2500)
     стр.evaluate("""(ночь) => { const б = document.getElementById('pricingErrorScreen'); if (б) б.style.display = 'none';
       applyUiStyle('blank', false); document.body.classList.toggle('dark', ночь);
@@ -132,6 +138,14 @@ def прогон(бр, порт, ш, в, ночь):
     п = стр.evaluate("() => document.getElementById('managerName').value")
     if п != "Волков Павел":
         НАХОДКИ.append(f"{н} пресет коллеги с пустым полем: в поле «{п}», ждали фамилию автора «Волков Павел»")
+    # 5б. Пресет администратора с пустым полем — поле пустое.
+    стр.evaluate("""() => { _sharedPresets.push({ short_code: '333444', id: '333444', name: 'Баня «Бремен» 6×6', author_name: 'Анна Орлова',
+      author_id: 'u-админ', is_public: true, visibility: 'public', locked: true, created_at: '2026-09-22T13:05:00Z', updated_at: '2026-09-22T13:05:00Z',
+      state: { version: 1, manager: '', client: '' } }); openSharedPreset('333444'); }""")
+    стр.wait_for_timeout(1500)
+    п = стр.evaluate("() => document.getElementById('managerName').value")
+    if п:
+        НАХОДКИ.append(f"{н} пресет администратора с пустым полем: в поле «{п}», ждали пустое")
     for о in [о for о in ошибки if "supabase.co" not in о][:3]:
         НАХОДКИ.append(f"{н} ошибка страницы: {о[:160]}")
     стр.close()
@@ -153,6 +167,25 @@ def прогон(бр, порт, ш, в, ночь):
     for о in [о for о in ошибки if "supabase.co" not in о][:3]:
         НАХОДКИ.append(f"{н} ошибка страницы: {о[:160]}")
     стр.close()
+    # 7. Администратор и редактор — не подставляется и не спрашивается.
+    for роль, фамилия in (("admin", "Кислов"), ("editor", "")):
+        стр, ошибки = начать(бр, порт, ш, в, ночь, фамилия, роль)
+        с = стр.evaluate(СОСТ)
+        if с["поле"] or с["режим"] == "profile" or с["окно"]:
+            НАХОДКИ.append(f"{н} роль {роль}: при входе поле «{с['поле']}», режим «{с['режим']}», окно {с['окно']} — ждали пустое поле без мини-окна")
+        стр.evaluate("() => { document.getElementById('managerName').value = ''; setTimeout(подставитьМенеджера, 0); }"); стр.wait_for_timeout(300)
+        п = стр.evaluate("() => document.getElementById('managerName').value")
+        if п:
+            НАХОДКИ.append(f"{н} роль {роль}: пустое поле заполнилось «{п}»")
+        стр.evaluate("""async () => { selectProjectOption(0); await new Promise(r => setTimeout(r, 700));
+          const пр = loadAllPresets(); пр['проба-адм'] = { id: 'проба-адм', name: 'Проба адм', state: Object.assign({}, collectState(), { manager: '' }), savedAt: new Date().toISOString() };
+          saveAllPresets(пр); loadPreset('проба-адм'); }"""); стр.wait_for_timeout(700)
+        п = стр.evaluate("() => document.getElementById('managerName').value")
+        if п:
+            НАХОДКИ.append(f"{н} роль {роль}: свой пресет с пустым полем открылся с «{п}»")
+        for о in [о for о in ошибки if "supabase.co" not in о][:3]:
+            НАХОДКИ.append(f"{н} роль {роль}: ошибка страницы: {о[:160]}")
+        стр.close()
 
 
 def главная():
@@ -173,7 +206,8 @@ def главная():
         raise SystemExit(1)
     print("Чисто: без фамилии в профиле мини-окно «Профиль» открывается само, почта в поле не встаёт; пустая фамилия "
           "не сохраняется; сохранённые фамилия и имя уходят в аккаунт и в поле «Менеджер»; вписанное руками не затирается; "
-          "«Позже» сворачивает в значок, проект забирает угол; в пресете коллеги — фамилия автора — на 390 и 1440, днём и ночью.")
+          "«Позже» сворачивает в значок, проект забирает угол; в пресете коллеги — фамилия автора, если он менеджер; "
+          "у администратора и редактора поле не заполняется и мини-окно не встаёт — на 390 и 1440, днём и ночью.")
 
 
 if __name__ == "__main__":
