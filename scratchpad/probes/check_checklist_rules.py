@@ -35,8 +35,8 @@ from playwright.sync_api import sync_playwright
   // Спокойный фон: фундамент, бытовка и биотуалет стоят, чтобы их правила не мешали остальным.
   checkedOptions.f5 = true; checkedOptions.e6 = true; checkedOptions.e7 = true; checkedOptions.r6 = true;
 }"""
-СВОЯ = """(раздел, имя, выделить) => { const id = 'п' + Math.random().toString(36).slice(2, 8);
-  customOptions[раздел] = customOptions[раздел] || []; customOptions[раздел].push({ id, name: имя, price: 1000, checked: true });
+СВОЯ = """(раздел, имя, выделить, цена) => { const id = 'п' + Math.random().toString(36).slice(2, 8);
+  customOptions[раздел] = customOptions[раздел] || []; customOptions[раздел].push({ id, name: имя, price: цена == null ? 1000 : цена, checked: true });
   if (выделить !== false) highlightedOpts.add('custom_' + id); return id; }"""
 
 ПРАВИЛА = [
@@ -50,13 +50,17 @@ from playwright.sync_api import sync_playwright
     ("1-10 бытовка", "Выбрать опцию бытовки", "() => { checkedOptions.e6 = false; }", "() => { checkedOptions.e6 = false; checkedOptions.e5 = true; }"),
     ("1-12", "у купели", "() => { своя('extra', 'Купель'); }", "() => { своя('extra', 'Купель с внешней печью, 1800×1200 мм, кедр'); }"),
     ("1-14", "у бассейна приямок", "() => { своя('extra', 'Бассейн 3×4 м'); }", "() => { своя('extra', 'Бассейн 3×4 м, приямок не входит'); }"),
-    ("1-15", "Выделить свои позиции цветом", "() => { своя('extra', 'Навес для дров', false); }", "() => { своя('extra', 'Навес для дров', true); }"),
+    ("1-15", "Выделить свои позиции цветом", "() => { своя('extra', 'Навес для дров', false, 60000); }", "() => { своя('extra', 'Навес для дров', true, 60000); }"),
+    # Выделять — только дороже 50 000 ₽ (30.09.2026, снимком списка из 17 позиций:
+    # «только нестандартные позиции стоимостью более 50 тыс.»); ровно 50 000 — не выделять.
+    ("1-15 от 50 000", "Выделить свои позиции цветом", "() => { своя('extra', 'Навес для дров', false, 50001); }",
+     "() => { своя('extra', 'Навес для дров', false, 50000); своя('extra', 'Поленница', false, 12000); }"),
     # Своя позиция из комплектации этого проекта — выделять не нужно (30.09.2026, снимком).
     ("1-15 комплектация", "Выделить свои позиции цветом",
-     "() => { своя('engineering', 'Внутренние скрытые электромонтажные работы', false); KOMPL_CUSTOM = []; }",
-     "() => { своя('engineering', 'Внутренние  скрытые электромонтажные работы', false); _kitsLoadedSlug = projectSlug(selectedProject[0]); KOMPL_CUSTOM = [{ id: 'к1', name: 'Внутренние скрытые электромонтажные работы', price: 1, section: 'engineering', kitChecked: { econom: false, standart: true } }]; }"),
+     "() => { своя('engineering', 'Внутренние скрытые электромонтажные работы', false, 90000); KOMPL_CUSTOM = []; }",
+     "() => { своя('engineering', 'Внутренние  скрытые электромонтажные работы', false, 90000); _kitsLoadedSlug = projectSlug(selectedProject[0]); KOMPL_CUSTOM = [{ id: 'к1', name: 'Внутренние скрытые электромонтажные работы', price: 1, section: 'engineering', kitChecked: { econom: false, standart: true } }]; }"),
     ("1-15 чужой проект", "Выделить свои позиции цветом",
-     "() => { своя('engineering', 'Внутренние скрытые электромонтажные работы', false); _kitsLoadedSlug = 'другой-проект'; KOMPL_CUSTOM = [{ id: 'к1', name: 'Внутренние скрытые электромонтажные работы', price: 1, section: 'engineering', kitChecked: { standart: true } }]; }",
+     "() => { своя('engineering', 'Внутренние скрытые электромонтажные работы', false, 90000); _kitsLoadedSlug = 'другой-проект'; KOMPL_CUSTOM = [{ id: 'к1', name: 'Внутренние скрытые электромонтажные работы', price: 1, section: 'engineering', kitChecked: { standart: true } }]; }",
      "() => { своя('engineering', 'Внутренние скрытые электромонтажные работы', true); }"),
     ("2-4", "отмостку", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; }", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; customNotes.foundation.push({ id: 'н2', text: 'Отмостка не входит' }); }"),
     ("2-6", "тепляк", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; document.getElementById('contractDate').value = '2026-12-10'; }", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; document.getElementById('contractDate').value = '2026-06-10'; }"),
