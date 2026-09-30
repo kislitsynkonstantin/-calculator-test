@@ -122,6 +122,20 @@ def прогон(бр, порт, ш, в):
     с2 = стр.evaluate(ВИД)
     if not с2 or с2["виды1"] != 2 or с2["пустых1"] != 0 or с2["листов"] != 2:
         НАХОДКИ.append(f"{н} два вида: {с2 and {к: с2[к] for к in ('виды1', 'пустых1', 'листов')}}")
+    # Обычное фото 4:3 не режется под широкий экран: вид вписан целиком
+    # (object-fit: contain), без обрезки (30.09.2026: «широкий экран
+    # изображения не нужен — обычно формат обычного фото»).
+    фото = стр.evaluate("""async (ф) => { canvasItems.length = 0; document.querySelectorAll('#imageCanvas .canvas-img-item').forEach(э => э.remove());
+      canvasAddImage(ф); await new Promise(r => setTimeout(r, 400)); await показатьПриложение2(); await new Promise(r => setTimeout(r, 900));
+      const д = document.querySelector('#appxPreviewDoc iframe').contentDocument; const к = д.querySelector('.fig--view img'); if (!к) return null;
+      const q = к.getBoundingClientRect(), ст = getComputedStyle(к);
+      const ш = Math.min(q.width, q.height * к.naturalWidth / к.naturalHeight), в = ш * к.naturalHeight / к.naturalWidth;
+      return { fit: ст.objectFit, д: к.naturalWidth / к.naturalHeight, видимо: [Math.round(ш), Math.round(в)], коробка: [Math.round(q.width), Math.round(q.height)] }; }""", "/scratchpad/probes/образцы_приложения2/фото_4x3.jpg")
+    if not фото or фото["fit"] not in ("contain", "fill") or abs(фото["д"] - 4 / 3) > 0.02:
+        НАХОДКИ.append(f"{н} фото 4:3 в приложении обрезано или не встало: {фото}")
+    elif фото["fit"] == "fill" and abs(фото["коробка"][0] / max(1, фото["коробка"][1]) - фото["д"]) > 0.04:
+        НАХОДКИ.append(f"{н} фото 4:3 растянуто: {фото}")
+    стр.evaluate("async (s) => { canvasItems.length = 0; document.querySelectorAll('#imageCanvas .canvas-img-item').forEach(э => э.remove()); canvasAddImage(s[0]); canvasAddImage(s[1]); canvasAddImage(s[1]); await new Promise(r => setTimeout(r, 400)); }", [ПЛАН, ВИЗ])
     # Бирюза — заголовок и черта бирюзовые, логотип свой.
     стр.evaluate("async () => { applyTone('teal', false); await показатьПриложение2(); await new Promise(r => setTimeout(r, 900)); }")
     с3 = стр.evaluate(ВИД)
