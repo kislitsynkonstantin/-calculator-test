@@ -126,6 +126,26 @@ def прогон(бр, порт, ш, в):
       await печатьПриложения2(); window.open = был; return { листов: (html.match(/class="sheet"/g) || []).length, a4: /size:A4/.test(html) }; }""")
     if печать["листов"] != 2 or not печать["a4"]:
         НАХОДКИ.append(f"{н} печать: {печать}")
+    # Пустых листов в PDF нет: и со своими полями, и с полями Safari (по 12,7 мм,
+    # с адресом и номером страницы) — страниц столько же, сколько листов.
+    # 30.09.2026 Safari печатал пустую страницу за каждым листом.
+    html = стр.evaluate("async () => сПалитрой(await собратьПриложение2())").replace('src="/scratchpad', f'src="http://127.0.0.1:{порт}/scratchpad')
+    листов = html.count('class="sheet"')
+    п = бр.new_page()
+    п.route("**/fonts.googleapis.com/**", lambda r: r.fulfill(status=200, content_type="text/css", body=ШРИФТЫ))
+    import pymupdf
+    п.set_content(html); п.wait_for_timeout(800)
+    страниц = pymupdf.open(stream=п.pdf(print_background=True, prefer_css_page_size=True), filetype="pdf").page_count
+    if страниц != листов:
+        НАХОДКИ.append(f"{н} печать: страниц {страниц} при {листов} листах — лишние пустые")
+    # Safari правило страницы не слушает и ставит свои поля по 12,7 мм: лист
+    # обязан поместиться в 297 − 25,4 = 271,6 мм, иначе его хвост уходит на
+    # отдельную пустую страницу. Chromium этого не повторяет — меряется геометрия.
+    п.emulate_media(media="print")
+    высоты = п.evaluate("() => [...document.querySelectorAll('.sheet')].map(л => л.getBoundingClientRect().height * 25.4 / 96)")
+    if any(в_ > 271.6 for в_ in высоты):
+        НАХОДКИ.append(f"{н} печать: лист выше страницы Safari (271,6 мм): {[round(в_) for в_ in высоты]} мм")
+    п.close()
     for о in [о for о in ошибки if "supabase.co" not in о][:3]:
         НАХОДКИ.append(f"{н} ошибка страницы: {о[:160]}")
     стр.close()

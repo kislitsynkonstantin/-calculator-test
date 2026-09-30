@@ -24525,11 +24525,17 @@ body{background:var(--bl-page);color:var(--bl-ink);font-family:'Geologica',Arial
 .sign--mini{border-top:1px solid var(--bl-rule);margin-top:1.4em;padding-top:.8em}
 .sign--mini .sign-line{margin-top:1.8em}
 @media (max-width:420px){.sign{grid-template-columns:1fr}}
-@page{size:A4;margin:0}
+/* Лист на печати меньше страницы: Safari на iPhone и Mac ставит свои поля с
+   адресом и номером страницы и не слушает правило страницы, и лист в 297 мм
+   переваливал на следующую страницу — между листами печатались пустые
+   (Константин, 30.09.2026, снимком окна печати: «пустые листы при печати
+   добавляет»). 262 мм помещаются и в поля Safari (по 12,7 мм), и в свои. */
+@page{size:A4;margin:10mm}
 @media print{
-  body{background:#fff;padding:0}
-  .sheet{width:210mm;height:297mm;aspect-ratio:auto;margin:0;box-shadow:none;font-size:10.5pt;padding:14mm 14mm 11mm;break-after:page}
-  .sheet:last-child{break-after:auto}
+  html,body{background:#fff;padding:0;margin:0}
+  .sheet{width:auto;height:262mm;aspect-ratio:auto;margin:0;box-shadow:none;font-size:10.5pt;padding:6mm 6mm 4mm;
+    overflow:hidden;break-inside:avoid;page-break-inside:avoid;break-after:page;page-break-after:always}
+  .sheet:last-child{break-after:auto;page-break-after:auto}
 }`;
 
 async function собратьПриложение2() {
