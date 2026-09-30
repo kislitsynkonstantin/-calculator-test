@@ -41,7 +41,7 @@ from playwright.sync_api import sync_playwright
      "included": False, "price": ДВЕРЬ, "formula": None, "status": None, "sort": 50}]
 ТАБЛИЦЫ_JS = ("window.__ТАБЛИЦЫ = Object.assign(window.__ТАБЛИЦЫ || {}, "
               + json.dumps(dict(ДАННЫЕ, pricing_options=ОПЦИИ), ensure_ascii=False) + ");")
-ПРИМЕЧАНИЕ = "Межкомнатные двери в базовую комплектацию не входят"
+ПРИМЕЧАНИЕ = "Межкомнатные двери не входят в расчёт"
 НАХОДКИ = []
 
 

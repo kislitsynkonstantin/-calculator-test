@@ -41,7 +41,10 @@ from playwright.sync_api import sync_playwright
 ПРАВИЛА = [
     ("1-2", "Перенести раздел «", "() => { contractsConfig[1].sections.push('roof'); contractsConfig[0].sections = contractsConfig[0].sections.filter(к => к !== 'roof'); }", "() => {}"),
     ("1-7", "Визуализации нет", "() => {}", "() => { canvasItems.push({}, {}); }"),
-    ("1-10", "бытовку и биотуалет", "() => { checkedOptions.e6 = false; checkedOptions.e7 = false; }", "() => { checkedOptions.e6 = false; checkedOptions.e7 = false; customNotes.extra.push({ id: 'н1', text: 'Бытовка и биотуалет не входят' }); }"),
+    # 1-10: подсказка выбрать опции; примечание «не входят» её не снимает (30.09.2026).
+    ("1-10", "Выбрать опции бытовки и биотуалета", "() => { checkedOptions.e6 = false; checkedOptions.e7 = false; customNotes.extra.push({ id: 'н1', text: 'Бытовка и биотуалет не входят' }); }", "() => {}"),
+    ("1-10 туалет", "Выбрать опцию биотуалета", "() => { checkedOptions.e7 = false; }", "() => {}"),
+    ("1-10 бытовка", "Выбрать опцию бытовки", "() => { checkedOptions.e6 = false; }", "() => { checkedOptions.e6 = false; checkedOptions.e5 = true; }"),
     ("1-12", "у купели", "() => { своя('extra', 'Купель'); }", "() => { своя('extra', 'Купель с внешней печью, 1800×1200 мм, кедр'); }"),
     ("1-14", "у бассейна приямок", "() => { своя('extra', 'Бассейн 3×4 м'); }", "() => { своя('extra', 'Бассейн 3×4 м, приямок не входит'); }"),
     ("1-15", "Выделить свою позицию цветом", "() => { своя('extra', 'Навес для дров', false); }", "() => { своя('extra', 'Навес для дров', true); }"),
