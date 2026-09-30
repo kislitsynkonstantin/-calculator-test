@@ -17580,8 +17580,47 @@ function областьПланировки(стр, текст) {
   const справа = колонка.length ? Math.min(...колонка.map(с => с.x)) - 12 : ш;
   // Штамп: его слова — в нижней полосе листа; y у pdf.js — линия букв, берём с запасом.
   const штамп = слова.filter(с => с.y > в * 0.85 && /^(Стадия|Лист|Листов|Архитектор|Заказчик)$/i.test(с.т.trim()));
-  const снизу = штамп.length ? Math.min(...штамп.map(с => с.y)) - 26 : в;
+  let снизу = штамп.length ? Math.min(...штамп.map(с => с.y)) - 26 : в;
+  // «Примечания» под планом справа — тоже не планировка.
+  const примечания = слова.filter(с => с.y > в * 0.72 && с.x > ш * 0.45 && /^Примечани/i.test(с.т.trim()));
+  if (примечания.length) снизу = Math.min(снизу, Math.min(...примечания.map(с => с.y)) - 18);
   return { x: 0, y: 0, ш: Math.max(10, справа), в: Math.max(10, снизу) };
+}
+
+// Рамка листа у архитектора — длинные сплошные линии у краёв вырезанного
+// куска: слева и сверху от плана, иногда справа и снизу. Их убираем до
+// подрезки полей, иначе поля подрезались бы по рамке, а не по рисунку
+// (Константин, 30.09.2026, снимком: «вот такие линии только убирай с
+// планировки, когда вырезаешь»). Линия рамки — ряд или столбец, тёмный на
+// 70 % длины и больше, в полосе 18 % у края; оси плана пунктирные, стены
+// короче, их это не трогает. Край куска переносится внутрь за найденную линию.
+function срезатьРамку(холст) {
+  const кт = холст.getContext('2d');
+  const { width: ш, height: в } = холст;
+  if (ш < 40 || в < 40) return холст;
+  const д = кт.getImageData(0, 0, ш, в).data;
+  const тёмн = (x, y) => { const и = (y * ш + x) * 4; return 255 - Math.min(д[и], д[и + 1], д[и + 2]) > 90; };
+  const доляСтолбца = x => { let н = 0; for (let y = 0; y < в; y += 2) if (тёмн(x, y)) н++; return н / Math.ceil(в / 2); };
+  const доляРяда = y => { let н = 0; for (let x = 0; x < ш; x += 2) if (тёмн(x, y)) н++; return н / Math.ceil(ш / 2); };
+  const полосаШ = Math.round(ш * 0.18), полосаВ = Math.round(в * 0.18);
+  // Линия рамки тонкая: не больше 6 пикселей подряд. Стена толще и с
+  // проёмами — её доля и толщина рамку не изображают.
+  const тонкие = (от, до, шаг, доля) => {
+    const найдено = [];
+    for (let и = от; шаг > 0 ? и < до : и > до; и += шаг) if (доля(и) > 0.85) найдено.push(и);
+    const линии = []; let н = 0;
+    while (н < найдено.length) { let к = н; while (к + 1 < найдено.length && Math.abs(найдено[к + 1] - найдено[к]) === 1) к++; if (к - н + 1 <= 6) линии.push(найдено[к]); н = к + 1; }
+    return линии;
+  };
+  let л = 0, п = ш, в0 = 0, н0 = в;
+  тонкие(0, полосаШ, 1, доляСтолбца).forEach(x => { л = Math.max(л, x + 3); });
+  тонкие(ш - 1, ш - полосаШ, -1, доляСтолбца).forEach(x => { п = Math.min(п, x - 3); });
+  тонкие(0, полосаВ, 1, доляРяда).forEach(y => { в0 = Math.max(в0, y + 3); });
+  тонкие(в - 1, в - полосаВ, -1, доляРяда).forEach(y => { н0 = Math.min(н0, y - 3); });
+  if (!л && п === ш && !в0 && н0 === в) return холст;
+  const н = document.createElement('canvas'); н.width = Math.max(1, п - л); н.height = Math.max(1, н0 - в0);
+  н.getContext('2d').drawImage(холст, л, в0, н.width, н.height, 0, 0, н.width, н.height);
+  return н;
 }
 
 // Белые поля по краям — долой: остаётся рисунок и 24 пикселя воздуха.
@@ -17602,9 +17641,18 @@ function подрезатьПоля(холст) {
   return н;
 }
 
-async function планировкиИзPdf(данные) {
+async function разобратьPdf(данные) {
   const pdfjs = await загрузитьPdfjs();
   const док = await pdfjs.getDocument({ data: данные }).promise;
+  let планы = await планировкиИзДока(док);
+  const виды = await визуализацииИзPdf(pdfjs, _листыДока.filter(л => !л.план));
+  // Ни листа «План», ни картинок-видов — берётся первый лист целиком, как
+  // раньше: вдруг это планировка без подписи.
+  if (!планы.length && !виды.length && _листыДока.length) планы = await вырезатьПланировки(_листыДока.slice(0, 1));
+  return { планы, виды };
+}
+let _листыДока = [];
+async function планировкиИзДока(док) {
   const листы = [];
   for (let н = 1; н <= док.numPages; н++) {
     const стр = await док.getPage(н);
@@ -17612,8 +17660,10 @@ async function планировкиИзPdf(данные) {
     const всё = текст.items.map(т => т.str).join(' ');
     листы.push({ стр, текст, план: /План\s/i.test(всё) && !/Обмер|Разрез|Фасад|Кровл/i.test(всё) });
   }
-  let нужные = листы.filter(л => л.план);
-  if (!нужные.length) нужные = листы.slice(0, 1);
+  _листыДока = листы;
+  return вырезатьПланировки(листы.filter(л => л.план));
+}
+async function вырезатьПланировки(нужные) {
   const картинки = [];
   for (const л of нужные) {
     const о = областьПланировки(л.стр, л.текст);
@@ -17625,7 +17675,58 @@ async function планировкиИзPdf(данные) {
     const кт = полный.getContext('2d');
     кт.fillStyle = '#fff'; кт.fillRect(0, 0, полный.width, полный.height);
     await л.стр.render({ canvasContext: кт, viewport: вид }).promise;
-    картинки.push(подрезатьПоля(полный).toDataURL('image/png'));
+    картинки.push(подрезатьПоля(срезатьРамку(полный)).toDataURL('image/png'));
+  }
+  return картинки;
+}
+
+// Визуализации проекта — картинки, вклеенные в лист: их место на листе
+// берётся из списка команд рисования страницы (картинка рисуется в единичный
+// квадрат, пересчитанный текущей матрицей). Берутся крупные — от 12 % листа,
+// и только цветные: чертёж, вставленный картинкой, остаётся планировкой.
+// Лишнее менеджер удалит, как лишние листы планировок (Константин, 30.09.2026:
+// «вытаскивает все планировки виды — оставляю нужную. Также с визуализациями
+// давай сделаем»).
+function местаКартинок(pdfjs, стр, список, вид) {
+  const О = pdfjs.OPS, умн = (а, б) => [а[0] * б[0] + а[2] * б[1], а[1] * б[0] + а[3] * б[1], а[0] * б[2] + а[2] * б[3],
+    а[1] * б[2] + а[3] * б[3], а[0] * б[4] + а[2] * б[5] + а[4], а[1] * б[4] + а[3] * б[5] + а[5]];
+  let м = [1, 0, 0, 1, 0, 0]; const стек = [], места = [];
+  for (let и = 0; и < список.fnArray.length; и++) {
+    const ф = список.fnArray[и], а = список.argsArray[и];
+    if (ф === О.save) стек.push(м);
+    else if (ф === О.restore) м = стек.pop() || [1, 0, 0, 1, 0, 0];
+    else if (ф === О.transform) м = умн(м, а);
+    else if (ф === О.paintFormXObjectBegin) { стек.push(м); if (а && Array.isArray(а[0]) && а[0].length === 6) м = умн(м, а[0]); }
+    else if (ф === О.paintFormXObjectEnd) м = стек.pop() || [1, 0, 0, 1, 0, 0];
+    else if (ф === О.paintImageXObject || ф === О.paintInlineImageXObject || ф === О.paintImageXObjectRepeat) {
+      const т = [[0, 0], [1, 0], [0, 1], [1, 1]].map(([x, y]) => вид.convertToViewportPoint(м[0] * x + м[2] * y + м[4], м[1] * x + м[3] * y + м[5]));
+      const xs = т.map(т_ => т_[0]), ys = т.map(т_ => т_[1]);
+      места.push({ x: Math.min(...xs), y: Math.min(...ys), ш: Math.max(...xs) - Math.min(...xs), в: Math.max(...ys) - Math.min(...ys) });
+    }
+  }
+  const площадь = вид.width * вид.height;
+  return места.filter(м_ => м_.ш * м_.в >= площадь * 0.12);
+}
+
+async function визуализацииИзPdf(pdfjs, листы) {
+  const картинки = [];
+  for (const л of листы) {
+    const вид1 = л.стр.getViewport({ scale: 1 });
+    const места = местаКартинок(pdfjs, л.стр, await л.стр.getOperatorList(), вид1);
+    if (!места.length) continue;
+    const масштаб = Math.min(3, 2400 / Math.max(вид1.width, вид1.height));
+    const вид = л.стр.getViewport({ scale: масштаб });
+    const полный = document.createElement('canvas');
+    полный.width = Math.ceil(вид.width); полный.height = Math.ceil(вид.height);
+    const кт = полный.getContext('2d'); кт.fillStyle = '#fff'; кт.fillRect(0, 0, полный.width, полный.height);
+    await л.стр.render({ canvasContext: кт, viewport: вид }).promise;
+    for (const м of места) {
+      const к = document.createElement('canvas');
+      к.width = Math.max(1, Math.round(м.ш * масштаб)); к.height = Math.max(1, Math.round(м.в * масштаб));
+      к.getContext('2d').drawImage(полный, Math.round(м.x * масштаб), Math.round(м.y * масштаб), к.width, к.height, 0, 0, к.width, к.height);
+      const src = к.toDataURL('image/jpeg', 0.9);
+      if (await видКартинки(src) === 'визуализация') картинки.push(src);
+    }
   }
   return картинки;
 }
@@ -17634,9 +17735,14 @@ async function canvasLoadPdf(file) {
   try { showToast('Читаю PDF — ищу планировку…', 2500); } catch (e) {}
   try {
     const данные = new Uint8Array(await file.arrayBuffer());
-    const картинки = await планировкиИзPdf(данные);
-    for (const к of картинки) canvasAddImage(await canvasCompress(к, 'image/png'));
-    showToast(картинки.length > 1 ? 'Из PDF добавлено планировок: ' + картинки.length : 'Планировка из PDF добавлена');
+    const { планы, виды } = await разобратьPdf(данные);
+    // Сначала виды, потом планировки: так их расставляет и Приложение № 2.
+    for (const к of виды) canvasAddImage(await canvasCompress(к, 'image/jpeg'));
+    for (const к of планы) canvasAddImage(await canvasCompress(к, 'image/png'));
+    const части = [];
+    if (виды.length) части.push(виды.length === 1 ? 'визуализация' : 'визуализаций: ' + виды.length);
+    if (планы.length) части.push(планы.length === 1 ? 'планировка' : 'планировок: ' + планы.length);
+    showToast(части.length ? 'Из PDF добавлено — ' + части.join(', ') : 'В PDF не нашлось ни планировки, ни визуализации');
   } catch (e) {
     console.warn('[pdf] не разобран', e);
     showToast('Не удалось прочитать PDF — добавьте планировку снимком');
