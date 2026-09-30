@@ -34970,6 +34970,11 @@ function проверкаПоЧекЛисту() {
   const найти = (рв, раздел) => тексты.find(х => рв.test(х.т) && (!раздел || х.раздел === раздел));
   const своиВРазделе = раздел => (customOptions[раздел] || []).some(co => co && co.checked);
   const замечания = [], вопросы = [];
+  // Вопрос тоже ведёт к месту, которого касается (Константин, 30.09.2026: «эти
+  // примечания по нажатию чтобы тоже перекидывало на раздел, к которому они
+  // относятся»). Сам вопрос — строка, как прежде; куда вести — в `адреса`.
+  const адреса = {};
+  const спросить = (т, раздел, эл) => { вопросы.push(т); адреса[т] = { раздел: раздел || '', эл: эл || '' }; };
   // `эл` — строка, которую надо отметить или снять: замечание ведёт прямо к
   // ней, а не к шапке раздела (Константин, 29.09.2026: «тут должно
   // перекидывать прямо на опцию, чтобы просто нажать»).
@@ -35043,8 +35048,8 @@ function проверкаПоЧекЛисту() {
     добавить(к, 'Перенести раздел «' + имяРаздела(к) + '» в основной договор', false, ''));
   // 1-7. Визуализация — два вида.
   const видов = (typeof canvasItems !== 'undefined' && canvasItems) ? canvasItems.length : 0;
-  // Блок изображений — не раздел спецификации, вести замечанию некуда: это вопрос.
-  if (selectedProject && видов < 2) вопросы.push(видов ? 'Визуализация — один вид; добавить второй?' : 'Визуализации нет — добавить два вида?');
+  // Блок изображений — не раздел спецификации: это вопрос, ведёт к блоку.
+  if (selectedProject && видов < 2) спросить(видов ? 'Визуализация — один вид; добавить второй?' : 'Визуализации нет — добавить два вида?', '', 'imageCanvasCard');
   // 1-10. Бытовка и биотуалет — подсказка выбрать опции. Примечание «не
   // входят в расчёт» стоит само, поэтому его наличие подсказку не снимает
   // (Константин, 30.09.2026: «в чек-листе также пиши подсказки выбрать опцию
@@ -35149,17 +35154,18 @@ function проверкаПоЧекЛисту() {
 
   // Вопросы — то, чего по расчёту не видно.
   const наличные = !!(document.getElementById('cashDiscountCheck') || {}).checked;
-  if (!наличные) вопросы.push('Скидка за наличные не указана — была ли она?');
+  if (!наличные) спросить('Скидка за наличные не указана — была ли она?', '', 'cashDiscountLabel');
   const инженерка = (OPTIONS || []).some(o => o.section === 'engineering' && !o.included && checkedOptions[o.id])
     || своиВРазделе('engineering');
-  if (инженерка) вопросы.push('Тип отопления не указан — уточнить у заказчика');
+  if (инженерка) спросить('Тип отопления не указан — уточнить у заказчика', 'engineering', '');
   // 6-4. Базовые окна Blitz 60 остаются в базе; при больших окнах профиль
   // проверить (Константин, 30.09.2026: «оставь в базе 60 профиль, просто в
   // чек-листе ставь напоминание для проверки, если большие окна»). Размеров
   // окон калькулятор не знает — это вопрос, а не замечание.
   const блиц = тексты.some(х => х.раздел === 'windows' && /blitz\s*60/i.test(х.т));
   if (блиц && !тексты.some(х => х.раздел === 'windows' && /grazio|intelio|алюмин/i.test(х.т)))
-    вопросы.push('Окна Blitz 60: если в проекте большие окна — проверить профиль, нужен Grazio 70 или выше');
+    спросить('Окна Blitz 60: если в проекте большие окна — проверить профиль, нужен Grazio 70 или выше', 'windows',
+      (тексты.find(х => х.раздел === 'windows' && /blitz\s*60/i.test(х.т)) || {}).эл);
   // Вывоз мусора выбран, а примечание «Вывоз мусора не входит в расчёт» стоит в
   // документе — противоречие (Константин, 30.09.2026). Не выбран — молчим:
   // примечание и так говорит, что вывоз не входит.
@@ -35175,11 +35181,11 @@ function проверкаПоЧекЛисту() {
     if (видно) добавить('extra', 'Убрать примечание «Вывоз мусора не входит в расчёт» — вывоз мусора выбран', false, 'fixedNote_' + ключПримечания('extra', место));
   }
   // 9-6. Котёл — техническое помещение.
-  if (хоть(['eng19', 'eng20', 'eng21']) || найти(/кот[её]л/i)) вопросы.push('Котёл в расчёте — согласовано ли техническое помещение под него?');
+  if (хоть(['eng19', 'eng20', 'eng21']) || найти(/кот[её]л/i)) спросить('Котёл в расчёте — согласовано ли техническое помещение под него?', 'engineering', отмеченнаяИз(['eng19', 'eng20', 'eng21']) || (найти(/кот[её]л/i) || {}).эл);
 
   const порядок = SECTIONS.map(с => с.key);
   замечания.sort((а, б) => (б.стоп - а.стоп) || (порядок.indexOf(а.раздел) - порядок.indexOf(б.раздел)));
-  return { замечания, вопросы };
+  return { замечания, вопросы, адреса };
 }
 function имяРаздела(ключ) {
   const с = SECTIONS.find(x => x.key === ключ);
@@ -35208,7 +35214,12 @@ function панельПроверкиКарточки(пр) {
   if (н) {
     h += '<ul class="pc-ck">' + пр.замечания.map(з => з.подпункты ? группа(з) : '<li>' + строка(з) + '</li>').join('') + '</ul>';
   }
-  h += пр.вопросы.map(в => '<div class="pc-q">' + escapeHtml(в) + '</div>').join('');
+  h += пр.вопросы.map(в => {
+    const а = (пр.адреса || {})[в];
+    if (!а || (!а.раздел && !а.эл)) return '<div class="pc-q">' + escapeHtml(в) + '</div>';
+    return '<button type="button" class="pc-q" data-act="ck" data-sec="' + escapeHtml(а.раздел) + '" data-el="' + escapeHtml(а.эл) + '"><span class="pc-q-tx">'
+      + escapeHtml(в) + '</span><span class="pc-ck-go">' + ЗНАЧОК_СТРЕЛКА + '</span></button>';
+  }).join('');
   h += '<div class="pc-ck-f">Подсказки по чек-листу — сохранить и напечатать расчёт они не мешают.</div>';
   return h;
 }
@@ -35258,8 +35269,10 @@ function кРазделуИзПроверки(ключ, строкаИд) {
     if (document.body.classList.contains('total-strip-on')) снизу = parseFloat(getComputedStyle(document.body).getPropertyValue('--strip-h')) || 68;
     const поле = Math.max(0, window.innerHeight - сверху - снизу - цель.offsetHeight);
     window.scrollTo({ top: цель.getBoundingClientRect().top + window.scrollY - сверху - поле / 2, behavior: 'smooth' });
-    цель.classList.remove('pc-flash-row'); void цель.offsetWidth; цель.classList.add('pc-flash-row');
-    setTimeout(() => цель.classList.remove('pc-flash-row'), 2200);
+    // Строка расчёта — рамкой строки; блок изображений и скидка — рамкой вокруг.
+    const класс = цель.matches('.opt-item, .note-item') ? 'pc-flash-row' : 'pc-flash-box';
+    цель.classList.remove(класс); void цель.offsetWidth; цель.classList.add(класс);
+    setTimeout(() => цель.classList.remove(класс), 2200);
     return;
   }
   const н = SECTIONS.findIndex(с => с.key === ключ);
@@ -42628,6 +42641,12 @@ body.dark,body.ui-blank.dark{--pc-down:#e6a27c}
 .pc-card .pc-ck-go{grid-row:1 / span 2;grid-column:2;align-self:center;display:flex;color:var(--pc-ink3)}
 .pc-card .pc-stop{display:inline-block;margin-right:6px;padding:1px 6px;border-radius:4px;background:var(--pc-warm-tint);color:var(--pc-warm-ink);font-size:.6rem;font-weight:700;letter-spacing:.08em;vertical-align:1px}
 .pc-card .pc-q{margin-top:8px;padding:8px 10px;border-left:3px solid var(--pc-warm);border-radius:0 8px 8px 0;background:var(--pc-warm-tint);color:var(--pc-warm-ink);font-size:.7rem;line-height:1.45}
+/* Вопрос, который ведёт к месту, — кнопка: та же плашка, стрелка справа. */
+button.pc-q{display:flex;align-items:center;gap:10px;width:100%;border-top:0;border-right:0;border-bottom:0;font-family:inherit;text-align:left;cursor:pointer}
+.pc-card button.pc-q .pc-q-tx{flex:1;min-width:0}
+.pc-card button.pc-q .pc-ck-go{flex:none;color:inherit;opacity:.7}
+@media (hover:hover){.pc-card button.pc-q:hover{filter:brightness(.97)}}
+@media (prefers-reduced-motion:reduce){.pc-flash-box{animation:none}}
 .pc-card .pc-ck-n{display:inline-block;min-width:18px;margin-left:4px;padding:0 5px;border-radius:9px;background:var(--pc-tint);color:var(--pc-ink2);font-size:.62rem;font-weight:600;text-align:center;vertical-align:1px}
 .pc-card .pc-ck-chev svg{transition:transform .2s}
 .pc-card .pc-ck-grp.open > button .pc-ck-chev svg{transform:rotate(90deg)}
@@ -42650,6 +42669,9 @@ body.dark,body.ui-blank.dark{--pc-down:#e6a27c}
 .opt-item.pc-flash-row::after,.note-item.pc-flash-row::after{content:"";position:absolute;left:-8px;right:-8px;top:0;bottom:-1px;
   border:2px solid var(--bl-acc2, var(--pc-acc));pointer-events:none;animation:pcFlashRow 2.1s ease forwards}
 @keyframes pcFlashRow{0%,70%{opacity:1}100%{opacity:0}}
+/* Не строка — блок изображений, скидка за наличные: та же рамка, обводкой. */
+.pc-flash-box{outline:2px solid transparent;outline-offset:4px;animation:pcFlashBox 2.1s ease forwards}
+@keyframes pcFlashBox{0%,70%{outline-color:var(--bl-acc2, var(--pc-acc))}100%{outline-color:transparent}}
 @keyframes pcFlash{0%,40%{background-color:var(--pc-tint)}}
 /* Пока карточка открыта, сообщение встаёт сверху экрана: снизу его закрывала
    бы сама карточка. */
