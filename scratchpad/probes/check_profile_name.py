@@ -19,6 +19,8 @@
     занимает «Не сохранён», значок профиля один не стоит рядом;
   • фамилия есть — после «Сбросить всё» поле заполняется само; вписанное
     руками не затирается;
+  • свой пресет с пустым полем — при открытии своя фамилия, и она
+    сохраняется в пресете; вписанная руками при открытии не меняется;
   • пресет коллеги с пустым полем — в поле фамилия автора, а не своя.
 
     python3 check_profile_name.py
@@ -103,6 +105,25 @@ def прогон(бр, порт, ш, в, ночь):
     стр.evaluate("() => { document.getElementById('managerName').value = ''; setTimeout(подставитьМенеджера, 0); }"); стр.wait_for_timeout(300)
     if стр.evaluate("() => document.getElementById('managerName').value") != "Иванов Сергей":
         НАХОДКИ.append(f"{н} пустое поле при заполненном профиле не заполнилось")
+    # 4б. Свой пресет с пустым полем: при открытии — своя фамилия, и она
+    # сохраняется в самом пресете; заполненное руками при открытии не меняется.
+    стр.evaluate("""async () => { selectProjectOption(0); await new Promise(r => setTimeout(r, 700));
+      const пр = loadAllPresets(); const ст = collectState();
+      пр['проба-пустое'] = { id: 'проба-пустое', name: 'Проба пустое', state: Object.assign({}, ст, { manager: '' }), savedAt: new Date().toISOString() };
+      пр['проба-руками'] = { id: 'проба-руками', name: 'Проба руками', state: Object.assign({}, ст, { manager: 'Петров Пётр' }), savedAt: new Date().toISOString() };
+      saveAllPresets(пр); }""")
+    стр.evaluate("() => loadPreset('проба-пустое')"); стр.wait_for_timeout(600)
+    п = стр.evaluate("() => document.getElementById('managerName').value")
+    if п != "Иванов Сергей":
+        НАХОДКИ.append(f"{н} свой пресет с пустым полем: при открытии в поле «{п}», ждали «Иванов Сергей»")
+    стр.wait_for_timeout(9000)
+    сохр = стр.evaluate("() => (loadAllPresets()['проба-пустое'] || { state: {} }).state.manager")
+    if сохр != "Иванов Сергей":
+        НАХОДКИ.append(f"{н} подставленная фамилия не сохранилась в пресете: в нём «{сохр}»")
+    стр.evaluate("() => loadPreset('проба-руками')"); стр.wait_for_timeout(600)
+    п = стр.evaluate("() => document.getElementById('managerName').value")
+    if п != "Петров Пётр":
+        НАХОДКИ.append(f"{н} пресет с фамилией, вписанной руками: при открытии в поле «{п}», ждали «Петров Пётр»")
     # 5. Пресет коллеги с пустым полем — фамилия автора.
     стр.evaluate("""() => { _sharedPresets.push({ short_code: '111222', id: '111222', name: 'Баня «Лейпциг» 5×7', author_name: 'Павел Волков',
       author_id: 'u-другой', is_public: true, visibility: 'public', locked: true, created_at: '2026-09-22T13:05:00Z', updated_at: '2026-09-22T13:05:00Z',
