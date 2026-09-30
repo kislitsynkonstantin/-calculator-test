@@ -59,6 +59,7 @@ from playwright.sync_api import sync_playwright
     ("8-5", "камни для печи", "() => { checkedOptions.st1 = true; checkedOptions.st16 = true; checkedOptions.st29 = true; checkedOptions.st31 = true; }", "() => { checkedOptions.st1 = true; checkedOptions.st16 = true; checkedOptions.st29 = true; checkedOptions.st31 = true; checkedOptions.st20 = true; }"),
     ("9-3", "стяжку", "() => { своя('engineering', 'Водяной тёплый пол в санузле'); }", "() => { своя('engineering', 'Водяной тёплый пол в санузле, стяжка 50 мм'); }"),
     ("9-6", "техническое помещение", "() => { checkedOptions.eng19 = true; }", "() => {}"),
+    ("6-4", "Окна Blitz 60", "() => {}", "() => { checkedOptions.w8 = true; }"),
     ("9-9", "Перенести освещение", "() => { своя('interior', 'Светильники в комнату отдыха'); }", "() => { своя('engineering', 'Светильники в комнату отдыха'); }"),
 ]
 
@@ -103,13 +104,20 @@ def прогон(бр, порт):
             НАХОДКИ.append(f"[стоп] «{часть}» не стоп: {т}")
     # Чистый расчёт с фоном — без замечаний из новых правил.
     стр.evaluate(СБРОС); стр.evaluate("() => { canvasItems.push({}, {}); }")
-    т = [х for х in стр.evaluate(ТЕКСТЫ) if not х.startswith("? Скидка") and "пробное бурение" not in х]
+    т = [х for х in стр.evaluate(ТЕКСТЫ) if not х.startswith("? Скидка") and not х.startswith("? Окна Blitz 60") and "пробное бурение" not in х]
     if т:
         НАХОДКИ.append(f"[фон] на спокойном расчёте есть замечания: {т}")
     for ключ, (ид, кусок) in ИМЕНА.items():
         имя = стр.evaluate("(ид) => (getOpt(ид) || {}).name || ''", ид)
         if кусок not in имя:
             НАХОДКИ.append(f"[{ключ}] в названии нет «{кусок}»: «{имя}»")
+    # Старая строка Шинглас (r5) снята совсем: её нет ни в новых, ни в старых
+    # ценах, а отмеченная в сохранённом расчёте — видна (30.09.2026).
+    вид = стр.evaluate("""async () => { const р = []; for (const режим of ['new', 'legacy']) { setOptionPricingMode(режим); await new Promise(r => setTimeout(r, 300));
+        р.push(isOptionVisible(getOpt('r5')), !!document.querySelector('#lbl_r5')); }
+      checkedOptions.r5 = true; р.push(isOptionVisible(getOpt('r5'))); checkedOptions.r5 = false; setOptionPricingMode('new'); return р; }""")
+    if вид[:4] != [False, False, False, False] or вид[4] is not True:
+        НАХОДКИ.append(f"[Шинглас] старая строка видна в списке или скрыта отмеченной: {вид}")
     # 7-2 — клеёный брус: заводская покраска снаружи — стоп.
     стр.evaluate("async () => { await switchTech('glulam'); await new Promise(r => setTimeout(r, 1500)); selectProjectOption(0); await new Promise(r => setTimeout(r, 900)); }")
     стр.evaluate(СБРОС)
