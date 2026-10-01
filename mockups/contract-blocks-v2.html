@@ -1251,7 +1251,7 @@ function пл(т) { return т ? т : '<span class="placeholder">________</span>'
 function esc(т) { return String(т); }
 
 function шапка() {
-  return '<header class="doc-head"><div><img class="logo" src="' + ЛОГО + '" alt="Баня МСК"><div class="eyebrow">Каркасный дом / Баня</div>' +
+  return '<header class="doc-head"><div><img class="logo" src="' + ЛОГО + '" alt="Баня МСК">' +
     '<h1 class="title">Договор <em>подряда</em></h1></div><div class="meta"><b>№&nbsp;5997878-КАР</b>от <span class="placeholder">________</span> · г. Москва</div></header>';
 }
 function пункт(н, т) { return '<p class="clause"><span class="clause-num">' + н + '</span>' + т + '</p>'; }
@@ -1408,7 +1408,6 @@ async function вАбзацы(Д, Ц, лого) {
     if (у.tagName === 'HEADER') {
       var лев = [];
       if (лого) лев.push(new Д.Paragraph({ spacing: { after: 160 }, children: [new Д.ImageRun({ type: 'png', data: лого, transformation: { width: 120, height: 26 } })] }));
-      лев.push(new Д.Paragraph({ spacing: { after: 40 }, children: [т(Д, 'КАРКАСНЫЙ ДОМ / БАНЯ', { font: ШРИФТ_М, size: 14, color: Ц.small, characterSpacing: 40 })] }));
       лев.push(new Д.Paragraph({ children: [т(Д, 'Договор ', { font: ШРИФТ_З, size: 34, color: Ц.ink }), т(Д, 'подряда', { font: ШРИФТ_З, size: 34, color: Ц.acc2 })] }));
       дети.push(new Д.Table({ width: { size: ШИР, type: Д.WidthType.DXA }, columnWidths: [ШИР - мм(55), мм(55)], layout: Д.TableLayoutType.FIXED, borders: безРамок(Д), rows: [new Д.TableRow({ children: [
         new Д.TableCell({ width: { size: ШИР - мм(55), type: Д.WidthType.DXA }, children: лев }),
