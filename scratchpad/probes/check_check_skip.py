@@ -14,7 +14,9 @@
   • свайп по вопросу — плашка без тёплого фона, подпись «пропущено»;
   • свайп ещё раз — пункт вернулся, числа прежние;
   • движение вниз по пункту — не пропуск; короткое нажатие — переход к месту;
-  • отметка — часть расчёта: в collectState() и обратно через restoreState().
+  • отметка — часть расчёта: в collectState() и обратно через restoreState();
+  • подпись под списком — только о свайпе («тут в подсказке оставь только
+    про свайп», 30.09.2026).
 
     python3 check_check_skip.py
 """
@@ -35,7 +37,7 @@ from playwright.sync_api import sync_playwright
     return { серый: э.classList.contains('pc-skip'), цвет: ст.color, текст: э.innerText.replace(/\\s+/g, ' ').trim(), фон: getComputedStyle(э).backgroundColor }; });
   const фонКарты = getComputedStyle(к).backgroundColor;
   return { открыто: к.classList.contains('show'), значок: з ? з.textContent : '', вкладка: ((к.querySelector('#pcTab-c .pc-cnt') || {}).textContent || '').trim(),
-    сводка: (к.querySelector('.pc-ck-s') || {}).textContent || '', пункты, фонКарты }; }"""
+    сводка: (к.querySelector('.pc-ck-s') || {}).textContent || '', подпись: ((к.querySelector('.pc-ck-f') || {}).textContent || '').trim(), пункты, фонКарты }; }"""
 
 
 def яркость(rgb):
@@ -69,6 +71,8 @@ def прогон(бр, порт, ш, в, ночь):
     if было["вкладка"] != "3" or было["значок"] != "3" or len(было["пункты"]) != 3:
         НАХОДКИ.append(f"{н} до свайпа ждали 3 пункта и «3» на вкладке и значке: {было}")
         стр.close(); return
+    if not было["подпись"].startswith("Свайп вправо") or "сохранить" in было["подпись"] or "напечатать" in было["подпись"]:
+        НАХОДКИ.append(f"{н} подпись под списком не только о свайпе: «{было['подпись']}»")
     свайп(стр, 0)
     с = стр.evaluate(СОСТ)
     if not с["открыто"]:
