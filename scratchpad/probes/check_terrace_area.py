@@ -35,7 +35,14 @@ from playwright.sync_api import sync_playwright
   return { поле: п ? п.tagName : '', знач: п ? (п.value ?? п.textContent) : '', ед: (э.querySelector('.opt-qty-unit') || {}).textContent || '',
     цена: ц ? ц.textContent.replace(/\\s/g, ' ').trim() : '', имя: (э.querySelector('.opt-name') || {}).textContent || '', отмечена: !!checkedOptions.e10,
     ширина: п ? Math.round(п.getBoundingClientRect().width) : 0, вылез,
-    линия: п ? getComputedStyle(п).borderBottomColor : '', подложка: п ? getComputedStyle(п).backgroundColor : '' }; }"""
+    линия: п ? getComputedStyle(п).borderBottomColor : '', подложка: п ? getComputedStyle(п).backgroundColor : '',
+    зазор: (() => { const е = э.querySelector('.opt-qty-unit'); if (!п || !е || п.tagName !== 'INPUT') return null;
+      const кс = getComputedStyle(п), х = document.createElement('canvas').getContext('2d'); х.font = кс.font;
+      const пр = п.getBoundingClientRect(), ер = е.getBoundingClientRect();
+      const конец = (кс.textAlign === 'right' || кс.textAlign === 'end') ? пр.right - parseFloat(кс.paddingRight) - parseFloat(кс.borderRightWidth)
+        : кс.textAlign === 'center' ? пр.left + пр.width / 2 + х.measureText(п.value).width / 2
+        : пр.left + parseFloat(кс.paddingLeft) + parseFloat(кс.borderLeftWidth) + х.measureText(п.value).width;
+      return { до_ед: Math.round((ер.left - конец) * 10) / 10, вместе: Math.round(ер.right - пр.left) }; })() }; }"""
 
 
 def прогон(бр, порт, ш, в, ночь, тема):
@@ -58,13 +65,25 @@ def прогон(бр, порт, ш, в, ночь, тема):
     прозр = ("rgba(0, 0, 0, 0)", "transparent")
     if с["линия"] not in прозр or с["подложка"] not in прозр:
         НАХОДКИ.append(f"{н} в покое поле площади с линией или подложкой: {с['линия']}, {с['подложка']}")
-    стр.locator("#qtyval_e10").focus(); стр.wait_for_timeout(250)
+    стр.locator("#qtyval_e10").focus(); стр.wait_for_timeout(350)
     ф = стр.evaluate(СОСТ)
     if ф["линия"] in прозр or ф["подложка"] in прозр:
         НАХОДКИ.append(f"{н} нажали на площадь — поле не проявилось: {ф['линия']}, {ф['подложка']}")
     стр.evaluate("() => document.activeElement && document.activeElement.blur()")
-    if с["ширина"] < 28 or с["вылез"]:
-        НАХОДКИ.append(f"{н} поле площади: ширина {с['ширина']} px, вылезает {с['вылез']}")
+    if с["зазор"] is None or с["зазор"]["до_ед"] > 5 or с["зазор"]["до_ед"] < 0.5:
+        НАХОДКИ.append(f"{н} в покое «м²» не вплотную к числу: {с['зазор']}")
+    if с["зазор"] and с["зазор"]["вместе"] < 28:
+        НАХОДКИ.append(f"{н} число с «м²» вместе уже 28 px: {с['зазор']}")
+    if ф["зазор"] is None or ф["зазор"]["до_ед"] < 8 or ф["ширина"] < 28:
+        НАХОДКИ.append(f"{н} при вводе «м²» не отошла или поле узкое: ширина {ф['ширина']}, {ф['зазор']}")
+    if с["вылез"] or ф["вылез"]:
+        НАХОДКИ.append(f"{н} поле площади вылезает за строку")
+    стр.locator("#lbl_e10 .opt-qty-unit").click(); стр.wait_for_timeout(200)
+    if стр.evaluate("() => document.activeElement && document.activeElement.id") != "qtyval_e10":
+        НАХОДКИ.append(f"{н} нажатие на «м²» не открывает ввод")
+    стр.evaluate("() => document.activeElement && document.activeElement.blur()"); стр.wait_for_timeout(250)
+    if стр.evaluate(СОСТ)["зазор"] != с["зазор"]:
+        НАХОДКИ.append(f"{н} после ввода «м²» не вернулась к числу: {стр.evaluate(СОСТ)['зазор']} против {с['зазор']}")
     поле = стр.locator("#qtyval_e10")
     поле.click(); поле.fill("20"); поле.press("Enter"); стр.wait_for_timeout(300)
     с = стр.evaluate(СОСТ)
