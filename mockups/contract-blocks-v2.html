@@ -1216,6 +1216,9 @@ dl.rows.num>dd small{font-family:'Geologica',sans-serif;font-weight:500;font-siz
   font:600 12.5px 'Geologica',sans-serif;cursor:pointer;white-space:nowrap}
 .mk-word svg{width:15px;height:15px;flex:none}
 .mk-word[disabled]{opacity:.55;cursor:progress}
+.mk-msg{max-width:210mm;margin:10px auto 0;padding:10px 14px;border-left:3px solid var(--bl-acc);background:var(--bl-tint,#eef6f0);font:400 13px/1.5 'Geologica',sans-serif;color:var(--bl-ink)}
+.mk-msg a{color:var(--bl-acc);font-weight:600}
+.mk-msg[hidden]{display:none}
 @media (max-width:600px){.mk-word{width:100%;justify-content:center;height:40px}}
 </style>
 </head>
@@ -1226,9 +1229,10 @@ dl.rows.num>dd small{font-family:'Geologica',sans-serif;font-weight:500;font-siz
     <button type="button" data-f="0" aria-pressed="true">Заказчик пусто</button><button type="button" data-f="1">Заполнено</button>
   </span>
   <select class="mk-sel" id="selT" aria-label="Цветовая схема"></select>
-  <button type="button" class="mk-word" id="btnWord"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11v6M9 14l3 3 3-3"/></svg>Скачать в Word</button>
+  <button type="button" class="mk-word" id="btnDrive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 3.5h7l6 10.5-3.5 6H6L2.5 14z"/><path d="M8.5 3.5 15 14.5H2.5M15.5 3.5 9 14.5l-3 5.5M21.5 14H9"/></svg>Сохранить на Google Диск</button>
 </div>
-<p class="mk-note">Стороны, объект и реквизиты — из 01 «Ведомость», платежи — графиком с долей каждого в цене, рабочее время и адреса почты — из 03 «Крупно», гарантия — шкалой из 02. «Скачать в Word» собирает из этого листа файл .docx: текст и таблицы в нём правятся, шрифты вшиты, шкала гарантии лежит картинкой.</p>
+<p class="mk-note">Стороны, объект и реквизиты — из 01 «Ведомость», платежи — графиком с долей каждого в цене, рабочее время и адреса почты — из 03 «Крупно», гарантия — шкалой из 02. «Сохранить на Google Диск» кладёт этот лист в ваш Google Диск Google Документом: текст и таблицы в нём правятся, шкала гарантии лежит картинкой; скачать в Word или PDF можно уже оттуда.</p>
+<p class="mk-msg" id="msg" role="status" hidden></p>
 <div class="page" id="sheet"></div>
 
 <script>
@@ -1323,30 +1327,27 @@ function цвет(имя) { var в = getComputedStyle(document.documentElement).
 function загрузить(адрес) { return new Promise(function (ок, нет) { var с = document.createElement('script'); с.src = адрес; с.onload = ок; с.onerror = нет; document.head.appendChild(с); }); }
 function байты(адрес) { return fetch(адрес).then(function (о) { if (!о.ok) throw new Error(адрес); return о.arrayBuffer(); }).then(function (б) { return new Uint8Array(б); }); }
 
-async function вWord() {
-  var кн = document.getElementById('btnWord'); кн.disabled = true;
-  try {
-    if (!window.docx) await загрузить('../assets/vendor/docx.min.js');
-    var Д = window.docx;
-    var ш = await Promise.all(['../assets/fonts/geologica-400.ttf', '../assets/fonts/geologica-500.ttf', '../assets/fonts/unbounded-600.ttf'].map(байты));
-    var лого = await байты(адресЛого()).catch(function () { return null; });
-    var Ц = { ink: цвет('--bl-ink'), ink2: цвет('--bl-ink2'), ink3: цвет('--bl-ink3'), rule: цвет('--bl-rule'), rule2: цвет('--bl-rule2'),
-      acc: цвет('--bl-acc'), acc2: цвет('--bl-acc2'), pale: цвет('--bl-pale'), head: цвет('--bl-head'), small: цвет('--bl-small') };
-    var дети = await вАбзацы(Д, Ц, лого);
-    var док = new Д.Document({
-      creator: 'Баня МСК', title: 'Договор подряда',
-      fonts: [{ name: ШРИФТ_Т, data: ш[0] }, { name: ШРИФТ_М, data: ш[1] }, { name: ШРИФТ_З, data: ш[2] }],
-      styles: { default: { document: { run: { font: ШРИФТ_Т, size: 20, color: Ц.ink }, paragraph: { spacing: { line: 276 } } } } },
-      sections: [{ properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: мм(18), right: мм(15), bottom: мм(18), left: мм(22) } } },
-        footers: { default: new Д.Footer({ children: [new Д.Paragraph({ alignment: Д.AlignmentType.RIGHT, children: [new Д.TextRun({ children: ['Страница ', Д.PageNumber.CURRENT, ' из ', Д.PageNumber.TOTAL_PAGES], size: 16, color: Ц.ink3 })] })] }) },
-        children: дети }]
-    });
-    var блоб = await Д.Packer.toBlob(док);
-    var а = document.createElement('a'); а.href = URL.createObjectURL(блоб); а.download = 'Договор подряда 5997878-КАР.docx';
-    document.body.appendChild(а); а.click(); setTimeout(function () { URL.revokeObjectURL(а.href); а.remove(); }, 4000);
-    window.__wordГотов = блоб;
-  } catch (e) { alert('Не удалось собрать файл Word: ' + (e && e.message || e)); window.__wordОшибка = String(e && e.stack || e); }
-  кн.disabled = false;
+/* Сборка .docx — общая для Диска и проверок. о.шрифты: вшить шрифты (Word);
+   для Google Документов не нужно — у них Unbounded и Geologica свои.
+   о.картинки: логотип и шкала гарантии картинками. */
+async function собратьDocx(о) {
+  о = Object.assign({ шрифты: false, картинки: true }, о || {});
+  if (!window.docx) await загрузить('../assets/vendor/docx.min.js');
+  var Д = window.docx;
+  var ш = о.шрифты ? await Promise.all(['../assets/fonts/geologica-400.ttf', '../assets/fonts/geologica-500.ttf', '../assets/fonts/unbounded-600.ttf'].map(байты)) : null;
+  var лого = о.картинки ? await байты(адресЛого()).catch(function () { return null; }) : null;
+  var Ц = { ink: цвет('--bl-ink'), ink2: цвет('--bl-ink2'), ink3: цвет('--bl-ink3'), rule: цвет('--bl-rule'), rule2: цвет('--bl-rule2'),
+    acc: цвет('--bl-acc'), acc2: цвет('--bl-acc2'), pale: цвет('--bl-pale'), head: цвет('--bl-head'), small: цвет('--bl-small') };
+  var дети = await вАбзацы(Д, Ц, лого, о);
+  var док = new Д.Document({
+    creator: 'Баня МСК', title: 'Договор подряда',
+    fonts: ш ? [{ name: ШРИФТ_Т, data: ш[0] }, { name: ШРИФТ_М, data: ш[1] }, { name: ШРИФТ_З, data: ш[2] }] : undefined,
+    styles: { default: { document: { run: { font: ШРИФТ_Т, size: 20, color: Ц.ink }, paragraph: { spacing: { line: 276 } } } } },
+    sections: [{ properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: мм(18), right: мм(15), bottom: мм(18), left: мм(22) } } },
+      footers: { default: new Д.Footer({ children: [new Д.Paragraph({ alignment: Д.AlignmentType.RIGHT, children: [new Д.TextRun({ children: ['Страница ', Д.PageNumber.CURRENT, ' из ', Д.PageNumber.TOTAL_PAGES], size: 16, color: Ц.ink3 })] })] }) },
+      children: дети }]
+  });
+  return Д.Packer.toBlob(док);
 }
 
 function нет(Д) { return { style: Д.BorderStyle.NONE, size: 0, color: 'FFFFFF' }; }
@@ -1400,7 +1401,8 @@ async function шкалаPNG(Ц) {
   return { data: new Uint8Array(await b.arrayBuffer()), w: W, h: H };
 }
 
-async function вАбзацы(Д, Ц, лого) {
+async function вАбзацы(Д, Ц, лого, о) {
+  о = о || { картинки: true };
   var ШИР = 11906 - мм(22) - мм(15), ПОЛ = Math.round((ШИР - 600) / 2);
   var дети = [], лист_ = document.getElementById('sheet');
   for (var у of [].slice.call(лист_.children)) {
@@ -1462,7 +1464,7 @@ async function вАбзацы(Д, Ц, лого) {
       });
       дети.push(new Д.Table({ width: { size: ШИР, type: Д.WidthType.DXA }, columnWidths: кол, layout: Д.TableLayoutType.FIXED, borders: безРамок(Д), rows: ряды_ }));
       дети.push(new Д.Paragraph({ spacing: { after: 120 }, children: [] }));
-    } else if (к.contains('bars')) {
+    } else if (к.contains('bars') && о.картинки) {
       var к_ = await шкалаPNG(Ц);
       дети.push(new Д.Paragraph({ spacing: { before: 80, after: 160 }, children: [new Д.ImageRun({ type: 'png', data: к_.data, transformation: { width: к_.w, height: к_.h } })] }));
     } else if (к.contains('v1-sign')) {
@@ -1478,11 +1480,51 @@ async function вАбзацы(Д, Ц, лого) {
   return дети;
 }
 
+
+/* ═══ Google Диск ════════════════════════════════════════════════════
+   Вход Google (окно согласия) → .docx из этого листа → загрузка в Диск с
+   превращением в Google Документ → ссылка на него. Права — только на файлы,
+   созданные этой кнопкой (drive.file): чужих файлов на Диске она не видит.
+   Ключ приложения (Client ID) — из Google Cloud; без него кнопка говорит,
+   что Диск не подключён. */
+var GOOGLE_CLIENT_ID = '';
+var _токен = null, _токенДо = 0, _клиент = null;
+function сообщение(html) { var м = document.getElementById('msg'); м.innerHTML = html; м.hidden = !html; }
+function подготовитьGoogle() {
+  if (!GOOGLE_CLIENT_ID || window.google && google.accounts) return;
+  var с = document.createElement('script'); с.src = 'https://accounts.google.com/gsi/client'; с.async = true; document.head.appendChild(с);
+}
+function наДиск() {
+  if (!GOOGLE_CLIENT_ID) { сообщение('Google Диск к макету ещё не подключён: нужен ключ приложения Google (Client ID). Как только он будет, кнопка заработает.'); return; }
+  if (!(window.google && google.accounts && google.accounts.oauth2)) { сообщение('Вход Google ещё загружается — нажмите через секунду.'); подготовитьGoogle(); return; }
+  if (_токен && Date.now() < _токенДо) { загрузитьНаДиск(); return; }
+  if (!_клиент) _клиент = google.accounts.oauth2.initTokenClient({ client_id: GOOGLE_CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file',
+    callback: function (о) { if (о.error) { сообщение('Google не дал доступ: ' + о.error); return; } _токен = о.access_token; _токенДо = Date.now() + (о.expires_in - 60) * 1000; загрузитьНаДиск(); } });
+  _клиент.requestAccessToken();
+}
+async function загрузитьНаДиск() {
+  var кн = document.getElementById('btnDrive'); кн.disabled = true; сообщение('Сохраняю на Google Диск…');
+  try {
+    var файл = await собратьDocx({ шрифты: false, картинки: true });
+    var имя = 'Договор подряда 5997878-КАР', г = 'bm' + Date.now();
+    var тело = new Blob(['--' + г + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' + JSON.stringify({ name: имя, mimeType: 'application/vnd.google-apps.document' }) +
+      '\r\n--' + г + '\r\nContent-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\n\r\n', файл, '\r\n--' + г + '--']);
+    var о = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink',
+      { method: 'POST', headers: { Authorization: 'Bearer ' + _токен, 'Content-Type': 'multipart/related; boundary=' + г }, body: тело });
+    if (о.status === 401) { _токен = null; throw new Error('вход устарел — нажмите ещё раз'); }
+    if (!о.ok) throw new Error('Диск ответил ' + о.status);
+    var д = await о.json();
+    сообщение('Готово: «' + имя + '» в вашем Google Диске. <a href="' + д.webViewLink + '" target="_blank" rel="noopener">Открыть в Google Документах</a>');
+  } catch (e) { сообщение('Не удалось сохранить на Google Диск: ' + (e && e.message || e)); }
+  кн.disabled = false;
+}
+
 var выбор = document.getElementById('selT');
 Object.keys(ТОНЫ).forEach(function (к) { var о = document.createElement('option'); о.value = к; о.textContent = ТОНЫ[к]; выбор.appendChild(о); });
 выбор.addEventListener('change', function () { сост.t = выбор.value; отрисовать(); });
 document.getElementById('segF').addEventListener('click', function (e) { var б = e.target.closest('button'); if (б) { сост.f = +б.dataset.f; отрисовать(); } });
-document.getElementById('btnWord').addEventListener('click', вWord);
+document.getElementById('btnDrive').addEventListener('click', наДиск);
+подготовитьGoogle();
 выбор.value = сост.t;
 отрисовать();
 </script>
