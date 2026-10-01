@@ -24759,7 +24759,12 @@ body{background:var(--bl-page);color:var(--bl-ink);font-family:'Geologica',Arial
    страницы, а всё содержимое листа с запасом меньше страницы любого
    браузера. Safari на iPhone к тому же печатает крупнее заданного — около
    1,12 (вид в 72 мм вышел 81 мм: «когда 2 — вот так обрезает»), и с его
-   полями на страницу входит около 236 мм листа; лист держится в 228 мм. */
+   полями на страницу входит около 236 мм листа; лист держится в 228 мм.
+   01.10.2026 и этого не хватило: на iPhone подписи первого листа ушли на
+   вторую страницу (Константин, снимком окна печати: «эта подпись должна быть
+   всегда на 1 листе. Визуалки область меньше делай») — Safari печатает в
+   поля ещё дату и адрес. Виды первого листа — по 48 мм, остальных — по 76,
+   планировка — 126; любой лист не выше 195 мм. */
 @page{size:A4;margin:10mm}
 @media print{
   html,body{background:#fff;padding:0;margin:0}
@@ -24768,15 +24773,15 @@ body{background:var(--bl-page);color:var(--bl-ink);font-family:'Geologica',Arial
   .sheet:last-child{break-after:auto;page-break-after:auto}
   .views{display:block;margin-top:4mm}
   .views .fig,.views .slot{display:flex;align-items:center;justify-content:center;height:auto;margin:0 0 3mm;break-inside:avoid;page-break-inside:avoid}
-  .views .fig img{width:auto;height:auto;max-width:100%;max-height:var(--view-h, 90mm);object-fit:contain}
-  .views .slot{height:var(--view-h, 90mm)}
-  .sheet--first{--view-h:62mm}
+  .views .fig img{width:auto;height:auto;max-width:100%;max-height:var(--view-h, 76mm);object-fit:contain}
+  .views .slot{height:var(--view-h, 76mm)}
+  .sheet--first{--view-h:48mm}
   .head{padding:3mm 0 3mm}
   .logo{margin-bottom:2mm}
   .sec{margin-top:4mm}
   .fig--plan{display:flex;justify-content:center;margin-top:4mm;break-inside:avoid;page-break-inside:avoid}
-  .fig--plan img{width:auto;height:auto;max-width:100%;max-height:160mm}
-  .fill{height:160mm}
+  .fig--plan img{width:auto;height:auto;max-width:100%;max-height:126mm}
+  .fill{height:126mm}
   .sign{break-inside:avoid;page-break-inside:avoid;margin-top:4mm}
 }`;
 
