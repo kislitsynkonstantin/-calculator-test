@@ -13,7 +13,10 @@
   • выделенная часть названия у всех трёх — одного цвета (проект с
     выделением, как «Фахверковая баня «Гранада» 7x9»);
   • надзаголовок спецификации и Приложения № 2 — одного цвета;
-  • название спецификации не вылезает за лист.
+  • название спецификации не вылезает за лист;
+  • лист договора и «Вида и плана» стоит в окне печати по тем же краям, что
+    спецификация (01.10.2026: «спецификация на всю ширину, а договор и
+    вид/план уже»).
 
     python3 check_doc_titles.py
 """
@@ -25,6 +28,13 @@ from check_pdf_pick import СоШрифтами
 from playwright.sync_api import sync_playwright
 
 НАХОДКИ = []
+# Края листа в окне печати, в координатах окна: спецификация — сам #printDoc,
+# договор и приложение — лист внутри своего кадра.
+КРАЯ = """(вид) => { const рр = r => [Math.round(r.left), Math.round(r.right)];
+  if (вид === 'spec') return рр(document.getElementById('printDoc').getBoundingClientRect());
+  const к = document.querySelector(вид === 'contract' ? '#contractPreviewDoc iframe' : '#appxPreviewDoc iframe'); if (!к) return null;
+  const л = к.contentDocument.querySelector(вид === 'contract' ? '.page' : '.sheet'); if (!л) return null;
+  const r = л.getBoundingClientRect(), f = к.getBoundingClientRect(); return [Math.round(f.left + r.left), Math.round(f.left + r.right)]; }"""
 ШАПКА = """(корень) => { const т = корень.querySelector('.bl-title, .title'), е = т && т.querySelector('em, .bl-em'), н = корень.querySelector('.bl-eyebrow, .eyebrow');
   const ок = корень.defaultView || window, кс = т ? ок.getComputedStyle(т) : null;
   // Шрифт лёг: ширина самого названия против той же строки подменным шрифтом.
@@ -41,10 +51,18 @@ def прогон(бр, порт, ш, тон):
     # Проект с выделенной частью названия, как у бани «Гранада».
     стр.evaluate("(т) => { applyTone(т, false); if (selectedProject) selectedProject[0] = 'Фахверковая баня «Гранада» 7x9'; openPrintPreview(); }", тон); стр.wait_for_timeout(700)
     спец = стр.evaluate(f"() => ({ШАПКА})(document.querySelector('#printDoc').ownerDocument)")
+    края = {"spec": стр.evaluate(КРАЯ, "spec")}
     стр.evaluate("async () => { setPreviewEntity('contract'); await new Promise(r => setTimeout(r, 900)); }")
     дог = стр.evaluate(f"() => ({ШАПКА})(document.querySelector('#contractPreviewDoc iframe').contentDocument)")
+    края["contract"] = стр.evaluate(КРАЯ, "contract")
     стр.evaluate("async () => { setPreviewEntity('appx'); await new Promise(r => setTimeout(r, 400)); await показатьПриложение2(); await new Promise(r => setTimeout(r, 1200)); }")
     прил = стр.evaluate(f"() => {{ const к = document.querySelector('#appxPreviewDoc iframe'); return к ? ({ШАПКА})(к.contentDocument) : null; }}")
+    края["appx"] = стр.evaluate(КРАЯ, "appx")
+    # Лист договора и «Вида и плана» — во всю ширину окна, как спецификация
+    # (01.10.2026: «спецификация на всю ширину, а договор и вид/план уже»).
+    for вид in ("contract", "appx"):
+        if not края[вид] or any(abs(a - b) > 1 for a, b in zip(края[вид], края["spec"])):
+            НАХОДКИ.append(f"{н} лист «{вид}» не во всю ширину окна, как спецификация: {края[вид]} против {края['spec']}")
     for имя, х in (("спецификация", спец), ("договор", дог), ("приложение", прил)):
         if not х:
             НАХОДКИ.append(f"{н} {имя}: шапки нет"); continue
