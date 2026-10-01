@@ -20487,8 +20487,12 @@ function собратьЛистПечати() {
 }
 .bl-logo{height:26px;width:auto;display:block;margin:0 0 16px -2px;}
 .bl-eyebrow{font-size:6.8pt;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--acc2);margin-bottom:7px;}
-.bl-title{font-size:17pt;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink);}
-.bl-title .bl-em{color:var(--acc);}
+/* Название — шрифтом договора и Приложения № 2: Unbounded, жирный, вторая
+   часть цветом акцента (Константин, 01.10.2026: «в шапке спецификации… шрифт
+   должен быть как в договоре»). Надзаголовок — их же цветом. */
+.bl-title{font-family:'Unbounded',sans-serif;font-size:17pt;font-weight:700;letter-spacing:-.01em;line-height:1.22;color:var(--ink);}
+.bl-title .bl-em{color:var(--acc2);}
+:root[data-tone="bmsk"] .bl-eyebrow{color:#4f7d26;}
 .bl-hr{height:1px;background:var(--rule);margin:16px 0 0;}
 /* Ровно две колонки, как в утверждённом макете. auto-fit пробовал сам решать
    по ширине — на широком листе он разложил реквизиты в три колонки, и порядок
