@@ -25,6 +25,8 @@
   • участок и объект, платежи, часы, адреса почты и шкала гарантии стоят
     левой границей по кромке текста пунктов, а не по номерам (01.10.2026:
     «границу слева от линии поставь, синхронно сделай»);
+  • гарантийные сроки (01.10.2026): конструктив 60 мес., инженерные системы
+    36, окна 24, кровля 24, внутренняя отделка 12; полоса — доля от 60;
   • отметки шкалы гарантии стоят центром на начале и конце дорожки
     (у шкалы был свой кегль, и её колонки уезжали от колонок строк);
   • Safari не превращает ИНН, ОГРН, счета и БИК в ссылки: format-detection
@@ -80,6 +82,8 @@ from playwright.sync_api import sync_playwright
   // выключено в шапке, звонок — только у настоящих телефонов.
   const мета = (document.querySelector('meta[name="format-detection"]') || {}).content || '';
   const ссылки = [...document.querySelectorAll('a')].map(а => [а.getAttribute('href'), а.textContent.trim(), (а.closest('dd') && а.closest('dd').previousElementSibling || {}).textContent]);
+  const сроки = [...document.querySelectorAll('.bars .bar')].map(б => б.querySelector('.l').textContent.trim() + ' ' + parseInt(б.querySelector('.v').textContent, 10)
+    + ' ' + Math.round(б.querySelector('.tr i').getBoundingClientRect().width / б.querySelector('.tr').getBoundingClientRect().width * 100));
   const сдвиг = [...document.querySelectorAll('.o2,.g1,.cells,.bars')].map(э => Math.round(э.getBoundingClientRect().left - кромка));
   const пал = document.createElement('span'); пал.style.color = 'var(--br-28)'; document.body.appendChild(пал); const br28 = getComputedStyle(пал).color; пал.remove();
   return { скролл: document.documentElement.scrollWidth > innerWidth + 1, вылез, гео: ш('Geologica') !== ш('serif'), анб: ш('Unbounded') !== ш('serif'),
@@ -87,7 +91,7 @@ from playwright.sync_api import sync_playwright
     черта: hs.borderBottomColor, заголовок: hs.color, br28,
     рядом: п.length === 2 && Math.abs(п[0].getBoundingClientRect().top - п[1].getBoundingClientRect().top) < 2,
     столбиком: п.length === 2 && п[1].getBoundingClientRect().top >= п[0].getBoundingClientRect().bottom - 1,
-    рекв, буквы, пункт, сдвиг, шкала, мета, ссылки, блоки, суммы, итог: итог ? число(итог.firstChild.textContent) : null,
+    рекв, буквы, пункт, сдвиг, шкала, сроки, мета, ссылки, блоки, суммы, итог: итог ? число(итог.firstChild.textContent) : null,
     размер: getComputedStyle(document.documentElement).webkitTextSizeAdjust || getComputedStyle(document.documentElement).textSizeAdjust };
 }"""
 
@@ -121,7 +125,7 @@ def главная():
                     if ш > 600 and not р["рядом"] or ш <= 600 and not р["столбиком"]:
                         НАХОДКИ.append(f"{н} «Подрядчик» и «Заказчик»: на {ш} px ждали {'в один ряд' if ш > 600 else 'столбиком'}")
                     б_ = р["блоки"]
-                    if б_ != {"стороны": 2, "объект": 4, "платежи": 1, "ячейки": 2, "шкала": 3, "подписи": 2, "старые": 0, "надзаголовок": False}:
+                    if б_ != {"стороны": 2, "объект": 4, "платежи": 1, "ячейки": 2, "шкала": 5, "подписи": 2, "старые": 0, "надзаголовок": False}:
                         НАХОДКИ.append(f"{н} блоки договора не те: {б_}")
                     if р["суммы"] and р["итог"] != sum(р["суммы"]):
                         НАХОДКИ.append(f"{н} итог платежей {р['итог']} не равен сумме строк {sum(р['суммы'])}")
@@ -129,6 +133,8 @@ def главная():
                         НАХОДКИ.append(f"{н} блоки внутри разделов не по кромке текста пунктов, сдвиг: {р['сдвиг']}")
                     if any(abs(х) > 2 for х in р["шкала"]):
                         НАХОДКИ.append(f"{н} отметки шкалы гарантии не на дорожке: «0» и последняя смещены на {р['шкала']} px")
+                    if р["сроки"] != ["Конструктив объекта 60 100", "Инженерные системы 36 60", "Окна 24 40", "Кровля 24 40", "Внутренняя отделка 12 20"]:
+                        НАХОДКИ.append(f"{н} гарантийные сроки не те (подпись, месяцев, длина полосы в %): {р['сроки']}")
                     if "telephone=no" not in р["мета"]:
                         НАХОДКИ.append(f"{н} распознавание телефонов не выключено: format-detection «{р['мета']}»")
                     if sorted(с_[0] for с_ in р["ссылки"]) != ["tel:+74993482180", "tel:+79250128510"] or any(с_[2] != "Телефон" for с_ in р["ссылки"]):
