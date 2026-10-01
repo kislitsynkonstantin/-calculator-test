@@ -20,7 +20,10 @@
     через три секунды подсветки нет; при «Уменьшении движения» — без
     растворения;
   • строки нет (адрес пустой или неверный) — переход, как прежде, к шапке
-    раздела.
+    раздела;
+  • «Выбрать опции бытовки и биотуалета» ведёт к обеим строкам: обе на экране
+    и обе подсвечены (Константин, 01.10.2026: «тут пишет 2 позиции, но
+    подсвечивает только одну»).
 
     python3 check_preset_check_jump.py
 """
@@ -110,6 +113,17 @@ def прогон(бр, порт, ш, в):
             стр.emulate_media(reduced_motion="no-preference")
             if тихо != "pcJumpStill":
                 НАХОДКИ.append(f"{н} при «Уменьшении движения» анимация «{тихо}», ждали «pcJumpStill»")
+    # Две позиции — две строки.
+    ид = нажать(стр, "бытовки и биотуалета")
+    if ид is None or ид.startswith("нет:"):
+        НАХОДКИ.append(f"{н} нет замечания «Выбрать опции бытовки и биотуалета»: {ид}")
+    else:
+        стр.wait_for_timeout(300)
+        дв = стр.evaluate("""(ид) => ид.split(/\\s+/).filter(Boolean).map(и => { const э = document.getElementById(и); if (!э) return { и, есть: false };
+          const r = э.getBoundingClientRect(); const низ = innerHeight - (document.body.classList.contains('total-strip-on') ? (parseFloat(getComputedStyle(document.body).getPropertyValue('--strip-h')) || 68) : 0);
+          return { и, есть: true, видна: r.top >= getStickyOffset() - 1 && r.bottom <= низ + 1, подсветка: э.classList.contains('pc-flash-row') }; })""", ид)
+        if len(дв) != 2 or not all(x["есть"] and x["видна"] and x["подсветка"] for x in дв):
+            НАХОДКИ.append(f"{н} «бытовки и биотуалета»: ждали две видимые подсвеченные строки, вышло {дв}")
     # Строки нет — к шапке раздела.
     стр.evaluate("() => { window.scrollTo(0, 0); кРазделуИзПроверки('roof', 'lbl_нет_такой'); }"); стр.wait_for_timeout(1100)
     шапка = стр.evaluate("""() => { const э = document.getElementById('sec_opts_roof'); const ш = э && э.closest('.card') && э.closest('.card').querySelector('.section-header');
@@ -137,7 +151,7 @@ def главная():
             print("  ✗", н)
         raise SystemExit(1)
     print("Чисто: замечание ведёт прямо к строке — опции или своему примечанию, — мини-окно закрывается, строка встаёт "
-          "между шапкой и полоской итога и подсвечивается нейтральной гаснущей заливкой под текстом; без строки — к шапке раздела, как прежде — на 390 и 1440.")
+          "между шапкой и полоской итога и подсвечивается нейтральной гаснущей заливкой под текстом; без строки — к шапке раздела, как прежде; бытовка с биотуалетом — обе строки на экране и обе подсвечены — на 390 и 1440.")
 
 
 if __name__ == "__main__":
