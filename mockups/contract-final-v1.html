@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="format-detection" content="telephone=no, date=no, email=no, address=no">
-<title>Договор: сборка блоков</title>
+<title>Договор подряда — макет</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Geologica:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1322,10 +1322,11 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .mk-msg[hidden]{display:none}
 @media (max-width:600px){.mk-word{width:100%;justify-content:center;height:40px}}
 </style>
+<style>#segV{display:none!important}</style>
 </head>
 <body class="blank-mode">
 <div class="mk-bar">
-  <span class="mk-t">Договор · блоки, сборка</span>
+  <span class="mk-t">Договор подряда</span>
   <span class="mk-seg" id="segV"><button type="button" data-v="0" aria-pressed="true">Договор</button><button type="button" data-v="1">Платежи · 4 варианта</button><button type="button" data-v="2">Участок и объект · 4</button></span>
   <span class="mk-seg" id="segF">
     <button type="button" data-f="0" aria-pressed="true">Заказчик пусто</button><button type="button" data-f="1">Заполнено</button>
@@ -1333,7 +1334,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   <select class="mk-sel" id="selT" aria-label="Цветовая схема"></select>
   <button type="button" class="mk-word" id="btnDrive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 3.5h7l6 10.5-3.5 6H6L2.5 14z"/><path d="M8.5 3.5 15 14.5H2.5M15.5 3.5 9 14.5l-3 5.5M21.5 14H9"/></svg>Сохранить на Google Диск</button>
 </div>
-<p class="mk-note" id="noteDog">Стороны и реквизиты — из 01 «Ведомость», участок и объект — ячейками, платежи — как в договоре, с итогом, рабочее время и адреса почты — из 03 «Крупно», гарантия — шкалой из 02. «Сохранить на Google Диск» открывает ваш Google Диск и отдаёт договор файлом — его перетаскивают в Диск, и он открывается Google Документом: текст и таблицы правятся, скачать в Word или PDF можно уже оттуда.</p>
+<p class="mk-note" id="noteDog">Утверждённые блоки договора в «Бланке»: стороны и реквизиты ведомостью, участок и объект ячейками, платежи с итогом, рабочее время и адреса почты крупно, гарантия шкалой. «Сохранить на Google Диск» открывает ваш Диск и отдаёт договор файлом: его перетаскивают в Диск, и он открывается Google Документом.</p>
 <p class="mk-msg" id="msg" role="status" hidden></p>
 <div class="page" id="sheet"></div>
 <div id="payVars" hidden></div>
@@ -1352,7 +1353,7 @@ var ЗП = { фио: 'Иванов Пётр Сергеевич', паспорт:
   участок: 'Московская обл., г.о. Истра, д. Борисово, уч. 15', кадастр: '50:08:0040210:123' };
 var ОБ = { тип: 'Фахверковая баня «Гранада» 7×9', размер: '7×9 м, 63 кв. м' };
 var сост = { v: 0, f: 0, t: 'bmsk' };
-try { var с = JSON.parse(localStorage.getItem('dogBlocks2') || 'null'); if (с) сост = Object.assign(сост, с); } catch (e) {}
+try { var с = JSON.parse(localStorage.getItem('dogFinal') || 'null'); if (с) сост = Object.assign(сост, с); } catch (e) {}
 
 function з(к) { return сост.f ? ЗП[к] : ''; }
 function пл(т) { return т ? т : '<span class="placeholder">________</span>'; }
@@ -1493,7 +1494,7 @@ function отрисовать() {
   document.querySelectorAll('#segV button').forEach(function (б) { б.setAttribute('aria-pressed', String(+б.dataset.v === сост.v)); });
   document.querySelectorAll('#segF button').forEach(function (б) { б.setAttribute('aria-pressed', String(+б.dataset.f === сост.f)); });
   var л = document.querySelector('.logo'); if (л) { л.onerror = function () { this.onerror = null; this.src = ЛОГО; }; л.src = адресЛого(); }
-  try { localStorage.setItem('dogBlocks2', JSON.stringify(сост)); } catch (e) {}
+  try { localStorage.setItem('dogFinal', JSON.stringify(сост)); } catch (e) {}
 }
 function адресЛого() { return сост.t === 'teal' ? '../assets/logo-bmsk-dark.png' : '../assets/logo-bmsk-dark-' + сост.t + '.png'; }
 
@@ -1746,6 +1747,7 @@ document.getElementById('segV').addEventListener('click', function (e) { var б 
 document.getElementById('segF').addEventListener('click', function (e) { var б = e.target.closest('button'); if (б) { сост.f = +б.dataset.f; отрисовать(); } });
 document.getElementById('btnDrive').addEventListener('click', наДиск);
 подготовитьGoogle();
+сост.v = 0;
 выбор.value = сост.t;
 отрисовать();
 </script>
