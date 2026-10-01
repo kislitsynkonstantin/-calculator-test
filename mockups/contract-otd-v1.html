@@ -1,0 +1,1467 @@
+<!DOCTYPE html><html data-tone="bmsk" lang="ru"><head><style>
+/* ПАЛИТРА:НАЧАЛО — блок пишет scratchpad/палитра.py, руками не править.
+   Тон: эталон.
+   Каждый фирменный оттенок — одна переменная; имя — светлота в процентах.
+   Смена цвета: python3 scratchpad/палитра.py собрать <тон>. */
+:root{
+  --br-05:#0a1012;
+  --br-07:#08181a;
+  --br-08:#0c1c1f; --br-08-rgb:12,28,31;
+  --br-08а:#0e1a1c;
+  --br-10:#122023; --br-10-rgb:18,32,35;
+  --br-10а:#111e20;
+  --br-11:#0f2427; --br-11-rgb:15,36,39;
+  --br-12:#0e2a2d;
+  --br-12а:#0f2a2c;
+  --br-12б:#102b2d;
+  --br-12в:#12262a; --br-12в-rgb:18,38,42;
+  --br-12г:#13272b;
+  --br-12д:#132528;
+  --br-14:#1a2a2c;
+  --br-15:#143638;
+  --br-15а:#173338;
+  --br-15б:#1a3034;
+  --br-15в:#1a2e30;
+  --br-16:#143c40; --br-16-rgb:20,60,64;
+  --br-16а:#1e3035;
+  --br-17:#1e3538;
+  --br-18:#1e3a3e;
+  --br-18а:#22383c;
+  --br-19:#17454a;
+  --br-19а:#243a3c;
+  --br-20:#105755;
+  --br-20а:#144f54;
+  --br-20б:#24413f;
+  --br-21:#155558;
+  --br-21а:#224347;
+  --br-21б:#2a3f42;
+  --br-24:#2a4a4e;
+  --br-25:#1a5f65;
+  --br-25а:#2e4e52;
+  --br-26:#166f6c;
+  --br-27:#17726f;
+  --br-27а:#2d585d;
+  --br-28:#1e6c72; --br-28-rgb:30,108,114;
+  --br-28а:#41504f;
+  --br-29:#3a5558;
+  --br-35:#4a6568;
+  --br-38:#2a8f97; --br-38-rgb:42,143,151;
+  --br-39:#5b6a6e;
+  --br-41:#5b7376;
+  --br-47:#4a9ea4;
+  --br-48:#3db0ba; --br-48-rgb:61,176,186;
+  --br-50:#5a9ea4;
+  --br-51:#6a9098;
+  --br-55:#7f9799;
+  --br-56:#6ab0b5;
+  --br-56а:#7a9ea4;
+  --br-57:#4ecad4;
+  --br-58:#5fc2ca;
+  --br-60:#5fc8d2;
+  --br-60а:#8aa4a6;
+  --br-60б:#8da3a5;
+  --br-61:#7ab8bc;
+  --br-66:#9ab5b8; --br-66-rgb:154,181,184;
+  --br-66а:#9bb5b7;
+  --br-67:#7fd0d6;
+  --br-67а:#9ab8bc;
+  --br-67б:#9db6b8;
+  --br-68:#7dd8dc;
+  --br-71:#8fd6dc; --br-71-rgb:143,214,220;
+  --br-72:#9dd0d4;
+  --br-74:#a8cdd0;
+  --br-77:#a8dde0; --br-77-rgb:168,221,224;
+  --br-79:#b8d8da;
+  --br-80:#bcd9db;
+  --br-82:#c8d8da;
+  --br-83:#bfe6e8;
+  --br-83а:#c8dfe0;
+  --br-83б:#d0d8d8;
+  --br-85:#c8e8ea; --br-85-rgb:200,232,234;
+  --br-85а:#cde3e4;
+  --br-86:#d4e4e5;
+  --br-87:#cfe9eb;
+  --br-87а:#d0e8ea;
+  --br-87б:#d6e6e7;
+  --br-89:#dceaeb;
+  --br-89а:#dde8e8;
+  --br-90:#ddeef0;
+  --br-90а:#e0eced;
+  --br-91:#dcf0f2; --br-91-rgb:220,240,242;
+  --br-91а:#e0f0f2;
+  --br-92:#e0f4f5;
+  --br-93:#e4f5f6;
+  --br-93а:#e6f2f3;
+  --br-93б:#e6f3f3; --br-93б-rgb:230,243,243;
+  --br-93в:#e7f1f1;
+  --br-93г:#e8f0f1;
+  --br-94:#eaf5f6;
+  --br-94а:#eaf6f6;
+  --br-94б:#e8f4f5;
+  --br-94в:#e8f5f5;
+  --br-95:#eef5f5;
+  --br-95а:#f0f6f6;
+  --br-96:#f0f9fa;
+  --br-96а:#f0fafa;
+  --br-96б:#f2fafa;
+  --br-96в:#f0f9f9;
+  --br-96г:#f2f9f9;
+  --br-98:#f7fefe;
+}
+/* ПАЛИТРА:КОНЕЦ */
+/* ТОНЫ:НАЧАЛО — блок пишет scratchpad/палитра.py тоны, руками не править. */
+:root[data-tone="sky"]{
+  --br-05:#090c13;
+  --br-07:#070e1b;
+  --br-08:#0b1220; --br-08-rgb:11,18,32;
+  --br-08а:#0d121d;
+  --br-10:#111724; --br-10-rgb:17,23,36;
+  --br-10а:#101621;
+  --br-11:#0d1729; --br-11-rgb:13,23,41;
+  --br-12:#0a1931;
+  --br-12а:#0c1a2f;
+  --br-12б:#0d1b30;
+  --br-12в:#10192c; --br-12в-rgb:16,25,44;
+  --br-12г:#111a2d;
+  --br-12д:#111a2a;
+  --br-14:#19202d;
+  --br-15:#0e233e;
+  --br-15а:#12203d;
+  --br-15б:#172237;
+  --br-15в:#182232;
+  --br-16:#0b2349; --br-16-rgb:11,35,73;
+  --br-16а:#1c2337;
+  --br-17:#1b273b;
+  --br-18:#1a2842;
+  --br-18а:#1f2a3f;
+  --br-19:#0a2857;
+  --br-19а:#222d3e;
+  --br-20:#003669;
+  --br-20а:#032d6a;
+  --br-20б:#213444;
+  --br-21:#03377b;
+  --br-21а:#1d3050;
+  --br-21б:#283345;
+  --br-24:#2a3e61;
+  --br-25:#084db2;
+  --br-25а:#31466a;
+  --br-26:#006bcf;
+  --br-27:#0072dc;
+  --br-27а:#325a9a;
+  --br-28:#0c65e6; --br-28-rgb:12,101,230;
+  --br-28а:#404951;
+  --br-29:#40516c;
+  --br-35:#52627d;
+  --br-38:#3f88f2; --br-38-rgb:63,136,242;
+  --br-39:#5a606f;
+  --br-41:#606e84;
+  --br-47:#729eda;
+  --br-48:#659cec; --br-48-rgb:101,156,236;
+  --br-50:#84a3d0;
+  --br-51:#8696b8;
+  --br-55:#838fa0;
+  --br-56:#88aada;
+  --br-56а:#8b9cbb;
+  --br-57:#68a4fb;
+  --br-58:#78a8ee;
+  --br-60:#75a8f5;
+  --br-60а:#8e9bae;
+  --br-60б:#8e99aa;
+  --br-61:#91b1db;
+  --br-66:#9dabc0; --br-66-rgb:157,171,192;
+  --br-66а:#9dabbe;
+  --br-67:#8bb6f2;
+  --br-67а:#9fadc7;
+  --br-67б:#9fabbe;
+  --br-68:#87b9f8;
+  --br-71:#95bcf4; --br-71-rgb:149,188,244;
+  --br-72:#a5c1e8;
+  --br-74:#abbfdc;
+  --br-77:#adcbf3; --br-77-rgb:173,203,243;
+  --br-79:#b9cae1;
+  --br-80:#bccce1;
+  --br-82:#c7cedb;
+  --br-83:#bfd5f1;
+  --br-83а:#c7d3e3;
+  --br-83б:#cfd4d9;
+  --br-85:#c7d8f0; --br-85-rgb:199,216,240;
+  --br-85а:#ccd7e6;
+  --br-86:#d3dbe6;
+  --br-87:#cddbef;
+  --br-87а:#cedbed;
+  --br-87б:#d5dde8;
+  --br-89:#dbe2ec;
+  --br-89а:#dce2e9;
+  --br-90:#dbe5f4;
+  --br-90а:#dfe5ee;
+  --br-91:#d9e6f9; --br-91-rgb:217,230,249;
+  --br-91а:#dee7f6;
+  --br-92:#dce9fb;
+  --br-93:#dfebfb;
+  --br-93а:#e4ebf5;
+  --br-93б:#e4ecf5; --br-93б-rgb:228,236,245;
+  --br-93в:#e6ecf2;
+  --br-93г:#e7ebf2;
+  --br-94:#e8eef8;
+  --br-94а:#e8f0f8;
+  --br-94б:#e5edf8;
+  --br-94в:#e5eef8;
+  --br-95:#eef1f5;
+  --br-95а:#f0f3f6;
+  --br-96:#edf3fd;
+  --br-96а:#edf5fd;
+  --br-96б:#f0f6fc;
+  --br-96в:#eef4fb;
+  --br-96г:#f1f5fa;
+  --br-98:#f6faff;
+}
+:root[data-tone="blue"]{
+  --br-05:#0a0c12;
+  --br-07:#080f1a;
+  --br-08:#0c121f; --br-08-rgb:12,18,31;
+  --br-08а:#0e131c;
+  --br-10:#121723; --br-10-rgb:18,23,35;
+  --br-10а:#111620;
+  --br-11:#0f1827; --br-11-rgb:15,24,39;
+  --br-12:#0e1a2d;
+  --br-12а:#0f1b2c;
+  --br-12б:#101c2d;
+  --br-12в:#121a2a; --br-12в-rgb:18,26,42;
+  --br-12г:#131b2b;
+  --br-12д:#131a28;
+  --br-14:#1a212c;
+  --br-15:#142338;
+  --br-15а:#172238;
+  --br-15б:#1a2334;
+  --br-15в:#1a2330;
+  --br-16:#142540; --br-16-rgb:20,37,64;
+  --br-16а:#1e2435;
+  --br-17:#1e2838;
+  --br-18:#1e293e;
+  --br-18а:#222b3c;
+  --br-19:#172b4a;
+  --br-19а:#242e3c;
+  --br-20:#103457;
+  --br-20а:#142e54;
+  --br-20б:#243441;
+  --br-21:#153258;
+  --br-21а:#223047;
+  --br-21б:#2a3342;
+  --br-24:#2a374e;
+  --br-25:#1a3865;
+  --br-25а:#2e3b52;
+  --br-26:#16446f;
+  --br-27:#174672;
+  --br-27а:#2d3f5d;
+  --br-28:#1e4172; --br-28-rgb:30,65,114;
+  --br-28а:#414950;
+  --br-29:#3a4558;
+  --br-35:#4a5568;
+  --br-38:#2a5797; --br-38-rgb:42,87,151;
+  --br-39:#5b606e;
+  --br-41:#5b6576;
+  --br-47:#4a6fa4;
+  --br-48:#3d6fba; --br-48-rgb:61,111,186;
+  --br-50:#5a78a4;
+  --br-51:#6a7898;
+  --br-55:#7f8a99;
+  --br-56:#6a89b5;
+  --br-56а:#7a88a4;
+  --br-57:#4e85d4;
+  --br-58:#5f8bca;
+  --br-60:#5f8dd2;
+  --br-60а:#8a96a6;
+  --br-60б:#8d97a5;
+  --br-61:#7a96bc;
+  --br-66:#9aa5b8; --br-66-rgb:154,165,184;
+  --br-66а:#9ba7b7;
+  --br-67:#7fa3d6;
+  --br-67а:#9aa6bc;
+  --br-67б:#9da8b8;
+  --br-68:#7da7dc;
+  --br-71:#8faedc; --br-71-rgb:143,174,220;
+  --br-72:#9db4d4;
+  --br-74:#a8b8d0;
+  --br-77:#a8c0e0; --br-77-rgb:168,192,224;
+  --br-79:#b8c6da;
+  --br-80:#bcc9db;
+  --br-82:#c8cfda;
+  --br-83:#bfd1e8;
+  --br-83а:#c8d3e0;
+  --br-83б:#d0d4d8;
+  --br-85:#c8d6ea; --br-85-rgb:200,214,234;
+  --br-85а:#cdd7e4;
+  --br-86:#d4dbe5;
+  --br-87:#cfdbeb;
+  --br-87а:#d0dbea;
+  --br-87б:#d6dde7;
+  --br-89:#dce2eb;
+  --br-89а:#dde2e8;
+  --br-90:#dde4f0;
+  --br-90а:#e0e5ed;
+  --br-91:#dce5f2; --br-91-rgb:220,229,242;
+  --br-91а:#e0e7f2;
+  --br-92:#e0e9f5;
+  --br-93:#e4ecf6;
+  --br-93а:#e6ebf3;
+  --br-93б:#e6ecf3; --br-93б-rgb:230,236,243;
+  --br-93в:#e7ecf1;
+  --br-93г:#e8ebf1;
+  --br-94:#eaeff6;
+  --br-94а:#eaf0f6;
+  --br-94б:#e8edf5;
+  --br-94в:#e8eef5;
+  --br-95:#eef1f5;
+  --br-95а:#f0f3f6;
+  --br-96:#f0f4fa;
+  --br-96а:#f0f5fa;
+  --br-96б:#f2f6fa;
+  --br-96в:#f0f4f9;
+  --br-96г:#f2f5f9;
+  --br-98:#f7fafe;
+}
+:root{
+  --br-05:#0e0e0e;
+  --br-07:#111210;
+  --br-08:#151714; --br-08-rgb:21,23,20;
+  --br-08а:#151614;
+  --br-10:#1a1c19; --br-10-rgb:26,28,25;
+  --br-10а:#181918;
+  --br-11:#1b1d19; --br-11-rgb:27,29,25;
+  --br-12:#1d2318;
+  --br-12а:#1d2219;
+  --br-12б:#1e231a;
+  --br-12в:#1e201c; --br-12в-rgb:30,32,28;
+  --br-12г:#1f211d;
+  --br-12д:#1d1f1c;
+  --br-14:#232422;
+  --br-15:#262e1e;
+  --br-15а:#262e21;
+  --br-15б:#262a24;
+  --br-15в:#252723;
+  --br-16:#29381c; --br-16-rgb:41,56,28;
+  --br-16а:#292c27;
+  --br-17:#2b2e28;
+  --br-18:#2d3428;
+  --br-18а:#2e322c;
+  --br-19:#2f451c;
+  --br-19а:#30322e;
+  --br-20:#3b5613;
+  --br-20а:#355517;
+  --br-20б:#34372e;
+  --br-21:#3f601b;
+  --br-21а:#353f2d;
+  --br-21б:#363934;
+  --br-24:#434d3a;
+  --br-25:#578928;
+  --br-25а:#4a5541;
+  --br-26:#6e9e25;
+  --br-27:#74a728;
+  --br-27а:#5f7a48;
+  --br-28:#70ad34; --br-28-rgb:112,173,52;
+  --br-28а:#494948;
+  --br-29:#545a4e;
+  --br-35:#63695d;
+  --br-38:#83c445; --br-38-rgb:131,196,69;
+  --br-39:#646663;
+  --br-41:#6e726b;
+  --br-47:#90b669;
+  --br-48:#91c55f; --br-48-rgb:145,197,95;
+  --br-50:#93b077;
+  --br-51:#8c9d81;
+  --br-55:#8e918b;
+  --br-56:#9cbb7d;
+  --br-56а:#95a28b;
+  --br-57:#9cd466;
+  --br-58:#9ecb72;
+  --br-60:#9ed16e;
+  --br-60а:#9a9e96;
+  --br-60б:#9a9c97;
+  --br-61:#a1bd84;
+  --br-66:#a7ada3; --br-66-rgb:167,173,163;
+  --br-66а:#a8aca4;
+  --br-67:#a5d07a;
+  --br-67а:#a8b0a1;
+  --br-67б:#a9ada6;
+  --br-68:#a8d576;
+  --br-71:#a8d27f; --br-71-rgb:168,210,127;
+  --br-72:#adca91;
+  --br-74:#b6c2aa;
+  --br-77:#bdd99f; --br-77-rgb:189,217,159;
+  --br-79:#c7cebf;
+  --br-80:#cacfc4;
+  --br-82:#d1d2d0;
+  --br-83:#d1ddc4;
+  --br-83а:#d4d6d1;
+  --br-83б:#d4d4d4;
+  --br-85:#d8dfd0; --br-85-rgb:216,223,208;
+  --br-85а:#d8dad6;
+  --br-86:#dddedb;
+  --br-87:#dce0d8;
+  --br-87а:#dce0d9;
+  --br-87б:#dfe0dd;
+  --br-89:#e3e4e3;
+  --br-89а:#e3e3e2;
+  --br-90:#e5ece0;
+  --br-90а:#e6e7e6;
+  --br-91:#e5f0db; --br-91-rgb:229,240,219;
+  --br-91а:#e8efe2;
+  --br-92:#eaf4e0;
+  --br-93:#edf5e5;
+  --br-93а:#ecefea;
+  --br-93б:#edefea; --br-93б-rgb:237,239,234;
+  --br-93в:#ecedeb;
+  --br-93г:#ecedec;
+  --br-94:#f0f4ec;
+  --br-94а:#f1f4ec;
+  --br-94б:#eef3ea;
+  --br-94в:#eff3ea;
+  --br-95:#f2f2f1;
+  --br-95а:#f3f3f3;
+  --br-96:#f5faf0;
+  --br-96а:#f6faf0;
+  --br-96б:#f6faf2;
+  --br-96в:#f5f8f1;
+  --br-96г:#f6f7f4;
+  --br-98:#fbfef7;
+}
+:root[data-tone="amber"]{
+  --br-05:#0f0f0d;
+  --br-07:#13120f;
+  --br-08:#181613; --br-08-rgb:24,22,19;
+  --br-08а:#171613;
+  --br-10:#1d1b18; --br-10-rgb:29,27,24;
+  --br-10а:#1a1917;
+  --br-11:#201d16; --br-11-rgb:32,29,22;
+  --br-12:#282113;
+  --br-12а:#262015;
+  --br-12б:#272116;
+  --br-12в:#232019; --br-12в-rgb:35,32,25;
+  --br-12г:#24211a;
+  --br-12д:#201f1b;
+  --br-14:#252421;
+  --br-15:#362916;
+  --br-15а:#342c1b;
+  --br-15б:#2d2921;
+  --br-15в:#282622;
+  --br-16:#443110; --br-16-rgb:68,49,16;
+  --br-16а:#2e2c25;
+  --br-17:#312d25;
+  --br-18:#393223;
+  --br-18а:#353129;
+  --br-19:#553b0c;
+  --br-19а:#35312b;
+  --br-20:#673600;
+  --br-20а:#684200;
+  --br-20б:#3b322a;
+  --br-21:#6f4200;
+  --br-21а:#453a24;
+  --br-21б:#3b3831;
+  --br-24:#4d422d;
+  --br-25:#845402;
+  --br-25а:#514732;
+  --br-26:#8d4900;
+  --br-27:#924b00;
+  --br-27а:#6a5327;
+  --br-28:#985f03; --br-28-rgb:152,95,3;
+  --br-28а:#4a4847;
+  --br-29:#544d41;
+  --br-35:#676053;
+  --br-38:#dd8c08; --br-38-rgb:221,140,8;
+  --br-39:#676662;
+  --br-41:#726e64;
+  --br-47:#d09434;
+  --br-48:#eba020; --br-48-rgb:235,160,32;
+  --br-50:#c29851;
+  --br-51:#a3946d;
+  --br-55:#948f88;
+  --br-56:#d2a761;
+  --br-56а:#ab9e7f;
+  --br-57:#ffb437;
+  --br-58:#eeb24e;
+  --br-60:#f8b94a;
+  --br-60а:#a19c92;
+  --br-60б:#9e9b95;
+  --br-61:#d5ae70;
+  --br-66:#b3aca0; --br-66-rgb:179,172,160;
+  --br-66а:#b1aba2;
+  --br-67:#f3bd66;
+  --br-67а:#b9b09e;
+  --br-67б:#b2aca4;
+  --br-68:#fbbc60;
+  --br-71:#f5c471; --br-71-rgb:245,196,113;
+  --br-72:#e4c188;
+  --br-74:#cfc0a6;
+  --br-77:#f2cb91; --br-77-rgb:242,203,145;
+  --br-79:#d6cbbb;
+  --br-80:#d5cdc0;
+  --br-82:#d3d2cf;
+  --br-83:#e9d7bc;
+  --br-83а:#d9d5cf;
+  --br-83б:#d5d4d3;
+  --br-85:#e6dbcb; --br-85-rgb:230,219,203;
+  --br-85а:#dcd9d4;
+  --br-86:#dfddda;
+  --br-87:#e5dfd5;
+  --br-87а:#e3ded7;
+  --br-87б:#e1dfdc;
+  --br-89:#e5e4e2;
+  --br-89а:#e4e3e1;
+  --br-90:#f1e9dc;
+  --br-90а:#e8e7e5;
+  --br-91:#f9ecd4; --br-91-rgb:249,236,212;
+  --br-91а:#f4eddd;
+  --br-92:#fceed9;
+  --br-93:#fcf0de;
+  --br-93а:#f1eee8;
+  --br-93б:#f1ede8; --br-93б-rgb:241,237,232;
+  --br-93в:#edeceb;
+  --br-93г:#eeedeb;
+  --br-94:#f7f2e9;
+  --br-94а:#f7f1e9;
+  --br-94б:#f6f0e7;
+  --br-94в:#f6efe7;
+  --br-95:#f2f2f1;
+  --br-95а:#f4f3f2;
+  --br-96:#fdf7ed;
+  --br-96а:#fdf6ed;
+  --br-96б:#fcf7f0;
+  --br-96в:#fbf5ee;
+  --br-96г:#f9f6f2;
+  --br-98:#fffbf6;
+}
+:root[data-tone="plum"]{
+  --br-05:#110b10;
+  --br-07:#170b17;
+  --br-08:#1c0f1c; --br-08-rgb:28,15,28;
+  --br-08а:#1a101a;
+  --br-10:#201520; --br-10-rgb:32,21,32;
+  --br-10а:#1e131e;
+  --br-11:#231323; --br-11-rgb:35,19,35;
+  --br-12:#281328;
+  --br-12а:#271328;
+  --br-12б:#281429;
+  --br-12в:#261626; --br-12в-rgb:38,22,38;
+  --br-12г:#271727;
+  --br-12д:#251624;
+  --br-14:#291d29;
+  --br-15:#311933;
+  --br-15а:#331c32;
+  --br-15б:#301e2f;
+  --br-15в:#2c1d2d;
+  --br-16:#381b39; --br-16-rgb:56,27,57;
+  --br-16а:#322130;
+  --br-17:#342234;
+  --br-18:#392339;
+  --br-18а:#382637;
+  --br-19:#411f42;
+  --br-19а:#382838;
+  --br-20:#451b4c;
+  --br-20а:#491e4a;
+  --br-20б:#39283d;
+  --br-21:#4b204f;
+  --br-21а:#412842;
+  --br-21б:#3e2e3e;
+  --br-24:#4a304a;
+  --br-25:#5c275e;
+  --br-25а:#4e354e;
+  --br-26:#5d2667;
+  --br-27:#60276a;
+  --br-27а:#59375a;
+  --br-28:#692e6c; --br-28-rgb:105,46,108;
+  --br-28а:#4c434e;
+  --br-29:#554055;
+  --br-35:#655065;
+  --br-38:#8a3e8d; --br-38-rgb:138,62,141;
+  --br-39:#6b5e6a;
+  --br-41:#736073;
+  --br-47:#9e5fa1;
+  --br-48:#ad5bb0; --br-48-rgb:173,91,176;
+  --br-50:#9f72a1;
+  --br-51:#987a96;
+  --br-55:#968597;
+  --br-56:#b286b4;
+  --br-56а:#a58aa4;
+  --br-57:#c476c7;
+  --br-58:#c083c3;
+  --br-60:#c786c9;
+  --br-60а:#a492a5;
+  --br-60б:#a292a3;
+  --br-61:#bc97be;
+  --br-66:#b7a4b8; --br-66-rgb:183,164,184;
+  --br-66а:#b5a4b6;
+  --br-67:#d2a6d4;
+  --br-67а:#bda7bd;
+  --br-67б:#b6a5b7;
+  --br-68:#d5a6d9;
+  --br-71:#dbb6dd; --br-71-rgb:219,182,221;
+  --br-72:#d7bcd8;
+  --br-74:#d0b9d1;
+  --br-77:#dcbede; --br-77-rgb:220,190,222;
+  --br-79:#d6c1d8;
+  --br-80:#d7c4d8;
+  --br-82:#d7cbd7;
+  --br-83:#e2cae4;
+  --br-83а:#dcccdd;
+  --br-83б:#d6d1d7;
+  --br-85:#e5d0e6; --br-85-rgb:229,208,230;
+  --br-85а:#e0d1e1;
+  --br-86:#e2d7e2;
+  --br-87:#e7d4e7;
+  --br-87а:#e6d5e7;
+  --br-87б:#e4d9e4;
+  --br-89:#e8dee9;
+  --br-89а:#e5dfe6;
+  --br-90:#eee1ee;
+  --br-90а:#ebe2eb;
+  --br-91:#efe1f0; --br-91-rgb:239,225,240;
+  --br-91а:#f0e4f0;
+  --br-92:#f1e4f2;
+  --br-93:#f2e7f3;
+  --br-93а:#f1e8f1;
+  --br-93б:#f0e8f1; --br-93б-rgb:240,232,241;
+  --br-93в:#efe8f0;
+  --br-93г:#f0e9f0;
+  --br-94:#f4ecf4;
+  --br-94а:#f3ecf4;
+  --br-94б:#f3eaf3;
+  --br-94в:#f2eaf3;
+  --br-95:#f3eff4;
+  --br-95а:#f5f1f5;
+  --br-96:#f8f2f8;
+  --br-96а:#f8f2f8;
+  --br-96б:#f8f3f9;
+  --br-96в:#f7f1f8;
+  --br-96г:#f7f3f8;
+  --br-98:#fcf8fd;
+}
+:root[data-tone="indigo"]{
+  --br-05:#0c0b11;
+  --br-07:#0a0a18;
+  --br-08:#0f0e1d; --br-08-rgb:15,14,29;
+  --br-08а:#100f1b;
+  --br-10:#151421; --br-10-rgb:21,20,33;
+  --br-10а:#13121e;
+  --br-11:#131125; --br-11-rgb:19,17,37;
+  --br-12:#12112a;
+  --br-12а:#121229;
+  --br-12б:#13132a;
+  --br-12в:#161428; --br-12в-rgb:22,20,40;
+  --br-12г:#171529;
+  --br-12д:#161526;
+  --br-14:#1c1c2a;
+  --br-15:#181834;
+  --br-15а:#1d1a35;
+  --br-15б:#1e1d31;
+  --br-15в:#1d1c2e;
+  --br-16:#19183c; --br-16-rgb:25,24,60;
+  --br-16а:#232033;
+  --br-17:#222135;
+  --br-18:#23213b;
+  --br-18а:#262539;
+  --br-19:#1d1c45;
+  --br-19а:#27263a;
+  --br-20:#171c50;
+  --br-20а:#1b1a4e;
+  --br-20б:#272a3e;
+  --br-21:#1c1d51;
+  --br-21а:#272643;
+  --br-21б:#2e2c40;
+  --br-24:#2f2e4a;
+  --br-25:#22215e;
+  --br-25а:#33324e;
+  --br-26:#1f2666;
+  --br-27:#202769;
+  --br-27а:#333258;
+  --br-28:#27266a; --br-28-rgb:39,38,106;
+  --br-28а:#42444e;
+  --br-29:#3e3d55;
+  --br-35:#4e4d65;
+  --br-38:#35358c; --br-38-rgb:53,53,140;
+  --br-39:#5f5d6c;
+  --br-41:#5f5e73;
+  --br-47:#53539b;
+  --br-48:#4b4aad; --br-48-rgb:75,74,173;
+  --br-50:#62619d;
+  --br-51:#736f93;
+  --br-55:#828296;
+  --br-56:#7272ae;
+  --br-56а:#817ea0;
+  --br-57:#5c5bc7;
+  --br-58:#6a6abf;
+  --br-60:#6c6ac7;
+  --br-60а:#8d8da3;
+  --br-60б:#908fa3;
+  --br-61:#8181b5;
+  --br-66:#9e9db5; --br-66-rgb:158,157,181;
+  --br-66а:#9e9eb4;
+  --br-67:#8888cd;
+  --br-67а:#9f9db9;
+  --br-67б:#a0a0b5;
+  --br-68:#8788d2;
+  --br-71:#9797d4; --br-71-rgb:151,151,212;
+  --br-72:#a3a2cf;
+  --br-74:#acaccc;
+  --br-77:#aeaeda; --br-77-rgb:174,174,218;
+  --br-79:#bbbcd7;
+  --br-80:#bfbfd8;
+  --br-82:#cacad8;
+  --br-83:#c3c4e4;
+  --br-83а:#cacbde;
+  --br-83б:#d1d1d7;
+  --br-85:#cbcce7; --br-85-rgb:203,204,231;
+  --br-85а:#cfd0e2;
+  --br-86:#d6d6e3;
+  --br-87:#d2d2e8;
+  --br-87а:#d3d3e7;
+  --br-87б:#d8d8e5;
+  --br-89:#ddddea;
+  --br-89а:#dedfe7;
+  --br-90:#dfdfee;
+  --br-90а:#e1e1ec;
+  --br-91:#dfdef0; --br-91-rgb:223,222,240;
+  --br-91а:#e2e2f0;
+  --br-92:#e2e2f3;
+  --br-93:#e6e6f4;
+  --br-93а:#e7e7f2;
+  --br-93б:#e7e8f2; --br-93б-rgb:231,232,242;
+  --br-93в:#e8e9f0;
+  --br-93г:#e9e9f0;
+  --br-94:#ebebf5;
+  --br-94а:#ebecf5;
+  --br-94б:#e9e9f4;
+  --br-94в:#e9eaf4;
+  --br-95:#efeff4;
+  --br-95а:#f1f1f5;
+  --br-96:#f1f1f9;
+  --br-96а:#f1f2f9;
+  --br-96б:#f3f3f9;
+  --br-96в:#f1f1f8;
+  --br-96г:#f3f3f8;
+  --br-98:#f8f8fd;
+}
+:root[data-tone="graphite"]{
+  --br-05:#0d0e0f;
+  --br-07:#0e1114;
+  --br-08:#131618; --br-08-rgb:19,22,24;
+  --br-08а:#131517;
+  --br-10:#181b1d; --br-10-rgb:24,27,29;
+  --br-10а:#16191b;
+  --br-11:#171b1f; --br-11-rgb:23,27,31;
+  --br-12:#191e22;
+  --br-12а:#191e22;
+  --br-12б:#1a1f23;
+  --br-12в:#1a1e22; --br-12в-rgb:26,30,34;
+  --br-12г:#1b1f23;
+  --br-12д:#1a1e21;
+  --br-14:#202326;
+  --br-15:#21272b;
+  --br-15а:#23282c;
+  --br-15б:#23272b;
+  --br-15в:#222628;
+  --br-16:#232b31; --br-16-rgb:35,43,49;
+  --br-16а:#26292d;
+  --br-17:#272c2f;
+  --br-18:#292f33;
+  --br-18а:#2b2f33;
+  --br-19:#293238;
+  --br-19а:#2c3134;
+  --br-20:#29383e;
+  --br-20а:#2a363e;
+  --br-20б:#2e3537;
+  --br-21:#2c3941;
+  --br-21а:#2f353a;
+  --br-21б:#32363a;
+  --br-24:#373d41;
+  --br-25:#34424b;
+  --br-25а:#3b4145;
+  --br-26:#354850;
+  --br-27:#374a52;
+  --br-27а:#3e464c;
+  --br-28:#3b4b55; --br-28-rgb:59,75,85;
+  --br-28а:#464a4b;
+  --br-29:#444a4e;
+  --br-35:#545a5e;
+  --br-38:#506471; --br-38-rgb:80,100,113;
+  --br-39:#626467;
+  --br-41:#64696d;
+  --br-47:#6a7a84;
+  --br-48:#697f8e; --br-48-rgb:105,127,142;
+  --br-50:#74818a;
+  --br-51:#7a8188;
+  --br-55:#888d90;
+  --br-56:#84929b;
+  --br-56а:#899095;
+  --br-57:#7d95a5;
+  --br-58:#8498a5;
+  --br-60:#879caa;
+  --br-60а:#94999c;
+  --br-60б:#959a9d;
+  --br-61:#919da5;
+  --br-66:#a4aaad; --br-66-rgb:164,170,173;
+  --br-66а:#a5aaad;
+  --br-67:#9dadb8;
+  --br-67а:#a6acb0;
+  --br-67б:#a6abaf;
+  --br-68:#9eb1bb;
+  --br-71:#aab8c1; --br-71-rgb:170,184,193;
+  --br-72:#b0bac1;
+  --br-74:#b6bdc2;
+  --br-77:#bcc6cc; --br-77-rgb:188,198,204;
+  --br-79:#c4cace;
+  --br-80:#c7cdd0;
+  --br-82:#ced1d4;
+  --br-83:#cdd5da;
+  --br-83а:#d0d5d8;
+  --br-83б:#d3d4d5;
+  --br-85:#d4dade; --br-85-rgb:212,218,222;
+  --br-85а:#d5d9dc;
+  --br-86:#dadddf;
+  --br-87:#d9dee1;
+  --br-87а:#d9dee1;
+  --br-87б:#dcdfe1;
+  --br-89:#e1e4e6;
+  --br-89а:#e1e3e4;
+  --br-90:#e4e7e9;
+  --br-90а:#e5e7e8;
+  --br-91:#e4e8ea; --br-91-rgb:228,232,234;
+  --br-91а:#e6e9ec;
+  --br-92:#e7ebee;
+  --br-93:#eaeef0;
+  --br-93а:#ebedee;
+  --br-93б:#ebedee; --br-93б-rgb:235,237,238;
+  --br-93в:#eaedee;
+  --br-93г:#ebedee;
+  --br-94:#eef0f2;
+  --br-94а:#eef1f2;
+  --br-94б:#edeff0;
+  --br-94в:#edeff0;
+  --br-95:#f0f2f3;
+  --br-95а:#f2f3f4;
+  --br-96:#f3f5f6;
+  --br-96а:#f3f6f6;
+  --br-96б:#f5f6f7;
+  --br-96в:#f3f5f6;
+  --br-96г:#f4f6f7;
+  --br-98:#f9fbfc;
+}
+:root[data-tone="titan"]{
+  --br-05:#0e0e0e;
+  --br-07:#121110;
+  --br-08:#171614; --br-08-rgb:23,22,20;
+  --br-08а:#161514;
+  --br-10:#1c1b19; --br-10-rgb:28,27,25;
+  --br-10а:#191918;
+  --br-11:#1c1c1a; --br-11-rgb:28,28,26;
+  --br-12:#1f1e1c;
+  --br-12а:#1f1e1c;
+  --br-12б:#201f1d;
+  --br-12в:#1f1f1d; --br-12в-rgb:31,31,29;
+  --br-12г:#20201e;
+  --br-12д:#1f1e1c;
+  --br-14:#242322;
+  --br-15:#282724;
+  --br-15а:#292826;
+  --br-15б:#292825;
+  --br-15в:#262624;
+  --br-16:#2d2b27; --br-16-rgb:45,43,39;
+  --br-16а:#2b2a28;
+  --br-17:#2d2c29;
+  --br-18:#302f2c;
+  --br-18а:#31302d;
+  --br-19:#34322d;
+  --br-19а:#31312f;
+  --br-20:#38342f;
+  --br-20а:#383530;
+  --br-20б:#343331;
+  --br-21:#3b3832;
+  --br-21а:#373532;
+  --br-21б:#373735;
+  --br-24:#3e3d3a;
+  --br-25:#44413b;
+  --br-25а:#42413e;
+  --br-26:#48433d;
+  --br-27:#4a453f;
+  --br-27а:#484642;
+  --br-28:#4d4a43; --br-28-rgb:77,74,67;
+  --br-28а:#494948;
+  --br-29:#4b4a47;
+  --br-35:#5b5a57;
+  --br-38:#67635a; --br-38-rgb:103,99,90;
+  --br-39:#666563;
+  --br-41:#6a6967;
+  --br-47:#7c7972;
+  --br-48:#837e74; --br-48-rgb:131,126,116;
+  --br-50:#83817b;
+  --br-51:#84837e;
+  --br-55:#8e8d8a;
+  --br-56:#94918b;
+  --br-56а:#92908c;
+  --br-57:#999489;
+  --br-58:#9b978e;
+  --br-60:#9f9b92;
+  --br-60а:#9a9996;
+  --br-60б:#9a9a98;
+  --br-61:#9f9c97;
+  --br-66:#abaaa7; --br-66-rgb:171,170,167;
+  --br-66а:#abaaa7;
+  --br-67:#b0aca5;
+  --br-67а:#adaca9;
+  --br-67б:#acaba9;
+  --br-68:#b2aea7;
+  --br-71:#bab7b1; --br-71-rgb:186,183,177;
+  --br-72:#bcbab5;
+  --br-74:#bebdba;
+  --br-77:#c7c5c1; --br-77-rgb:199,197,193;
+  --br-79:#cbcac7;
+  --br-80:#cdccca;
+  --br-82:#d2d1d0;
+  --br-83:#d6d4d1;
+  --br-83а:#d5d4d3;
+  --br-83б:#d4d4d4;
+  --br-85:#dbdad7; --br-85-rgb:219,218,215;
+  --br-85а:#dad9d7;
+  --br-86:#dedddb;
+  --br-87:#dfdedb;
+  --br-87а:#dfdedb;
+  --br-87б:#e0dfdd;
+  --br-89:#e4e4e3;
+  --br-89а:#e3e3e2;
+  --br-90:#e8e7e5;
+  --br-90а:#e7e7e6;
+  --br-91:#e8e8e6; --br-91-rgb:232,232,230;
+  --br-91а:#eae9e8;
+  --br-92:#ecebe9;
+  --br-93:#eeedec;
+  --br-93а:#ededec;
+  --br-93б:#ededec; --br-93б-rgb:237,237,236;
+  --br-93в:#edeceb;
+  --br-93г:#ededec;
+  --br-94:#f1f0ef;
+  --br-94а:#f1f0ef;
+  --br-94б:#efefee;
+  --br-94в:#efefee;
+  --br-95:#f2f2f1;
+  --br-95а:#f3f3f3;
+  --br-96:#f6f5f4;
+  --br-96а:#f6f5f4;
+  --br-96б:#f6f6f6;
+  --br-96в:#f5f5f4;
+  --br-96г:#f6f6f5;
+  --br-98:#fbfbfa;
+}
+/* ТОНЫ:КОНЕЦ */
+</style><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no, date=no, address=no, email=no"><title>Договор подряда на внутреннюю отделку — макет</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Geologica:wght@400;500;600&display=swap" rel="stylesheet">
+<style>/* Договор в оформлении «Бланк» — язык листа, как у Приложения № 2: коробок
+   нет, разделы держат линейки, бирюзовый — цвет чернил, а не заливка. Цвета —
+   палитра калькулятора (сПалитрой), поэтому договор идёт за выбранной схемой;
+   «Зелёный-графит» — тон-пара: заголовки графитом, мелкий зелёный — тёмным
+   фирменным (Константин, 01.10.2026: «переработай договор в теме оформления
+   Бланк — во всех цветовых схемах»). Текст договора не менялся. */
+:root{--bl-page:#eef3f3;--bl-sheet:#fff;--bl-ink:var(--br-12в);--bl-ink2:var(--br-41);--bl-ink3:var(--br-60б);
+  --bl-rule:var(--br-89);--bl-rule2:var(--br-80);--bl-acc:var(--br-28);--bl-acc2:var(--br-38);--bl-pale:var(--br-77);
+  --bl-head:var(--bl-acc);--bl-small:var(--bl-acc2)}
+:root[data-tone="bmsk"]{--bl-head:#24271f;--bl-small:#4f7d26}
+
+@page{size:A4;margin:20mm 10mm 20mm 20mm;
+  @bottom-right{content:"Страница " counter(page) " из " counter(pages);font-family:'Geologica',Arial,sans-serif;font-size:8pt;color:#8a8f88}}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{background:var(--bl-page);color:var(--bl-ink);font-family:'Geologica',Arial,sans-serif;font-variant-numeric:tabular-nums;
+  font-size:clamp(11.5px,1.75vw,13.4px);line-height:1.5}
+/* Поля — как у всего комплекта (спецификация, Приложение № 2): 20 мм слева под
+   подшивку, 10 мм справа, 20 мм сверху и снизу; на узком экране — те же доли листа. */
+.page{width:min(210mm,calc(100% - 24px));margin:14px auto;background:var(--bl-sheet);
+  padding:min(20mm,9.52%) min(10mm,4.76%) min(20mm,9.52%) min(20mm,9.52%);
+  box-shadow:0 1px 2px rgba(0,0,0,.05),0 6px 22px rgba(0,0,0,.07)}
+
+/* Подсветка незаполненного — только на экране. */
+.placeholder{background:#fff4d1;padding:0 3px;border-radius:2px;color:#6e5510;font-weight:500}
+.placeholder.off{background:transparent!important;padding:0!important;color:inherit!important}
+
+/* Шапка: логотип, надзаголовок, название; номер и дата — по правому полю. */
+.doc-head{display:grid;grid-template-columns:1fr auto;gap:.4em 1.6em;align-items:end;padding:0 0 1.3em;border-bottom:1px solid var(--bl-rule)}
+.logo{height:2em;width:auto;display:block;margin:0 0 1.1em -.3em}
+.eyebrow{font-size:.74em;letter-spacing:.18em;text-transform:uppercase;color:var(--bl-small);font-weight:500}
+.title{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.75em;line-height:1.2;letter-spacing:-.01em;margin:.3em 0 0;color:var(--bl-ink)}
+.title em{font-style:normal;color:var(--bl-acc2)}
+.meta{text-align:right;font-size:.86em;color:var(--bl-ink2);line-height:1.6;white-space:nowrap}
+.meta b{display:block;font-weight:500;color:var(--bl-ink)}
+@media (max-width:520px){.doc-head{grid-template-columns:1fr}.meta{text-align:left;white-space:normal}}
+
+/* Разделы: крупный бледный номер, название, черта 2 px под ними. */
+h2.section{display:flex;align-items:baseline;gap:.55em;margin:2em 0 .8em;padding:0 0 .5em;border-bottom:2px solid var(--bl-acc);
+  font-family:'Unbounded',sans-serif;font-weight:600;font-size:1.02em;line-height:1.3;color:var(--bl-head);letter-spacing:.01em;
+  text-transform:none;text-indent:0;break-after:avoid;page-break-after:avoid}
+h2.section .num{flex:none;width:auto;font-weight:700;font-size:1.6em;line-height:1;color:var(--bl-pale);letter-spacing:-.02em}
+
+/* Пункты: номер вынесен в поле, текст держит ровную левую кромку. */
+.clause{margin:0 0 .6em;text-align:justify;hyphens:auto;-webkit-hyphens:auto;padding-left:2.9em;text-indent:-2.9em}
+.clause-num{display:inline-block;min-width:2.9em;text-indent:0;margin:0;font-weight:500;color:var(--bl-acc2)}
+.clause.sub{padding-left:4.4em;text-indent:-3.4em}
+.clause.sub .clause-num{min-width:3.4em}
+.clause:not(:has(.clause-num)){padding-left:0;text-indent:0}
+
+ul.bullets,ol.lettered{margin:.2em 0 .8em;padding-left:2.9em;list-style:none}
+ul.bullets>li,ol.lettered>li{margin:.25em 0;text-align:justify;hyphens:auto;-webkit-hyphens:auto;padding-left:1.4em;text-indent:-1.4em}
+ul.bullets>li::before{content:'';display:inline-block;width:.42em;height:.42em;margin:0 .98em 0 0;vertical-align:.18em;background:var(--bl-acc2);text-indent:0}
+ol.lettered{counter-reset:lett}
+ol.lettered>li{counter-increment:lett}
+/* Буквы — русские: счётчик cyrillic-lower Chromium не знает и пишет цифры. */
+ol.lettered>li::before{content:"а)";display:inline-block;width:1.4em;text-indent:0;color:var(--bl-acc2);font-weight:500}
+ol.lettered>li:nth-child(2)::before{content:"б)"}ol.lettered>li:nth-child(3)::before{content:"в)"}ol.lettered>li:nth-child(4)::before{content:"г)"}
+ol.lettered>li:nth-child(5)::before{content:"д)"}ol.lettered>li:nth-child(6)::before{content:"е)"}ol.lettered>li:nth-child(7)::before{content:"ж)"}ol.lettered>li:nth-child(8)::before{content:"з)"}
+
+/* Утверждённые блоки (Константин, 01.10.2026, макет contract-final-v1): стороны
+   и реквизиты — строками «подпись — значение», участок и объект — ячейками,
+   платежи — «Платёж № 1 | сумма | срок» с итогом, часы и адреса почты — крупно,
+   гарантия — шкалой в месяцах. Пустое поле Заказчика — сама строка или линия. */
+.ey{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.68em;letter-spacing:.14em;text-transform:uppercase;color:var(--bl-small)}
+.v1-two{display:grid;grid-template-columns:1fr 1fr;gap:0 2.4em;margin:1.2em 0 .6em}
+.v1-party{min-width:0}
+.v1-party>.ey{display:block;padding-bottom:.55em;border-bottom:2px solid var(--bl-acc)}
+dl.rows{display:grid;grid-template-columns:minmax(6.2em,34%) 1fr;margin:0}
+dl.rows>dt,dl.rows>dd{margin:0;border-bottom:1px solid var(--bl-rule);padding:.42em 0;min-height:2.1em}
+dl.rows>dt{font-size:.74em;letter-spacing:.06em;color:var(--bl-ink3);font-weight:500;padding-top:.66em;padding-right:.8em}
+dl.rows>dd{font-weight:500;overflow-wrap:anywhere}
+dl.rows>.sub{grid-column:1/-1;border-bottom:1px solid var(--bl-rule);padding:1em 0 .35em;font-family:'Unbounded',sans-serif;font-weight:600;font-size:.62em;letter-spacing:.14em;text-transform:uppercase;color:var(--bl-ink2);min-height:0}
+dl.rows>dd.name{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.95em}
+.v1-sign{display:grid;grid-template-columns:1fr 1fr;gap:0 2.4em;margin-top:2.2em}
+.v1-sign .line{height:2.6em;border-bottom:1px solid var(--bl-rule2)}
+.v1-sign .who{display:flex;justify-content:space-between;gap:1em;padding-top:.4em;font-weight:500}
+.v1-sign .who span:last-child{color:var(--bl-ink3);font-weight:400;font-size:.86em}
+.bars{margin:1em 0 1.2em}
+.bar{display:grid;grid-template-columns:minmax(8.5em,30%) 1fr 5.2em;align-items:center;gap:0 1em;padding:.5em 0;border-bottom:1px solid var(--bl-rule)}
+.bar:first-child{border-top:1px solid var(--bl-rule)}
+.bar .l{color:var(--bl-ink2);font-size:.92em}
+.bar .tr{height:.5em;background:var(--bl-rule);position:relative;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.bar .tr i{position:absolute;left:0;top:0;bottom:0;background:var(--bl-acc);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.bar .v{text-align:right;font-family:'Unbounded',sans-serif;font-weight:600;color:var(--bl-acc);white-space:nowrap}
+.bar .v small{font-family:'Geologica',sans-serif;font-weight:500;color:var(--bl-ink2);font-size:.78em;margin-left:.15em}
+/* Колонки шкалы — в тех же em, что у строк: кегль меньше только у самих
+   отметок, иначе 7.2em и 1em шкалы короче, чем у строк, и «0» и «60» уезжают
+   от начала и конца дорожки. Каждая отметка стоит центром на своём месяце. */
+.scale{display:grid;grid-template-columns:minmax(8.5em,30%) 1fr 5.2em;gap:0 1em;padding-top:.35em}
+.scale .ticks{position:relative;height:1.4em;font-size:.68em;color:var(--bl-ink3)}
+.scale .ticks span{position:absolute;top:0;transform:translateX(-50%)}
+.scale .ticks span:nth-child(2){left:20%}.scale .ticks span:nth-child(3){left:40%}.scale .ticks span:nth-child(4){left:60%}
+.scale .ticks span:nth-child(5){left:80%}.scale .ticks span:nth-child(6){left:100%}.scale .ticks span:nth-child(1){left:0}
+.cells{display:grid;grid-template-columns:repeat(var(--n,2),minmax(0,1fr));margin:.8em 0 1em;border-top:1px solid var(--bl-rule);border-bottom:1px solid var(--bl-rule)}
+.cell{min-width:0;padding:.8em 1.1em .85em 0}
+.cell+.cell{padding-left:1.1em;border-left:1px solid var(--bl-rule)}
+.cell .k{display:block;font-size:.66em;letter-spacing:.1em;text-transform:uppercase;color:var(--bl-ink3);font-weight:500;margin-bottom:.3em}
+.cell .x{display:block;font-family:'Unbounded',sans-serif;font-weight:600;font-size:1em;line-height:1.35;color:var(--bl-ink);overflow-wrap:anywhere}
+.cell .mid{display:block;font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.45em;line-height:1.1;color:var(--bl-acc)}
+.cell .mid.off{color:var(--bl-ink2)}
+.cell .cap{display:block;margin-top:.4em;color:var(--bl-ink2);font-size:.92em}
+.amt{font-family:'Unbounded',sans-serif;font-weight:600;color:var(--bl-ink);white-space:nowrap}
+.amt small{font-family:'Geologica',sans-serif;font-weight:500;font-size:.82em;color:var(--bl-ink2);margin-left:.25em}
+.g1{display:grid;grid-template-columns:7.5em 11em 1fr;margin:.5em 0 1.1em}
+.g1>div{padding:.6em 1.2em .6em 0;border-bottom:1px solid var(--bl-rule)}
+.g1>.h{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.6em;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-ink2);border-bottom:2px solid var(--bl-acc);padding:0 1.2em .8em 0}
+.g1 .no{color:var(--bl-ink2)}
+.g1>.t{padding-top:.9em;border-bottom:2px solid var(--bl-acc);font-family:'Unbounded',sans-serif;font-weight:600;font-size:.62em;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-ink2)}
+.g1>.ta{padding-top:.75em;border-bottom:2px solid var(--bl-acc)}
+.g1>.ta .amt{color:var(--bl-acc)}
+.o-cap{display:block;font-size:.66em;letter-spacing:.1em;text-transform:uppercase;color:var(--bl-ink3);font-weight:500;margin-bottom:.25em}
+.o-val{display:block;font-weight:500;min-height:1.5em;overflow-wrap:anywhere}
+.o-val:empty{border-bottom:1px solid var(--bl-rule2);width:100%}
+.o2{margin:.8em 0 1.1em;border-top:1px solid var(--bl-rule)}
+.o2 .row{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--bl-rule)}
+.o2 .c{padding:.8em 1.2em .85em 0;min-width:0}.o2 .c+.c{padding-left:1.2em;border-left:1px solid var(--bl-rule)}
+.o2 .o-val{font-family:'Unbounded',sans-serif;font-weight:600;font-size:1em;line-height:1.35}
+.o2 .o-val:empty{width:80%}
+.placeholder.blank{display:inline-block;min-width:7em;height:1.15em;vertical-align:-.2em}
+/* Блоки внутри разделов — по кромке текста пунктов, а не по номерам: граница
+   слева стоит там же, где начинается текст (01.10.2026: «границу слева от
+   линии поставь, синхронно сделай»). Тот же отступ, что у .clause. */
+.o2,.g1,.cells,.bars{margin-left:2.9em}
+dl.rows>dt,dl.rows>dd,.o2 .row,.cells,.g1>div,.bar{break-inside:avoid;page-break-inside:avoid}
+.v1-two,.v1-sign{break-inside:avoid;page-break-inside:avoid}
+@media screen and (max-width:600px){
+  .v1-two,.v1-sign{grid-template-columns:1fr;gap:1.4em}
+  .cells{--n:1!important}.cell+.cell{padding-left:0;border-left:0;border-top:1px solid var(--bl-rule)}
+  .o2 .row{grid-template-columns:1fr}.o2 .c+.c{padding-left:0;border-left:0;border-top:1px solid var(--bl-rule)}
+  .g1{grid-template-columns:auto 1fr}.g1>.hc3,.g1>.ta:last-child{display:none}
+  .g1 .no{grid-row:span 2;white-space:nowrap;font-size:.9em;padding-right:1em}
+  .g1 .am{border-bottom:0;padding-bottom:.15em}.g1 .tm{grid-column:2;padding-top:0}
+  .bar,.scale{grid-template-columns:7.2em 1fr 4.6em}
+}
+
+/* Узкий экран: выключка по ширине растаскивает слова пробелами — там по левому краю. */
+@media screen and (max-width:600px){.clause,ul.bullets>li,ol.lettered>li{text-align:left}}
+
+a.tel{color:inherit;text-decoration:underline;text-decoration-color:var(--bl-acc2);text-decoration-thickness:1px;text-underline-offset:.2em}
+
+@media print{
+  body{background:#fff;font-size:10pt}
+  a.tel{text-decoration:none}
+  .page{width:auto;margin:0;padding:0;box-shadow:none}
+  .placeholder{background:transparent!important;padding:0!important;color:inherit!important}
+  .no-print{display:none!important}
+  .doc-head{grid-template-columns:1fr auto}.meta{text-align:right;white-space:nowrap}
+}
+/* Подсветку незаполненного снимает переключатель в окне предпросмотра. */
+body.hl-off .placeholder{background:transparent!important;padding:0!important;color:inherit!important}
+</style></head><body><div class="page">
+
+<!-- TITLE -->
+<header class="doc-head">
+  <div><img class="logo" src="data:image/png;base64,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" alt="Баня МСК">
+    <h1 class="title">Договор <em>подряда</em></h1></div>
+  <div class="meta"><b>№&nbsp;<span class="placeholder">________</span></b>от <span class="placeholder">________</span> · г. Москва</div>
+</header>
+
+<!-- СТОРОНЫ -->
+<div class="v1-two">
+  <div class="v1-party"><span class="ey">Подрядчик</span><dl class="rows">
+    <dt>Наименование</dt><dd class="name">ООО «ПСК ВЕГА»</dd>
+    <dt>В лице</dt><dd>генерального директора Баранова Геннадия Николаевича</dd>
+    <dt>ИНН</dt><dd>9702058720</dd>
+    <dt>Юр. адрес</dt><dd>107045, г. Москва, Вн. Тер. Г. Муниципальный округ Мещанский, пер. Колокольников, д. 24, стр. 3, помещ. 1/ц.</dd>
+    <div class="sub">Связь</div>
+    <dt>Эл. почта</dt><dd>vega.clientmail@gmail.com</dd>
+    <dt>Телефон</dt><dd><a class="tel" href="tel:+79250128510">+7 925 012 8510</a></dd>
+    <dt>Мессенджеры</dt><dd>Telegram, MAX — по номеру телефона</dd>
+  </dl></div>
+  <div class="v1-party"><span class="ey">Заказчик</span><dl class="rows">
+    <dt>Ф. И. О.</dt><dd class="name"><span class="placeholder blank"></span></dd>
+    <dt>Паспорт</dt><dd><span class="placeholder blank"></span></dd>
+    <dt>Адрес регистрации</dt><dd><span class="placeholder blank"></span></dd>
+    <div class="sub">Связь</div>
+    <dt>Эл. почта</dt><dd><span class="placeholder blank"></span></dd>
+    <dt>Телефон</dt><dd><span class="placeholder blank"></span></dd>
+    <dt>Мессенджеры</dt><dd>Telegram, MAX — по номеру телефона</dd>
+  </dl></div>
+</div>
+
+<!-- 1. ПРЕДМЕТ ДОГОВОРА -->
+<h2 class="section"><span class="num">1.</span>Предмет договора</h2>
+
+<p class="clause"><span class="clause-num">1.1.</span>Подрядчик обязуется выполнить в установленный договором срок по заданию Заказчика работы по внутренней отделке индивидуального жилого дома (далее — Объект) на земельном участке Заказчика и сдать результат выполненных работ Заказчику, а Заказчик обязуется принять и оплатить результат работ.</p>
+
+<div class="o2">
+  <div class="row"><div class="c"><span class="o-cap">Адрес участка</span><span class="o-val"><span class="placeholder blank"></span></span></div><div class="c"><span class="o-cap">Кадастровый номер</span><span class="o-val"><span class="placeholder blank"></span></span></div></div>
+  <div class="row"><div class="c"><span class="o-cap">Тип объекта</span><span class="o-val">Проба дом 8×8</span></div><div class="c"><span class="o-cap">Размер строения</span><span class="o-val">8×8 м, 30 кв. м, терраса крытая 10 кв. м</span></div></div>
+</div>
+
+<p class="clause"><span class="clause-num">1.2.</span>Перечень работ, которые выполняет Подрядчик, и перечень материалов, которые использует Подрядчик, при выполнении работ, согласованы сторонами в Приложении № 1, а внешний вид и планировка согласованы в Приложении № 2 к настоящему договору. Визуализация проекта является примерным эскизом, отражающим общие черты внешнего вида возводимого строения.</p>
+
+<p class="clause"><span class="clause-num">1.3.</span>Заказчик обязуется создать Подрядчику необходимые для выполнения работ условия, предусмотренные настоящим Договором.</p>
+
+<p class="clause"><span class="clause-num">1.4.</span>Подрядчик выполняет работы:</p>
+<ul class="bullets">
+  <li>собственными силами и силами третьих лиц, которых вправе привлекать без согласования с Заказчиком и за действия которых несет ответственность, как за свои собственные</li>
+  <li>собственным оборудованием и инструментами</li>
+  <li>из материалов подрядчика и/или Заказчика.</li>
+</ul>
+
+<p class="clause"><span class="clause-num">1.5.</span>Подрядчик до подписания договора предоставил Заказчику необходимую и достоверную информацию о Подрядчике, видах, объемах и особенностях выполнения работ, обеспечивающих возможность их правильного выбора, о цене и форме оплаты работ, о сроке службы и гарантийных обязательствах, о правилах и условиях безопасного использования результата работ.</p>
+
+<!-- 2. ЦЕНА И ПОРЯДОК ОПЛАТЫ -->
+<h2 class="section"><span class="num">2.</span>Цена и порядок оплаты</h2>
+
+<p class="clause"><span class="clause-num">2.1.</span>Общая цена Договора составляет <span class="placeholder">1 850 000</span> рублей, в том числе НДС 5% <span class="placeholder">88 095</span> рублей, является твердой и включает стоимость работ и материалов для внутренней отделки Объекта, предусмотренных в Приложении № 1.</p>
+
+<p class="clause"><span class="clause-num">2.2.</span>Заказчик обязан оплатить работы в следующем порядке:</p>
+
+<div class="g1"><div class="h">№ платежа</div><div class="h">Размер оплаты</div><div class="h hc3">Срок оплаты</div>
+  <div class="no">Платёж № 1</div><div class="am"><span class="amt"><span class="placeholder">1 480 000</span><small>рублей</small></span></div><div class="tm">задаток по Договору после получения уведомления о готовности начать внутреннюю отделку</div>
+  <div class="no">Платёж № 2</div><div class="am"><span class="amt"><span class="placeholder">370 000</span><small>рублей</small></span></div><div class="tm">оплата в день подписания Акта выполненных работ</div>
+  <div class="t">Итого</div><div class="ta"><span class="amt">1 850 000<small>рублей</small></span></div><div class="ta"></div>
+</div>
+
+<p class="clause"><span class="clause-num">2.3.</span>В цену работ не входит:</p>
+<ul class="bullets">
+  <li>стоимость дополнительных работ, не включенных в Приложение № 1</li>
+  <li>стоимость изменения проектных решений по инициативе Заказчика после подписания Договора</li>
+  <li>цена материалов, не указанных в Спецификации, а также их доставка и разгрузка</li>
+  <li>цена вывоза и утилизации строительного мусора.</li>
+</ul>
+
+<p class="clause"><span class="clause-num">2.4.</span>Все расчеты по Договору производятся по безналичному расчету путем перечисления денежных средств на указанный в Договоре расчетный счет Подрядчика, либо наличным способом путем передачи денежных средств уполномоченному представителю, находящемуся в офисе Подрядчика.</p>
+
+<p class="clause"><span class="clause-num">2.5.</span>Срок оплаты Заказчиком задатка по Договору должен составлять не более 3 рабочих дней, с момента получения уведомления о готовности начать внутреннюю отделку, в противном случае, Подрядчик имеет право отказаться от исполнения Договора или пересмотреть цену Договора.</p>
+
+<p class="clause"><span class="clause-num">2.6.</span>Обязательства Заказчика по оплате считаются исполненными на дату зачисления денежных средств на расчетный счет Подрядчика или передачи наличных денежных средств уполномоченному представителю Подрядчику.</p>
+
+<p class="clause"><span class="clause-num">2.7.</span>В случае, если в процессе выполнения работ Заказчик инициирует изменения, увеличивающие стоимость Договора, Подрядчик вправе приостановить работы до подписания Дополнительного соглашения к Договору и оплаты соответствующего авансового платежа.</p>
+
+<!-- 3. СРОКИ -->
+<h2 class="section"><span class="num">3.</span>Сроки</h2>
+
+<p class="clause"><span class="clause-num">3.1.</span>Датой начала выполнения работ считается день, следующий за днем оплаты Заказчиком задатка, указанного в п. 2.3 (Платеж № 1) Договора, но не ранее получения уведомления от Подрядчика о готовности начать внутреннюю отделку.</p>
+
+<p class="clause"><span class="clause-num">3.2.</span>Дата окончания выполнения работ — не позднее <span class="placeholder">50</span> рабочих дней с даты начала выполнения работ.</p>
+
+<p class="clause"><span class="clause-num">3.3.</span>В случае невыполнения Заказчиком встречных обязательств, в том числе, но не исключительно, обязательств по оплате выполненных работ, предоставлению Строительной площадки, обеспечению подъездных путей к Строительной площадке, обеспечению электроснабжения, водоснабжения Строительной площадки, согласованию подлежащих выполнению работ, подписанию актов выполненных работ, привлечению третьих лиц к выполнению работ на объекте параллельно с Подрядчиком независимо от вида выполнения работ и пр., Подрядчик вправе приостановить выполнение работ, а конечный срок выполнения работ по конкретному этапу, равно как и конечный срок выполнения всех работ, автоматически переносится на соответствующий период времени.</p>
+
+<p class="clause"><span class="clause-num">3.4.</span>Если указанные в п. 3.3. настоящего Договора нарушения обязательств Заказчиком привели к возрастанию стоимости строительных материалов, которые Подрядчик обязан приобрести для выполнения работ по настоящему Договору по сравнению с тем, как это было согласовано Сторонами в Приложении № 1 к настоящему Договору, Подрядчик вправе требовать от Заказчика компенсацию издержек, в размере стоимости удорожания материалов, но не более чем на 25% от общей цены Договора.</p>
+
+<p class="clause"><span class="clause-num">3.5.</span>Подрядчик вправе приостановить работы на объекте, по необходимости, ставшей очевидной в ходе выполнения работ и обусловлена неблагоприятными погодными условиями, необходимостью усадки здания, заменой строительной бригады и иными обстоятельствами, которые могут влиять на надежность и прочность результата выполненных работ, безопасность выполнения работ, выполнение требований законодательства. Общий срок остановки работ по каждому этапу работ не может быть более 30 календарных дней.</p>
+
+<p class="clause"><span class="clause-num">3.6.</span>Подрядчик вправе выполнить работы досрочно при условии согласования с Заказчиком даты приемки выполненных работ.</p>
+
+<p class="clause"><span class="clause-num">3.7.</span>Подрядчик вправе приостановить выполнение работ по договору в случае неоплаты Заказчиком любого из этапов оплаты в порядке, установленном в п. 2.3 настоящего Договора, при этом конечный срок выполнения работ по конкретному этапу, равно как и конечный срок выполнения всех работ, автоматически переносится на соответствующий период времени.</p>
+
+<p class="clause"><span class="clause-num">3.8.</span>В неблагоприятные погодные условия (дождь, снегопад) строительно-монтажные работы приостанавливаются до улучшения погоды. Такие дни не входят в общий срок строительства.</p>
+
+<p class="clause"><span class="clause-num">3.9.</span>В случае изменения по инициативе Заказчика сроков начала строительства или выполнения Подрядчиком любых этапов строительных работ, прописанных в Договоре, Заказчик обязан письменно предупредить об этом Подрядчика не менее чем за 5 рабочих дней.</p>
+
+<p class="clause"><span class="clause-num">3.10.</span>Заказчик обязан рассмотреть и согласовать представленную Подрядчиком документацию, материалы либо результаты этапов работ в течение 3 (трех) календарных дней с даты их получения. В случае превышения указанного срока согласования, общий срок выполнения работ по настоящему Договору подлежит увеличению на количество календарных дней просрочки, допущенной Заказчиком.</p>
+
+<!-- 4. ПОРЯДОК РАБОТ -->
+<h2 class="section"><span class="num">4.</span>Порядок работ</h2>
+
+<p class="clause"><span class="clause-num">4.1.</span>Подрядчик приступает к выполнению работ только после передачи Заказчиком Подрядчику по Акту приема-передачи Строительной площадки с возможностью подъезда грузового транспорта.</p>
+
+<p class="clause"><span class="clause-num">4.2.</span>Работы выполняются поэтапно согласно расчетов, установленных в разделе «2. Цена и порядок оплаты» настоящего Договора.</p>
+
+<p class="clause"><span class="clause-num">4.3.</span>На период выполнения Работ Заказчик обязан предоставить Подрядчику беспрепятственный доступ на Строительную площадку (земельный участок), а также доступ к воде и к электроэнергии мощностью не менее 4 кВт.</p>
+
+<p class="clause"><span class="clause-num">4.4.</span>В случае отключения электричества Заказчик обязан безвозмездно предоставить Подрядчику во временное пользование генератор для беспрепятственного выполнения работ.</p>
+
+<div class="cells" style="--n:2"><div class="cell"><span class="k">Рабочее время</span><span class="mid">09:00 — 20:00</span><span class="cap">понедельник — пятница</span></div><div class="cell"><span class="k">Время отдыха</span><span class="mid off">сб, вс</span><span class="cap">и праздничные дни</span></div></div>
+
+<p class="clause"><span class="clause-num">4.5.</span>Подрядчик обязуется собственными силами организовать размещение рабочей бригады на Строительной площадке. Место размещение строительной бригады должно быть предварительно согласовано с Заказчиком.</p>
+
+<p class="clause"><span class="clause-num">4.6.</span>Если работы необходимо осуществить с использованием фундамента, предоставленного Заказчиком, габариты и схема-чертеж предварительно письменно согласовываются с Подрядчиком.</p>
+
+<p class="clause"><span class="clause-num">4.7.</span>Подрядчик выполняет Работы за свой счет и вправе привлекать к выполнению работ третьих лиц без согласования с Заказчиком.</p>
+
+<p class="clause"><span class="clause-num">4.8.</span>В случае обнаружения наличия неблагоприятных обстоятельств, которые должны быть подтверждены экспертизой, в период подготовки к строительства объекта, грозящих годности или прочности результата выполняемых работ, в том числе, но не исключительно: выявление в почве пустот, грунтовых вод, скальных пород и т.п., и их возможных последствий, Заказчик обязан принять безотлагательные меры по устранению указанных обстоятельств. Если Заказчик не примет соответствующие меры в течение 5 рабочих дней, либо не известит Подрядчика о принятии таких мер, Подрядчик вправе приостановить работы, до момента устранения неблагоприятных обстоятельств. При этом Подрядчик не несет ответственность за ухудшение результата работ или просрочку выполнения работ в связи с наличием таких обстоятельств.</p>
+
+<p class="clause"><span class="clause-num">4.9.</span>Заказчик своими силами или с привлечением третьих лиц обязан обеспечить охрану Объекта и Строительной площадки на период проведения строительных работ и до подписания акта приема-передачи завершенного строительством Объекта.</p>
+
+<!-- 5. ПРИЕМКА РАБОТ -->
+<h2 class="section"><span class="num">5.</span>Приемка работ</h2>
+
+<p class="clause"><span class="clause-num">5.1.</span>Приемка выполненных работ производится в соответствии со Спецификацией и этапами строительства:</p>
+<ul class="bullets">
+  <li>работы по внутренней отделке</li>
+  <li>работы по монтажу парного отделения</li>
+  <li>работы по монтажу инженерных коммуникаций</li>
+  <li>малярные работы</li>
+  <li>плиточные работы</li>
+  <li>окончательная приемка выполненных работ.</li>
+</ul>
+
+<p class="clause"><span class="clause-num">5.2.</span>Подрядчик не позднее, чем за 3 рабочих дня до окончания каждого этапа выполнения работ любым способом уведомляет Заказчика о завершении работ и необходимости осмотра и приемки результата выполненных работ.</p>
+
+<p class="clause"><span class="clause-num">5.3.</span>Заказчик обязан производить промежуточные согласования уже выполненных этапов работ в рамках производства работ в срок не позднее 3 рабочих дней с момента запроса этих согласований со стороны Подрядчика. Период, затраченный на получение промежуточных согласований, не учитывается в сроке производства работ.</p>
+
+<p class="clause"><span class="clause-num">5.4.</span>Осмотр и приемка выполненных Подрядчиком работ производится по месту нахождения Объекта, указанному в п. 1.1.</p>
+
+<p class="clause"><span class="clause-num">5.5.</span>В случае затягивания работ Заказчиком путем не предоставления промежуточных согласований этапов работ в срок, превышающий 3 рабочих дней — промежуточный этап считается согласованным в том виде, который направлялся на согласование. Последующее его изменение считается изменением Технического задания и выполняется за отдельную оплату.</p>
+
+<p class="clause"><span class="clause-num">5.6.</span>По результатам приемки работ, указанных в п. 5.1 Договора, при отсутствии претензий у Заказчика к качеству выполненных работ, составляется промежуточный акт сдачи-приемки выполненных работ, подписываемый Сторонами.</p>
+
+<p class="clause"><span class="clause-num">5.7.</span>Заказчик в течение 3 рабочих дней обязан подписать акты выполненных работ или направить Подрядчику мотивированный отказ в принятии работ. В случае не подписания акта выполненных работ в течение 3 рабочих дней и отсутствия мотивированного отказа в принятии работ, работа считается принятой Заказчиком.</p>
+
+<p class="clause"><span class="clause-num">5.8.</span>Подписанный акт выполненных работ, а также принятая к оплате работа подтверждает, что работы по выставленному акту и принятая к оплате работа выполнены без замечаний со стороны Заказчика.</p>
+
+<p class="clause"><span class="clause-num">5.9.</span>Подрядчик вправе отказаться от выполнения работ или требовать увеличения их стоимости в следующих случаях:</p>
+<ol class="lettered">
+  <li>Заказчик не обеспечил Подрядчику беспрепятственный доступ на Строительную площадку (земельный участок)</li>
+  <li>Заказчик не выполнил взятых на себя обязательств, указанных в п. 2.3, 6.1, 6.5 настоящего Договора</li>
+  <li>В иных, установленных законом случаях.</li>
+</ol>
+
+<p class="clause"><span class="clause-num">5.10.</span>В случае отказа Подрядчика от исполнения Договора, до начала выполнения работ, он должен осуществить возврат полной суммы предварительной оплаты, согласно п. 2.3 Договора Заказчику, в течение 3 рабочих дней с момента расторжения Договора.</p>
+
+<p class="clause"><span class="clause-num">5.11.</span>В случае, если Заказчик обращается в банк для получения потребительского кредита и после подписания настоящего Договора банк отказывает в выдаче кредита, Заказчик вправе отказаться от исполнения Договора, в порядке, предусмотренном в п. 5.10 настоящего Договора.</p>
+
+<p class="clause"><span class="clause-num">5.12.</span>Заказчик вправе в соответствии со ст. 717 ГК РФ отказаться от исполнения настоящего Договора или от любого из этапов работ только в случае полной оплаты уже выполненных Подрядчиком работ, а также полной компенсации расходов Подрядчика по приобретению строительных материалов, согласованных Сторонами в соответствующих приложениях к настоящему Договору, а также всех иных фактически понесенных расходов и убытков, связанных с таким отказом (транспортные расходы, расходы по сборке, выгрузке и погрузке строительных материалов и техники, иные расходы, связанные с исполнением Договора). В этом случае Заказчик также обязан возместить Подрядчику убытки, причиненные прекращением настоящего Договора, в пределах разницы между ценой, определенной за всю работу, и частью цены, выплаченной за выполненную работу. Стороны согласны и подтверждают, что указанные в настоящем пункте расходы могут компенсироваться путем зачета авансовых платежей.</p>
+
+<p class="clause"><span class="clause-num">5.13.</span>В случаях, когда работы выполнены Подрядчиком с отступлениями от условий настоящего Договора, ухудшившими результат Работ, Заказчик вправе потребовать от Подрядчика:</p>
+<ul class="bullets">
+  <li>безвозмездного устранения недостатков в согласованный срок</li>
+  <li>соразмерного уменьшения установленной за Работы цены</li>
+  <li>возмещения своих расходов не устранение недостатков.</li>
+</ul>
+
+<!-- 6. ОБЕСПЕЧЕНИЕ МАТЕРИАЛАМИ -->
+<h2 class="section"><span class="num">6.</span>Обеспечение материалами и оборудованием</h2>
+
+<p class="clause"><span class="clause-num">6.1.</span>Заказчик обязуется предоставлять доступные подъездные пути к Объекту строительства.</p>
+
+<p class="clause"><span class="clause-num">6.2.</span>Приобретение, доставка материалов, обеспечение Объекта оборудованием и техникой обеспечивает Подрядчик своими силами.</p>
+
+<p class="clause"><span class="clause-num">6.3.</span>Затраты по доставке, разгрузке материалов, оборудования и техники несет Подрядчик, если Стороны письменно не договорились об ином.</p>
+
+<p class="clause"><span class="clause-num">6.4.</span>Заказчик обязан обеспечить условия, позволяющие разгрузить строительные материалы в непосредственное место выполнения работ на Строительной площадке.</p>
+
+<p class="clause"><span class="clause-num">6.5.</span>Заказчик гарантирует возможность подъезда транспортных средств обычной проходимости (манипулятор-погрузчик) к месту разгрузки. В случае невозможности доставки материала и оборудования по вине Заказчика расходы, связанные с попыткой доставки, несет Заказчик.</p>
+
+<p class="clause"><span class="clause-num">6.6.</span>При отсутствии возможности подъезда грузового транспорта к месту разгрузки на расстояние от 10 до 30 метров, ручная выгрузка материалов и оборудования оплачивается дополнительно, по тарифу грузоперевозчика. При отсутствии возможности подъезда грузового транспорта к месту разгрузки более, чем на 30 метров, Подрядчик вправе отказаться от выполнения разгрузочных работ с последующей компенсацией Заказчиком услуг доставки материалов и оборудования по тарифам транспортной компании.</p>
+
+<!-- 7. ГАРАНТИЙНЫЕ ОБЯЗАТЕЛЬСТВА -->
+<h2 class="section"><span class="num">7.</span>Гарантийные обязательства</h2>
+
+<p class="clause"><span class="clause-num">7.1.</span>Подрядчик гарантирует Заказчику соответствие результата работ в течение гарантийного срока:</p>
+<ul class="bullets">
+  <li>условиям договора</li>
+  <li>требованиям проектной и технической документации</li>
+  <li>требованиям действующих строительных норм и правил (СНиП), государственных стандартов, ТУ в области строительства индивидуальных жилых домов.</li>
+</ul>
+
+<p class="clause"><span class="clause-num">7.2.</span>Гарантийный срок и срок службы на результат работ:</p>
+
+<div class="bars">
+  <div class="bar"><span class="l">Инженерные системы</span><span class="tr"><i style="width:100%"></i></span><span class="v">36<small>мес.</small></span></div>
+  <div class="bar"><span class="l">Плиточные работы</span><span class="tr"><i style="width:66.67%"></i></span><span class="v">24<small>мес.</small></span></div>
+  <div class="bar"><span class="l">Отделочные работы</span><span class="tr"><i style="width:33.33%"></i></span><span class="v">12<small>мес.</small></span></div>
+  <div class="scale"><span></span><span class="ticks"><span style="left:0">0</span><span style="left:33.33%">12</span><span style="left:66.67%">24</span><span style="left:100%">36</span></span><span></span></div>
+</div>
+
+<p class="clause"><span class="clause-num">7.3.</span>Гарантийный срок и срок службы на результат работ начинает действовать с момента подписания итогового акта о приемке выполненных работ.</p>
+
+<p class="clause"><span class="clause-num">7.4.</span>Гарантия не распространяется на:</p>
+<ul class="bullets">
+  <li>недостатки, возникшие вследствие нормального износа объекта или его частей</li>
+  <li>повреждение объекта Заказчиком или третьими лицами</li>
+  <li>работы, которые были выполнены заказчиком или смежными подрядчиками, за действия которых Подрядчик не несет ответственность</li>
+  <li>изменение Заказчиком или третьими лицами конструкции или технико-эксплуатационных параметров объекта без согласования с Подрядчиком</li>
+  <li>недостатки, возникшие вследствие усадки объекта (трещины в местах сопряжения разных конструктивных элементов здания), за исключением случаев, когда причиной таких недостатков является нарушения Подрядчиком технологии выполнения работ</li>
+  <li>недостатки, возникшие при нарушении правил нормальной эксплуатации объекта</li>
+  <li>работы по монтажу фундамента, в случае отсутствия геологии перед началом работ.</li>
+</ul>
+
+<p class="clause"><span class="clause-num">7.5.</span>Подрядчик гарантирует устранение выявленных недостатков работы в течение гарантийного срока со дня подписания акта приема-передачи или дня, когда работы в соответствии с Договором подряда считаются принятыми. С момента получения письменной претензии Заказчик обязуется приступить к исправлению выявленных недостатков в течение 30 рабочих дней.</p>
+
+<p class="clause"><span class="clause-num">7.6.</span>Если в период гарантийного срока обнаружатся недостатки или дефекты, то Подрядчик обязан устранить их за свой счет в сроки, согласованные Сторонами и зафиксированные в акте с перечнем выявленных недостатков и сроком их устранения. Гарантийный срок в этом случае соответственно продлевается на период устранения дефектов.</p>
+
+<!-- 8. ОТВЕТСТВЕННОСТЬ СТОРОН -->
+<h2 class="section"><span class="num">8.</span>Ответственность сторон</h2>
+
+<p class="clause"><span class="clause-num">8.1.</span>Подрядчик несет ответственность:</p>
+<p class="clause sub"><span class="clause-num">8.1.1.</span>За качество выполненных работ.</p>
+<p class="clause sub"><span class="clause-num">8.1.2.</span>За нарушение срока выполнения работ, предусмотренного п. 3.2 настоящего Договора, Заказчик вправе потребовать от Подрядчика уплаты пени в размере 0,1 % от стоимости просроченных работ соответствующего этапа за каждый день просрочки, но не более 10 % от стоимости работ по соответствующему этапу.</p>
+
+<p class="clause"><span class="clause-num">8.2.</span>Заказчик несет ответственность:</p>
+<p class="clause sub"><span class="clause-num">8.2.1.</span>За несвоевременную оплату по Договору Подрядчик вправе потребовать от Заказчика уплаты пени в размере 0,1 % от суммы, подлежащей оплате за каждый день просрочки, но не более 10 % от суммы, подлежащей оплате.</p>
+<p class="clause sub"><span class="clause-num">8.2.2.</span>В случае застревания транспорта, отсутствия подъездов к участку, а также отсутствия площадки, подготовленной для разгрузки материалов и оборудования, Заказчик оплачивает все эвакуационные, разгрузочные и другие работы, необходимые для выполнения условий Договора, но не являющиеся его предметом.</p>
+<p class="clause sub"><span class="clause-num">8.2.3.</span>В случае необходимости изменения Спецификации (Приложение № 1) или Чертежа и габаритов Объекта (Приложение № 2), выявленного в процессе сборки строения, Заказчик дополнительно оплачивает все издержки, связанные с этими изменениями.</p>
+<p class="clause sub"><span class="clause-num">8.2.4.</span>В случае простоя строительной бригады, вызванного прямо или косвенно действиями Заказчика, выразившихся в том числе, но не исключительно, в привлечении к выполнению каких бы то ни было работ одновременно с Подрядчиком третьих лиц без согласия Подрядчика, Заказчик обязан оплатить Подрядчику убытки, вызванные таким простоем, а также уплатить неустойку в размере 15 000 рублей за каждый рабочий день простоя бригады рабочих, привлеченной Подрядчиком для выполнения работ. При этом срок выполнения работ подлежит увеличению на количество дней, в течение которых Подрядчик не имел возможности выполнять работы в связи с такими действиями Заказчика.</p>
+
+<p class="clause"><span class="clause-num">8.3.</span>За нарушение иных обязанностей по настоящему Договору Стороны несут ответственность, установленную действующим законодательством Российской Федерации.</p>
+
+<!-- 9. РАЗРЕШЕНИЕ СПОРОВ -->
+<h2 class="section"><span class="num">9.</span>Разрешение споров</h2>
+
+<p class="clause"><span class="clause-num">9.1.</span>Все споры и разногласия, которые могут возникнуть между Сторонами по вопросам, не нашедшим своего разрешения в тексте настоящего Договора, будут разрешаться путем переговоров.</p>
+
+<p class="clause"><span class="clause-num">9.2.</span>При не урегулировании в процессе переговоров спорных вопросов, споры разрешаются в суде, по месту нахождения ответчика, в порядке, установленном действующим законодательством Российской Федерации.</p>
+
+<p class="clause"><span class="clause-num">9.3.</span>До передачи спора на разрешение суда Стороны примут меры к его урегулированию в претензионном порядке.</p>
+
+<p class="clause"><span class="clause-num">9.4.</span>Претензия должна быть направлена в письменном виде. По полученной претензии Сторона должна дать письменный ответ, по существу, в срок, не превышающий 30 рабочих дней с даты ее получения.</p>
+
+<p class="clause"><span class="clause-num">9.5.</span>Если претензионные требования подлежат денежной оценке, в претензии указывается истребуемая сумма и ее расчет.</p>
+
+<p class="clause"><span class="clause-num">9.6.</span>В подтверждение заявленных требований к претензии должны быть приложены надлежащим образом оформленные и заверенные необходимые документы либо выписки из них. В претензии могут быть указаны иные сведения, которые, по мнению Стороны, будут способствовать более быстрому и правильному ее рассмотрению, объективному урегулированию спора.</p>
+
+<!-- 10. ОБСТОЯТЕЛЬСТВА НЕПРЕОДОЛИМОЙ СИЛЫ -->
+<h2 class="section"><span class="num">10.</span>Обстоятельства непреодолимой силы</h2>
+
+<p class="clause"><span class="clause-num">10.1.</span>При возникновении обстоятельств чрезвычайного характера, таких как: наводнение, пожар, землетрясение и другие природные явления, а также война, военные действия, блокада, запретительные действия властей и акты государственных органов, забастовки, разрушение коммуникаций и энергоснабжения, взрывы, возникшие во время действия настоящего Договора изменение действующего законодательства, введение ограничительных мер из-за распространения коронавирусной либо иной инфекции, ограничения деятельности государственных органов, перевод работников на удаленный режим работы и т.д., а также иные обстоятельства, объективно находящиеся вне разумного контроля Сторон и которые Стороны не могли предвидеть, Стороны путем переговоров предпримут все возможные меры для завершения проекта, при необходимости, согласовав и заключив соответствующие дополнительные соглашения к настоящему Договору.</p>
+
+<p class="clause"><span class="clause-num">10.2.</span>К обстоятельствам чрезвычайного характера не относятся, в частности, нарушение обязательств со стороны контрагентов Сторон. К обстоятельствам непреодолимой силы относятся также погодные условия, препятствующие соблюдению технологических процессов в строительстве.</p>
+
+<p class="clause"><span class="clause-num">10.3.</span>При наступлении обстоятельств, указанных в п. 10.1 настоящего Договора, Сторона должна без промедления известить о них в письменном виде другую Сторону. Извещение должно содержать данные о характере обстоятельств, а также официальные документы, удостоверяющие наличие этих обстоятельств и, по возможности, дающие оценку их влияния на возможность исполнения Стороной своих обязательств по Договору.</p>
+
+<p class="clause"><span class="clause-num">10.4.</span>В случаях наступления обстоятельств, предусмотренных в п. 10.1 настоящего Договора, срок выполнения Стороной обязательств по настоящему Договору переносится соразмерно времени, в течение которого действовали такие обстоятельства и их последствия.</p>
+
+<!-- 11. ПЕРСОНАЛЬНЫЕ ДАННЫЕ -->
+<h2 class="section"><span class="num">11.</span>Согласие на обработку персональных данных</h2>
+
+<p class="clause"><span class="clause-num">11.1.</span>Принимая условия настоящего Договора, Заказчик дает свое согласие обработку Подрядчиком его персональных данных, под которыми понимается любая информация, относящаяся прямо или косвенно к Заказчику, в целях юридического, административного и функционального взаимодействия Заказчика и Подрядчика.</p>
+
+<p class="clause"><span class="clause-num">11.2.</span>Обработка Персональных данных включает в себя в том числе сбор, запись, систематизацию, накопление, хранение, уточнение, обновление, изменение, извлечение, использование, передачу (распространение, предоставление, доступ), обезличивание, блокирование, удаление, уничтожение информации.</p>
+
+<p class="clause"><span class="clause-num">11.3.</span>При обработке персональных данных, относящихся к любому сотруднику, клиенту, представителю, контрагенту или агенту Подрядчика, Заказчик обязан соблюдать обязательства, вытекающие из законодательства о защите персональных данных.</p>
+
+<p class="clause"><span class="clause-num">11.4.</span>Подрядчик вправе собирать и обрабатывать, в частности, следующие категории Персональных данных Заказчика:</p>
+<ul class="bullets">
+  <li>информация, предоставленная Заказчиком при заключении настоящего Договора, в частности, имя, фамилия, отчество, номер телефона, год, месяц и дата рождения, номер телефона, адрес электронной почты, адрес регистрации, сведения о постановке на налоговый учёт</li>
+  <li>электронные данные, в частности, HTTP-заголовки, IP-адрес, файлы cookie, веб-маяки/пиксельные теги, данные об идентификаторе браузера, информация об аппаратном и программном обеспечении</li>
+  <li>информация, размещенная Заказчиком при направлении сообщений и уведомлений Подрядчику</li>
+  <li>рекомендации Заказчика</li>
+  <li>банковские реквизиты Заказчика</li>
+  <li>содержание документов, удостоверяющих личность, а также иных документов, предоставляемых Заказчиком, и содержащих персональные данные</li>
+  <li>информация, относящаяся к любому уголовному разбирательству, в котором принимал участие Заказчик</li>
+  <li>иная информация Заказчика, необходимая для обработки в соответствии с условиями настоящего Договора.</li>
+</ul>
+
+<!-- 12. ЗАКЛЮЧИТЕЛЬНЫЕ -->
+<h2 class="section"><span class="num">12.</span>Заключительные положения</h2>
+
+<p class="clause"><span class="clause-num">12.1.</span>Настоящий Договор вступает в силу с даты его подписания Сторонами и действует до полного исполнения Сторонами обязательств по нему.</p>
+
+<p class="clause"><span class="clause-num">12.2.</span>Заказчик согласен предоставить Подрядчику беспрепятственный доступ для фото- и видеосъемки Объекта (без съемки участка целиком) во время строительства и настоящим также дает свое согласие на дальнейшее использования Подрядчиком таких фото и видео материалов по своему усмотрению, в том числе в виде их публикации в СМИ без указания местоположения и личных данных Заказчика.</p>
+
+<p class="clause"><span class="clause-num">12.3.</span>Все изменения и дополнения к настоящему Договору должны быть составлены в письменной форме и подписаны обеими Сторонами.</p>
+
+<p class="clause"><span class="clause-num">12.4.</span>Извещение Сторонами друг друга о различных обстоятельствах, возникающих в процессе исполнения настоящего Договора, в том числе, связанными с его изменением, расторжением или направлением для подписания соответствующих актов сдачи-приемки этапов работ, может производиться с помощью писем, курьером или по электронной почте по следующим адресам:</p>
+
+<div class="cells" style="--n:2"><div class="cell"><span class="k">Подрядчик</span><span class="x">vega.clientmail@gmail.com</span></div><div class="cell"><span class="k">Заказчик</span><span class="x"><span class="placeholder blank"></span></span></div></div>
+
+<p class="clause"><span class="clause-num">12.5.</span>Стороны в трехдневный срок информируют друг друга обо всех изменениях своих телефонных номеров, юридических, платежных реквизитов и других данных, которые могут повлиять на исполнение настоящего Договора. В случае нарушения этого условия сообщение Стороны по старому адресу или банковским реквизитам будет считаться выполненным в соответствии с Соглашением.</p>
+
+<p class="clause"><span class="clause-num">12.6.</span>Переписка Сторон в период после заключения Договора имеет юридическую силу. Переписка, а также любые переговоры, имевшие место до заключения настоящего Договора, теряют силу с момента заключения Договора.</p>
+
+<p class="clause"><span class="clause-num">12.7.</span>Во всем остальном, что не предусмотрено настоящим Договором, Стороны руководствуются действующим законодательством Российской Федерации.</p>
+
+<p class="clause"><span class="clause-num">12.8.</span>Договор составлен в двух экземплярах, по одному для каждой из Сторон.</p>
+
+<!-- 13. ПЕРЕЧЕНЬ ПРИЛОЖЕНИЙ -->
+<h2 class="section"><span class="num">13.</span>Перечень приложений</h2>
+
+<p class="clause">К Договору № <span class="placeholder">________</span> от <span class="placeholder">________</span> прилагаются следующие Приложения и являются неотъемлемой частью:</p>
+<ol class="lettered">
+  <li>Приложение № 1 (Спецификация)</li>
+  <li>Приложение № 2 (Визуализация и планировка)</li>
+  <li>Приложение № 3 (Правила эксплуатации)</li>
+  <li>Приложение № 4 (Акт выполненных работ).</li>
+</ol>
+
+<!-- 14. РЕКВИЗИТЫ -->
+<h2 class="section"><span class="num">14.</span>Адреса и реквизиты</h2>
+
+<div class="v1-two">
+  <div class="v1-party"><span class="ey">Подрядчик</span><dl class="rows">
+    <dt>Наименование</dt><dd class="name">ООО «ПСК ВЕГА»</dd>
+    <dt>ИНН</dt><dd>9702058720</dd>
+    <dt>ОГРН</dt><dd>1237700535049</dd>
+    <dt>КПП</dt><dd>770201001</dd>
+    <dt>Юр. адрес</dt><dd>107045, г. Москва, Вн. Тер. Г. Муниципальный округ Мещанский, пер. Колокольников, д. 24, стр. 3, помещ. 1/ц.</dd>
+    <dt>Телефон</dt><dd><a class="tel" href="tel:+74993482180">+7 499 348 2180</a></dd>
+    <dt>Эл. почта</dt><dd>vega.clientmail@gmail.com</dd>
+    <div class="sub">Банковские реквизиты</div>
+    <dt>Р/счёт</dt><dd>40702 810 5 3800 0516571</dd>
+    <dt>Банк</dt><dd>ПАО «Сбербанк»</dd>
+    <dt>К/счёт</dt><dd>30101 810 4 0000 0000225</dd>
+    <dt>БИК</dt><dd>044 525 225</dd>
+  </dl></div>
+  <div class="v1-party"><span class="ey">Заказчик</span><dl class="rows">
+    <dt>Ф. И. О.</dt><dd class="name"><span class="placeholder blank"></span></dd>
+    <dt>Дата рождения</dt><dd><span class="placeholder blank"></span></dd>
+    <dt>Адрес регистрации</dt><dd><span class="placeholder blank"></span></dd>
+    <dt>Телефон</dt><dd><span class="placeholder blank"></span></dd>
+    <dt>Эл. почта</dt><dd><span class="placeholder blank"></span></dd>
+    <div class="sub">Паспортные данные</div>
+    <dt>Паспорт</dt><dd><span class="placeholder blank"></span></dd>
+    <dt>Когда выдан</dt><dd><span class="placeholder blank"></span></dd>
+    <dt>Кем выдан</dt><dd><span class="placeholder blank"></span></dd>
+    <dt>Код подразделения</dt><dd><span class="placeholder blank"></span></dd>
+  </dl></div>
+</div>
+<div class="v1-sign">
+  <div><div class="line"></div><div class="who"><span>Баранов Г.Н.</span><span>подпись, М.П.</span></div></div>
+  <div><div class="line"></div><div class="who"><span>&nbsp;</span><span>подпись</span></div></div>
+</div>
+</div></body></html>
