@@ -9,9 +9,10 @@
 открытым пресетом в «Моих» — серой.
 
 Проба держит, на 390 и 1440, в «Бирюзовом», «Зелёном-графите» и «Сливе», днём и
-ночью: точка на кнопке «Пресеты», точки «Активного» на всех вкладках окна,
-точка перед открытым пресетом в «Моих» и в «Общих» — одного цвета, и он равен
-цвету схемы (--green-mid), а не серому.
+ночью: точки «Активного» на всех вкладках окна, точка перед открытым пресетом
+в «Моих» и в «Общих» — одного цвета, и он равен цвету схемы (--green-mid), а
+не серому. На кнопке «Пресеты» точки нет вовсе: открытый пресет показывает
+мини-окно (Константин, 30.09.2026: «индикатор с выбранного пресета убери»).
 
     python3 check_active_dot.py
 """
@@ -33,7 +34,8 @@ from playwright.sync_api import sync_playwright
   const схема = getComputedStyle(s).color; s.remove();
   const точкаМоих = [...document.querySelectorAll('#presetPanel .pcard.pcard-active .pcard-name > span')].find(э => э.textContent === '●');
   const точкаОбщих = [...document.querySelectorAll('#presetPanel .shared-pcard.pcard-active .shared-pcard-name > span')].find(э => э.textContent === '●');
-  return { схема, кнопка: цвет(document.querySelector('#presetDot.on')),
+  const кн = document.getElementById('presetsBtn');
+  return { схема, кнопкаТочек: кн ? [...кн.querySelectorAll('*')].filter(э => { const р = э.getBoundingClientRect(); return р.width > 0 && р.width <= 8 && Math.abs(р.width - р.height) < 1 && getComputedStyle(э).borderRadius.startsWith('50%'); }).length + (кн.querySelector('#presetDot, .preset-dot') ? 1 : 0) : 0,
            активный: [...document.querySelectorAll('#presetPanel .ptb-dot')].map(цвет),
            мои: цвет(точкаМоих), общие: цвет(точкаОбщих) };
 }"""
@@ -80,7 +82,9 @@ def прогон(бр, порт, ш):
                 _activeSharedCode = '777888'; updateSharedModeIndicator(); switchPresetTab('shared'); }""")
             стр.wait_for_timeout(900)
             с["общие"] = стр.evaluate(ЦВЕТА)["общие"]
-            точки = {"кнопка «Пресеты»": с["кнопка"], "открытый в «Моих»": с["мои"], "открытый в «Общих»": с["общие"]}
+            if с["кнопкаТочек"]:
+                НАХОДКИ.append(f"{н} на кнопке «Пресеты» при открытом пресете стоит точка")
+            точки = {"открытый в «Моих»": с["мои"], "открытый в «Общих»": с["общие"]}
             for i, ц in enumerate(с["активный"]):
                 точки[f"«Активный» №{i + 1}"] = ц
             нет = [к for к, ц in точки.items() if ц is None]
@@ -110,8 +114,8 @@ def главная():
         for н in НАХОДКИ:
             print("  ✗", н)
         raise SystemExit(1)
-    print("Чисто: точка открытого пресета — на кнопке «Пресеты», у «Активного» на всех вкладках, в «Моих» и «Общих» — "
-          "одного цвета, цвета схемы, в трёх схемах днём и ночью, на 390 и 1440.")
+    print("Чисто: точка открытого пресета — у «Активного» на всех вкладках, в «Моих» и «Общих» — одного цвета, цвета "
+          "схемы; на кнопке «Пресеты» точки нет — в трёх схемах днём и ночью, на 390 и 1440.")
 
 
 if __name__ == "__main__":
