@@ -1,0 +1,8 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{background:#888;margin:0}</style>
+<script src="jszip.min.js"></script><script src="docx-preview.min.js"></script></head><body><div id="c"></div>
+<script>
+(async () => { const f = new URLSearchParams(location.search).get('f') || 'dog-1.docx';
+  const b = await (await fetch(f)).blob();
+  try { await docx.renderAsync(b, document.getElementById('c'), null, { inWrapper: true, ignoreFonts: false, experimental: true }); window.__ok = true; }
+  catch (e) { window.__err = String(e.stack || e); } })();
+</script></body></html>
