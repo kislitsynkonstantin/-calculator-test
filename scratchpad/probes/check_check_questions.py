@@ -10,8 +10,8 @@
   • каждый вопрос — кнопка со стрелкой, а не простая плашка; текст и стрелка
     не вылезают за карточку, высота нажатия не меньше 32 px;
   • нажатие закрывает карточку и ведёт:
-      визуализация — к блоку «Визуализация и планировка», рамкой вокруг;
-      скидка за наличные — к отметке «за наличные», рамкой вокруг;
+      визуализация — к блоку «Визуализация и планировка», заливкой его заголовка;
+      скидка за наличные — к отметке «за наличные», плашкой вокруг;
       тип отопления — к шапке раздела «Инженерные коммуникации»;
       Blitz 60 — к строке окон Blitz 60 (первой отмеченной);
       котёл — к строке котла;
@@ -28,7 +28,7 @@ from playwright.sync_api import sync_playwright
 НАХОДКИ = []
 # (начало вопроса, как проверить место: ('эл', id, класс) или ('раздел', ключ))
 ВОПРОСЫ = [
-    ("Добавить два вида визуализации", ("эл", "imageCanvasCard", "pc-flash-box")),
+    ("Добавить два вида визуализации", ("сел", "#imageCanvasCard .card-title", "pc-flash-row")),
     ("Скидка за наличные", ("эл", "cashDiscountLabel", "pc-flash-box")),
     ("Тип отопления", ("раздел", "engineering")),
     ("Окна Blitz 60", ("текст", "blitz\\s*60", "pc-flash-row")),
@@ -41,6 +41,7 @@ from playwright.sync_api import sync_playwright
 МЕСТО = """([вид, ид, класс]) => {
   let э = null;
   if (вид === 'эл') э = document.getElementById(ид);
+  else if (вид === 'сел') э = document.querySelector(ид);
   else if (вид === 'текст') э = [...document.querySelectorAll('.opt-item.pc-flash-row')].find(х => new RegExp(ид, 'i').test(х.textContent)) || null;
   else { const о = document.getElementById('sec_opts_' + ид); э = о && о.closest('.card') && о.closest('.card').querySelector('.section-header'); }
   if (!э) return null;

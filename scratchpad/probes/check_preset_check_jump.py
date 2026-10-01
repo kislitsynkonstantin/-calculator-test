@@ -12,8 +12,13 @@
     пробное бурение → «Пробное бурение», водосток → опция водосточной
     системы, Rockwool в своём примечании → это примечание;
   • нажатие закрывает мини-окно, строка встаёт целиком между липкой шапкой и
-    полоской итога и подсвечивается рамкой, чья левая сторона — продолжение
-    полоски выбранных строк: там же, той же толщины и того же цвета;
+    полоской итога и подсвечивается гаснущей заливкой — вариант 01 макета
+    jump-highlight-v1, нейтральным цветом (Константин, 30.09.2026: «давай вот
+    этот — цвет нейтральный»): заливка под текстом, без рамки и обводки, от
+    полоски выбранных строк (left −8 px), цвет один в любом тоне; на кадре
+    строка заметно светлее (ночью) или темнее (днём), чем после угасания, а
+    через три секунды подсветки нет; при «Уменьшении движения» — без
+    растворения;
   • строки нет (адрес пустой или неверный) — переход, как прежде, к шапке
     раздела.
 
@@ -71,19 +76,40 @@ def прогон(бр, порт, ш, в):
             НАХОДКИ.append(f"{н} «{текст}»: строка не подсвечена")
         if текст == "пробное бурение":
             стр.screenshot(path=str(м.СНИМКИ / f"check-jump-{ш}.png"))
-            # Рамка и полоска выбранных строк — одна прямая: левая сторона рамки
-            # там же, той же толщины и того же цвета, что полоска соседа сверху.
-            л = стр.evaluate("""(ид) => { const э = document.getElementById(ид), р = getComputedStyle(э, '::after');
-              const сосед = [...э.parentElement.querySelectorAll('.opt-item.active')].filter(x => x !== э).pop();
-              if (!сосед) return { нетСоседа: true };
-              const п = getComputedStyle(сосед, '::before'), rэ = э.getBoundingClientRect(), rс = сосед.getBoundingClientRect();
-              return { рамкаX: Math.round(rэ.left + parseFloat(р.left)), полоскаX: Math.round(rс.left + parseFloat(п.left)),
-                       рамкаТ: р.borderLeftWidth, полоскаТ: п.width, рамкаЦ: р.borderLeftColor, полоскаЦ: п.backgroundColor,
-                       обводка: getComputedStyle(э).outlineStyle, есть: р.content !== 'none' }; }""", ид)
-            if л.get("нетСоседа"):
-                НАХОДКИ.append(f"{н} над пробным бурением нет выбранной строки — совпадение с полоской не проверено")
-            elif not л["есть"] or л["рамкаX"] != л["полоскаX"] or л["рамкаТ"] != л["полоскаТ"] or л["рамкаЦ"] != л["полоскаЦ"] or л["обводка"] not in ("none", ""):
-                НАХОДКИ.append(f"{н} рамка строки не продолжает полоску выбранных: {л}")
+            # Заливка: под текстом, без рамки, от полоски выбранных строк, цвет нейтральный.
+            ЗАЛИВКА = """(ид) => { const э = document.getElementById(ид), р = getComputedStyle(э, '::after');
+              return { есть: р.content !== 'none', фон: р.backgroundImage, рамка: р.borderLeftWidth, слой: р.zIndex, изоляция: getComputedStyle(э).isolation,
+                       лево: р.left, анимация: р.animationName, обводка: getComputedStyle(э).outlineStyle,
+                       цвет: getComputedStyle(document.body).getPropertyValue('--jump-hl').trim() }; }"""
+            л = стр.evaluate(ЗАЛИВКА, ид)
+            if not л["есть"] or "gradient" not in л["фон"] or л["рамка"] not in ("0px", "") or л["слой"] != "-1" \
+                    or л["изоляция"] != "isolate" or л["лево"] != "-8px" or л["анимация"] != "pcJump" or л["обводка"] not in ("none", ""):
+                НАХОДКИ.append(f"{н} подсветка строки не гаснущая заливка под текстом: {л}")
+            if л["цвет"].lower() != "#5f635c":
+                НАХОДКИ.append(f"{н} цвет подсветки днём «{л['цвет']}», ждали нейтральный #5f635c")
+            # Тон и тема не меняют цвет: нейтральный — один на все.
+            фоны = стр.evaluate("""(ид) => { const э = document.getElementById(ид), было = document.documentElement.dataset.tone, о = [];
+              for (const т of ['sky', 'bmsk', 'amber']) { document.documentElement.dataset.tone = т; о.push(getComputedStyle(э, '::after').backgroundImage); }
+              if (было) document.documentElement.dataset.tone = было; else delete document.documentElement.dataset.tone; return о; }""", ид)
+            if len(set(фоны + [л["фон"]])) != 1:
+                НАХОДКИ.append(f"{н} цвет подсветки меняется с тоном: {фоны}")
+            # Видно на кадре: яркость поля строки слева сейчас и после угасания.
+            import io
+            from PIL import Image
+            def яркость():
+                r = стр.evaluate("(ид) => { const q = document.getElementById(ид).getBoundingClientRect(); return { x: q.left + 2, y: q.top + q.height / 2 }; }", ид)
+                к_ = Image.open(io.BytesIO(стр.screenshot(clip={"x": max(0, r["x"]), "y": r["y"] - 2, "width": 6, "height": 4}))).convert("L")
+                пк = к_.tobytes(); return sum(пк) / len(пк)
+            сейчас = яркость(); стр.wait_for_timeout(2600); потом = яркость()
+            if abs(сейчас - потом) < 6:
+                НАХОДКИ.append(f"{н} подсветку не видно на кадре: яркость поля строки {сейчас:.1f} против {потом:.1f} после угасания")
+            if стр.evaluate("(ид) => document.getElementById(ид).classList.contains('pc-flash-row')", ид):
+                НАХОДКИ.append(f"{н} через три секунды строка всё ещё с подсветкой")
+            стр.emulate_media(reduced_motion="reduce")
+            тихо = стр.evaluate("(ид) => { const э = document.getElementById(ид); э.classList.add('pc-flash-row'); const а = getComputedStyle(э, '::after').animationName; э.classList.remove('pc-flash-row'); return а; }", ид)
+            стр.emulate_media(reduced_motion="no-preference")
+            if тихо != "pcJumpStill":
+                НАХОДКИ.append(f"{н} при «Уменьшении движения» анимация «{тихо}», ждали «pcJumpStill»")
     # Строки нет — к шапке раздела.
     стр.evaluate("() => { window.scrollTo(0, 0); кРазделуИзПроверки('roof', 'lbl_нет_такой'); }"); стр.wait_for_timeout(1100)
     шапка = стр.evaluate("""() => { const э = document.getElementById('sec_opts_roof'); const ш = э && э.closest('.card') && э.closest('.card').querySelector('.section-header');
@@ -111,7 +137,7 @@ def главная():
             print("  ✗", н)
         raise SystemExit(1)
     print("Чисто: замечание ведёт прямо к строке — опции или своему примечанию, — мини-окно закрывается, строка встаёт "
-          "между шапкой и полоской итога и подсвечивается; без строки — к шапке раздела, как прежде — на 390 и 1440.")
+          "между шапкой и полоской итога и подсвечивается нейтральной гаснущей заливкой под текстом; без строки — к шапке раздела, как прежде — на 390 и 1440.")
 
 
 if __name__ == "__main__":

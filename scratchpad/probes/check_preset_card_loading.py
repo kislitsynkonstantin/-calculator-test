@@ -40,6 +40,11 @@ from playwright.sync_api import sync_playwright
     total_price: 3200000, details: { presetCode: код, preset: 'Проба', rows: [] } });
   _журналПресета = { код: '', события: null, ошибка: '', грузится: false, когда: 0 };
   _сводкаПресета = { код: '', данные: null, ошибка: '', грузится: false, когда: 0 };
+  // Функция базы preset_events в заглушке отвечает мгновенно, а имена авторов
+  // после подгрузки при открытии (48) уже известны — без задержки и на ней
+  // момента «до ответа» не было бы вовсе.
+  if (!window.__событияБезЗадержки) window.__событияБезЗадержки = window.__RPC.preset_events;
+  window.__RPC.preset_events = (а) => new Promise(r => setTimeout(() => r(window.__событияБезЗадержки(а)), window.__ЗАДЕРЖКА || 0));
   window.__ЗАДЕРЖКА = 2500; }"""
 
 МЕРА = """(в) => { const к = document.getElementById('presetChipCard'), п = к.querySelector('#pcPane-' + в);
