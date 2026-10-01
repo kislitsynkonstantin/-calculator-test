@@ -1272,6 +1272,46 @@ dl.rows.num>dd small{font-family:'Geologica',sans-serif;font-weight:500;font-siz
   .g2>.t.a{border-bottom:2px solid var(--bl-acc);padding-bottom:.6em}
 }
 }
+
+/* ── Вкладка «Участок и объект» ── */
+#objVars .page{margin-top:6px}
+.o-cap{display:block;font-size:.66em;letter-spacing:.1em;text-transform:uppercase;color:var(--bl-ink3);font-weight:500;margin-bottom:.25em}
+.o-val{display:block;font-weight:500;min-height:1.5em;overflow-wrap:anywhere}
+.o-val:empty{border-bottom:1px solid var(--bl-rule2);width:100%}
+/* 01 две колонки */
+.o1{display:grid;grid-template-columns:1fr 1fr;gap:0 2.4em;margin:.8em 0 1.1em}
+.o1>div>.ey{display:block;padding-bottom:.55em;border-bottom:2px solid var(--bl-acc)}
+.o1 .it{padding:.6em 0 .65em;border-bottom:1px solid var(--bl-rule)}
+/* 02 ячейки 2×2 */
+.o2{margin:.8em 0 1.1em;border-top:1px solid var(--bl-rule)}
+.o2 .row{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--bl-rule)}
+.o2 .c{padding:.8em 1.2em .85em 0;min-width:0}.o2 .c+.c{padding-left:1.2em;border-left:1px solid var(--bl-rule)}
+.o2 .o-val{font-family:'Unbounded',sans-serif;font-weight:600;font-size:1em;line-height:1.35}
+.o2 .o-val:empty{width:80%}
+/* 03 отточие */
+.o3{margin:.8em 0 1.1em}
+.o3 .sub{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.6em;letter-spacing:.14em;text-transform:uppercase;color:var(--bl-small);margin:1em 0 .2em}
+.o3 .sub:first-child{margin-top:0}
+.o3 .ln{display:flex;align-items:baseline;gap:.5em;padding:.38em 0}
+.o3 .ln .k{flex:none;color:var(--bl-ink2)}
+.o3 .ln .dots{flex:1 1 2em;min-width:2em;border-bottom:1px dotted var(--bl-ink3);transform:translateY(-.25em)}
+.o3 .ln .v{flex:0 1 auto;max-width:62%;text-align:right;font-weight:500}
+/* 04 паспорт объекта */
+.o4{margin:.9em 0 1.1em}
+.o4 .ey{display:block;margin-bottom:.4em}
+.o4 .name{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.3em;line-height:1.25;color:var(--bl-ink);margin:0 0 .6em}
+.o4 .spec{display:flex;gap:2.2em;padding:.2em 0 .9em;border-bottom:2px solid var(--bl-acc)}
+.o4 .spec b{display:block;font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.6em;line-height:1.05;color:var(--bl-acc)}
+.o4 .spec span{display:block;color:var(--bl-ink2);font-size:.86em;margin-top:.25em}
+.o4 .plot{display:grid;grid-template-columns:1.6fr 1fr;gap:0 1.4em;padding:.8em 0 .85em;border-bottom:1px solid var(--bl-rule)}
+.o4 .plot>div+div{padding-left:1.4em;border-left:1px solid var(--bl-rule)}
+@media (max-width:600px){
+  .o1{grid-template-columns:1fr;gap:1.4em}
+  .o2 .row{grid-template-columns:1fr}.o2 .c+.c{padding-left:0;border-left:0;border-top:1px solid var(--bl-rule)}
+  .o3 .ln{flex-wrap:wrap;gap:0 .5em}.o3 .ln .dots{display:none}.o3 .ln .k{flex:1 1 100%;font-size:.86em}.o3 .ln .v{max-width:none;text-align:left}
+  .o3 .ln .v:empty{flex:1 1 100%;border-bottom:1px solid var(--bl-rule2);min-height:1.4em}
+  .o4 .plot{grid-template-columns:1fr;gap:.8em}.o4 .plot>div+div{padding-left:0;border-left:0}
+}
 .mk-word{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 13px;border:0;border-radius:8px;background:var(--bl-ink);color:#fff;
   font:600 12.5px 'Geologica',sans-serif;cursor:pointer;white-space:nowrap}
 .mk-word svg{width:15px;height:15px;flex:none}
@@ -1285,7 +1325,7 @@ dl.rows.num>dd small{font-family:'Geologica',sans-serif;font-weight:500;font-siz
 <body class="blank-mode">
 <div class="mk-bar">
   <span class="mk-t">Договор · блоки, сборка</span>
-  <span class="mk-seg" id="segV"><button type="button" data-v="0" aria-pressed="true">Договор</button><button type="button" data-v="1">Платежи · 4 варианта</button></span>
+  <span class="mk-seg" id="segV"><button type="button" data-v="0" aria-pressed="true">Договор</button><button type="button" data-v="1">Платежи · 4 варианта</button><button type="button" data-v="2">Участок и объект · 4</button></span>
   <span class="mk-seg" id="segF">
     <button type="button" data-f="0" aria-pressed="true">Заказчик пусто</button><button type="button" data-f="1">Заполнено</button>
   </span>
@@ -1296,6 +1336,7 @@ dl.rows.num>dd small{font-family:'Geologica',sans-serif;font-weight:500;font-siz
 <p class="mk-msg" id="msg" role="status" hidden></p>
 <div class="page" id="sheet"></div>
 <div id="payVars" hidden></div>
+<div id="objVars" hidden></div>
 
 <script>
 
@@ -1409,13 +1450,36 @@ function вариантыПлатежей() {
     раздел('2.', 'Цена и порядок оплаты') + П22() + x[2] + '</div>'; }).join('');
 }
 
+function вариантыОбъекта() {
+  var адр = з('участок'), кад = з('кадастр');
+  function пп(к, в) { return '<span class="o-cap">' + к + '</span><span class="o-val">' + (в || '') + '</span>'; }
+  var в = [];
+  в.push(['01 Две колонки', 'Участок и объект рядом, каждый под своей чертой; подпись поля мелко над значением, строки разделены волосяной линейкой.',
+    '<div class="o1"><div><span class="ey">Участок</span><div class="it">' + пп('Адрес', адр) + '</div><div class="it">' + пп('Кадастровый номер', кад) + '</div></div>' +
+    '<div><span class="ey">Объект</span><div class="it">' + пп('Тип объекта', ОБ.тип) + '</div><div class="it">' + пп('Размер строения', ОБ.размер) + '</div></div></div>']);
+  в.push(['02 Ячейки, как часы работы', 'Тот же язык, что у рабочего времени и адресов почты, которые тебе понравились: четыре ячейки, значение крупно, подпись над ним.',
+    '<div class="o2"><div class="row"><div class="c">' + пп('Адрес участка', адр) + '</div><div class="c">' + пп('Кадастровый номер', кад) + '</div></div>' +
+    '<div class="row"><div class="c">' + пп('Тип объекта', ОБ.тип) + '</div><div class="c">' + пп('Размер строения', ОБ.размер) + '</div></div></div>']);
+  в.push(['03 С отточием', 'Строки анкеты: подпись слева, значение справа, между ними пунктир. Пустое поле — пунктир до края, место для записи от руки.',
+    '<div class="o3"><div class="sub">Участок</div><div class="ln"><span class="k">Адрес</span><span class="dots"></span><span class="v">' + адр + '</span></div>' +
+    '<div class="ln"><span class="k">Кадастровый номер</span><span class="dots"></span><span class="v">' + кад + '</span></div>' +
+    '<div class="sub">Объект</div><div class="ln"><span class="k">Тип объекта</span><span class="dots"></span><span class="v">' + ОБ.тип + '</span></div>' +
+    '<div class="ln"><span class="k">Размер строения</span><span class="dots"></span><span class="v">' + ОБ.размер + '</span></div></div>']);
+  в.push(['04 Паспорт объекта', 'Главное — что строим: название крупно, под ним размеры и площадь цифрами; участок — строкой ниже, двумя полями.',
+    '<div class="o4"><span class="ey">Объект</span><div class="name">' + ОБ.тип + '</div><div class="spec"><div><b>7×9 м</b><span>размер строения</span></div><div><b>63 м²</b><span>площадь</span></div></div>' +
+    '<div class="plot"><div>' + пп('Адрес участка', адр) + '</div><div>' + пп('Кадастровый номер', кад) + '</div></div></div>']);
+  return в.map(function (x) { return '<div class="pv-head"><b>' + x[0] + '</b><span>' + x[1] + '</span></div><div class="page">' +
+    раздел('1.', 'Предмет договора') + пункт('1.1.', Т11) + x[2] + '</div>'; }).join('');
+}
+
 function отрисовать() {
   document.documentElement.setAttribute('data-tone', сост.t === 'teal' ? '' : сост.t);
   document.getElementById('sheet').innerHTML = лист();
-  var вкл = сост.v === 1, пв = document.getElementById('payVars');
-  пв.hidden = !вкл; document.getElementById('sheet').hidden = вкл; document.getElementById('noteDog').hidden = вкл;
-  document.getElementById('segF').style.display = вкл ? 'none' : ''; document.getElementById('btnDrive').style.display = вкл ? 'none' : '';
-  if (вкл) пв.innerHTML = вариантыПлатежей();
+  var пв = document.getElementById('payVars'), ов = document.getElementById('objVars'), лст = сост.v === 0 || !сост.v;
+  пв.hidden = сост.v !== 1; ов.hidden = сост.v !== 2; document.getElementById('sheet').hidden = !лст; document.getElementById('noteDog').hidden = !лст;
+  document.getElementById('segF').style.display = сост.v === 1 ? 'none' : ''; document.getElementById('btnDrive').style.display = лст ? '' : 'none';
+  if (сост.v === 1) пв.innerHTML = вариантыПлатежей();
+  if (сост.v === 2) ов.innerHTML = вариантыОбъекта();
   document.querySelectorAll('#segV button').forEach(function (б) { б.setAttribute('aria-pressed', String(+б.dataset.v === сост.v)); });
   document.querySelectorAll('#segF button').forEach(function (б) { б.setAttribute('aria-pressed', String(+б.dataset.f === сост.f)); });
   var л = document.querySelector('.logo'); if (л) { л.onerror = function () { this.onerror = null; this.src = ЛОГО; }; л.src = адресЛого(); }
