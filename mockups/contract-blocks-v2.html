@@ -1212,6 +1212,66 @@ dl.rows.num>dd small{font-family:'Geologica',sans-serif;font-weight:500;font-siz
 .pay2 tr.tot td.t{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.7em;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-ink2);padding-top:1.1em}
 .pay2 tr.tot .s{color:var(--bl-acc);font-size:1.1em}
 @media (max-width:600px){.pay2 td.n{width:1.8em;font-size:1em}.pay2 td.r{width:7.6em}.pay2 .s{font-size:.88em}}
+
+/* ── Вкладка «Платежи»: четыре варианта графика ── */
+.pv-head{max-width:210mm;margin:22px auto 8px;padding:0 12px;font-family:'Geologica',sans-serif}
+.pv-head b{font-family:'Unbounded',sans-serif;font-weight:600;font-size:14px;color:var(--bl-ink)}
+.pv-head span{display:block;margin-top:3px;font-size:13px;line-height:1.5;color:var(--bl-ink2)}
+#payVars .page{margin-top:6px}
+.amt{font-family:'Unbounded',sans-serif;font-weight:600;color:var(--bl-ink);white-space:nowrap}
+.amt small{font-family:'Geologica',sans-serif;font-weight:500;font-size:.82em;color:var(--bl-ink2);margin-left:.25em}
+.lbl{display:block;font-family:'Unbounded',sans-serif;font-weight:600;font-size:.6em;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-ink2);margin-bottom:.35em}
+.words{display:block;font-size:.8em;line-height:1.4;color:var(--bl-ink3);margin-top:.2em;white-space:normal}
+/* 01: как в договоре — «Платёж № 1 | сумма | срок» */
+.g1{display:grid;grid-template-columns:7.5em 11em 1fr;margin:.5em 0 1.1em}
+.g1>div{padding:.6em 1.2em .6em 0;border-bottom:1px solid var(--bl-rule)}
+.g1>.h{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.6em;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-ink2);border-bottom:2px solid var(--bl-acc);padding:0 1.2em .8em 0}
+.g1 .no{color:var(--bl-ink2)}
+.g1>.t{padding-top:.9em;border-bottom:2px solid var(--bl-acc);font-family:'Unbounded',sans-serif;font-weight:600;font-size:.62em;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-ink2)}
+.g1>.ta{padding-top:.75em;border-bottom:2px solid var(--bl-acc)}
+.g1>.ta .amt{color:var(--bl-acc)}
+/* 02: номер крупно, сумма вплотную к нему, срок справа */
+.g2{display:grid;grid-template-columns:2.4em 10.5em 1fr;margin:.5em 0 1.1em}
+.g2>div{padding:.6em 1.2em .6em 0;border-bottom:1px solid var(--bl-rule)}
+.g2>.h{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.6em;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-ink2);border-bottom:2px solid var(--bl-acc);padding:0 1.2em .8em 0;align-self:end}
+.g2 .n{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.25em;line-height:1.15;padding-top:.4em!important;color:var(--bl-pale)}
+.g2 .a{text-align:right}
+.g2 .amt{font-size:1.02em}
+.g2>.t{border-bottom:2px solid var(--bl-acc);padding-top:.85em}
+.g2>.t.l,.g4>.t.l{white-space:nowrap;font-family:'Unbounded',sans-serif;font-weight:600;font-size:.62em;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-ink2)}
+.g2>.t .amt{color:var(--bl-acc);font-size:1.12em}
+/* 03: этапы на линии */
+.g3{margin:.8em 0 1.1em;padding:0;list-style:none;position:relative}
+.g3 li{display:grid;grid-template-columns:2.2em 1fr;column-gap:1em;position:relative;padding-bottom:1.15em}
+.g3 li::before{content:'';position:absolute;left:1.1em;top:2.2em;bottom:0;width:2px;margin-left:-1px;background:var(--bl-rule2)}
+.g3 li:last-child::before{display:none}
+.g3 .dot{width:2.2em;height:2.2em;border-radius:50%;border:2px solid var(--bl-acc);display:flex;align-items:center;justify-content:center;font-family:'Unbounded',sans-serif;font-weight:700;font-size:.82em;color:var(--bl-acc);background:var(--bl-sheet);box-sizing:border-box}
+.g3 .amt{display:block;font-size:1.15em;padding-top:.2em}
+.g3 .tm{display:block;color:var(--bl-ink2);margin-top:.15em}
+.g3 li.tot{padding-bottom:0;padding-top:.5em;border-top:2px solid var(--bl-acc)}
+.g3 li.tot .dot{border:0;font-size:.62em;letter-spacing:.12em;color:var(--bl-ink2);width:auto;justify-content:flex-start}
+.g3 li.tot .amt{color:var(--bl-acc);font-size:1.25em}
+/* 04: сумма цифрами и прописью */
+.g4{display:grid;grid-template-columns:2.4em minmax(12em,1fr) 1fr;margin:.5em 0 1.1em}
+.g4>div{padding:.65em 1.2em .65em 0;border-bottom:1px solid var(--bl-rule)}
+.g4>.h{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.6em;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-ink2);border-bottom:2px solid var(--bl-acc);padding:0 1.2em .8em 0;align-self:end}
+.g4 .n{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.2em;line-height:1.15;padding-top:.45em!important;color:var(--bl-pale)}
+.g4>.t{border-bottom:2px solid var(--bl-acc);padding-top:.85em}
+.g4>.t.l{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.62em;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-ink2)}
+.g4>.t .amt{color:var(--bl-acc)}
+@media (max-width:600px){
+  #segV{display:inline-flex!important;width:auto!important}
+  .g1,.g2,.g4{grid-template-columns:auto 1fr}
+  .g1>.h3,.g2>.h3,.g4>.h3,.g1>.ta:last-child,.g2>.t:last-child,.g4>.t:last-child{display:none}
+  .g1 .no,.g2 .n,.g4 .n{grid-row:span 2}
+  .g1 .no{white-space:nowrap;font-size:.9em;padding-right:1em}
+  .g1 .am,.g2 .a,.g4 .a{border-bottom:0;padding-bottom:.15em;text-align:left}
+  .g1 .tm,.g2 .tm,.g4 .tm{grid-column:2;padding-top:0}
+  .g2>.h.a{text-align:left}
+  .g2>.h,.g4>.h{align-self:stretch}
+  .g2>.t.a{border-bottom:2px solid var(--bl-acc);padding-bottom:.6em}
+}
+}
 .mk-word{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 13px;border:0;border-radius:8px;background:var(--bl-ink);color:#fff;
   font:600 12.5px 'Geologica',sans-serif;cursor:pointer;white-space:nowrap}
 .mk-word svg{width:15px;height:15px;flex:none}
@@ -1225,15 +1285,17 @@ dl.rows.num>dd small{font-family:'Geologica',sans-serif;font-weight:500;font-siz
 <body class="blank-mode">
 <div class="mk-bar">
   <span class="mk-t">Договор · блоки, сборка</span>
+  <span class="mk-seg" id="segV"><button type="button" data-v="0" aria-pressed="true">Договор</button><button type="button" data-v="1">Платежи · 4 варианта</button></span>
   <span class="mk-seg" id="segF">
     <button type="button" data-f="0" aria-pressed="true">Заказчик пусто</button><button type="button" data-f="1">Заполнено</button>
   </span>
   <select class="mk-sel" id="selT" aria-label="Цветовая схема"></select>
   <button type="button" class="mk-word" id="btnDrive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 3.5h7l6 10.5-3.5 6H6L2.5 14z"/><path d="M8.5 3.5 15 14.5H2.5M15.5 3.5 9 14.5l-3 5.5M21.5 14H9"/></svg>Сохранить на Google Диск</button>
 </div>
-<p class="mk-note">Стороны, объект и реквизиты — из 01 «Ведомость», платежи — графиком с долей каждого в цене, рабочее время и адреса почты — из 03 «Крупно», гарантия — шкалой из 02. «Сохранить на Google Диск» кладёт этот лист в ваш Google Диск Google Документом: текст и таблицы в нём правятся, шкала гарантии лежит картинкой; скачать в Word или PDF можно уже оттуда.</p>
+<p class="mk-note" id="noteDog">Стороны, объект и реквизиты — из 01 «Ведомость», платежи — графиком с долей каждого в цене, рабочее время и адреса почты — из 03 «Крупно», гарантия — шкалой из 02. «Сохранить на Google Диск» кладёт этот лист в ваш Google Диск Google Документом: текст и таблицы в нём правятся, шкала гарантии лежит картинкой; скачать в Word или PDF можно уже оттуда.</p>
 <p class="mk-msg" id="msg" role="status" hidden></p>
 <div class="page" id="sheet"></div>
+<div id="payVars" hidden></div>
 
 <script>
 
@@ -1247,7 +1309,7 @@ var ЗП = { фио: 'Иванов Пётр Сергеевич', паспорт:
   адрес: 'г. Москва, ул. Лесная, д. 7, кв. 12', тел: '+7 900 000 00 00', почта: 'p.ivanov@example.ru', кратко: 'Иванов П.С.',
   участок: 'Московская обл., г.о. Истра, д. Борисово, уч. 15', кадастр: '50:08:0040210:123' };
 var ОБ = { тип: 'Фахверковая баня «Гранада» 7×9', размер: '7×9 м, 63 кв. м' };
-var сост = { f: 0, t: 'bmsk' };
+var сост = { v: 0, f: 0, t: 'bmsk' };
 try { var с = JSON.parse(localStorage.getItem('dogBlocks2') || 'null'); if (с) сост = Object.assign(сост, с); } catch (e) {}
 
 function з(к) { return сост.f ? ЗП[к] : ''; }
@@ -1299,16 +1361,62 @@ function лист() {
   h += '<div class="v1-sign"><div><div class="line"></div><div class="who"><span>' + П.кратко + '</span><span>подпись, М.П.</span></div></div><div><div class="line"></div><div class="who"><span>' + (з('кратко') || '&nbsp;') + '</span><span>подпись</span></div></div></div>';
   return h;
 }
-var ПЛАТЕЖИ = [[1131173, 'задаток в день подписания Договора'], [420000, 'задаток за работы по монтажу фундамента в день подписания Договора'], [754116, 'задаток в день заезда бригады и начала строительных работ'],
-  [754116, 'задаток в день окончания каркасных работ'], [377058, 'задаток в день окончания кровельных работ (без водосточной системы)'], [334115, 'задаток в день окончания работ по утеплению и монтажу пленок']];
+var ПЛАТЕЖИ = [[1051000, 'задаток в день подписания Договора'], [1402000, 'задаток в день заезда бригады и начала строительных работ'], [706400, 'задаток в день окончания каркасных работ'],
+  [245000, 'задаток в день окончания кровельных работ (без водосточной системы)'], [100000, 'задаток в день окончания работ по утеплению и монтажу пленок']];
 var ИТОГО = ПЛАТЕЖИ.reduce(function (с, п) { return с + п[0]; }, 0);
 function руб(ч) { return Math.round(ч).toLocaleString('ru-RU').replace(/\u00a0/g, ' '); }
 function доля(ч) { var д = ч / ИТОГО * 100; return (д < 10 ? д.toFixed(1).replace('.', ',') : Math.round(д)) + ' % от цены'; }
 var ГАРАНТИЯ = [['Конструктив объекта', 60], ['Инженерные системы', 36], ['Отделочные работы', 12]];
 
+
+/* ── Сумма прописью ── */
+function прописью(ч) {
+  var ед = ['', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'], едЖ = ['', 'одна', 'две'];
+  var дес = ['', 'десять', 'двадцать', 'тридцать', 'сорок', 'пятьдесят', 'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто'];
+  var надц = ['десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать', 'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать'];
+  var сот = ['', 'сто', 'двести', 'триста', 'четыреста', 'пятьсот', 'шестьсот', 'семьсот', 'восемьсот', 'девятьсот'];
+  function форма(n, ф) { n = n % 100; if (n > 10 && n < 20) return ф[2]; n = n % 10; return n === 1 ? ф[0] : (n >= 2 && n <= 4 ? ф[1] : ф[2]); }
+  function тройка(n, жен) { var о = []; if (сот[Math.floor(n / 100)]) о.push(сот[Math.floor(n / 100)]); var д = n % 100;
+    if (д >= 10 && д < 20) о.push(надц[д - 10]); else { if (дес[Math.floor(д / 10)]) о.push(дес[Math.floor(д / 10)]); var е = д % 10; if (е) о.push(жен && е < 3 ? едЖ[е] : ед[е]); } return о.join(' '); }
+  ч = Math.round(ч); if (!ч) return 'ноль рублей';
+  var м = Math.floor(ч / 1e6), т = Math.floor(ч / 1e3) % 1000, р = ч % 1000, о = [];
+  if (м) о.push(тройка(м) + ' ' + форма(м, ['миллион', 'миллиона', 'миллионов']));
+  if (т) о.push(тройка(т, true) + ' ' + форма(т, ['тысяча', 'тысячи', 'тысяч']));
+  if (р) о.push(тройка(р));
+  var текст = о.join(' ') + ' ' + форма(ч, ['рубль', 'рубля', 'рублей']) + ' 00 копеек';
+  return текст.charAt(0).toUpperCase() + текст.slice(1);
+}
+var П22 = function () { return пункт('2.2.', 'Заказчик обязан оплатить работы в следующем порядке:'); };
+function вариантыПлатежей() {
+  var в = [];
+  в.push(['01 Как в договоре', 'Порядок и подписи колонок — как сейчас: «Платёж № 1», сумма, срок. Сумма набрана заголовочным шрифтом, внизу итог.',
+    '<div class="g1"><div class="h">№ платежа</div><div class="h">Размер оплаты</div><div class="h h3">Срок оплаты</div>' + ПЛАТЕЖИ.map(function (п, i) {
+      return '<div class="no">Платёж № ' + (i + 1) + '</div><div class="am"><span class="amt">' + руб(п[0]) + '<small>рублей</small></span></div><div class="tm">' + п[1] + '</div>'; }).join('') +
+    '<div class="t">Итого</div><div class="ta"><span class="amt">' + руб(ИТОГО) + '<small>рублей</small></span></div><div class="ta"></div></div>']);
+  в.push(['02 Номер крупно', 'Вариант со второго снимка: номер, сумма, срок — в этом порядке, без процентов. Суммы выровнены по правому краю колонки, разряды стоят столбцом.',
+    '<div class="g2"><div class="h">№</div><div class="h a">Размер оплаты</div><div class="h h3">Срок оплаты</div>' + ПЛАТЕЖИ.map(function (п, i) {
+      return '<div class="n">' + (i + 1) + '</div><div class="a"><span class="amt">' + руб(п[0]) + ' ₽</span></div><div class="tm">' + п[1] + '</div>'; }).join('') +
+    '<div class="t l">Итого</div><div class="t a"><span class="amt">' + руб(ИТОГО) + ' ₽</span></div><div class="t"></div></div>']);
+  в.push(['03 Этапы на линии', 'Платежи как шаги стройки: номер в кружке на общей линии, под суммой — когда платить. Порядок этапов читается сразу.',
+    '<ol class="g3">' + ПЛАТЕЖИ.map(function (п, i) {
+      return '<li><span class="dot">' + (i + 1) + '</span><span><span class="amt">' + руб(п[0]) + '<small>рублей</small></span><span class="tm">' + п[1] + '</span></span></li>'; }).join('') +
+    '<li class="tot"><span></span><span><span class="lbl">Итого</span><span class="amt">' + руб(ИТОГО) + '<small>рублей</small></span></span></li></ol>']);
+  в.push(['04 С суммой прописью', 'Как 02, но под цифрами — сумма прописью, как принято в договорах: ошибку в разряде видно сразу, и цифру нельзя исправить незаметно.',
+    '<div class="g4"><div class="h">№</div><div class="h">Размер оплаты</div><div class="h h3">Срок оплаты</div>' + ПЛАТЕЖИ.map(function (п, i) {
+      return '<div class="n">' + (i + 1) + '</div><div class="a"><span class="amt">' + руб(п[0]) + '<small>рублей</small></span><span class="words">' + прописью(п[0]) + '</span></div><div class="tm">' + п[1] + '</div>'; }).join('') +
+    '<div class="t"></div><div class="t"><span class="lbl">Итого</span><span class="amt">' + руб(ИТОГО) + '<small>рублей</small></span><span class="words">' + прописью(ИТОГО) + '</span></div><div class="t"></div></div>']);
+  return в.map(function (x) { return '<div class="pv-head"><b>' + x[0] + '</b><span>' + x[1] + '</span></div><div class="page">' +
+    раздел('2.', 'Цена и порядок оплаты') + П22() + x[2] + '</div>'; }).join('');
+}
+
 function отрисовать() {
   document.documentElement.setAttribute('data-tone', сост.t === 'teal' ? '' : сост.t);
   document.getElementById('sheet').innerHTML = лист();
+  var вкл = сост.v === 1, пв = document.getElementById('payVars');
+  пв.hidden = !вкл; document.getElementById('sheet').hidden = вкл; document.getElementById('noteDog').hidden = вкл;
+  document.getElementById('segF').style.display = вкл ? 'none' : ''; document.getElementById('btnDrive').style.display = вкл ? 'none' : '';
+  if (вкл) пв.innerHTML = вариантыПлатежей();
+  document.querySelectorAll('#segV button').forEach(function (б) { б.setAttribute('aria-pressed', String(+б.dataset.v === сост.v)); });
   document.querySelectorAll('#segF button').forEach(function (б) { б.setAttribute('aria-pressed', String(+б.dataset.f === сост.f)); });
   var л = document.querySelector('.logo'); if (л) { л.onerror = function () { this.onerror = null; this.src = ЛОГО; }; л.src = адресЛого(); }
   try { localStorage.setItem('dogBlocks2', JSON.stringify(сост)); } catch (e) {}
@@ -1522,6 +1630,7 @@ async function загрузитьНаДиск() {
 var выбор = document.getElementById('selT');
 Object.keys(ТОНЫ).forEach(function (к) { var о = document.createElement('option'); о.value = к; о.textContent = ТОНЫ[к]; выбор.appendChild(о); });
 выбор.addEventListener('change', function () { сост.t = выбор.value; отрисовать(); });
+document.getElementById('segV').addEventListener('click', function (e) { var б = e.target.closest('button'); if (б) { сост.v = +б.dataset.v; отрисовать(); window.scrollTo(0, 0); } });
 document.getElementById('segF').addEventListener('click', function (e) { var б = e.target.closest('button'); if (б) { сост.f = +б.dataset.f; отрисовать(); } });
 document.getElementById('btnDrive').addEventListener('click', наДиск);
 подготовитьGoogle();
