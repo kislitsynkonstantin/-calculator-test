@@ -15,7 +15,8 @@
     «Договор подряда <номер>.docx»;
   • файл — настоящий .docx: в нём все 14 разделов, строки платежей и итог,
     участок и объект, реквизиты сторон; две картинки (логотип и шкала
-    гарантии); шрифты по именам Google — Unbounded и Geologica; файл
+    гарантии); участок, платежи, ячейки и шкала — с отступом пунктов;
+    шрифты по именам Google — Unbounded и Geologica; файл
     открывается сторонним разборщиком docx (docx-preview) без ошибок.
 
     python3 check_contract_drive.py
@@ -86,8 +87,12 @@ def прогон(бр, порт, ш):
             разделов = len(re.findall(r"(?<!\d)(\d{1,2})\.\s", текст))
             картинок = len([и for и in зп.namelist() if и.startswith("word/media/") and not и.endswith("/")])
             шрифты = set(re.findall(r'w:ascii="([^"]+)"', doc))
+            # Блоки внутри разделов — по кромке текста пунктов (отступ 10 мм = 567).
+            сОтступом = len(re.findall(r'<w:tblInd[^>]*w:w="567"', doc)) + len(re.findall(r'<w:ind w:left="567"/>\s*</w:pPr>\s*<w:r>\s*<w:drawing', doc))
             if нет:
                 НАХОДКИ.append(f"{н} в .docx нет: {нет}")
+            if сОтступом != 5:
+                НАХОДКИ.append(f"{н} в .docx блоков с отступом 10 мм {сОтступом}, ждали 5 (объект, платежи, две ячейки, шкала)")
             if картинок != 2:
                 НАХОДКИ.append(f"{н} картинок в .docx {картинок}, ждали 2 (логотип и шкала): {[(и, зп.getinfo(и).file_size) for и in зп.namelist() if и.startswith('word/media/')]}")
             if not шрифты or not шрифты <= {"Unbounded", "Geologica"}:

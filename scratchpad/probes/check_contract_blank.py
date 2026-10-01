@@ -22,6 +22,11 @@
     «Платёж № 1 | сумма | срок», итог равен сумме строк; часы работы и
     адреса почты — ячейками; гарантия — шкалой; подписи сторон внизу;
     прежних таблиц нет, надписи «Каркасный дом / Баня» нет;
+  • участок и объект, платежи, часы, адреса почты и шкала гарантии стоят
+    левой границей по кромке текста пунктов, а не по номерам (01.10.2026:
+    «границу слева от линии поставь, синхронно сделай»);
+  • отметки шкалы гарантии стоят центром на начале и конце дорожки
+    (у шкалы был свой кегль, и её колонки уезжали от колонок строк);
   • у подписей сторон нет заливки — в «Бланке» заливка только по исключению;
   • Safari не раздувает текст сам (text-size-adjust 100%);
   • буквенный список — русскими буквами «а) б) в)»;
@@ -61,13 +66,20 @@ from playwright.sync_api import sync_playwright
     надзаголовок: document.body.textContent.includes('Каркасный дом / Баня') };
   const буквы = [...document.querySelectorAll('ol.lettered > li')].slice(0, 3).map(э => getComputedStyle(э, '::before').content);
   const пункт = getComputedStyle(document.querySelector('.clause')).textAlign;
+  // Кромка текста пункта: левый край пункта плюс его отступ слева.
+  const пн = [...document.querySelectorAll('p.clause:not(.sub)')].find(э => э.querySelector('.clause-num'));
+  const кромка = пн.getBoundingClientRect().left + parseFloat(getComputedStyle(пн).paddingLeft);
+  // Шкала гарантии: отметка «0» — центром на начале дорожки, последняя — на её конце.
+  const дор = document.querySelector('.bar .tr').getBoundingClientRect(), от = [...document.querySelectorAll('.scale .ticks span')].map(э => { const q = э.getBoundingClientRect(); return (q.left + q.right) / 2; });
+  const шкала = [Math.round(от[0] - дор.left), Math.round(от[от.length - 1] - дор.right)];
+  const сдвиг = [...document.querySelectorAll('.o2,.g1,.cells,.bars')].map(э => Math.round(э.getBoundingClientRect().left - кромка));
   const пал = document.createElement('span'); пал.style.color = 'var(--br-28)'; document.body.appendChild(пал); const br28 = getComputedStyle(пал).color; пал.remove();
   return { скролл: document.documentElement.scrollWidth > innerWidth + 1, вылез, гео: ш('Geologica') !== ш('serif'), анб: ш('Unbounded') !== ш('serif'),
     helvetica: document.documentElement.outerHTML.includes('Helvetica Neue Embedded'),
     черта: hs.borderBottomColor, заголовок: hs.color, br28,
     рядом: п.length === 2 && Math.abs(п[0].getBoundingClientRect().top - п[1].getBoundingClientRect().top) < 2,
     столбиком: п.length === 2 && п[1].getBoundingClientRect().top >= п[0].getBoundingClientRect().bottom - 1,
-    рекв, буквы, пункт, блоки, суммы, итог: итог ? число(итог.firstChild.textContent) : null,
+    рекв, буквы, пункт, сдвиг, шкала, блоки, суммы, итог: итог ? число(итог.firstChild.textContent) : null,
     размер: getComputedStyle(document.documentElement).webkitTextSizeAdjust || getComputedStyle(document.documentElement).textSizeAdjust };
 }"""
 
@@ -105,6 +117,10 @@ def главная():
                         НАХОДКИ.append(f"{н} блоки договора не те: {б_}")
                     if р["суммы"] and р["итог"] != sum(р["суммы"]):
                         НАХОДКИ.append(f"{н} итог платежей {р['итог']} не равен сумме строк {sum(р['суммы'])}")
+                    if any(abs(х) > 1 for х in р["сдвиг"]):
+                        НАХОДКИ.append(f"{н} блоки внутри разделов не по кромке текста пунктов, сдвиг: {р['сдвиг']}")
+                    if any(abs(х) > 2 for х in р["шкала"]):
+                        НАХОДКИ.append(f"{н} отметки шкалы гарантии не на дорожке: «0» и последняя смещены на {р['шкала']} px")
                     if р["размер"] != "100%":
                         НАХОДКИ.append(f"{н} text-size-adjust не 100%: {р['размер']}")
                     if any(ц not in ("rgba(0, 0, 0, 0)", "transparent") for ц in р["рекв"]):
