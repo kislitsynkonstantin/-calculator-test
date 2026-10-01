@@ -14,7 +14,10 @@
   • «+» — 21 м², 252 000 ₽; отмеченная опция входит в итог этой суммой;
   • не число — поле возвращается к прежней площади;
   • площадь живёт в расчёте: collectState() и обратно через restoreState();
-  • поле и кнопки не вылезают за строку, поле не уже 28 px.
+  • поле и кнопки не вылезают за строку, поле не уже 28 px;
+  • в покое поле выглядит числом — без линии и подложки; нажали — линия и
+    подложка появляются («зачем тут подчёркивание. Если нажимаю вручную
+    ввести, тогда активируй поле», 01.10.2026).
 
     python3 check_terrace_area.py
 """
@@ -31,7 +34,8 @@ from playwright.sync_api import sync_playwright
   const вылез = [...э.querySelectorAll('.opt-qty-stepper, .opt-qty-stepper *')].some(х => { const q = х.getBoundingClientRect(); return q.width && (q.right > r.right + 1 || q.left < r.left - 1); });
   return { поле: п ? п.tagName : '', знач: п ? (п.value ?? п.textContent) : '', ед: (э.querySelector('.opt-qty-unit') || {}).textContent || '',
     цена: ц ? ц.textContent.replace(/\\s/g, ' ').trim() : '', имя: (э.querySelector('.opt-name') || {}).textContent || '', отмечена: !!checkedOptions.e10,
-    ширина: п ? Math.round(п.getBoundingClientRect().width) : 0, вылез }; }"""
+    ширина: п ? Math.round(п.getBoundingClientRect().width) : 0, вылез,
+    линия: п ? getComputedStyle(п).borderBottomColor : '', подложка: п ? getComputedStyle(п).backgroundColor : '' }; }"""
 
 
 def прогон(бр, порт, ш, в, ночь, тема):
@@ -51,6 +55,14 @@ def прогон(бр, порт, ш, в, ночь, тема):
         НАХОДКИ.append(f"{н} до правки: {с}")
     if с["поле"] != "INPUT":
         стр.close(); return
+    прозр = ("rgba(0, 0, 0, 0)", "transparent")
+    if с["линия"] not in прозр or с["подложка"] not in прозр:
+        НАХОДКИ.append(f"{н} в покое поле площади с линией или подложкой: {с['линия']}, {с['подложка']}")
+    стр.locator("#qtyval_e10").focus(); стр.wait_for_timeout(250)
+    ф = стр.evaluate(СОСТ)
+    if ф["линия"] in прозр or ф["подложка"] in прозр:
+        НАХОДКИ.append(f"{н} нажали на площадь — поле не проявилось: {ф['линия']}, {ф['подложка']}")
+    стр.evaluate("() => document.activeElement && document.activeElement.blur()")
     if с["ширина"] < 28 or с["вылез"]:
         НАХОДКИ.append(f"{н} поле площади: ширина {с['ширина']} px, вылезает {с['вылез']}")
     поле = стр.locator("#qtyval_e10")
