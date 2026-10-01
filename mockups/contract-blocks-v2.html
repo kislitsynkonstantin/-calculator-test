@@ -1199,6 +1199,19 @@ dl.rows.num>dd small{font-family:'Geologica',sans-serif;font-weight:500;font-siz
 @media print{.mk-bar,.mk-note{display:none!important}.gap{margin:1em 0}}
 </style>
 <style>
+.pay2{width:100%;border-collapse:collapse;margin:.5em 0 1.1em;font-variant-numeric:tabular-nums}
+.pay2 th{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.6em;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-ink2);text-align:left;padding:0 0 .7em;border-bottom:2px solid var(--bl-acc)}
+.pay2 th.r,.pay2 td.r{text-align:right}
+.pay2 td{border-bottom:1px solid var(--bl-rule);padding:.6em 0;vertical-align:top}
+.pay2 td.n{width:2.6em;font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.15em;line-height:1.2;color:var(--bl-pale)}
+.pay2 td.t{padding-right:1.2em;color:var(--bl-ink)}
+.pay2 td.r{width:9.5em;white-space:nowrap}
+.pay2 .s{display:block;font-family:'Unbounded',sans-serif;font-weight:600;font-size:.95em;color:var(--bl-ink)}
+.pay2 .p{display:block;font-size:.78em;color:var(--bl-ink3);margin-top:.15em}
+.pay2 tr.tot td{border-bottom:2px solid var(--bl-acc);padding-top:.75em}
+.pay2 tr.tot td.t{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.7em;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-ink2);padding-top:1.1em}
+.pay2 tr.tot .s{color:var(--bl-acc);font-size:1.1em}
+@media (max-width:600px){.pay2 td.n{width:1.8em;font-size:1em}.pay2 td.r{width:7.6em}.pay2 .s{font-size:.88em}}
 .mk-word{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 13px;border:0;border-radius:8px;background:var(--bl-ink);color:#fff;
   font:600 12.5px 'Geologica',sans-serif;cursor:pointer;white-space:nowrap}
 .mk-word svg{width:15px;height:15px;flex:none}
@@ -1215,7 +1228,7 @@ dl.rows.num>dd small{font-family:'Geologica',sans-serif;font-weight:500;font-siz
   <select class="mk-sel" id="selT" aria-label="Цветовая схема"></select>
   <button type="button" class="mk-word" id="btnWord"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11v6M9 14l3 3 3-3"/></svg>Скачать в Word</button>
 </div>
-<p class="mk-note">Стороны, объект и реквизиты — из 01 «Ведомость», рабочее время и адреса почты — из 03 «Крупно», гарантия — шкалой из 02. «Скачать в Word» собирает из этого листа файл .docx: текст и таблицы в нём правятся, шрифты вшиты, шкала гарантии лежит картинкой.</p>
+<p class="mk-note">Стороны, объект и реквизиты — из 01 «Ведомость», платежи — графиком с долей каждого в цене, рабочее время и адреса почты — из 03 «Крупно», гарантия — шкалой из 02. «Скачать в Word» собирает из этого листа файл .docx: текст и таблицы в нём правятся, шрифты вшиты, шкала гарантии лежит картинкой.</p>
 <div class="page" id="sheet"></div>
 
 <script>
@@ -1266,6 +1279,11 @@ function лист() {
     '</div><div class="v1-party"><span class="ey">Заказчик</span>' + строки([['Ф. И. О.', з('фио'), 'name'], ['Паспорт', з('паспорт')], ['Адрес регистрации', з('адрес')], ['Связь'], ['Эл. почта', з('почта')], ['Телефон', з('тел')], ['Мессенджеры', П.мес + ' — по номеру телефона']]) + '</div></div>';
   h += раздел('1.', 'Предмет договора') + пункт('1.1.', Т11);
   h += '<div class="v1-one">' + строки([['Участок'], ['Адрес участка', з('участок')], ['Кадастровый номер', з('кадастр')], ['Объект'], ['Тип объекта', ОБ.тип], ['Размер строения', ОБ.размер]]) + '</div>';
+  h += раздел('2.', 'Цена и порядок оплаты') + пункт('2.1.', 'Общая цена Договора составляет ' + руб(ИТОГО) + ' рублей, в том числе НДС 5% ' + руб(Math.round(ИТОГО * 5 / 105)) + ' рублей, является твердой и включает стоимость работ и материалов для строительства Объекта, предусмотренных в Приложении № 1.') +
+    пункт('2.2.', 'Заказчик обязан оплатить работы в следующем порядке:') +
+    '<table class="pay2"><thead><tr><th>№</th><th>Срок оплаты</th><th class="r">Размер оплаты</th></tr></thead><tbody>' + ПЛАТЕЖИ.map(function (п, i) {
+      return '<tr><td class="n">' + (i + 1) + '</td><td class="t">' + п[1] + '</td><td class="r"><span class="s">' + руб(п[0]) + ' ₽</span><span class="p">' + доля(п[0]) + '</span></td></tr>'; }).join('') +
+    '<tr class="tot"><td class="n"></td><td class="t">Итого</td><td class="r"><span class="s">' + руб(ИТОГО) + ' ₽</span></td></tr></tbody></table>';
   h += ПРОПУСК + пункт('4.4.', Т44) + ячейки([яч('Рабочее время', '<span class="mid">09:00 — 20:00</span><span class="cap">понедельник — пятница</span>'), яч('Время отдыха', '<span class="mid off">сб, вс</span><span class="cap">и праздничные дни</span>')], 'keep2');
   h += ПРОПУСК + пункт('7.2.', 'Гарантийный срок и срок службы на результат работ:') + '<div class="bars">' + ГАРАНТИЯ.map(function (р) {
     return '<div class="bar"><span class="l">' + р[0] + '</span><span class="tr"><i style="width:' + (р[1] / 60 * 100) + '%"></i></span><span class="v">' + р[1] + '<small>мес.</small></span></div>'; }).join('') +
@@ -1277,6 +1295,11 @@ function лист() {
   h += '<div class="v1-sign"><div><div class="line"></div><div class="who"><span>' + П.кратко + '</span><span>подпись, М.П.</span></div></div><div><div class="line"></div><div class="who"><span>' + (з('кратко') || '&nbsp;') + '</span><span>подпись</span></div></div></div>';
   return h;
 }
+var ПЛАТЕЖИ = [[1131173, 'задаток в день подписания Договора'], [420000, 'задаток за работы по монтажу фундамента в день подписания Договора'], [754116, 'задаток в день заезда бригады и начала строительных работ'],
+  [754116, 'задаток в день окончания каркасных работ'], [377058, 'задаток в день окончания кровельных работ (без водосточной системы)'], [334115, 'задаток в день окончания работ по утеплению и монтажу пленок']];
+var ИТОГО = ПЛАТЕЖИ.reduce(function (с, п) { return с + п[0]; }, 0);
+function руб(ч) { return Math.round(ч).toLocaleString('ru-RU').replace(/\u00a0/g, ' '); }
+function доля(ч) { var д = ч / ИТОГО * 100; return (д < 10 ? д.toFixed(1).replace('.', ',') : Math.round(д)) + ' % от цены'; }
 var ГАРАНТИЯ = [['Конструктив объекта', 60], ['Инженерные системы', 36], ['Отделочные работы', 12]];
 
 function отрисовать() {
@@ -1423,6 +1446,22 @@ async function вАбзацы(Д, Ц, лого) {
           if (x) абз.push(new Д.Paragraph({ children: [т(Д, текстУзла(x), { font: ШРИФТ_З, size: 20 })] }));
           if (cap) абз.push(new Д.Paragraph({ spacing: { before: 40 }, children: [т(Д, текстУзла(cap), { size: 18, color: Ц.ink2 })] }));
           return new Д.TableCell({ width: { size: ш_, type: Д.WidthType.DXA }, margins: { top: 140, bottom: 150, left: i ? 220 : 0, right: 220 }, children: абз }); }) })] }));
+      дети.push(new Д.Paragraph({ spacing: { after: 120 }, children: [] }));
+    } else if (у.tagName === 'TABLE' && к.contains('pay2')) {
+      var кол = [мм(10), ШИР - мм(10) - мм(38), мм(38)], ряды_ = [];
+      var гр = function (толщ, ц) { return { top: нет(Д), left: нет(Д), right: нет(Д), bottom: линия(Д, ц, толщ) }; };
+      ряды_.push(new Д.TableRow({ tableHeader: true, children: ['№', 'Срок оплаты', 'Размер оплаты'].map(function (з_, i) {
+        return new Д.TableCell({ width: { size: кол[i], type: Д.WidthType.DXA }, borders: гр(12, Ц.acc), margins: { bottom: 100 }, children: [new Д.Paragraph({ alignment: i === 2 ? Д.AlignmentType.RIGHT : Д.AlignmentType.LEFT, children: [т(Д, з_.toUpperCase(), { font: ШРИФТ_З, size: 12, color: Ц.ink2, characterSpacing: 24 })] })] }); }) }));
+      [].slice.call(у.querySelectorAll('tbody tr')).forEach(function (тр) {
+        var итог = тр.classList.contains('tot'), яч2 = тр.children, сум = текстУзла(яч2[2].querySelector('.s')), дол = яч2[2].querySelector('.p');
+        var пр_ = [new Д.Paragraph({ alignment: Д.AlignmentType.RIGHT, children: [т(Д, сум, { font: ШРИФТ_З, size: итог ? 22 : 19, color: итог ? Ц.acc : Ц.ink })] })];
+        if (дол) пр_.push(new Д.Paragraph({ alignment: Д.AlignmentType.RIGHT, children: [т(Д, текстУзла(дол), { size: 15, color: Ц.ink3 })] }));
+        ряды_.push(new Д.TableRow({ cantSplit: true, children: [
+          new Д.TableCell({ width: { size: кол[0], type: Д.WidthType.DXA }, borders: гр(итог ? 12 : 4, итог ? Ц.acc : Ц.rule), margins: { top: 100, bottom: 100 }, children: [new Д.Paragraph({ children: [т(Д, текстУзла(яч2[0]), { font: ШРИФТ_З, size: 22, color: Ц.pale })] })] }),
+          new Д.TableCell({ width: { size: кол[1], type: Д.WidthType.DXA }, borders: гр(итог ? 12 : 4, итог ? Ц.acc : Ц.rule), margins: { top: итог ? 160 : 100, bottom: 100, right: 200 }, children: [new Д.Paragraph({ children: [итог ? т(Д, 'ИТОГО', { font: ШРИФТ_З, size: 14, color: Ц.ink2, characterSpacing: 24 }) : т(Д, текстУзла(яч2[1]))] })] }),
+          new Д.TableCell({ width: { size: кол[2], type: Д.WidthType.DXA }, borders: гр(итог ? 12 : 4, итог ? Ц.acc : Ц.rule), margins: { top: 100, bottom: 100 }, children: пр_ })] }));
+      });
+      дети.push(new Д.Table({ width: { size: ШИР, type: Д.WidthType.DXA }, columnWidths: кол, layout: Д.TableLayoutType.FIXED, borders: безРамок(Д), rows: ряды_ }));
       дети.push(new Д.Paragraph({ spacing: { after: 120 }, children: [] }));
     } else if (к.contains('bars')) {
       var к_ = await шкалаPNG(Ц);
