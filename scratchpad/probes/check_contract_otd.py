@@ -51,7 +51,9 @@ from playwright.sync_api import sync_playwright
     состав: (document.getElementById('printSectionsBar') || {}).textContent || '' }; }"""
 
 
-def начать(бр, порт, ш, роль="manager"):
+def начать(бр, порт, ш, роль="admin"):
+    # Договоры открыты администратору и редактору; менеджеру они закрыты до
+    # согласования спецификации (check_contract_lock.py).
     к = бр.new_context(viewport={"width": ш, "height": 900}, accept_downloads=True)
     к.route("**/drive.google.com/**", lambda r: r.fulfill(status=200, body="drive"))
     стр = СоШрифтами(к).new_page()
@@ -87,7 +89,7 @@ def главная():
                 н = f"[{ш}]"
                 к, стр, ош = начать(бр, порт, ш)
                 стр.locator("#previewEntityBtn").click(); стр.wait_for_timeout(200)
-                меню = стр.evaluate("() => [...document.querySelectorAll('#previewEntityMenu [data-entity]')].filter(б => б.offsetParent).map(б => б.querySelector('span:not(.entity-check)').textContent.trim())")
+                меню = стр.evaluate("() => [...document.querySelectorAll('#previewEntityMenu [data-entity]')].filter(б => б.offsetParent).map(б => б.querySelector('span:not(.entity-check):not(.ent-name)').textContent.trim())")
                 if меню != ["Спецификация", "Вид и план", "Основной договор", "Договор на отделку"]:
                     НАХОДКИ.append(f"{н} меню документа: {меню}")
                 # Договор на отделку

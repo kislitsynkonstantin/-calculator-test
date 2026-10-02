@@ -57,7 +57,8 @@ def главная():
             кт = СоШрифтами(бр)
             for ш in (390, 768, 1440):
                 стр, ош = к.начать(кт, порт, ш, 900, False)
-                стр.evaluate("() => { applyTone('bmsk', false); openPrintPreview(); }"); стр.wait_for_timeout(800)
+                # Договор менеджеру закрыт до согласования спецификации — ролью администратора.
+                стр.evaluate("() => { window._sbProfile = Object.assign({}, window._sbProfile, { role: 'admin' }); applyTone('bmsk', false); openPrintPreview(); }"); стр.wait_for_timeout(800)
                 края = {"spec": стр.evaluate(КРАЯ, "spec")}
                 for вид in ("contract", "appx"):
                     стр.evaluate(f"async () => {{ setPreviewEntity('{вид}'); await new Promise(r => setTimeout(r, 1500)); }}")

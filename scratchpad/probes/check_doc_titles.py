@@ -52,7 +52,8 @@ def прогон(бр, порт, ш, тон):
     стр.evaluate("(т) => { applyTone(т, false); if (selectedProject) selectedProject[0] = 'Фахверковая баня «Гранада» 7x9'; openPrintPreview(); }", тон); стр.wait_for_timeout(700)
     спец = стр.evaluate(f"() => ({ШАПКА})(document.querySelector('#printDoc').ownerDocument)")
     края = {"spec": стр.evaluate(КРАЯ, "spec")}
-    стр.evaluate("async () => { setPreviewEntity('contract'); await new Promise(r => setTimeout(r, 900)); }")
+    # Договор менеджеру закрыт до согласования спецификации — смотрим ролью администратора.
+    стр.evaluate("async () => { window._sbProfile = Object.assign({}, window._sbProfile, { role: 'admin' }); setPreviewEntity('contract'); await new Promise(r => setTimeout(r, 900)); }")
     дог = стр.evaluate(f"() => ({ШАПКА})(document.querySelector('#contractPreviewDoc iframe').contentDocument)")
     края["contract"] = стр.evaluate(КРАЯ, "contract")
     стр.evaluate("async () => { setPreviewEntity('appx'); await new Promise(r => setTimeout(r, 400)); await показатьПриложение2(); await new Promise(r => setTimeout(r, 1200)); }")
