@@ -83,15 +83,19 @@ def сверить():
 
 
 def запрос(часть, документ="manual"):
-    """Готовый SQL на заливку части. Долларовые кавычки — потому что внутри
-    текста есть и апострофы, и обратные косые."""
+    """Готовый SQL на заливку части. Текст идёт в base64 и раскрывается в самой
+    базе: 01–02.10.2026 коннектор Supabase держал до таймаута в 60 секунд
+    запросы, где текст справки стоял открыто, — пустая запись и та же запись
+    в base64 проходили сразу. Заодно не нужны ни апострофы, ни кавычки."""
+    import base64
     ч = next((ч for ч in части(документ) if ч["part"] == часть), None)
     if ч is None:
         raise SystemExit(f"части «{часть}» у документа «{документ}» нет")
+    б64 = base64.b64encode(ч["html"].encode("utf-8")).decode("ascii")
     return (
         "insert into public.app_docs (doc, part, ord, staff_only, html)\n"
         f"values ('{документ}', '{часть}', {ч['ord']}, "
-        f"{'true' if ч['staff_only'] else 'false'}, $док${ч['html']}$док$)\n"
+        f"{'true' if ч['staff_only'] else 'false'}, convert_from(decode('{б64}', 'base64'), 'UTF8'))\n"
         "on conflict (doc, part) do update set html = excluded.html,\n"
         "  ord = excluded.ord, staff_only = excluded.staff_only, updated_at = now();\n"
         "select part, length(html), md5(html) from public.app_docs\n"
