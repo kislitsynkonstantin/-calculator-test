@@ -169,8 +169,9 @@ def главная():
                     if страниц > 13 or страниц < 8:
                         НАХОДКИ.append(f"[{тон} печать] страниц {страниц}, ждали 8–13")
                     д.close()
-            # Печать договора — после шрифтов.
-            стр.evaluate("""() => { window.__печать = null;
+            # Печать договора — после шрифтов. Печатает администратор: менеджеру
+            # с v2.5.14 (19) печать договора закрыта и в самой printContractKar.
+            стр.evaluate("""() => { window._sbProfile = Object.assign({}, window._sbProfile, { role: 'admin' }); window.__печать = null;
               new MutationObserver((сп, н) => { const ф = document.getElementById('contractPrintFrame'); if (!ф || ф.__пойман) return; ф.__пойман = true;
                 ф.contentWindow.print = () => { const д = ф.contentDocument;
                   const ш = s => { const e = д.createElement('span'); e.style.cssText = 'font:16px ' + s + ';position:absolute;visibility:hidden;white-space:nowrap';
