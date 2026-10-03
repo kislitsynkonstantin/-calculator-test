@@ -89,7 +89,7 @@ def прогон(бр, порт, ш, в):
     стр.locator("#previewEntityBtn").click(); стр.wait_for_timeout(200)
     # Порядок: сразу после спецификации (30.09.2026: «поставь после Спецификации в списке»).
     порядок = стр.evaluate("() => [...document.querySelectorAll('#previewEntityMenu [data-entity]')].map(б => б.dataset.entity)")
-    if порядок != ["spec", "appx", "contract", "contract", "consent"]:
+    if порядок != ["spec", "appx", "contract", "contract", "rules", "consent"]:
         НАХОДКИ.append(f"{н} порядок документов в меню: {порядок}")
     пункт = стр.locator('#previewEntityMenu [data-entity="appx"]')
     if not пункт.count():
