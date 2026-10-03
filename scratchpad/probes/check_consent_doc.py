@@ -17,6 +17,8 @@
     разбирательств, номер телефона — один раз;
   • печать: файл «Согласие_ПДн_…», в журнале — «Договор отправлен на печать»
     с документом; поле «Срок» и строка «Состав» у согласия скрыты;
+  • «Скрыть поля» у согласия работает и не зависит от договора (Константин,
+    03.10.2026: «сделай, чтобы тут независимо от договора показывало»);
   • менеджеру пункт закрыт, как и договоры;
   • в кадре ничего не вылезает за лист, шрифты настоящие.
 
@@ -97,6 +99,24 @@ def прогон(бр, порт, ш, роль):
     if not с["шрифт"]:
         НАХОДКИ.append(f"{н} шрифт согласия не лёг")
     стр.screenshot(path=str(м.СНИМКИ / f"consent-{ш}.png"))
+    # «Скрыть поля» у согласия — своё, от договора не зависит.
+    СОСТ = """() => ({ скрыты: !!(document.querySelector('#contractPreviewDoc iframe') || {}).contentDocument?.body.classList.contains('hl-off'),
+      кнопка: document.getElementById('contractHlToggleLabel').textContent.trim(), док: previewEntity })"""
+    стр.locator("#contractHlToggleBtn").click(); стр.wait_for_timeout(600)
+    п1 = стр.evaluate(СОСТ)
+    стр.locator("#previewEntityBtn").click(); стр.wait_for_timeout(200)
+    стр.locator('#previewEntityMenu [data-contract="1"]').click(); стр.wait_for_timeout(1200)
+    п2 = стр.evaluate(СОСТ)
+    стр.locator("#previewEntityBtn").click(); стр.wait_for_timeout(200)
+    стр.locator('#previewEntityMenu [data-entity="consent"]').click(); стр.wait_for_timeout(1200)
+    п3 = стр.evaluate(СОСТ)
+    if not (п1["скрыты"] and п1["кнопка"] == "Показать поля"):
+        НАХОДКИ.append(f"{н} «Скрыть поля» у согласия не сработала: {п1}")
+    if п2["скрыты"] or п2["кнопка"] != "Скрыть поля":
+        НАХОДКИ.append(f"{н} поля согласия скрыли — и у договора скрыты: {п2}")
+    if not (п3["скрыты"] and п3["кнопка"] == "Показать поля"):
+        НАХОДКИ.append(f"{н} вернулись к согласию — поля снова видны: {п3}")
+    стр.locator("#contractHlToggleBtn").click(); стр.wait_for_timeout(600)
     # Печать и журнал.
     стр.evaluate("""() => { window.__было = (window.__ТАБЛИЦЫ.events || []).length; window.__заголовок = null;
       new MutationObserver(() => { const ф = document.getElementById('contractPrintFrame'); if (ф && !ф.__пойман) { ф.__пойман = true; ф.contentWindow.print = () => { window.__заголовок = ф.contentDocument.title; }; } }).observe(document.body, { childList: true });
