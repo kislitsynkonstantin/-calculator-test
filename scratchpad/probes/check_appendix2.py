@@ -58,6 +58,8 @@ def data_url(путь, ш=900):
     номера: листы.map(л => (л.querySelector('.run') || {}).textContent || ''),
     версия: /Версия/.test(д.body.textContent),
     // Под номером листа линейки нет (Константин, 06.10.2026: «эту линию убери»).
+    // Номер листа — колонтитулом печати: на экране его нет (06.10.2026: «чтобы на просмотре их и не было»).
+    номерНаЭкране: листы.filter(л => { const р = л.querySelector('.run'); return р && getComputedStyle(р).display !== 'none'; }).length,
     линия: листы.map(л => { const р = л.querySelector('.run'); return р ? getComputedStyle(р).borderBottomWidth : ''; }).filter(w => w && w !== '0px'),
     виды1: листы[0] ? листы[0].querySelectorAll('.fig--view img').length : 0,
     пустых1: листы[0] ? листы[0].querySelectorAll('.slot').length : 0,
@@ -111,6 +113,8 @@ def прогон(бр, порт, ш, в):
         НАХОДКИ.append(f"{н} кадра приложения нет"); стр.close(); return
     if с["листов"] != 2 or с["номера"] != ["Лист 1 из 2", "Лист 2 из 2"] or с["версия"]:
         НАХОДКИ.append(f"{н} листы: {с['листов']} {с['номера']} версия={с['версия']}")
+    if с["номерНаЭкране"]:
+        НАХОДКИ.append(f"{н} на экране видно «Лист N из M» на {с['номерНаЭкране']} листах — номер только колонтитулом печати")
     if с["линия"]:
         НАХОДКИ.append(f"{н} под «Лист N из M» линейка: {с['линия']}")
     if с["виды1"] != 1 or с["пустых1"] != 1 or с["текстПустых"] or с["план2"] != 1:
@@ -176,9 +180,23 @@ def прогон(бр, порт, ш, в):
     п.route("**/fonts.googleapis.com/**", lambda r: r.fulfill(status=200, content_type="text/css", body=ШРИФТЫ))
     import pymupdf
     п.set_content(html); п.wait_for_timeout(800)
-    страниц = pymupdf.open(stream=п.pdf(print_background=True, prefer_css_page_size=True), filetype="pdf").page_count
+    док = pymupdf.open(stream=п.pdf(print_background=True, prefer_css_page_size=True), filetype="pdf")
+    страниц = док.page_count
     if страниц != листов:
         НАХОДКИ.append(f"{н} печать: страниц {страниц} при {листов} листах — лишние пустые")
+    # Номер листа в Chromium — в верхнем поле страницы, один раз на странице.
+    for i, стр_ in enumerate(док, 1):
+        т = стр_.get_text()
+        верх = стр_.get_text(clip=pymupdf.Rect(0, 0, стр_.rect.width, 20 * 72 / 25.4))
+        if т.count("Лист ") != 1 or f"Лист {i} из {страниц}" not in верх:
+            НАХОДКИ.append(f"{н} печать: на стр. {i} номер листа не один раз в верхнем поле: всего «Лист» {т.count('Лист ')}, в поле «{верх.strip()[:40]}»")
+    # Safari поля страницы не печатает — ему строка номера в самом листе остаётся.
+    сафари = бр.new_page(); сафари.set_content(html.replace("/Chrome\\/\\d/.test", "/НетТакого/.test")); сафари.emulate_media(media="print")
+    if сафари.evaluate("() => [...document.querySelectorAll('.sheet .run')].filter(р => getComputedStyle(р).display !== 'none').length") != листов:
+        НАХОДКИ.append(f"{н} без признака Chromium (Safari) номера листа на печати нет")
+    if "/НетТакого/" not in сафари.content():
+        НАХОДКИ.append(f"{н} в приложении нет проверки признака Chromium")
+    сафари.close()
     # Поля Safari на iPhone шире своих и несут адрес, дату и номер страницы
     # (30.09.2026, снимок окна печати): поля по 20 мм сверху и снизу — и
     # страниц всё равно столько же, сколько листов.
