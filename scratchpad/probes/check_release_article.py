@@ -134,10 +134,10 @@ def прогон(бр, порт, ш, тон, ночь):
       ш.click(); await ждать(250);
       const свёрнут = !к.classList.contains('open');
       const а = и.getBoundingClientRect(), б = с.getBoundingClientRect(), ш2 = ш.getBoundingClientRect(), п = getComputedStyle(и, '::before');
-      const состояние = к.querySelector('.upd-state').getBoundingClientRect(), счёт = к.querySelector('.upd-count').getBoundingClientRect();
+      const метка = к.querySelector('.upd-state'), состояние = метка && метка.getBoundingClientRect(), счёт = к.querySelector('.upd-count').getBoundingClientRect();
       const глиф = и.querySelector('svg').getBoundingClientRect();
       const r = { открытВид, свёрнут, виден: вид(и), зазорСтрелка: Math.round(б.left - а.right), доКраяШапки: Math.round(ш2.right - б.right),
-        поле: Math.round(а.height - 2 * (parseFloat(п.top) || 0)), отСчёта: Math.round(глиф.left - счёт.right), доМетки: Math.round(состояние.left - глиф.right),
+        поле: Math.round(а.height - 2 * (parseFloat(п.top) || 0)), отСчёта: Math.round(глиф.left - счёт.right), доМетки: состояние ? Math.round(состояние.left - глиф.right) : null,
         стрелкаСправа: Math.round(ш2.right - б.right) };
       // Шапка — одной строкой, и с запасом по ширине: в пробе нет фирменных
       // шрифтов, а Unbounded и Geologica шире подменных — на снимке 390 с ними
@@ -152,7 +152,7 @@ def прогон(бр, порт, ш, тон, ночь):
         плохо(f"{н} значок статьи виден и в развёрнутой карточке, рядом с блоком «Журнал выпуска»: {знач}")
     if not знач["свёрнут"] or not знач["виден"]:
         плохо(f"{н} в свёрнутой карточке v{ВЕРСИЯ} нет значка статьи: {знач}")
-    elif not (6 <= знач["отСчёта"] <= 18) or not (6 <= знач["доМетки"] <= 18) or знач["поле"] < 44 or знач["стрелкаСправа"] > 8:
+    elif not (6 <= знач["отСчёта"] <= 18) or (знач["доМетки"] is not None and not (6 <= знач["доМетки"] <= 18)) or знач["поле"] < 44 or знач["стрелкаСправа"] > 8:
         # справа от счёта правок, перед меткой (Константин, 27.09.2026), стрелка — у правого края
         плохо(f"{н} значок статьи не между счётом правок и меткой, поле меньше 44 px или стрелка не у края: {знач}")
     if знач.get("строк", 1) > 1 or знач.get("запас", 99) < 30:
