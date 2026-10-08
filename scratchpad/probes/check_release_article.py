@@ -184,7 +184,8 @@ def прогон(бр, порт, ш, тон, ночь):
     print("  " + н, json.dumps(р, ensure_ascii=False))
     if ВЕРСИЯ not in р["заголовок"]:
         плохо(f"{н} открылась не статья: «{р['заголовок']}»")
-    if р["снимков"] < 8 or р["пустых"]:
+    # Снимков столько, сколько их в самой статье: у 2.5.15 их семь.
+    if р["снимков"] < max(1, СТАТЬЯ.count("<img ")) or р["пустых"]:
         плохо(f"{н} снимки не загрузились: {р['пустых'][:3]} из {р['снимков']}")
     if р["скролл"]:
         плохо(f"{н} статья шире окна")
@@ -325,14 +326,16 @@ def прогон(бр, порт, ш, тон, ночь):
                     плохо(f"{ярлык} «Оглавление» шириной {шир} px или с перенесёнными строками: {строки}")
                 if однострочные and (min(однострочные) < мин_ or max(однострочные) > макс_):
                     плохо(f"{ярлык} строки «Оглавления» {min(однострочные)}–{max(однострочные)} px — нужны {мин_}–{макс_}: {строки}")
-                if высота == 600 and not г["прокрутка"]:
+                # Прокрутка нужна, только когда список не помещается: короткое
+                # оглавление (у 2.5.15 — семь пунктов) встаёт целиком.
+                if высота == 600 and not г["прокрутка"] and г["последнийНиз"] > г["экран"] - 40:
                     плохо(f"{ярлык} на коротком экране список «Оглавления» не прокручивается: {г}")
                 кадр.locator("#tocFon").evaluate("ф => ф.click()"); стр.wait_for_timeout(400)
             стр.evaluate("""() => { const к = document.getElementById('manualFrame'); к.style.minHeight = ''; document.getElementById('manualPanel').style.minHeight = '';
               document.getElementById('manualOverlay').scrollTop = 0; }""")
             стр.set_viewport_size({"width": ш, "height": 900})
             # заголовок панели ведёт к началу статьи и закрывает панель (Константин, 27.09.2026)
-            кадр.locator("body").evaluate("() => document.getElementById('spec').scrollIntoView()"); стр.wait_for_timeout(300)
+            кадр.locator("body").evaluate("() => document.getElementById('" + РАЗДЕЛ + "').scrollIntoView()"); стр.wait_for_timeout(300)
             кадр.locator("#tocBtn").evaluate("к => к.click()"); стр.wait_for_timeout(450)
             кадр.locator("#tocPanel .toc-h").click(); стр.wait_for_timeout(1100)
             нач = кадр.locator("body").evaluate("() => ({ y: Math.round(scrollY), открыта: document.getElementById('tocPanel').classList.contains('open') })")
