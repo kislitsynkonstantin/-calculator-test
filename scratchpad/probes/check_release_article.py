@@ -38,6 +38,13 @@ import справка  # noqa: E402
 СТАТЬЯ = (справка.ПАПКА / f"release--{ВЕРСИЯ}.html").read_text(encoding="utf-8").strip("\n")
 # Число пунктов берётся из самой статьи: пункт добавили — проба не требует правки.
 ПУНКТОВ = len(re.findall(r'<div class="it">\s*<h3', СТАТЬЯ))
+# Разделы у каждой статьи свои: переходы проверяются по разделам самой статьи
+# (у 2.5.14 нет «Журнала действий», 08.10.2026). Подпункт — второй пункт
+# раздела «spec», если он есть, иначе второго раздела; раздел для перехода — «log»
+# или последний.
+СЕКЦИИ = re.findall(r'<section class="grp" id="([\w-]+)"', СТАТЬЯ)
+ПОДПУНКТ = ("spec" if "spec" in СЕКЦИИ else СЕКЦИИ[1]) + "-2"
+РАЗДЕЛ = "log" if "log" in СЕКЦИИ else СЕКЦИИ[-1]
 СНИМКИ = pathlib.Path(os.environ.get("BM_SHOTS") or "/tmp")
 НАХОДКИ = []
 ЦЕНЫ = {"pricing_projects": [{"product": "frame", "sort": 1, "slug": "проба", "name": "Проба 6×4",
@@ -220,8 +227,8 @@ def прогон(бр, порт, ш, тон, ночь):
             справа = кадр.locator("body").evaluate("() => { const к = document.getElementById('tocPanel').getBoundingClientRect(); return { открыта: document.getElementById('tocPanel').classList.contains('open'), справа: Math.round(innerWidth - к.right), слева: Math.round(к.left) }; }")
             if not справа["открыта"] or abs(справа["справа"]) > 1 or справа["слева"] < 30:
                 плохо(f"{н} «Оглавление» не выехало панелью справа: {справа}")
-            кадр.locator("#tocList a[data-to='spec-2']").click(); стр.wait_for_timeout(900)
-            до = кадр.locator("body").evaluate("() => Math.round(document.getElementById('spec-2').getBoundingClientRect().top)")
+            кадр.locator(f"#tocList a[data-to='{ПОДПУНКТ}']").click(); стр.wait_for_timeout(900)
+            до = кадр.locator("body").evaluate("() => Math.round(document.getElementById('" + ПОДПУНКТ + "').getBoundingClientRect().top)")
             if кадр.locator(".toc-panel.open").count():
                 плохо(f"{н} после перехода «Оглавление» осталось открытым")
             # свайп вправо закрывает
@@ -347,19 +354,19 @@ def прогон(бр, порт, ш, тон, ночь):
                 if жесты[что]:
                     плохо(f"{н} «Оглавление» выехало от жеста, который его открывать не должен ({что}): {жесты}")
     else:
-        цель = ".sb-s[data-to='spec-2']"
+        цель = f".sb-s[data-to='{ПОДПУНКТ}']"
         if not кадр.locator(цель).count():
             плохо(f"{н} подпункта 2.2 нет в меню")
         else:
             кадр.locator(цель).click(); стр.wait_for_timeout(900)
-            до = кадр.locator("body").evaluate("() => Math.round(document.getElementById('spec-2').getBoundingClientRect().top)")
-            if not кадр.locator(".sb-s.on[data-to='spec-2']").count():
+            до = кадр.locator("body").evaluate("() => Math.round(document.getElementById('" + ПОДПУНКТ + "').getBoundingClientRect().top)")
+            if not кадр.locator(f".sb-s.on[data-to='{ПОДПУНКТ}']").count():
                 плохо(f"{н} в меню не отмечен подпункт 2.2, к которому прокрутили")
     if до is not None and not (-5 <= до <= 60):
         плохо(f"{н} подпункт 2.2 не прокрутился к своему пункту: верх на {до} px")
     # переход по разделу не уводит кадр
     if ш >= 900:
-        кадр.locator('.sb-a[data-to="log"]').click(); стр.wait_for_timeout(700)
+        кадр.locator(f'.sb-a[data-to="{РАЗДЕЛ}"]').click(); стр.wait_for_timeout(700)
         ещё = кадр.locator("body").evaluate("() => ({ h1: !!document.querySelector('h1'), y: Math.round(scrollY) })")
         if not ещё["h1"] or ещё["y"] < 200:
             плохо(f"{н} переход к разделу увёл кадр или не прокрутил: {ещё}")
