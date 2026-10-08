@@ -72,7 +72,7 @@ from playwright.sync_api import sync_playwright
     ("дымоход ламели", "Дымоход в металле", "() => { checkedOptions.st17 = true; checkedOptions.st32 = true; checkedOptions.st27 = true; }", "() => { checkedOptions.st21 = true; checkedOptions.st32 = true; checkedOptions.st28 = true; }"),
     ("9-3", "стяжку", "() => { своя('engineering', 'Водяной тёплый пол в санузле'); }", "() => { своя('engineering', 'Водяной тёплый пол в санузле, стяжка 50 мм'); }"),
     ("9-6", "техническое помещение", "() => { checkedOptions.eng19 = true; }", "() => {}"),
-    ("6-4", "Окна Blitz 60", "() => {}", "() => { checkedOptions.w8 = true; }"),
+    ("6-4", "Окна Veka WHS 72", "() => {}", "() => { checkedOptions.w8 = true; }"),
     ("9-9", "Перенести освещение", "() => { своя('interior', 'Светильники в комнату отдыха'); }", "() => { своя('engineering', 'Светильники в комнату отдыха'); }"),
 ]
 
@@ -125,7 +125,7 @@ def прогон(бр, порт):
             НАХОДКИ.append(f"[стоп] «{часть}» не стоп: {т}")
     # Чистый расчёт с фоном — без замечаний из новых правил.
     стр.evaluate(СБРОС); стр.evaluate("async () => { canvasAddImage(ВИЗ); canvasAddImage(ПЛАН); await Promise.all(снимкиХолста().map(видКартинки)); }")
-    т = [х for х in стр.evaluate(ТЕКСТЫ) if not х.startswith("? Скидка") and not х.startswith("? Окна Blitz 60") and "пробное бурение" not in х]
+    т = [х for х in стр.evaluate(ТЕКСТЫ) if not х.startswith("? Скидка") and not х.startswith(("? Окна Blitz 60", "? Окна Veka WHS 72")) and "пробное бурение" not in х]
     if т:
         НАХОДКИ.append(f"[фон] на спокойном расчёте есть замечания: {т}")
     for ключ, (ид, кусок) in ИМЕНА.items():
