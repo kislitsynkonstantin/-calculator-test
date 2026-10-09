@@ -20848,6 +20848,22 @@ function собратьЛистПечати() {
 .bl-title{font-family:'Unbounded',sans-serif;font-size:17pt;font-weight:700;letter-spacing:-.01em;line-height:1.22;color:var(--ink);}
 .bl-title .bl-em{color:var(--acc2);}
 :root[data-tone="bmsk"] .bl-eyebrow{color:#4f7d26;}
+/* «Зелёный-графит»: светлый зелёный на белом листе — 2,7:1 у «Входит», сумм
+   разделов и спец. цены, 2,1:1 у подписи «Спец. цена» и второй части
+   названия (норма 4,5). Константин 09.10.2026, снимком листа с телефона:
+   «проверь на читаемость, мне кажется много зелени». Как на экране в этом
+   тоне (25 и 28.09.2026): суммы разделов — графит, «Входит» — серым, как
+   номера и подписи, мелкий акцент — тёмным фирменным зелёным (4,9:1),
+   примечание — на нейтральной заливке. Светлый зелёный остаётся у черт и
+   бледных номеров разделов: там он держит акцент, а не текст. */
+:root[data-tone="bmsk"] .bl-sec td.bl-ssum{color:var(--ink);}
+:root[data-tone="bmsk"] .bl-v-inc{color:var(--ink2);}
+:root[data-tone="bmsk"] .bl-note td{background:#f4f5f3;color:#5f635c;}
+:root[data-tone="bmsk"] .bl-title .bl-em,
+:root[data-tone="bmsk"] .bl-disc-k,
+:root[data-tone="bmsk"] .bl-disc-v,
+:root[data-tone="bmsk"] .bl-disc-v small,
+:root[data-tone="bmsk"] .bl-gift{color:#4f7d26;}
 .bl-hr{height:1px;background:var(--rule);margin:16px 0 0;}
 /* Ровно две колонки, как в утверждённом макете. auto-fit пробовал сам решать
    по ширине — на широком листе он разложил реквизиты в три колонки, и порядок
@@ -24361,6 +24377,10 @@ function buildContractHtmlKar(vars) {
   --bl-rule:var(--br-89);--bl-rule2:var(--br-80);--bl-acc:var(--br-28);--bl-acc2:var(--br-38);--bl-pale:var(--br-77);
   --bl-head:var(--bl-acc);--bl-small:var(--bl-acc2)}
 :root[data-tone="bmsk"]{--bl-head:#24271f;--bl-small:#4f7d26}
+/* Выделенная часть названия — тёмным фирменным зелёным, как у спецификации:
+   светлый (#83c445) давал 2,1:1, а три документа комплекта держат один цвет
+   (Константин 09.10.2026: «проверь на читаемость, мне кажется много зелени»). */
+:root[data-tone="bmsk"] .title em{color:var(--bl-small)}
 
 ${сКолонтитулами ? колонтитулы : `@page{size:A4;margin:20mm 10mm 20mm 10mm;
   @bottom-right{content:"Страница " counter(page) " из " counter(pages);font-family:'Geologica',Arial,sans-serif;font-size:8pt;color:#8a8f88}}`}
@@ -26108,6 +26128,10 @@ const ПРИЛОЖЕНИЕ2_СТИЛЬ = `
   --bl-head:var(--bl-acc);--bl-small:var(--bl-acc2)}
 /* «Зелёный-графит» — тон-пара: заголовки графитом, мелкий зелёный — тёмным фирменным. */
 :root[data-tone="bmsk"]{--bl-head:#24271f;--bl-small:#4f7d26}
+/* Выделенная часть названия — тёмным фирменным зелёным, как у спецификации:
+   светлый (#83c445) давал 2,1:1, а три документа комплекта держат один цвет
+   (Константин 09.10.2026: «проверь на читаемость, мне кажется много зелени»). */
+:root[data-tone="bmsk"] .title em{color:var(--bl-small)}
 body{background:var(--bl-page);color:var(--bl-ink);font-family:'Geologica',Arial,sans-serif;font-variant-numeric:tabular-nums;line-height:1.45;padding:14px 0}
 .sheet{width:min(794px,calc(100% - 24px));aspect-ratio:210/297;margin:0 auto 14px;background:var(--bl-sheet);display:flex;flex-direction:column;
   padding:min(20mm,9.52%) min(10mm,4.76%) min(20mm,9.52%) min(10mm,4.76%);font-size:clamp(9px,1.62vw,13px);box-shadow:0 1px 2px rgba(0,0,0,.05),0 6px 22px rgba(0,0,0,.07)}
