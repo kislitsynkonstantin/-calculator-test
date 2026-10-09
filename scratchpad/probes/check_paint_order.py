@@ -53,8 +53,11 @@ def прогон(бр, порт, шир, выс):
         НАХОДКИ.append(f"{н} каркас: порядок покраски {живые}, ждали {ждём}")
     # Выгрузка — те же условия, что в _doExcelExport.
     в = стр.evaluate("""() => ({ снята: ОПЦИИ_СНЯТЫ.has('p17'),
-      калькулятор: OPTIONS.filter(o => o.status === 'formula' && o.formula && !ОПЦИИ_СНЯТЫ.has(o.id)).map(o => o.id),
-      код: String(_doExcelExport).includes("ОПЦИИ_СНЯТЫ.has(opt.id) ? 'снята'") && String(_doExcelExport).includes("o.formula && !ОПЦИИ_СНЯТЫ.has(o.id)") })""")
+      калькулятор: OPTIONS.filter(o => o.status === 'formula' && o.formula && !опцияСнята(o)).map(o => o.id),
+      // С (10) снятость спрашивается у опцияСнята(): она знает и строки бруса,
+      // общие со снятой строкой каркаса.
+      код: String(_doExcelExport).includes("опцияСнята(opt) ? 'снята'") && String(_doExcelExport).includes("!опцияСнята(o)")
+        && опцияСнята(getOpt('p17')) })""")
     if not в["снята"] or "p17" in в["калькулятор"] or not в["код"]:
         НАХОДКИ.append(f"{н} выгрузка: {в}")
     # Сохранённый расчёт с покраской клеёного бруса — строка видна.
