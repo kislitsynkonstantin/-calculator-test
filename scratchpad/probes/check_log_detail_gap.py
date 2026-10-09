@@ -28,6 +28,8 @@ import sys
 import threading
 
 from playwright.sync_api import sync_playwright
+sys.path.insert(0, str(pathlib.Path(__file__).parent))
+from даты_событий import освежить  # даты событий — от сегодняшнего дня
 
 КОРЕНЬ = pathlib.Path(os.environ.get("BM_ROOT")
                       or pathlib.Path(__file__).resolve().parent.parent.parent)
@@ -52,7 +54,7 @@ def событие(и, вид, проект, строки, когда):
              {"k": "Выделены", "a": "", "b": "Подсветка полков стандарт"}], "2026-09-23T09:40:00Z"),
 ]
 ТАБЛИЦЫ = {
-    "events": СОБЫТИЯ,
+    "events": освежить(СОБЫТИЯ),
     "profiles": [{"id": "u-проба", "role": "admin", "full_name": "Проба"}],
     "preset_links": [], "presets": [],
     "pricing_projects": [{"product": "frame", "sort": 1, "slug": "Проба 6×4", "name": "Проба 6×4",

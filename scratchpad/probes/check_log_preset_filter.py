@@ -29,6 +29,8 @@ import sys
 import threading
 
 from playwright.sync_api import sync_playwright
+sys.path.insert(0, str(pathlib.Path(__file__).parent))
+from даты_событий import освежить  # даты событий — от сегодняшнего дня
 
 КОРЕНЬ = pathlib.Path(os.environ.get("BM_ROOT")
                       or pathlib.Path(__file__).resolve().parent.parent.parent)
@@ -56,7 +58,7 @@ def с_(и, вид, минут, код=None, пресет=None):
     с_(5, "share_created", 10, "321910", "Хай-тек баня «Виго» 7,7х8,2 · 25.09.26"),
 ]
 ТАБЛИЦЫ = {
-    "events": СОБЫТИЯ,
+    "events": освежить(СОБЫТИЯ),
     "profiles": [{"id": "u-проба", "role": "admin", "full_name": "Проба"}],
     "preset_links": [], "presets": [],
 }
