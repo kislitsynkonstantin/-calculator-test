@@ -137,10 +137,12 @@ def прогон(бр, порт, ш):
     except Exception:
         pass
 
-    # Rehau одним щелчком на одной строке
-    if стр.locator("#ovar_kb_w2_1").count():
-        стр.locator("#ovar_kb_w2_1").scroll_into_view_if_needed()
-        стр.locator("#ovar_kb_w2_1").click()
+    # Rehau одним щелчком на одной строке. Щёлкаем в строке двери: окна 82 мм
+    # при отмеченных 70 мм закрыты автоматикой (v2.5.16 (13)), и переключатель
+    # в закрытой строке не нажимается — так же, как у каркаса.
+    if стр.locator("#ovar_kb_w7_1").count():
+        стр.locator("#ovar_kb_w7_1").scroll_into_view_if_needed()
+        стр.locator("#ovar_kb_w7_1").click()
         стр.wait_for_timeout(300)
     р = стр.evaluate(СОСТОЯНИЕ, ИДЫ)
     сверить(н, р, "rehau", "щелчок Rehau")
