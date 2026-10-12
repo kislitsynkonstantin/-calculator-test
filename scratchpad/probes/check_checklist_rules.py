@@ -50,11 +50,11 @@ from playwright.sync_api import sync_playwright
     ("1-10 бытовка", "Выбрать опцию бытовки", "() => { checkedOptions.e6 = false; }", "() => { checkedOptions.e6 = false; checkedOptions.e5 = true; }"),
     ("1-12", "у купели", "() => { своя('extra', 'Купель'); }", "() => { своя('extra', 'Купель с внешней печью, 1800×1200 мм, кедр'); }"),
     ("1-14", "у бассейна приямок", "() => { своя('extra', 'Бассейн 3×4 м'); }", "() => { своя('extra', 'Бассейн 3×4 м, приямок не входит'); }"),
+    # Приёмка фундамента заказчика технадзором: фундамент делает заказчик,
+    # бурить нечего (Константин, 12.10.2026, снимком).
+    ("бурение и фундамент заказчика", "Добавить пробное бурение", "() => { checkedOptions.f3 = false; }", "() => { checkedOptions.f3 = false; checkedOptions.f4 = true; }"),
     ("2-4", "отмостку", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; }", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; customNotes.foundation.push({ id: 'н2', text: 'Отмостка не входит' }); }"),
     ("2-6", "тепляк", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; document.getElementById('contractDate').value = '2026-12-10'; }", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; document.getElementById('contractDate').value = '2026-06-10'; }"),
-    ("2-10", "Фундамент не выбран", "() => { checkedOptions.f5 = false; }", "() => { checkedOptions.f5 = false; customNotes.foundation.push({ id: 'н3', text: 'Фундамент не входит — заказчика' }); }"),
-    # Забивные сваи — тоже выбранный фундамент: «сваи», а не «свай» (30.09.2026, снимком).
-    ("2-10 сваи", "Фундамент не выбран", "() => { checkedOptions.f5 = false; }", "() => { checkedOptions.f5 = false; checkedOptions.f9 = true; }"),
     ("4-9", "Форма кровли не совпадает", "() => { checkedOptions.r17 = true; }", "() => {}"),
     ("5-1", "имитацию 20 мм", "() => { checkedOptions.ex6 = true; }", "() => { checkedOptions.ex6 = false; }"),
     ("5-11", "сорт древесины", "() => { своя('interior', 'Вагонка на потолок мансарды'); }", "() => { своя('interior', 'Вагонка на потолок мансарды, сорт АВ'); }"),
@@ -117,6 +117,11 @@ def прогон(бр, порт):
     стр.evaluate(СБРОС); стр.evaluate("() => { своя('extra', 'Навес для дров', false, 90000); своя('exterior', 'Террасная доска — ДПК UnoDeck Ultra', false, 300000); }")
     if any("Выделить свои позиции цветом" in т for т in стр.evaluate(ТЕКСТЫ)):
         НАХОДКИ.append("[1-15] снятый пункт «Выделить свои позиции цветом» по-прежнему появляется")
+    # 2-10 снят 12.10.2026: фундамент не выбран — в разделе стоит примечание
+    # «Фундамент не входит в расчёт», и дописывать нечего.
+    стр.evaluate(СБРОС); стр.evaluate("() => { checkedOptions.f5 = false; }")
+    if any("Фундамент не выбран" in т for т in стр.evaluate(ТЕКСТЫ)):
+        НАХОДКИ.append("[2-10] снятый пункт «Фундамент не выбран» по-прежнему появляется")
     # 4-9 и 7-1 — стоп.
     стр.evaluate(СБРОС); стр.evaluate("() => { checkedOptions.r17 = true; checkedOptions.p2 = true; }")
     т = стр.evaluate(ТЕКСТЫ)

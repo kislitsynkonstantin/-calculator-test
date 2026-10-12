@@ -166,10 +166,14 @@ def прогон(бр, порт, ш):
     вид = стр.evaluate("() => { checkedOptions.kb_p4 = true; const а = isOptionVisible(getOpt('kb_p4')); delete checkedOptions.kb_p4; return [а, isOptionVisible(getOpt('kb_p4'))]; }")
     if вид != [True, False]:
         НАХОДКИ.append(f"{н} снятая строка бруса: видна отмеченной / неотмеченной {вид}, ждали [True, False]")
-    # Проект без своей цены водостока
+    # Проект без своей цены водостока. Без площади водосток и покраску нажатием
+    # уже не отметить (12.10.2026) — отмечены они в сохранённом расчёте,
+    # открытом до правила; так их и ставим, мимо нажатия.
     стр.evaluate("""async (п) => { selectProjectOption(PROJECTS.findIndex(p => p[0] === п)); kbSetArea('roof', '');
       kbSetArea('fasad', ''); calc(); await new Promise(r => setTimeout(r, 300));
-      if (!checkedOptions.kb_r2) toggleOpt('kb_r2'); if (!checkedOptions.kb_p18) toggleOpt('kb_p18'); calc(); }""", П2)
+      ['kb_r2', 'kb_p18'].forEach(ид => { checkedOptions[ид] = true; const ч = document.getElementById('chk_' + ид);
+        if (ч) ч.checked = true; const л = document.getElementById('lbl_' + ид); if (л) л.classList.add('active'); });
+      calc(); }""", П2)
     в = стр.evaluate(ВИД)
     оба = [з for з in в["замечания"] if з[0].startswith("Заполнить площадь")]
     if оба != [["Заполнить площадь фасада и кровли", "kbAreaFasad kbAreaRoof"]]:

@@ -174,6 +174,15 @@ def прогон(бр, порт, ш):
         if ф["фокус"] != поле or ф["отм"]:
             НАХОДКИ.append(f"{н} нажатие «укажите площадь» у {ид}: фокус {ф['фокус']}, галочка {ф['отм']}")
 
+    # Без площади опцию не отметить: нажатие по строке объясняет, галочки нет
+    # (Константин, 12.10.2026: «если площадь не заполнена — сделай, чтобы
+    # опцию нельзя было выбрать»).
+    for ид, слово in (("kb_p17", "фасада"), ("kb_rf", "кровли")):
+        з = стр.evaluate(f"""() => {{ toggleOpt('{ид}'); const т = document.getElementById('exclTooltip');
+          return {{ отм: !!checkedOptions['{ид}'], текст: т && т.style.display !== 'none' ? т.textContent : '' }}; }}""")
+        if з["отм"] or f"площадь {слово}" not in з["текст"]:
+            НАХОДКИ.append(f"{н} {ид} без площади {слово}: отмечена {з['отм']}, подсказка «{з['текст']}»")
+
     # Вписали фасад — пометка с него ушла, подсказка осталась, у покраски цена
     стр.locator("#kbAreaFasad").fill("120")
     стр.wait_for_timeout(300)
@@ -183,6 +192,8 @@ def прогон(бр, порт, ш):
     т = стр.evaluate("() => document.getElementById('optprice_kb_p17').textContent.trim()")
     if not any(с.isdigit() for с in т):
         НАХОДКИ.append(f"{н} фасад вписан, а покраска пишет «{т}»")
+    if not стр.evaluate("() => { toggleOpt('kb_p17'); const о = !!checkedOptions.kb_p17; if (о) toggleOpt('kb_p17'); return о; }"):
+        НАХОДКИ.append(f"{н} фасад вписан, а покраска не отмечается")
     стр.locator("#kbAreaRoof").fill("90")
     стр.wait_for_timeout(300)
     п = стр.evaluate(ПОМЕТКИ)
