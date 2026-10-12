@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ru" data-tone="bmsk" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Цена без площади — варианты подписи</title>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&family=Unbounded:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* Цвета сняты с калькулятора (тема «Бланк»), 12.10.2026. */
+:root[data-tone="bmsk"]{
+  --page:#f7fbfb; --sheet:#fff; --ink:#1e201c; --ink2:#6e726b; --ink3:#9a9c97;
+  --rule:#e3e4e3; --rule2:#cacfc4; --acc:#70ad34; --acc2:#83c445; --tint:#edf5e5;
+  --pale:#bdd99f; --por-bg:rgba(145,197,95,.06); --icon:#83c445; --price:#24271f;
+}
+:root[data-tone="bmsk"][data-theme="night"]{
+  --page:#151614; --sheet:#1d1f1c; --ink:#edefea; --ink2:#a9ada6; --ink3:#9a9e96;
+  --rule:#353f2d; --rule2:#5f7a48; --acc:#a8d27f; --acc2:#9ecb72; --tint:#262e21;
+  --pale:#5f7a48; --por-bg:rgba(145,197,95,.06); --icon:#9ecb72; --price:#a8d27f;
+}
+:root[data-tone="teal"]{
+  --page:#f7fbfb; --sheet:#fff; --ink:#12262a; --ink2:#5b7376; --ink3:#8da3a5;
+  --rule:#dceaeb; --rule2:#bcd9db; --acc:#1e6c72; --acc2:#2a8f97; --tint:#e4f5f6;
+  --pale:#a8dde0; --por-bg:rgba(61,176,186,.06); --icon:#2a8f97; --price:#1e6c72;
+}
+:root[data-tone="teal"][data-theme="night"]{
+  --page:#0e1a1c; --sheet:#132528; --ink:#e6f3f3; --ink2:#9db6b8; --ink3:#8aa4a6;
+  --rule:#224347; --rule2:#2d585d; --acc:#8fd6dc; --acc2:#5fc2ca; --tint:#173338;
+  --pale:#2d585d; --por-bg:rgba(61,176,186,.06); --icon:#5fc2ca; --price:#8fd6dc;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--page);color:var(--ink);font-family:'Geologica',system-ui,sans-serif;
+  font-size:15px;line-height:1.55;font-variant-numeric:tabular-nums;transition:background .2s,color .2s}
+.wrap{max-width:1180px;margin:0 auto;padding:30px 16px 80px}
+.eyebrow{font-size:.62rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
+h1{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.35rem;letter-spacing:-.01em;margin:0 0 10px}
+.lead{color:var(--ink2);max-width:72ch;margin:0 0 6px;font-size:.92rem}
+.ctl{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 6px}
+.seg{display:inline-flex;border:1px solid var(--rule2);border-radius:8px;overflow:hidden}
+.seg button{font:inherit;font-size:.78rem;background:transparent;color:var(--ink2);border:0;padding:7px 14px;cursor:pointer;min-height:36px}
+.seg button.on{background:var(--acc);color:var(--sheet);font-weight:600}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.demo{background:var(--sheet);border:1px solid var(--rule);border-radius:14px;overflow:hidden}
+.demo-h{display:flex;align-items:baseline;gap:10px;padding:14px 18px 10px;border-bottom:2px solid var(--acc)}
+.demo-h .n{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.1rem;color:var(--pale)}
+.demo-h .t{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.86rem;color:var(--acc)}
+.demo-note{font-size:.78rem;color:var(--ink2);padding:10px 18px 4px;line-height:1.5}
+.demo.now .demo-h{border-bottom-color:var(--rule2)}
+.demo.now .demo-h .t{color:var(--ink2)}
+/* Поле площади из карточки проекта — чтобы было видно, куда ведёт подпись */
+.field{display:grid;grid-template-columns:minmax(64px,128px) 1fr;align-items:center;gap:10px;padding:8px 18px 12px;border-bottom:1px solid var(--rule)}
+.field label{font-size:.7rem;color:var(--ink3)}
+.field .inp{display:flex;align-items:center;gap:8px}
+.field input{font:inherit;font-size:.86rem;color:var(--ink);background:transparent;border:0;border-bottom:1px dashed var(--acc2);
+  width:110px;height:34px;outline:none;padding:0 2px}
+.field input:focus{border-bottom:1.5px solid var(--acc)}
+.field .u{font-size:.75rem;color:var(--ink3)}
+.field.flash input{animation:flash .9s ease-in-out 2}
+@keyframes flash{0%,100%{background:transparent}40%,60%{background:var(--tint)}}
+/* Строка опции */
+.row{display:flex;gap:12px;align-items:flex-start;padding:12px 18px;border-bottom:1px solid var(--rule);cursor:pointer}
+.row:last-child{border-bottom:0}
+.box{width:20px;height:20px;border-radius:4px;box-shadow:inset 0 0 0 1.5px var(--rule2);flex:none;margin-top:2px}
+.row .nm{font-size:.82rem;color:var(--ink3)}
+.row .sub{display:flex;align-items:center;gap:14px;margin-top:7px;min-height:26px;flex-wrap:wrap}
+.ic{color:var(--icon);opacity:.75;display:inline-flex}
+.price{font-size:.72rem;font-weight:500;color:var(--price)}
+@media (hover:hover){.row:hover{background:linear-gradient(90deg,var(--tint),transparent 300px)}}
+
+/* Сейчас */
+.v0{background:none;border:0;padding:0;font:inherit;font-size:.72rem;font-weight:500;color:var(--price);
+  text-decoration:underline dashed;text-underline-offset:3px;cursor:pointer;position:relative}
+
+/* Вариант 1 — как пустое поле «введите сумму» */
+.v1{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:.72rem;color:var(--ink2);
+  background:var(--por-bg);border:1.5px dashed var(--pale);border-radius:6px;padding:3px 9px 3px 7px;cursor:pointer;
+  position:relative;transition:border-color .15s,background .15s,color .15s}
+.v1 svg{color:var(--acc2);flex:none}
+.v1 i{font-style:normal;color:var(--ink3)}
+.v1 .ar{color:var(--acc2);opacity:.8}
+@media (hover:hover){.v1:hover{border-color:var(--acc2);color:var(--ink);background:var(--tint)}}
+.v1::before,.v2::before,.v3::before{content:'';position:absolute;inset:-9px -4px}
+
+/* Вариант 2 — площадь вписывается прямо в строке */
+.v2{display:inline-flex;align-items:center;gap:5px;background:var(--por-bg);border:1.5px dashed var(--pale);
+  border-radius:6px;padding:2px 9px 2px 7px;position:relative;transition:border-color .15s,background .15s}
+.v2 svg{color:var(--acc2);flex:none}
+.v2 input{font:inherit;font-size:.74rem;width:46px;border:0;background:transparent;color:var(--acc);outline:none;padding:0;font-weight:500}
+.v2 input::placeholder{color:var(--ink3);font-style:italic;font-weight:400}
+.v2 span{font-size:.7rem;color:var(--ink3);white-space:nowrap}
+.v2:focus-within{border-style:solid;border-color:var(--acc2);background:var(--tint)}
+.v2-res{font-size:.72rem;font-weight:500;color:var(--price);display:none}
+.row.has-area .v2-res{display:inline}
+
+/* Вариант 3 — прочерк и тихая ссылка */
+.v3w{display:inline-flex;align-items:center;gap:10px}
+.v3dash{font-size:.72rem;color:var(--ink3)}
+.v3{display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:.7rem;font-weight:500;color:var(--acc);
+  background:transparent;border:0;border-radius:20px;padding:3px 9px 3px 7px;cursor:pointer;position:relative;
+  box-shadow:inset 0 0 0 1px var(--rule2);transition:background .15s,box-shadow .15s}
+.v3 svg{flex:none}
+@media (hover:hover){.v3:hover{background:var(--tint);box-shadow:inset 0 0 0 1px var(--acc2)}}
+
+.foot{margin-top:28px;font-size:.8rem;color:var(--ink2);max-width:80ch}
+.foot b{color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Макет · клеёный брус · раздел «Кровля»</div>
+  <h1>Цена без площади: как подписать</h1>
+  <p class="lead">У опции, которой не хватает площади фасада или кровли, на месте цены сейчас стоит подчёркнутое «укажите площадь». Ниже — как сейчас и три варианта. В каждом над строками стоит поле площади кровли из карточки проекта: нажатие по подписи ведёт к нему.</p>
+  <div class="ctl">
+    <div class="seg" id="segTheme"><button data-v="day">День</button><button data-v="night" class="on">Ночь</button></div>
+    <div class="seg" id="segTone"><button data-v="bmsk" class="on">Зелёный-графит</button><button data-v="teal">Бирюза</button></div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <p class="foot"><b>1</b> — подпись выглядит как пустое поле «введите сумму» и называет, какой площади не хватает: ровно то же «место, которое надо заполнить», только заполняется оно в карточке проекта. <b>2</b> — площадь вписывается прямо в строке: одно число на все позиции кровли, оно же встаёт в поле карточки, и цены появляются сразу во всех строках. <b>3</b> — цены нет, это честный прочерк, а рядом тихая кнопка, которая ведёт к полю.</p>
+</div>
+
+<script>
+const ИКОНКА = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V5a2 2 0 0 1 2-2h4M15 3h4a2 2 0 0 1 2 2v4M21 15v4a2 2 0 0 1-2 2h-4M9 21H5a2 2 0 0 1-2-2v-4"/></svg>';
+const СТРЕЛКА = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const ГЛАЗ = '<span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 4.2A10 10 0 0 1 12 4c5 0 9 4 10 8a12 12 0 0 1-2.6 4.1M6.6 6.6A12 12 0 0 0 2 12c1 4 5 8 10 8a10 10 0 0 0 5.4-1.6"/></svg></span>';
+const ПОДАРОК = '<span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg></span>';
+const СТРОКИ = [
+  { имя: 'Материал кровельного покрытия — профлист, глянец (матовый — за доплату)', к: 858 },
+  { имя: 'Материал кровельного покрытия — кликфальц 0,5 глянец (матовый — за доплату)', к: 2717 },
+  { имя: 'Материал кровельного покрытия — двойной стоячий фальц, глянец (матовый — за доплату)', к: 5087 },
+];
+const ВАРИАНТЫ = [
+  { ключ: 'now', номер: '0', назв: 'Сейчас', текст: 'Подчёркнутая надпись на месте цены: читается как ссылка, но не говорит, какой площади нет.',
+    подпись: () => '<button type="button" class="v0" data-go>укажите площадь</button>' },
+  { ключ: 'v1', номер: '1', назв: 'Как поле суммы', текст: 'Пунктирная рамка — тот же знак «сюда надо вписать», что у «введите сумму». Названа площадь, стрелка ведёт к полю.',
+    подпись: () => `<button type="button" class="v1" data-go>${ИКОНКА}<i>площадь кровли</i><span class="ar">${СТРЕЛКА}</span></button>` },
+  { ключ: 'v2', номер: '2', назв: 'Площадь прямо в строке', текст: 'Вписали число в любой строке — оно встаёт в поле карточки, и цены появляются во всех позициях кровли сразу.',
+    подпись: () => `<label class="v2" onclick="event.stopPropagation()">${ИКОНКА}<input inputmode="decimal" placeholder="—" aria-label="Площадь кровли, м²"><span>м² кровли</span></label><span class="v2-res"></span>` },
+  { ключ: 'v3', номер: '3', назв: 'Прочерк и кнопка', текст: 'Цены нет — стоит прочерк, как у других строк без суммы. Рядом тихая кнопка-метка с названием площади.',
+    подпись: () => `<span class="v3w"><span class="v3dash">— ₽</span><button type="button" class="v3" data-go>${ИКОНКА}Указать площадь кровли</button></span>` },
+];
+const сетка = document.getElementById('grid');
+const руб = ч => Math.round(ч).toLocaleString('ru-RU').replace(/ /g, ' ') + ' ₽';
+ВАРИАНТЫ.forEach(в => {
+  const д = document.createElement('section');
+  д.className = 'demo' + (в.ключ === 'now' ? ' now' : '');
+  д.innerHTML = `<div class="demo-h"><span class="n">${в.номер}</span><span class="t">${в.назв}</span></div>
+    <div class="demo-note">${в.текст}</div>
+    <div class="field"><label>Площадь кровли</label><div class="inp"><input inputmode="decimal" placeholder="введите" aria-label="Площадь кровли в карточке проекта"><span class="u">м²</span></div></div>
+    ${СТРОКИ.map(с => `<div class="row" data-k="${с.к}"><span class="box"></span><div><div class="nm">${с.имя}</div>
+      <div class="sub"><span class="slot">${в.подпись()}</span>${ГЛАЗ}${ПОДАРОК}</div></div></div>`).join('')}`;
+  сетка.appendChild(д);
+  const поле = д.querySelector('.field input');
+  const обновить = () => {
+    const s = parseFloat(String(поле.value).replace(',', '.'));
+    д.querySelectorAll('.row').forEach(р => {
+      const слот = р.querySelector('.slot');
+      if (s > 0) {
+        if (в.ключ === 'v2') { р.classList.add('has-area'); р.querySelector('.v2-res').textContent = руб(s * +р.dataset.k); }
+        else слот.innerHTML = `<span class="price">${руб(s * +р.dataset.k)}</span>`;
+      } else {
+        р.classList.remove('has-area');
+        if (в.ключ !== 'v2') слот.innerHTML = в.подпись();
+      }
+    });
+    if (в.ключ === 'v2') д.querySelectorAll('.v2 input').forEach(и => { if (и !== document.activeElement) и.value = поле.value; });
+  };
+  поле.addEventListener('input', обновить);
+  д.addEventListener('input', e => { if (e.target.closest('.v2')) { поле.value = e.target.value; обновить(); } });
+  д.addEventListener('click', e => {
+    if (!e.target.closest('[data-go]')) return;
+    e.stopPropagation();
+    const ф = д.querySelector('.field');
+    ф.classList.remove('flash'); void ф.offsetWidth; ф.classList.add('flash');
+    поле.focus({ preventScroll: true });
+    ф.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  });
+});
+function сегмент(ид, атр) {
+  document.querySelectorAll('#' + ид + ' button').forEach(к => к.addEventListener('click', () => {
+    document.querySelectorAll('#' + ид + ' button').forEach(х => х.classList.toggle('on', х === к));
+    document.documentElement.setAttribute(атр, к.dataset.v);
+  }));
+}
+сегмент('segTheme', 'data-theme');
+сегмент('segTone', 'data-tone');
+</script>
+</body>
+</html>

@@ -14592,6 +14592,45 @@ function pinIncludedOptsToTop() {
   });
 }
 
+// ── «Собирать выбранные опции» (настройка) ──
+// Константин 12.10.2026, снимком «Окон и дверей»: «Добавь тоггл в настройках
+// „Собирать выбранные опции“. Чтобы аккуратно с приятной анимацией
+// перемещались». Порядок меняется только на экране, свойством order: в
+// разметке строки стоят, как стояли, поэтому сохранённый порядок
+// перетаскивания, номера позиций и печать (она берёт порядок из разметки, а
+// невыбранных в ней нет) остаются прежними. Сверху — базовые строки, за ними
+// выбранные опции, ниже — остальные; внутри группы порядок списка.
+// Переезд плавный, когда галочку поставили руками (`плавно`); при открытии
+// расчёта и при reduce-motion строки встают на место сразу.
+function собратьВыбранные(плавно) {
+  const вкл = !!appSettings.gatherChecked;
+  const тихо = !плавно || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  document.querySelectorAll('.opts-list').forEach(список => {
+    const строки = [...список.children].filter(э => э.classList.contains('opt-item'));
+    const нужно = строки.map(э => {
+      if (!вкл) return '';
+      const o = э.dataset.optId ? getOpt(э.dataset.optId) : null;
+      if (o && o.included) return '0';
+      return э.classList.contains('active') ? '1' : '2';
+    });
+    if (строки.every((э, и) => э.style.order === нужно[и])) return;
+    const было = тихо ? null : строки.map(э => э.getBoundingClientRect().top);
+    строки.forEach((э, и) => { э.style.order = нужно[и]; });
+    if (тихо) return;
+    строки.forEach((э, и) => {
+      const сдвиг = было[и] - э.getBoundingClientRect().top;
+      if (Math.abs(сдвиг) < 1) return;
+      э.style.transition = 'none';
+      э.style.transform = 'translateY(' + сдвиг + 'px)';
+      э.getBoundingClientRect();
+      э.style.transition = 'transform 340ms cubic-bezier(.2,.8,.2,1)';
+      э.style.transform = '';
+      const снять = () => { э.style.transition = ''; э.removeEventListener('transitionend', снять); };
+      э.addEventListener('transitionend', снять);
+    });
+  });
+}
+
 function getMarginIndicatorHtml(optId) {
   const opt = getOpt(optId);
   if (!opt || !opt.formula) return '';
@@ -17971,6 +18010,9 @@ function calc() {
   // Константин: «автообновление ссылки не работает… надо, чтобы после каждого
   // действия обновлялась ссылка сама, если стоит эта галочка».
   try { запланироватьАвтообновлениеСсылки(); } catch (e) {}
+  // Выбранные опции собираются вместе, если это включено в настройках;
+  // плавно — только когда галочку поставили руками.
+  try { собратьВыбранные(_autoHideОтРуки); } catch (e) {}
 }
 
 // ============================================================
@@ -22825,6 +22867,10 @@ const appSettings = {
   contractorName: 'ООО «ПСК Вега»',
   showDisclaimer: true,
   showAutoToasts: true,
+  // Выбранные опции раздела встают вместе под базовыми строками (Константин,
+  // 12.10.2026). По умолчанию выключено: раскладка у всех остаётся прежней,
+  // пока менеджер не включит сам.
+  gatherChecked: false,
   // Число замечаний по чек-листу на значке мини-окна. Настройка аккаунта:
   // включив или выключив его однажды, менеджер получает то же на любом
   // устройстве. По умолчанию включено (Константин, 09.10.2026: «по умолчанию
@@ -28316,6 +28362,10 @@ function renderSettingsBody() {
       <div class="st-row">
         <div><div class="st-label">Замечания проверки на значке пресета</div><div class="st-sub">Число замечаний по чек-листу на значке мини-окна в правом нижнем углу. Во вкладке «Проверка» оно видно всегда</div></div>
         <label class="st-toggle"><input type="checkbox" aria-label="Замечания проверки на значке пресета" ${appSettings.showCheckBadge===true?'checked':''} onchange="appSettings.showCheckBadge=this.checked;saveSettings();try{обновитьСчётчикПроверки()}catch(e){}"><span class="st-toggle-slider"></span></label>
+      </div>
+      <div class="st-row">
+        <div><div class="st-label">Собирать выбранные опции</div><div class="st-sub">В каждом разделе выбранные опции встают вместе под базовыми строками, остальные — ниже</div></div>
+        <label class="st-toggle"><input type="checkbox" aria-label="Собирать выбранные опции" ${appSettings.gatherChecked?'checked':''} onchange="appSettings.gatherChecked=this.checked;saveSettings();собратьВыбранные(true)"><span class="st-toggle-slider"></span></label>
       </div>
       <div class="st-section-title">Настройка кнопки «глаз»</div>
       <div class="st-row" style="border-bottom:none;">
@@ -37639,6 +37689,13 @@ function проверкаПоЧекЛисту() {
       ? 'Окна Blitz 60: если в проекте большие окна — проверить профиль, нужен Grazio 70 или выше'
       : 'Окна Veka WHS 72: если в проекте большие окна — проверить профиль, нужен softline 70 или выше',
       'windows', базовые.эл);
+  // Пластиковые окна без ламинации — предложить её клиенту (Константин,
+  // 12.10.2026, снимком окон бруса: «в проверке допиши что-то вроде, что нужно
+  // предложить клиенту ламинацию»). Ламинации нет у алюминиевых окон — при них
+  // молчим; ламинация, вписанная своей позицией или примечанием, тоже считается.
+  // «Без ламинации» в названии базового стеклопакета ламинацией не считается.
+  if (!хоть(['w10', 'w11', 'w13']) && !тексты.some(х => х.раздел === 'windows' && /ламинац/i.test(х.т) && !/без\s+ламинац/i.test(х.т)))
+    спросить('Окна без ламинации — предложить клиенту ламинацию', 'windows', перваяИз(['w10', 'w11']));
   // Вывоз мусора выбран, а примечание «Вывоз мусора не входит в расчёт» стоит в
   // документе — противоречие (Константин, 30.09.2026). Не выбран — молчим:
   // примечание и так говорит, что вывоз не входит.
