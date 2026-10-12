@@ -171,9 +171,21 @@ def прогон(бр, порт, ш):
     # открытом до правила; так их и ставим, мимо нажатия.
     стр.evaluate("""async (п) => { selectProjectOption(PROJECTS.findIndex(p => p[0] === п)); kbSetArea('roof', '');
       kbSetArea('fasad', ''); calc(); await new Promise(r => setTimeout(r, 300));
-      ['kb_r2', 'kb_p18'].forEach(ид => { checkedOptions[ид] = true; const ч = document.getElementById('chk_' + ид);
+      delete checkedOptions.kb_p18; calc();
+      ['kb_r2'].forEach(ид => { checkedOptions[ид] = true; const ч = document.getElementById('chk_' + ид);
         if (ч) ч.checked = true; const л = document.getElementById('lbl_' + ид); if (л) л.classList.add('active'); });
       calc(); }""", П2)
+    # Отмечен только водосток, покраска фасада без площади заперта и не
+    # отмечена — пункт всё равно просит обе площади (Константин, 12.10.2026:
+    # «предлагает заполнить площадь кровли, но не предлагает заполнить
+    # площадь фасада»).
+    в = стр.evaluate(ВИД)
+    оба = [з for з in в["замечания"] if з[0].startswith("Заполнить площадь")]
+    if оба != [["Заполнить площадь фасада и кровли", "kbAreaFasad kbAreaRoof"]]:
+        НАХОДКИ.append(f"{н} обе площади пусты, отмечен только водосток, покраска заперта: {оба}, ждали один пункт «Заполнить площадь фасада и кровли»")
+    стр.evaluate("""() => { ['kb_p18'].forEach(ид => { checkedOptions[ид] = true; const ч = document.getElementById('chk_' + ид);
+        if (ч) ч.checked = true; const л = document.getElementById('lbl_' + ид); if (л) л.classList.add('active'); });
+      calc(); }""")
     в = стр.evaluate(ВИД)
     оба = [з for з in в["замечания"] if з[0].startswith("Заполнить площадь")]
     if оба != [["Заполнить площадь фасада и кровли", "kbAreaFasad kbAreaRoof"]]:
