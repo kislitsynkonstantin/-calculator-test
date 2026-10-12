@@ -4104,14 +4104,31 @@ body.ui-blank #kbAreasWrap .field.kb-area-need input[type=text] { border-bottom:
 #kbAreasWrap .field.kb-areas-hint { padding-top: 2px; }
 .kb-areas-hint > div { font-size: 0.72rem; line-height: 1.35; color: var(--green-mid); }
 body.ui-blank .kb-areas-hint > div { color: var(--bl-acc); }
-/* «Укажите площадь» на месте цены опции: ведёт к пустому полю. Рисуется
-   как подпись цены, а площадь нажатия расширена невидимым полем. */
+/* Метка «площадь кровли/фасада» на месте цены опции: ведёт к пустому полю.
+   Нарисована как пустое поле «введите сумму» — пунктирная рамка, тот же знак
+   «сюда надо вписать», — только вписывается площадь в карточке проекта.
+   Ночью рамка тише: светлый пунктир на тёмном листе спорил с ценами соседей.
+   Площадь нажатия расширена невидимым полем. Макет kb-area-label-v1, вариант 1. */
 .kb-need-area {
-  background: none; border: 0; padding: 0; margin: 0;
-  font: inherit; color: inherit; cursor: pointer; position: relative;
-  text-decoration: underline dashed; text-underline-offset: 3px;
+  display: inline-flex; align-items: center; gap: 6px;
+  margin: 3px 0 0; padding: 3px 9px 3px 7px;
+  font-family: 'Geologica', sans-serif; font-size: 0.72rem; font-weight: 400; line-height: 1.3;
+  color: var(--gray-light);
+  background: rgba(var(--br-48-rgb), 0.06);
+  border: 1.5px dashed var(--green-pale); border-radius: 6px;
+  cursor: pointer; position: relative;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
-.kb-need-area::before { content: ''; position: absolute; inset: -12px -6px; }
+.kb-need-area svg { flex: none; color: var(--green-mid); }
+.kb-need-area .kb-need-ar { opacity: 0.8; }
+body.ui-blank .kb-need-area { color: var(--bl-ink3); }
+body.ui-blank .kb-need-area svg { color: var(--bl-acc2); }
+body.ui-blank.dark .kb-need-area { border-color: var(--bl-rule2); }
+@media (hover: hover) {
+  .kb-need-area:hover { border-color: var(--green-mid); color: var(--black); background: var(--green-bg); }
+  body.ui-blank .kb-need-area:hover { border-color: var(--bl-acc2); color: var(--bl-ink); background: var(--bl-tint); }
+}
+.kb-need-area::before { content: ''; position: absolute; inset: -9px -4px; }
 /* hidden sizer */
 .por-sizer {
   position: absolute;
@@ -28808,12 +28825,18 @@ function kbНетПлощади(opt) {
   return (s == null || s <= 0) ? какая : null;
 }
 
-// Цена опции в строке: число, «укажите площадь» (у бруса, когда опции не
+// Цена опции в строке: число, метка «площадь кровли/фасада» (у бруса, когда опции не
 // хватает площади) или то, что строка показывала без цены.
 function ценаОпцииHtml(opt, price, пусто = '—') {
   if (price) return fmt(price);
   const какая = kbНетПлощади(opt);
-  if (какая) return `<button type="button" class="kb-need-area" onclick="kbКПлощади('${какая}', event)">укажите площадь</button>`;
+  // Метка рисуется как пустое поле «введите сумму» — тот же знак «сюда надо
+  // вписать» — и называет, какой площади не хватает (Константин, 12.10.2026,
+  // макет kb-area-label-v1, вариант 1: «Этот сделай»).
+  if (какая) return `<button type="button" class="kb-need-area" aria-label="Указать площадь ${какая === 'roof' ? 'кровли' : 'фасада'}" onclick="kbКПлощади('${какая}', event)">`
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V5a2 2 0 0 1 2-2h4M15 3h4a2 2 0 0 1 2 2v4M21 15v4a2 2 0 0 1-2 2h-4M9 21H5a2 2 0 0 1-2-2v-4"/></svg>'
+    + `<span class="kb-need-t">площадь ${какая === 'roof' ? 'кровли' : 'фасада'}</span>`
+    + '<svg class="kb-need-ar" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>';
   return пусто;
 }
 
