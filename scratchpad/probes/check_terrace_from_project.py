@@ -56,7 +56,9 @@ threading.Thread(target=с.serve_forever, daemon=True).start()
 хром = os.environ.get("BM_CHROMIUM") or str(sorted(pathlib.Path("/opt/pw-browsers").glob("chromium-*/chrome-linux/chrome"))[-1])
 
 ТЕРРАСА = """() => { const о = getOpt('e10'), п = document.getElementById('qtyval_e10'), ц = document.getElementById('optprice_e10');
+  const и = document.querySelector('#lbl_e10 .opt-name');
   return { кол: getOptQty(о), поле: п ? String(п.value ?? п.textContent).trim() : '', цена: ц ? ц.textContent.replace(/\\s/g, ' ').trim() : '',
+           имя: и ? и.textContent.replace(/\\s+/g, ' ').trim() : '',
            проект: selectedProject ? selectedProject[0] : null }; }"""
 
 with sync_playwright() as pw:
@@ -79,9 +81,9 @@ with sync_playwright() as pw:
         return стр.evaluate(ТЕРРАСА)
 
     д = проект("Проба дом 8×8")
-    факт(д["кол"] == 20 and д["поле"] == "20" and "240 000" in д["цена"], f"[каркас] проект с террасой 20 м²: {д}")
+    факт(д["кол"] == 20 and д["поле"] == "20" and "240 000" in д["цена"] and д["имя"].endswith("20 м²"), f"[каркас] проект с террасой 20 м², и в названии 20 м²: {д}")
     д = проект("Проба дом 6×6")
-    факт(д["кол"] == 12 and д["поле"] == "12" and "144 000" in д["цена"], f"[каркас] проект без открытой террасы — 12 м²: {д}")
+    факт(д["кол"] == 12 and д["поле"] == "12" and "144 000" in д["цена"] and д["имя"].endswith("12 м²"), f"[каркас] проект без открытой террасы — 12 м²: {д}")
     стр.evaluate("() => { задатьКоличество('e10', '15'); }"); стр.wait_for_timeout(300)
     д = проект("Проба дом 8×8")
     факт(д["кол"] == 15 and "180 000" in д["цена"], f"[каркас] вписанные 15 м² не сбрасываются сменой проекта: {д}")
