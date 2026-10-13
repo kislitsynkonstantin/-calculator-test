@@ -114,9 +114,10 @@ def прогон(бр, порт, ш, тон, ночь):
     стр.wait_for_timeout(2500)
     стр.evaluate("""([тон, ночь]) => { const б = document.getElementById('pricingErrorScreen'); if (б) б.style.display = 'none';
       applyTone(тон || 'teal', false); document.body.classList.toggle('dark', ночь); try { localStorage.setItem('banya_dark', ночь ? '1' : '0'); } catch (e) {} }""", [тон, ночь])
+    # Справка открывается оглавлением; к журналу — как возврат из статьи, с главой.
     стр.evaluate("async () => { await openManual(); closeManual(); }"); стр.wait_for_timeout(300)
-    стр.evaluate("() => openManual()")
-    кадр = ждать_кадр(стр, "#ch-updates")
+    стр.evaluate("() => openManual('updates')")
+    кадр = ждать_кадр(стр, "#ch-updates.on")
     if not кадр:
         плохо(f"{н} справка не открылась"); стр.close(); return
     стр.wait_for_timeout(700)
@@ -166,7 +167,7 @@ def прогон(бр, порт, ш, тон, ночь):
     кадр.locator(f'[data-release-ico="{ВЕРСИЯ}"]').click()
     if ждать_кадр(стр, "h1"):
         стр.evaluate("() => { const ф = document.getElementById('manualFrame'); ф.contentWindow.postMessage({ type: 'backToManual' }, '*'); }")
-        стр.evaluate("() => openManual()"); кадр = ждать_кадр(стр, "#ch-updates"); стр.wait_for_timeout(700)
+        стр.evaluate("() => openManual('updates')"); кадр = ждать_кадр(стр, "#ch-updates.on"); стр.wait_for_timeout(700)
         раскрыть_выпуск(кадр); стр.wait_for_timeout(300)
         ссылка = кадр.locator(f'[data-release="{ВЕРСИЯ}"]')
     else:
