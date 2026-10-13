@@ -27,6 +27,11 @@ from playwright.sync_api import sync_playwright
 КОРЕНЬ = pathlib.Path(__file__).resolve().parent.parent.parent
 ЗАГЛУШКА = (pathlib.Path(__file__).parent / "stub_sb.js").read_text(encoding="utf-8")
 НАХОДКИ = []
+# Цены из учебного набора: без них калькулятор держит экран входа поверх
+# страницы, и нажатие мышью уходило в него (обход 13.10.2026).
+import json as _json
+ЦЕНЫ = ("window.__ТАБЛИЦЫ = Object.assign(window.__ТАБЛИЦЫ || {}, "
+        + (pathlib.Path(__file__).parent / "kit_fixture.json").read_text(encoding="utf-8") + ");")
 # Однопиксельная картинка: содержимое снимка пробе безразлично.
 ТОЧКА = ("data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==")
 
@@ -148,6 +153,7 @@ def главная():
                            has_touch=True, is_mobile=True)
         стр = к.new_page()
         стр.add_init_script(ЗАГЛУШКА)
+        стр.add_init_script(ЦЕНЫ)
         стр.goto(f"http://127.0.0.1:{порт}/index.html", wait_until="load")
         стр.wait_for_timeout(1400)
 
@@ -341,6 +347,7 @@ def главная():
         к2 = бр.new_context(viewport={"width": 1280, "height": 900})
         стр2 = к2.new_page()
         стр2.add_init_script(ЗАГЛУШКА)
+        стр2.add_init_script(ЦЕНЫ)
         стр2.goto(f"http://127.0.0.1:{порт}/index.html", wait_until="load")
         стр2.wait_for_timeout(1400)
         было2 = стр2.evaluate(ПОЛОЖИТЬ, ТОЧКА)

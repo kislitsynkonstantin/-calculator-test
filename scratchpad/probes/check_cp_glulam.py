@@ -246,9 +246,10 @@ def главная():
             for w in (1440, 390, 360):
                 стр.set_viewport_size({"width": w, "height": 1000})
                 стр.wait_for_timeout(200)
-                # Цена в восемь знаков должна помещаться в свою треть — в обеих
-                # темах (у 360 px в «Модерне» раньше съедались последние цифры).
-                for бланк in (False, True):
+                # Цена в восемь знаков должна помещаться в свою треть. Тема одна —
+                # «Бланк»: «Модерн» снят 27.09.2026 и не включается ничем, его
+                # правила в файле мертвы (у 360 px в нём съедались последние цифры).
+                for бланк in (True,):
                     обрез = спросить(стр, """(б) => { document.body.classList.toggle('ui-blank', б);
                       ['cpPrice100','cpPrice150','cpPrice200'].forEach(ид => document.getElementById(ид).value = '15 086 183');
                       return ['cpPrice100','cpPrice150','cpPrice200'].map(ид => { const e = document.getElementById(ид);

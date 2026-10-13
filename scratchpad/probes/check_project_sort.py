@@ -326,6 +326,9 @@ def главная():
                     for ш, в in ((390, 900), (1440, 950)):
                         где = f"{'Бланк' if бланк else 'Модерн'} · {'ночь' if ночь else 'день'} · {ш}px"
                         стр = бр.new_page(viewport={"width": ш, "height": в})
+                        # Настоящие начертания: геометрия, зависящая от текста, мерится тем шрифтом, что видит менеджер.
+                        стр.route("**/fonts.googleapis.com/**", lambda r: r.fulfill(status=200, content_type="text/css", body=(pathlib.Path(__file__).parent / "шрифты_google.css").read_text(encoding="utf-8")))
+                        стр.route("**/fonts.gstatic.com/**", lambda r: r.abort())
                         ошибки = []
                         стр.on("pageerror", lambda e, о=ошибки: о.append(str(e)))
                         открыть(стр, порт, бланк, ночь)
@@ -339,6 +342,9 @@ def главная():
 
             # ── база не ответила ──
             стр = бр.new_page(viewport={"width": 1440, "height": 950})
+            # Настоящие начертания: геометрия, зависящая от текста, мерится тем шрифтом, что видит менеджер.
+            стр.route("**/fonts.googleapis.com/**", lambda r: r.fulfill(status=200, content_type="text/css", body=(pathlib.Path(__file__).parent / "шрифты_google.css").read_text(encoding="utf-8")))
+            стр.route("**/fonts.gstatic.com/**", lambda r: r.abort())
             ошибки = []
             стр.on("pageerror", lambda e: ошибки.append(str(e)))
             стр.add_init_script(ЗАГЛУШКА)

@@ -72,6 +72,12 @@ def стили_печатного_листа():
         ("планшет", 768, 1024), ("стол", 1440, 900)]
 
 НАХОДКИ = []
+# Цены из учебного набора: без них калькулятор держит экран входа поверх
+# страницы, и нажатие мышью уходило в него (обход 13.10.2026).
+import json as _json
+ШРИФТЫ = (pathlib.Path(__file__).parent / "шрифты_google.css").read_text(encoding="utf-8")
+ЦЕНЫ = ("window.__ТАБЛИЦЫ = Object.assign(window.__ТАБЛИЦЫ || {}, "
+        + (pathlib.Path(__file__).parent / "kit_fixture.json").read_text(encoding="utf-8") + ");")
 
 
 def не_звали(итог):
@@ -201,7 +207,11 @@ def сервер():
       const к = голова.getBoundingClientRect();
       return дети.map(э => {
         const r = э.getBoundingClientRect();
-        const свои = дети.filter(д => д !== э && Math.abs(д.getBoundingClientRect().top - r.top) < 6);
+        // Сосед по строке — тот, кто пересекается по высоте. Сравнение верхних
+        // краёв считало подпись в две строки одинокой: она выше заголовка и
+        // начинается раньше него, хотя стоит в 10 px от «Ссылки».
+        const свои = дети.filter(д => { if (д === э) return false; const q = д.getBoundingClientRect();
+          return q.top < r.bottom - 2 && q.bottom > r.top + 2; });
         const слева = свои.filter(д => д.getBoundingClientRect().right <= r.left + 1)
           .map(д => r.left - д.getBoundingClientRect().right);
         const справа = свои.filter(д => д.getBoundingClientRect().left >= r.right - 1)
@@ -908,7 +918,12 @@ def главная():
     with sync_playwright() as pw:
         бр = pw.chromium.launch(executable_path=ХРОМ, args=["--no-sandbox"])
         стр = бр.new_page()
+        # Настоящие начертания: в подменном системном шрифте кнопки панели шире,
+        # и на 768 px «Печать / PDF» уходила во второй ряд только в пробе.
+        стр.route("**/fonts.googleapis.com/**", lambda r: r.fulfill(status=200, content_type="text/css", body=ШРИФТЫ))
+        стр.route("**/fonts.gstatic.com/**", lambda r: r.abort())
         стр.add_init_script(ЗАГЛУШКА)
+        стр.add_init_script(ЦЕНЫ)
         стр.on("console", lambda с: ошибки.append(с.text) if с.type == "error" else None)
         стр.on("pageerror", lambda e: ошибки.append(str(e)))
         стр.goto(f"http://127.0.0.1:{порт}/index.html", wait_until="load")

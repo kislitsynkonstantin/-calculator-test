@@ -279,6 +279,9 @@ def главная():
             бр = pw.chromium.launch(executable_path=хром(), args=["--no-sandbox"])
             for ширина in (1440, 390):
                 стр = бр.new_page(viewport={"width": ширина, "height": 950})
+                # Настоящие начертания: геометрия, зависящая от текста, мерится тем шрифтом, что видит менеджер.
+                стр.route("**/fonts.googleapis.com/**", lambda r: r.fulfill(status=200, content_type="text/css", body=(pathlib.Path(__file__).parent / "шрифты_google.css").read_text(encoding="utf-8")))
+                стр.route("**/fonts.gstatic.com/**", lambda r: r.abort())
                 ошибки = []
                 стр.on("pageerror", lambda e: ошибки.append(str(e)))
                 стр.add_init_script(ЗАГЛУШКА)
