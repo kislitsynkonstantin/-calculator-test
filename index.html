@@ -12246,15 +12246,18 @@ const FRAME_OPTIONS  = OPTIONS.slice();
 // Норму стоимости за м2 возьми из этого поля. Поле ручное: можно вбить
 // площадь открытой террасы и посчитает цену»). Цена каталога за 12 м² не
 // тронута — норма идёт за ней, если её поменяют.
+// Площадь открытой террасы по умолчанию — из карточки проекта (поле открытой
+// террасы, selectedProject[7]), когда она там есть; нет — 12 м² каталога
+// (Константин, 13.10.2026: «по террасе брать, когда есть откуда»).
 const ПОШТУЧНЫЕ = { w15: { qtyUnit: 'дверь' }, e12: { qtyUnit: 'контейнер с грузчиками' }, kb_e3: { qtyUnit: 'контейнер с грузчиками' },
-  e10: { qtyUnit: 'м²', defaultQty: 12, база: 12, ввод: true, макс: 999 } };
+  e10: { qtyUnit: 'м²', defaultQty: 12, база: 12, ввод: true, макс: 999, изПроекта: 7 } };
 function пометитьПоштучные() {
   OPTIONS.forEach(o => {
     // Общая с каркасом строка бруса считается штуками так же, как строка
     // каркаса: межкомнатные двери — дверями, открытая терраса — метрами.
     const п = ПОШТУЧНЫЕ[o.id] || (o.общаяС && ПОШТУЧНЫЕ[o.общаяС]);
     if (п && !o.formula) o.formula = { qtyOption: true, qtyUnit: п.qtyUnit, defaultQty: п.defaultQty || 1, поштучно: true,
-      база: п.база || 1, ввод: !!п.ввод, макс: п.макс || 99 };
+      база: п.база || 1, ввод: !!п.ввод, макс: п.макс || 99, изПроекта: п.изПроекта };
   });
 }
 // Доля цены каталога за выбранное количество: у дверей — число дверей, у
@@ -14947,7 +14950,13 @@ function refreshQtyName(optId) {
 // Current quantity for a qtyOption option (override or default)
 function getOptQty(opt) {
   const ov = formulaOverrides[opt.id] || {};
-  return (ov.area != null && +ov.area > 0) ? +ov.area : (opt.formula?.defaultQty || 1);
+  if (ov.area != null && +ov.area > 0) return +ov.area;
+  const поле = opt.formula?.изПроекта;
+  if (поле != null && selectedProject) {
+    const изПроекта = parseFloat(selectedProject[поле]) || 0;
+    if (изПроекта > 0) return изПроекта;
+  }
+  return opt.formula?.defaultQty || 1;
 }
 
 // Inline quantity stepper shown on the option face (right of the price).
@@ -15074,7 +15083,14 @@ function опцияСнята(opt) {
 // Строки, снятые из базовой комплектации. Цены у них нет, поэтому из
 // сохранённого расчёта они уходят совсем — иначе старый расчёт печатал бы
 // вентиляцию как входящую в базу.
-const БАЗА_СНЯТА = new Set(['kb_bp_fr_12']);
+// Сетка от грызунов у бруса — только опцией, как у каркаса (Константин,
+// 13.10.2026: «В базе тоже убери, оставь как опцию только»).
+const БАЗА_СНЯТА = new Set(['kb_bp_fr_12', 'kb_bp_fr_13']);
+// Опция бруса в другом разделе, чем в базе. Сетка от грызунов стояла в
+// «Внутренней отделке» — у каркаса она в стеновом комплекте («Сетку от
+// грызунов у разделе 8 убери», 13.10.2026). Здесь, а не в базе: бой этой
+// карты не знает, и перенос в базе показал бы ему сетку дважды в разделе 2.
+const KB_РАЗДЕЛ_ОПЦИИ = { kb_i3: 'frame' };
 function isOptionVisible(opt) {
   if (!opt) return true;
   if (БАЗА_СНЯТА.has(opt.id)) return false;
@@ -30013,6 +30029,9 @@ function collectState() {
     printPriceVisible: [...printPriceVisible],
     porValues,
     formulaOverrides: JSON.parse(JSON.stringify(formulaOverrides)),
+    // Признак: площадь террасы без вписанной руками берётся из проекта.
+    // Расчёт без признака сохранён раньше и считал её по 12 м².
+    qtyFromProject: true,
     optionPricingMode,
     conditionalModes: {...conditionalModes},
     optVariants: {...optVariants},
@@ -30217,6 +30236,16 @@ function разложитьРасчёт(state) {
   // Restore checked options — ALL opts including included
   // Restore formula overrides
   formulaOverrides = state.formulaOverrides ? JSON.parse(JSON.stringify(state.formulaOverrides)) : {};
+  // Расчёт, сохранённый до площади террасы из проекта, считал отмеченную
+  // террасу по 12 м²: та же площадь закрепляется за ним, и сумма при открытии
+  // не меняется.
+  if (!state.qtyFromProject) {
+    OPTIONS.forEach(o => {
+      if (o.formula?.изПроекта == null || !(state.checkedOptions || {})[o.id]) return;
+      const ov = formulaOverrides[o.id] || {};
+      if (!(ov.area != null && +ov.area > 0)) formulaOverrides[o.id] = { ...ov, area: o.formula.defaultQty || 1 };
+    });
+  }
   // Restore translucent paint names from saved overrides
   OPTIONS.forEach(o => {
     if (o.formula?.translucentOption) {
@@ -44681,7 +44710,7 @@ function applyTechData(product) {
   OPTIONS.length = 0;
   if (брус) {
     d.op.forEach(r => {
-      const o = { id: r.option_id, section: r.section, name: r.name,
+      const o = { id: r.option_id, section: KB_РАЗДЕЛ_ОПЦИИ[r.option_id] || r.section, name: r.name,
                   included: !!r.included,
                   price: (r.price === null || r.price === undefined) ? null : Number(r.price) };
       if (r.formula) o.formula = r.formula;
