@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Справка — оглавлением без меню; база знаний: первое открытие после загрузки — с меню разделов.
+"""Справка — оглавлением, база знаний — главным списком; обе без бокового меню.
 
 Константин 27.09.2026, двумя снимками телефона — справка и база знаний с
 выдвинутым меню: «Нажатие первое базы знаний и справки после перезагрузки
@@ -14,8 +14,11 @@
   • 390: справка открывается оглавлением и без меню — и в первый раз, и во
     второй (Константин 13.10.2026: «И тогда сразу открытую боковую панель
     (как сейчас) не нужно показывать» — оглавление само показывает главы);
-  • 390: первое открытие базы знаний — меню разделов выдвинуто; убранное
-    меню при повторном открытии само не выезжает;
+  • 390: база знаний открывается главным списком и без меню — и в первый
+    раз, и во второй (Константин 14.10.2026: «Базу и справку открывать на
+    главном списке без бокового меню»; с 27.09.2026 до того первое открытие
+    выдвигало меню). Меню не выезжает и тогда, когда калькулятор по-старому
+    просит его сообщением «openMenu» — так делает боевой 2.5.17;
   • 1440: меню не выдвигается — на широком экране оно и так стоит сбоку.
 
     python3 check_first_open_menu.py
@@ -34,6 +37,14 @@ import справка  # noqa: E402
 СНИМКИ = pathlib.Path(os.environ.get("BM_SHOTS") or "/tmp")
 НАХОДКИ = []
 КАЛЬК = "https://test.calculator.baniamsk.ru"
+# Названия придуманы: настоящее оглавление базы закрыто.
+# Уроки ложатся в готовые места страницы базы (lesson-1-3, lesson-3-1…):
+# урок без своего места не встаёт, и база пишет «Материалы не загрузились».
+БЛОКИ = [dict(id="b1", num=1, ord=1, name_ru="Компания", name_en="Company", sub_ru="Кто мы", sub_en="Who we are"),
+         dict(id="b3", num=3, ord=3, name_ru="Продажи", name_en="Sales", sub_ru="От заявки до договора", sub_en="From request to contract")]
+УРОКИ = [dict(id=f"lesson-{б}-{о}", block=б, ord=о, status="ready", title_ru=f"Урок {б}.{о}", title_en=f"Lesson {б}.{о}",
+              nav_ru=f"Урок {б}.{о}", nav_en=f"Lesson {б}.{о}", sub_ru="", sub_en="",
+              body_html=f'<div id="lesson-{б}-{о}"><h2>Урок {б}.{о}</h2></div>') for б, о in ((1, 3), (3, 1), (3, 2))]
 
 
 def плохо(т):
@@ -87,7 +98,12 @@ def главная():
             стр.add_init_script(ЗАГЛУШКА)
             стр.add_init_script("window.__ТАБЛИЦЫ = Object.assign(window.__ТАБЛИЦЫ || {}, " + json.dumps(ДАННЫЕ, ensure_ascii=False) + ");\n"
                                 "window.__ТАБЛИЦЫ.app_docs = " + json.dumps(ряды(), ensure_ascii=False) + ";\n"
-                                "window.__ТАБЛИЦЫ.profiles = [{ id: 'u-проба', role: 'admin', first_name: 'Проба', app_settings: {} }];")
+                                "window.__ТАБЛИЦЫ.profiles = [{ id: 'u-проба', role: 'admin', first_name: 'Проба', app_settings: {} }];\n"
+                                # Учебные уроки базы: без них база пишет «Материалы не загрузились»,
+                                # и главного списка, который проверяется, нет.
+                                "window.__ТАБЛИЦЫ.kb_blocks = " + json.dumps(БЛОКИ, ensure_ascii=False) + ";\n"
+                                "window.__ТАБЛИЦЫ.kb_lessons = " + json.dumps(УРОКИ, ensure_ascii=False) + ";\n"
+                                "window.__ТАБЛИЦЫ.kb_lesson_progress = [];")
             стр.goto(КАЛЬК + "/index.html", wait_until="load")
             стр.wait_for_timeout(3000)
             стр.evaluate("() => { const б = document.getElementById('pricingErrorScreen'); if (б) б.style.display = 'none'; }")
@@ -117,17 +133,26 @@ def главная():
             стр.wait_for_timeout(600)
             кадр = стр.frame_locator("#guideFrame")
             б1 = кадр.locator("body").evaluate("() => !!document.querySelector('#sidebar.mob-open')")
+            главный = кадр.locator("body").evaluate("() => { const с = document.querySelector('.hs-list'); return !!с && с.getClientRects().length > 0; }")
+            # Просьба старого калькулятора — база её не выполняет.
+            стр.evaluate("() => { const ф = document.getElementById('guideFrame'); ф.contentWindow.postMessage({ type: 'openMenu' }, window.KB_ORIGIN); }")
+            стр.wait_for_timeout(400)
+            б_старый = кадр.locator("body").evaluate("() => !!document.querySelector('#sidebar.mob-open')")
             готова = стр.evaluate("() => !!window._kbReady")
             стр.screenshot(path=str(СНИМКИ / f"first-menu-kb-{ш}.png"))
             кадр.locator("body").evaluate("() => closeMobMenu()")
             стр.evaluate("() => closeGuide()"); стр.wait_for_timeout(200)
             стр.evaluate("() => openGuide()"); стр.wait_for_timeout(800)
             б2 = кадр.locator("body").evaluate("() => !!document.querySelector('#sidebar.mob-open')")
-            print("  " + н, "база", {"готова": готова, "первое": б1, "второе": б2})
+            print("  " + н, "база", {"готова": готова, "первое": б1, "главный": главный, "по просьбе": б_старый, "второе": б2})
             if not готова:
                 плохо(f"{н} база знаний не сказала, что готова — проверять нечего")
-            elif ш < 900 and not б1:
-                плохо(f"{н} первое открытие базы знаний — без меню разделов")
+            elif б1:
+                плохо(f"{н} первое открытие базы знаний выдвинуло меню")
+            if готова and not главный:
+                плохо(f"{н} база знаний открылась не главным списком")
+            if б_старый:
+                плохо(f"{н} база выдвинула меню по просьбе старого калькулятора («openMenu»)")
             if б2:
                 плохо(f"{н} повторное открытие базы знаний снова выдвинуло меню")
             if ш >= 900 and б1:
@@ -141,8 +166,8 @@ def главная():
         for н in НАХОДКИ:
             print("  ✗", н)
         raise SystemExit(1)
-    print("Чисто: справка открывается оглавлением без меню; база знаний при первом открытии на телефоне — "
-          "с меню разделов, повторное — без; на широком экране меню не выдвигается.")
+    print("Чисто: справка открывается оглавлением, база знаний — главным списком; обе без бокового меню, "
+          "и база не выдвигает его даже по просьбе старого калькулятора.")
 
 
 if __name__ == "__main__":
