@@ -13700,12 +13700,21 @@ function плавающийКаркасСостав(естьОтделка) {
            сумма: (steam ? Number(п.steam) || 0 : 0) + (shower ? Number(п.shower) || 0 : 0) };
 }
 function плавающийКаркас(естьОтделка) { return плавающийКаркасСостав(естьОтделка).сумма; }
+// Окно в парную 500×500 у бруса. У каркаса это строка базы «Окон и дверей»
+// (w7): парная у каркаса есть всегда. У бруса парная собирается опциями, и
+// окно встаёт по тому же правилу, что плавающий каркас парного: есть парная —
+// строка видна и отмечена, нет — скрыта. Своей цены у строки нет, как и у
+// каркаса: она входит в базу. Строка общая с w7, поэтому её находят правила,
+// написанные по строкам каркаса, и «Проверка» ведёт прямо к ней (Константин,
+// 14.10.2026, снимком разбора проверки: «Окно в парную в брусе также добавь
+// 500х500 в раздел Окна и двери, если есть парная»). Проба
+// check_glulam_steam_window.py.
+const ОКНО_ПАРНОЙ_БРУСА = { id: 'kb_steam_window', общаяС: 'w7' };
 // Строки ставит расчёт: галочка — по правилу, строка без галочки не видна.
 function обновитьСтрокиКаркаса(с) {
-  ПЛАВАЮЩИЙ_КАРКАС.forEach(ф => {
-    const да = !!с[ф.key];
-    checkedOptions[ф.id] = да;
-    const chk = document.getElementById('chk_' + ф.id), lbl = document.getElementById('lbl_' + ф.id);
+  ПЛАВАЮЩИЙ_КАРКАС.map(ф => [ф.id, !!с[ф.key]]).concat([[ОКНО_ПАРНОЙ_БРУСА.id, !!с.steam]]).forEach(([ид, да]) => {
+    checkedOptions[ид] = да;
+    const chk = document.getElementById('chk_' + ид), lbl = document.getElementById('lbl_' + ид);
     if (chk) chk.checked = да;
     if (lbl) { lbl.classList.add('opt-auto'); lbl.classList.toggle('active', да); lbl.classList.toggle('opt-auto-off', !да); }
   });
@@ -17318,7 +17327,7 @@ function toggleOpt(optId) {
   const lbl = document.getElementById('lbl_' + optId);
   if (!chk || !lbl) return;
   // Строки плавающего каркаса ставит правило, а не нажатие.
-  if (ПЛАВАЮЩИЙ_КАРКАС.some(ф => ф.id === optId)) return;
+  if (ПЛАВАЮЩИЙ_КАРКАС.some(ф => ф.id === optId) || optId === ОКНО_ПАРНОЙ_БРУСА.id) return;
   // Закрытая опция не отмечается, но и не молчит: показываем, кто её закрыл,
   // и переносим к нему. Раньше строка просто не принимала нажатия — на телефоне
   // это выглядело как «не работает».
@@ -44771,6 +44780,11 @@ function applyTechData(product) {
     // таблице расчёта. Их нет в базе опций: это не выбор менеджера, а правило.
     ПЛАВАЮЩИЙ_КАРКАС.forEach(ф => OPTIONS.push({ id: ф.id, section: 'frame', name: ф.name,
       included: true, price: null, auto: true }));
+    // Окно в парную — последней строкой базы «Окон и дверей», под именем
+    // строки каркаса (ОКНО_ПАРНОЙ_БРУСА).
+    const окно = FRAME_OPTIONS.find(o => o.id === ОКНО_ПАРНОЙ_БРУСА.общаяС);
+    if (окно) OPTIONS.push({ id: ОКНО_ПАРНОЙ_БРУСА.id, section: 'windows', name: окно.name,
+      included: true, price: null, auto: true, общаяС: ОКНО_ПАРНОЙ_БРУСА.общаяС });
   } else {
     FRAME_OPTIONS.forEach(o => OPTIONS.push(o));
     const optById = {};
