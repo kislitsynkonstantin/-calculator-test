@@ -44791,10 +44791,16 @@ function applyTechData(product) {
     ПЛАВАЮЩИЙ_КАРКАС.forEach(ф => OPTIONS.push({ id: ф.id, section: 'frame', name: ф.name,
       included: true, price: null, auto: true }));
     // Окно в парную — последней строкой базы «Окон и дверей», под именем
-    // строки каркаса (ОКНО_ПАРНОЙ_БРУСА).
+    // строки каркаса (ОКНО_ПАРНОЙ_БРУСА). Встаёт сразу за базой, а не в конец
+    // списка: открытый пресет поднимает базу наверх (pinIncludedOptsToTop), и
+    // строка в конце после открытия переезжала — порядок расходился с
+    // сохранённым (проба check_kb_saved_sum, 16.10.2026).
     const окно = FRAME_OPTIONS.find(o => o.id === ОКНО_ПАРНОЙ_БРУСА.общаяС);
-    if (окно) OPTIONS.push({ id: ОКНО_ПАРНОЙ_БРУСА.id, section: 'windows', name: окно.name,
-      included: true, price: null, auto: true, общаяС: ОКНО_ПАРНОЙ_БРУСА.общаяС });
+    if (окно) {
+      const после = OPTIONS.reduce((и, o, н) => (o.section === 'windows' && o.included ? н : и), -1);
+      OPTIONS.splice(после >= 0 ? после + 1 : OPTIONS.length, 0, { id: ОКНО_ПАРНОЙ_БРУСА.id, section: 'windows', name: окно.name,
+        included: true, price: null, auto: true, общаяС: ОКНО_ПАРНОЙ_БРУСА.общаяС });
+    }
   } else {
     FRAME_OPTIONS.forEach(o => OPTIONS.push(o));
     const optById = {};
@@ -45167,13 +45173,16 @@ window.addEventListener('message', function(e) {
   }
 });
 </script>
-<div id="guideOverlay" style="display:none;position:fixed;inset:0;z-index:5050;background:rgba(0,0,0,0.55);overflow-x:hidden;overflow-y:auto;padding:12px 0 0;">
-  <div id="guidePanel" style="width:100%;max-width:1000px;margin:0 auto;background:var(--page-bg,var(--br-96));box-shadow:0 8px 48px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;border-radius:16px 16px 0 0;min-height:calc(100vh - 12px);position:relative;">
+<!-- Окно базы знаний ровно в видимый экран: 100dvh, а не 100vh. На iPhone 100vh выше
+     видимого, и низ кадра с круглой кнопкой меню базы уходил под панель браузера —
+     на главной базы кнопки не было видно (16.10.2026). -->
+<div id="guideOverlay" style="display:none;position:fixed;inset:0;z-index:5050;background:rgba(0,0,0,0.55);overflow:hidden;padding:12px 0 0;">
+  <div id="guidePanel" style="width:100%;max-width:1000px;margin:0 auto;background:var(--page-bg,var(--br-96));box-shadow:0 8px 48px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;border-radius:16px 16px 0 0;height:calc(100vh - 12px);height:calc(100dvh - 12px);position:relative;">
     <div id="guideLoader" style="position:absolute;inset:0;background:var(--page-bg,var(--br-96));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:2;transition:opacity 0.25s;">
       <div class="bm-load" role="progressbar" aria-label="База знаний загружается"><i></i></div>
       <div style="font-size:14px;line-height:1.6;color:#555;font-family:'Geologica',sans-serif;">База знаний загружается…</div>
     </div>
-    <iframe id="guideFrame" src="" style="border:none;width:100%;flex:1;min-height:100vh;border-radius:16px;position:relative;z-index:1;"></iframe>
+    <iframe id="guideFrame" src="" style="border:none;width:100%;flex:1;min-height:0;border-radius:16px;position:relative;z-index:1;"></iframe>
   </div>
 </div>
 <style>body.dark #guideLoader{background:var(--br-05);}body.dark #guideLoader div:last-child{color:#9ab;}</style>
