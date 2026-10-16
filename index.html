@@ -21101,15 +21101,18 @@ function собратьЛистПечати() {
 /* «за наличные» — приписка к названию, а не часть его: из капслока и
    разрядки она выходит, как в нижней полоске. */
 .bl-total-k i{font-style:normal;text-transform:none;letter-spacing:.02em;white-space:nowrap;}
-.bl-total-v{font-size:21pt;font-weight:600;letter-spacing:-.02em;line-height:1;color:var(--ink);}
-.bl-total-v small{font-size:12pt;font-weight:400;color:var(--ink2);margin-left:4px;}
+/* Цифры итога — тем же шрифтом, что итог на главном экране калькулятора
+   (#totalDisplay — Unbounded 800, спец. цена — Unbounded 700). Константин
+   16.10.2026, макет mockups/print-total-font-v1.html: «Супер, делай». */
+.bl-total-v{font-family:'Unbounded',sans-serif;font-size:21pt;font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--ink);}
+.bl-total-v small{font-family:'Geologica',system-ui,sans-serif;font-size:12pt;font-weight:400;color:var(--ink2);margin-left:4px;}
 .bl-disc{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-top:11px;}
 .bl-disc-k{font-size:6.8pt;letter-spacing:.2em;text-transform:uppercase;color:var(--acc2);padding-bottom:4px;}
 /* «за наличные» не рвём: в узкой колонке подписи «за» оставалось на первой
    строке, а «наличные» уезжало на вторую. Фраза переносится целиком. */
 .bl-disc-k i{font-style:normal;text-transform:none;letter-spacing:.02em;color:var(--ink3);white-space:nowrap;}
-.bl-disc-v{font-size:15pt;font-weight:600;letter-spacing:-.02em;line-height:1;color:var(--acc);}
-.bl-disc-v small{font-size:10pt;font-weight:400;color:var(--acc2);margin-left:3px;}
+.bl-disc-v{font-family:'Unbounded',sans-serif;font-size:15pt;font-weight:700;letter-spacing:-.02em;line-height:1;color:var(--acc);}
+.bl-disc-v small{font-family:'Geologica',system-ui,sans-serif;font-size:10pt;font-weight:400;color:var(--acc2);margin-left:3px;}
 .bl-disc-sub{margin-top:5px;font-size:7.5pt;color:var(--ink3);text-align:right;}
 /* «за наличные» в строке выгоды — та же фраза, что в полоске, и так же не рвём. */
 .bl-disc-sub i{font-style:normal;white-space:nowrap;}
@@ -21172,11 +21175,11 @@ function собратьЛистПечати() {
 .bl-strip-disc i{font-style:normal;text-transform:none;letter-spacing:.02em;}
 /* Сумма стоит сразу за подписью, а не у правого края: три строки полоски
    читаются одной левой лесенкой — подпись с суммой, спец. цена, состав. */
-.bl-strip-v{font-size:17pt;font-weight:600;letter-spacing:-.02em;white-space:nowrap;}
+.bl-strip-v{font-family:'Unbounded',sans-serif;font-size:17pt;font-weight:800;letter-spacing:-.03em;white-space:nowrap;}
 /* Спец. цена — вторая строка правой колонки, под своей подписью. Состав
    остаётся сноской во всю ширину: он объясняет обе цифры сразу, поэтому
    отделён линейкой, а не приписан к одной из колонок. */
-.bl-strip-disc{font-size:12pt;font-weight:600;letter-spacing:-.02em;color:#ffa8a8;}
+.bl-strip-disc{font-family:'Unbounded',sans-serif;font-size:12pt;font-weight:700;letter-spacing:-.02em;color:#ffa8a8;}
 /* Сноска под линейкой: состав слева, срок спец. цены справа — под самой
    спец. ценой, к которой он и относится. Показывается только когда дата
    проставлена. Строка устроена как верхняя: части не рвутся и не сжимаются,
