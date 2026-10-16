@@ -11,6 +11,8 @@
     Unbounded 700, как #totalDisplay и спец. цена на главном экране;
   • шрифт на самом деле лёг: ширина суммы в Unbounded отличается от той же
     строки в Geologica (document.fonts.check отвечает «да» и при подмене);
+  • общая стоимость в шапке — 18pt (на телефоне 15pt): в 21pt чёрная сумма
+    Unbounded давила на шапку («Чёрный кажется слишком большим»);
   • знак ₽ в шапке остаётся мелким Geologica — меняются только цифры;
   • полоска итога не вылезает: верхняя строка не шире себя; на 1440 обе колонки
     стоят рядом, лесенкой полоска складывается только на телефоне.
@@ -45,7 +47,7 @@ class Тихий(http.server.SimpleHTTPRequestHandler):
     const пр = document.createElement('span'); пр.textContent = чис; пр.style.cssText = 'position:absolute;white-space:nowrap;font-size:' + к.fontSize + ';font-weight:' + к.fontWeight + ';letter-spacing:' + к.letterSpacing;
     document.body.appendChild(пр); пр.style.fontFamily = к.fontFamily; const а = пр.getBoundingClientRect().width;
     пр.style.fontFamily = 'Geologica'; const б = пр.getBoundingClientRect().width; пр.remove();
-    return { семья: к.fontFamily.split(',')[0].replace(/['"]/g, ''), вес: к.fontWeight, разница: Math.round(а - б), чис }; };
+    return { кегль: к.fontSize, семья: к.fontFamily.split(',')[0].replace(/['"]/g, ''), вес: к.fontWeight, разница: Math.round(а - б), чис }; };
   const руб = д.querySelector('.bl-total-v small');
   const пол = д.querySelector('.bl-strip'), верх = д.querySelector('.bl-strip-top');
   return { шапка: шр('.bl-total-v'), спец: шр('.bl-disc-v'), полоса: шр('.bl-strip-v'), полосаСпец: шр('.bl-strip-disc'),
@@ -81,6 +83,8 @@ with sync_playwright() as pw:
             факт(bool(з) and з["семья"] == "Unbounded" and з["вес"] == вес,
                  f"{ш}: {имя} — Unbounded {вес}: {з and (з['семья'] + ' ' + з['вес'])}")
             факт(bool(з) and abs(з["разница"]) >= 4, f"{ш}: {имя} — шрифт лёг, ширина «{з and з['чис']}» отличается от Geologica на {з and з['разница']} px")
+        кегль = {1440: "24px", 390: "20px"}[ш]
+        факт(д["шапка"] and д["шапка"]["кегль"] == кегль, f"{ш}: общая стоимость в шапке — {кегль} (18pt на листе, 15pt на телефоне), не крупнее: {д['шапка'] and д['шапка']['кегль']}")
         факт(д["рубль"] == "Geologica", f"{ш}: знак ₽ в шапке — прежний Geologica: {д['рубль']}")
         факт(д["вылез"] is not None and д["вылез"] <= 1, f"{ш}: верхняя строка полоски не вылезает: лишних {д['вылез']} px")
         if ш == 1440:
