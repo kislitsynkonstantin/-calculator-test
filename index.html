@@ -11268,7 +11268,10 @@ function входПоказатьКто() {
 
       <!-- Option prices by section -->
       <div style="margin-top:14px;">
-        <div id="epTopCloseRow" style="display:none;justify-content:flex-end;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border);">
+        <div id="epTopCloseRow" style="display:none;justify-content:flex-end;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border);">
+          <!-- Пустые этажность и форма кровли проекта каталога сохраняются
+               здесь, под самими полями, а не под списком цен опций. -->
+          <button class="btn-confirm-edit" id="epTopSaveBtn" onclick="confirmEditProject()" style="display:none;">Сохранить</button>
           <button class="btn-cancel-edit" onclick="closeEditProject()">Закрыть</button>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
@@ -14104,6 +14107,63 @@ function кнопкаПроектаПриЗамке() {
 const projectOverrides = new Map(); // original project array → overridden data
 const matrixOverrides = new Map(); // project array → {optId: price} overrides
 
+// ── Пустая этажность и форма кровли проекта ──
+// У бруса этажности в каталоге нет ни у одного проекта, формы кровли нет у 17
+// из 46; у каркаса этажности нет у 9 из 191, формы — у 10. Заполняют их не
+// разом, а по мере работы:
+// «Проверка» просит указать, нажатие ведёт к пустому полю редактора проекта
+// (Константин, 17.10.2026: «Всем не надо ставить этаж. Заполним этажность и
+// форму кровли, где нет»). Своему проекту — как прежде, правкой. Проекту
+// каталога — только пустые поля и сразу для всех: функция базы
+// fill_project_gaps пишет лишь туда, где пусто, и заполненное ей не поменять.
+function пробелыПроекта(п) {
+  if (!п) return [];
+  const э = Number(String(п[4] == null ? '' : п[4]).replace(',', '.'));
+  return [!(э > 0) ? 'этажи' : '', !формаКровли(п) ? 'кровля' : ''].filter(Boolean);
+}
+let _epПробелы = [];
+// Форма в каталоге пишется так же, как у остальных его проектов.
+const КРОВЛЯ_В_КАТАЛОГ = { двускатная: 'двус-ая', односкатная: 'одн-ая', плоская: 'плоская' };
+function кПолюРедактораПроекта(какое) {
+  if (!selectedProject) return;
+  openEditProject();
+  const поле = какое === 'кровля' ? document.getElementById('epRoofField')
+    : document.getElementById(_epСчёт ? 'epFloorTypeField' : 'epFloorsField');
+  if (!поле) return;
+  setTimeout(() => {
+    поле.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    const вход = поле.querySelector('input:not([disabled]), select:not([disabled]), .roof-btn:not([disabled])');
+    if (вход) вход.focus({ preventScroll: true });
+    поле.classList.remove('pc-flash-box'); void поле.offsetWidth; поле.classList.add('pc-flash-box');
+    setTimeout(() => поле.classList.remove('pc-flash-box'), 2500);
+  }, 60);
+}
+async function заполнитьПробелыПроекта() {
+  const п = selectedProject, тех = currentTech;
+  const ряд = ((_techData[тех] || {}).pr || []).find(r => r.name === п[0]);
+  if (!ряд || !_sb) { showToast('Проекта нет в каталоге — записать некуда'); return; }
+  let этажи = null, кровля = null;
+  if (_epПробелы.includes('этажи')) {
+    const в = String(document.getElementById('epFloors').value || '').trim().replace(',', '.');
+    if (в) {
+      if (!['1', '1.5', '2'].includes(String(Number(в)))) { showToast('Этажей — 1, 1,5 или 2'); return; }
+      этажи = String(Number(в));
+    }
+  }
+  if (_epПробелы.includes('кровля')) { const ф = кровляВПоле('ep'); if (ф) кровля = КРОВЛЯ_В_КАТАЛОГ[ф]; }
+  if (!этажи && !кровля) { showToast('Укажите этажность или форму кровли'); return; }
+  const { data, error } = await _sb.rpc('fill_project_gaps', { p_product: тех, p_slug: ряд.slug, p_floors: этажи, p_roof: кровля });
+  const р = Array.isArray(data) ? data[0] : data;
+  if (error || !р) { showToast('Не удалось записать в каталог' + (error && error.message ? ': ' + error.message : '')); return; }
+  ряд.floors = р.floors; ряд.roof_type = р.roof_type;
+  п[4] = _pnum(р.floors); п[5] = р.roof_type;
+  closeEditProject();
+  try { updateProjectInfo(); } catch (e) {}
+  try { calc(); } catch (e) {}
+  try { обновитьСчётчикПроверки(); } catch (e) {}
+  showToast('Записано в каталог: ' + [этажи ? 'этажность' : '', кровля ? 'форма кровли' : ''].filter(Boolean).join(' и '));
+}
+
 function openEditProject() {
   if (!selectedProject) return;
   const form = document.getElementById('editProjectForm');
@@ -14215,6 +14275,20 @@ function openEditProject() {
 
   const inputs = form.querySelectorAll('input, select, .roof-btn');
   inputs.forEach(inp => { inp.disabled = !isCustom; });
+  // Проект каталога без этажности или формы кровли: пустое поле можно
+  // заполнить — для всех, остальное только для чтения (пробелыПроекта).
+  _epПробелы = !свой && !подЗамком ? пробелыПроекта(selectedProject) : [];
+  const этажиПоле = document.getElementById('epFloors');
+  этажиПоле.placeholder = _epПробелы.includes('этажи') ? '1, 1,5 или 2' : '';
+  if (_epПробелы.includes('этажи')) этажиПоле.disabled = false;
+  if (_epПробелы.includes('кровля')) {
+    form.querySelectorAll('#epRoofField .roof-btn').forEach(б => { б.disabled = false; });
+    поставитьКровлю('ep', '', 'В каталоге формы нет — выберите по визуализации');
+  }
+  const заполнить = _epПробелы.length > 0;
+  if (заполнить) document.getElementById('epNote').textContent =
+    'Данные базового проекта. ' + (_epПробелы.length > 1 ? 'Этажность и форма кровли в каталоге не указаны' : _epПробелы[0] === 'этажи' ? 'Этажность в каталоге не указана' : 'Форма кровли в каталоге не указана')
+    + ' — укажите, и они сохранятся в каталоге для всех.';
 
   const actions = form.querySelector('.edit-project-form-actions');
   if (actions) {
@@ -14224,6 +14298,8 @@ function openEditProject() {
     if (cancelBtn) cancelBtn.textContent = isCustom ? 'Отмена' : 'Закрыть';
     const topRow = document.getElementById('epTopCloseRow');
     if (topRow) topRow.style.display = isCustom ? 'none' : 'flex';
+    const сохранить = document.getElementById('epTopSaveBtn');
+    if (сохранить) сохранить.style.display = заполнить ? '' : 'none';
   }
 
   if (_epСчёт) {
@@ -14436,6 +14512,8 @@ function confirmEditProject() {
   if (typeof замокПресетаЗакрыт === 'function' && замокПресетаЗакрыт()) {
     showToast('Пресет заблокирован — правки закрыты'); return;
   }
+  // Проект каталога: сохраняются только пустые этажность и форма кровли.
+  if (!customProjects.includes(selectedProject) && _epПробелы.length) { заполнитьПробелыПроекта(); return; }
   const _былоЦены = [selectedProject[0], selectedProject[1], selectedProject[2], selectedProject[3]];
   const name = document.getElementById('epName').value.trim() || selectedProject[0];
   const p100 = rawNum('epPrice100') || selectedProject[1];
@@ -38632,9 +38710,16 @@ function проверкаПоЧекЛисту() {
   // базовая металлочерепица в расчёте стоит всегда, пока плоское покрытие не
   // отмечено. Пункт ведёт к наплавляемой кровле — её отметка снимает
   // остальные покрытия сама. Односкатной годится любое покрытие.
+  // С 17.10.2026 пустая форма — не вопрос, а правка: заполнить этажность и
+  // форму кровли там, где их нет, и нажатие ведёт к пустому полю в редакторе
+  // проекта (Константин: «Заполним этажность и форму кровли, где нет. Там где
+  // нет, просто предлагай заполнить в правках, когда менеджер его открывает. И
+  // когда нажимает на пункт — перекидывать на поле заполнения в редакторе
+  // проекта»). Форму выбирают по визуализации — прежний вопрос этим и закрыт.
   const форма = selectedProject ? формаКровли(selectedProject) : '';
-  if (selectedProject && !форма && снимкиПоВидам().виз.length)
-    спросить('Форма кровли у проекта не указана — сверить покрытие с визуализацией', '', 'imageCanvasCard');
+  const пробелы = пробелыПроекта(selectedProject);
+  if (пробелы.length)
+    добавить('project', 'Указать ' + пробелы.map(п => п === 'этажи' ? 'этажность' : 'форму кровли').join(' и ') + ' проекта', false, 'редактор:' + пробелы[0]);
   if (форма === 'двускатная' && плоская)
     добавить('roof', 'Форма кровли не совпадает с проектом: проект двускатный, покрытие плоское', true, отмеченнаяИз(['r15', 'r17']));
   if (форма === 'плоская' && !плоская)
@@ -39179,6 +39264,8 @@ function кРазделуИзПроверки(ключ, строкаИд) {
   if (ключ === 'pp') { try { openPaymentPlan(); } catch (e) {} return; }
   // Подходящий проект каталога — показать его в списке проектов.
   if (/^проект:/.test(строкаИд || '')) { показатьПроектВСписке(строкаИд.slice(7)); return; }
+  // Пустая этажность или форма кровли — редактор проекта на этом поле.
+  if (/^редактор:/.test(строкаИд || '')) { кПолюРедактораПроекта(строкаИд.slice(9)); return; }
   // Строка есть и видна — встаёт посередине между шапкой и полоской итога и
   // коротко подсвечивается. Скрыта «глазом» или её нет в этой технологии —
   // переход, как прежде, к шапке раздела. Адресов может быть несколько через
