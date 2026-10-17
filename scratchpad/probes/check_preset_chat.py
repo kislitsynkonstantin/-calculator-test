@@ -35,7 +35,9 @@
     сразу сделанным;
   • новое сообщение каналом базы — в ленте; пока открыта другая вкладка —
     числом на «Чате»;
-  • сбой отметки возвращает прежнее, сбой загрузки файла оставляет черновик;
+  • сбой отметки возвращает прежнее; сбой загрузки файла оставляет сообщение
+    в ленте с «Не отправлено», поле свободно; «Повторить» досылает его,
+    «Убрать» снимает (17.10.2026: отправка — сразу, файлы догружаются в ленте);
   • вёрстка на 390 и 1440, днём и ночью: карточка в кадре, ничего не выходит
     за поле карточки, лента вбок не ходит, длинная строка без пробелов
     переносится.
@@ -368,16 +370,38 @@ def прогон(бр, порт, ш, в, ночь, полный):
     if сб["состояние"] or "Не удалось отметить" not in сб["тост"]:
         плохо(f"{н} сбой отметки: {сб}")
     стр.evaluate("() => { window.__СБОЙ_ОТМЕТКИ = false; }")
-    # Сбой загрузки — черновик на месте.
+    # Сбой загрузки — сообщение остаётся в ленте «Не отправлено», поле свободно.
+    СБОЙ = """() => { const к = document.getElementById('presetChipCard'), м_ = [...к.querySelectorAll('.pc-chm')].pop();
+      return { строк: window.__ТАБЛИЦЫ.preset_messages.length, поле: document.getElementById('pcChatText').value, полеВыкл: document.getElementById('pcChatText').disabled,
+        файлов: к.querySelectorAll('.pc-chfi').length, тост: window.__тосты.slice(-1)[0] || '', текст: м_ ? (м_.querySelector('.pc-chx') || {}).textContent : '',
+        сбой: м_ ? (м_.querySelector('.pc-chfail') || {}).innerText || '' : '', ответить: !!(м_ && м_.querySelector('[data-act="ch-reply"]')) }; }"""
+    def с_файлом(текст):
+        стр.locator("#pcChatFile").set_input_files(files=[{"name": "план.png", "mimeType": "image/png", "buffer": b"\x89PNG\r\n\x1a\n" + b"0" * 100}])
+        стр.locator("#pcChatText").fill(текст)
+        стр.locator("#presetChipCard [data-act='ch-send']").click(); стр.wait_for_timeout(500)
     стр.evaluate("() => { window.__СБОЙ_ЗАГРУЗКИ = 'нет места'; }")
-    стр.locator("#pcChatFile").set_input_files(files=[{"name": "план.png", "mimeType": "image/png", "buffer": b"\x89PNG\r\n\x1a\n" + b"0" * 100}])
-    стр.locator("#pcChatText").fill("С файлом")
     было = стр.evaluate("() => window.__ТАБЛИЦЫ.preset_messages.length")
-    стр.locator("#presetChipCard [data-act='ch-send']").click(); стр.wait_for_timeout(500)
-    сз = стр.evaluate("() => ({ строк: window.__ТАБЛИЦЫ.preset_messages.length, поле: document.getElementById('pcChatText').value, файлов: document.querySelectorAll('#presetChipCard .pc-chfi').length, тост: window.__тосты.slice(-1)[0] || '', выкл: document.querySelector('#presetChipCard [data-act=\"ch-send\"]').disabled })")
-    if сз["строк"] != было or сз["поле"] != "С файлом" or сз["файлов"] != 1 or "Не удалось отправить" not in сз["тост"] or сз["выкл"]:
+    с_файлом("С файлом")
+    сз = стр.evaluate(СБОЙ)
+    if (сз["строк"] != было or сз["поле"] or сз["полеВыкл"] or сз["файлов"] or "Не удалось отправить" not in сз["тост"]
+            or сз["текст"] != "С файлом" or "Не отправлено" not in сз["сбой"] or сз["ответить"]):
         плохо(f"{н} сбой загрузки файла: {сз}")
-    стр.evaluate("() => { window.__СБОЙ_ЗАГРУЗКИ = null; _чатЧерновик.файлы = []; _чатЧерновик.текст = ''; document.getElementById('pcChatText').value = ''; отрисоватьЧат(); }")
+    вёрстка(стр, н, "«Чат», сообщение «Не отправлено»")
+    # «Повторить» после сбоя досылает: строка в базе с файлом, «Не отправлено» ушло.
+    стр.evaluate("() => { window.__СБОЙ_ЗАГРУЗКИ = null; }")
+    стр.locator("#presetChipCard .pc-chfail [data-act='ch-resend']").click(); стр.wait_for_timeout(600)
+    пв = стр.evaluate(СБОЙ)
+    последняя = стр.evaluate("() => { const т = window.__ТАБЛИЦЫ.preset_messages, п = т[т.length - 1]; return { тело: п.body, файлов: (п.attachments || []).length, флаги: Object.keys(п).filter(к => к.startsWith('__')) }; }")
+    if пв["строк"] != было + 1 or пв["сбой"] or not пв["ответить"] or последняя["тело"] != "С файлом" or последняя["файлов"] != 1 or последняя["флаги"]:
+        плохо(f"{н} «Повторить» после сбоя: {пв}, в базе {последняя}")
+    # «Убрать» снимает несданное, в базу ничего не уходит.
+    стр.evaluate("() => { window.__СБОЙ_ЗАГРУЗКИ = 'нет места'; }")
+    с_файлом("Уберу")
+    стр.evaluate("() => { window.__СБОЙ_ЗАГРУЗКИ = null; }")
+    стр.locator("#presetChipCard .pc-chfail [data-act='ch-drop']").click(); стр.wait_for_timeout(300)
+    уб = стр.evaluate(СБОЙ)
+    if уб["строк"] != было + 1 or уб["сбой"] or уб["текст"] == "Уберу":
+        плохо(f"{н} «Убрать» несданное: {уб}")
     # ── канал базы: новое сообщение ──
     вкладка(стр, "p")
     стр.evaluate("""(код) => { const к = (window.__КАНАЛЫ || []).filter(х => !х.закрыт && х.слушатели.some(с => с.отбор && с.отбор.table === 'preset_messages' && с.отбор.filter === 'code=eq.' + код));
