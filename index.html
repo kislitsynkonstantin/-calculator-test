@@ -32843,6 +32843,9 @@ const AL_ВИДЫ = {
   approval_sent:         'Расчёт отправлен на согласование',
   approval_returned:     'Расчёт возвращён с правками',
   approval_approved:     'Расчёт согласован',
+  // Галочка правки из чата (Константин, 17.10.2026).
+  review_done:           'Правка из чата выполнена',
+  review_reopened:       'Правка из чата снова открыта',
   // Комплектации — их правят администратор и редактор, и по базе строки видны
   // только им: менеджер в своём журнале видит лишь свои действия.
   kit_created:           'Комплектация заведена',
@@ -37533,7 +37536,17 @@ const ЧАТ_ФАЙЛ_МАКС = 20 * 1024 * 1024;
 const ЧАТ_ФАЙЛОВ_МАКС = 10;
 const ЧАТ_ПОТОЛОК = 500;
 const ЧАТ_ТЕКСТ_МАКС = 8000;
+// Своё сообщение правится первые 5 минут, пока на него никто не ответил
+// (Константин, 17.10.2026: «для внесения правок сразу после написания. А если
+// уже кто-то сделал „Ответить“ на это сообщение, то сразу правки его
+// запрещай»). Срок и ответ сверяет и база — функция preset_chat_edit.
+const ЧАТ_ПРАВКА_МС = 5 * 60 * 1000;
 let _чат = { код: '', сообщения: null, прочитано: 0, ошибка: '', грузится: false, когда: 0, нет: false };
+// Изменение своего сообщения: { код, id, отложено: { текст, файлы, ответ } } —
+// набранное до него возвращается в поле, когда изменение кончено.
+let _чатИзменение = null;
+let _чатТаймерПравки = 0;
+let _чатСверху = false;     // сверху дописаны ранние сообщения — лента держит место
 // Набранное, прикреплённое и «Ответить» — до отправки; у каждого пресета свой.
 let _чатЧерновик = { код: '', текст: '', файлы: [], ответ: null, шлём: false };
 let _чатКанал = null, _чатКаналКод = '';
@@ -37551,6 +37564,7 @@ const ЗНАЧОК_В_ПРАВКИ = '<svg width="15" height="15" viewBox="0 0 2
 const ЗНАЧОК_ГАЛКА = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"/></svg>';
 const ЗНАЧОК_ОТВЕТ = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 17l-5-5 5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>';
 const ЗНАЧОК_ФАЙЛ = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>';
+const ЗНАЧОК_КАРАНДАШ = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
 
 function новыйИдЧата() {
   try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (e) {}
@@ -37572,7 +37586,21 @@ function чатТекущий() {
 }
 function сообщениеЧата(ид) { return (чатТекущий() || []).find(с => String(с.id) === String(ид)) || null; }
 function времяЧата(с) { const т = Date.parse(с && с.created_at); return isNaN(т) ? 0 : т; }
-function правкиЧата() { return (чатТекущий() || []).filter(с => с.review_state === 'open' || с.review_state === 'done'); }
+function правкиЧата() { return (чатТекущий() || []).filter(с => (с.kind || 'msg') === 'msg' && (с.review_state === 'open' || с.review_state === 'done')); }
+function естьОтветыЧата(с) { return (чатТекущий() || []).some(х => х.reply_to && String(х.reply_to) === String(с.id)); }
+function можноИзменитьВЧате(с) {
+  return !!(с && _sbUser && с.author_id === _sbUser.id && (с.kind || 'msg') === 'msg'
+    && Date.now() - времяЧата(с) < ЧАТ_ПРАВКА_МС && !естьОтветыЧата(с));
+}
+// Кнопка «Изменить» пропадает сама, когда пять минут вышли: лента
+// перерисовывается к ближайшему такому сроку.
+function запланироватьСрокПравки() {
+  clearTimeout(_чатТаймерПравки); _чатТаймерПравки = 0;
+  const свои = (чатТекущий() || []).filter(можноИзменитьВЧате);
+  if (!свои.length) return;
+  const через = Math.min(...свои.map(с => времяЧата(с) + ЧАТ_ПРАВКА_МС - Date.now()));
+  _чатТаймерПравки = setTimeout(() => { _чатТаймерПравки = 0; отрисоватьЧат(); }, Math.max(1000, через + 500));
+}
 function открытыхПравокЧата() { return правкиЧата().filter(с => с.review_state === 'open').length; }
 function непрочитаноВЧате() {
   const свой = (_sbUser || {}).id;
@@ -37606,9 +37634,9 @@ async function загрузитьЧат(заново, тихо) {
   const ч = _чат;
   if (ч.код === код && (ч.грузится || (!заново && Date.now() - ч.когда < 30000))) return;
   _чат = { код, сообщения: ч.код === код ? ч.сообщения : null, прочитано: ч.код === код ? ч.прочитано : 0,
-    ошибка: '', грузится: true, когда: 0, нет: false };
+    ошибка: '', грузится: true, когда: 0, нет: false, ещё: ч.код === код ? ч.ещё : undefined };
   if (!тихо) заполнитьКарточкуЗначка();
-  let сообщения = null, прочитано = _чат.прочитано, ошибка = '', нет = false;
+  let сообщения = null, прочитано = _чат.прочитано, ошибка = '', нет = false, ещёНов;
   try {
     const { data: вход, error: о1 } = await _sb.rpc('preset_chat_join', { p_code: String(код) });
     if (о1) throw о1;
@@ -37620,13 +37648,20 @@ async function загрузитьЧат(заново, тихо) {
         .order('created_at', { ascending: false }).limit(ЧАТ_ПОТОЛОК);
       if (error) throw error;
       сообщения = (data || []).slice().sort((а, б) => времяЧата(а) - времяЧата(б));
+      // Ранние ли ещё есть — по первой загрузке; переспрос свежих этого не меняет.
+      ещёНов = (data || []).length >= ЧАТ_ПОТОЛОК;
     }
   } catch (e) { ошибка = (e && e.message) || 'нет связи'; }
   if (_чат.код !== код) return;
-  // Пришедшее по каналу, пока шёл запрос, не теряется.
-  const пришло = (_чат.сообщения || []).filter(с => сообщения && !сообщения.some(х => х.id === с.id) && времяЧата(с) > Date.now() - 60000);
-  if (сообщения && пришло.length) сообщения = сообщения.concat(пришло).sort((а, б) => времяЧата(а) - времяЧата(б));
-  _чат = { код, сообщения: сообщения || _чат.сообщения, прочитано, ошибка, грузится: false, когда: Date.now(), нет };
+  // Сообщения не удаляются, поэтому прежнее, которого нет в ответе (раньше
+  // загруженные ранние или пришедшее по каналу, пока шёл запрос), остаётся.
+  if (сообщения && _чат.сообщения) {
+    const есть = new Set(сообщения.map(х => х.id));
+    const прежние = _чат.сообщения.filter(с => !есть.has(с.id));
+    if (прежние.length) сообщения = сообщения.concat(прежние).sort((а, б) => времяЧата(а) - времяЧата(б));
+  }
+  _чат = { код, сообщения: сообщения || _чат.сообщения, прочитано, ошибка, грузится: false, когда: Date.now(), нет,
+    ещё: _чат.ещё === undefined ? ещёНов : _чат.ещё };
   if (сообщения) подписатьсяНаЧат(код);
   заполнитьКарточкуЗначка();
   обновитьСчётчикПроверки();
@@ -37675,6 +37710,27 @@ function отметитьЧатПрочитанным() {
   _чат.прочитано = последнее;
   const код = _чат.код;
   try { _sb.rpc('preset_chat_read', { p_code: код, p_at: new Date(последнее).toISOString() }).then(() => {}, () => {}); } catch (e) {}
+}
+
+// Ранние сообщения — страницей по ЧАТ_ПОТОЛОК, сверху ленты: вся история
+// чата доступна, а не только последние сообщения.
+async function загрузитьРанниеЧата() {
+  const ч = _чат;
+  if (!ч.сообщения || !ч.сообщения.length || ч.раньшеГрузится || !_sb) return;
+  const код = ч.код, первое = ч.сообщения[0];
+  ч.раньшеГрузится = true; отрисоватьЧат();
+  try {
+    const { data, error } = await _sb.from('preset_messages').select('*').eq('code', String(код))
+      .lt('created_at', первое.created_at).order('created_at', { ascending: false }).limit(ЧАТ_ПОТОЛОК);
+    if (error) throw error;
+    if (_чат.код !== код || !_чат.сообщения) return;
+    const есть = new Set(_чат.сообщения.map(х => х.id));
+    _чат.сообщения = (data || []).filter(х => !есть.has(х.id)).concat(_чат.сообщения).sort((а, б) => времяЧата(а) - времяЧата(б));
+    _чат.ещё = (data || []).length >= ЧАТ_ПОТОЛОК;
+    _чатСверху = true;
+  } catch (e) { showToast('Не удалось загрузить ранние сообщения: ' + ((e && e.message) || 'нет связи')); }
+  if (_чат.код === код) _чат.раньшеГрузится = false;
+  отрисоватьЧат();
 }
 
 // Подписанные ссылки на вложения: картинки — одним запросом, файлы — каждый
@@ -37757,6 +37813,17 @@ function лентаЧата(о) {
     const метка = датаЕсть ? деньЖурналаПресета(д) : '';
     if (метка && метка !== день) { h += '<div class="pc-chday">' + escapeHtml(метка) + '</div>'; день = метка; }
     const мой = с.author_id === свой;
+    // Строка-событие: правку отметили выполненной или открыли снова. Её
+    // кладёт база вместе с отметкой; нажатие ведёт к самой правке.
+    if (с.kind === 'event') {
+      const вр = датаЕсть ? д.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '';
+      const к = с.ref ? ' data-act="ch-quote" data-mid="' + escapeHtml(String(с.ref)) + '"' : '';
+      h += '<div class="pc-chev' + (с.event === 'done' ? ' ok' : '') + '" data-mid="' + escapeHtml(String(с.id)) + '">'
+        + '<button type="button"' + к + '>' + (с.event === 'done' ? ЗНАЧОК_ГАЛКА : ЗНАЧОК_ОТВЕТ)
+        + '<span><b>' + (с.event === 'done' ? 'Правка выполнена' : 'Правка снова открыта') + ':</b> «' + escapeHtml(с.body || '') + '»</span></button>'
+        + '<span class="pc-chev-w">' + escapeHtml(ктоВЧате(с)) + (вр ? ' · ' + вр : '') + '</span></div>';
+      return;
+    }
     const вПравках = с.review_state === 'open' || с.review_state === 'done', сделано = с.review_state === 'done';
     const ид = escapeHtml(String(с.id));
     const на = с.reply_to ? ч.сообщения.find(х => String(х.id) === String(с.reply_to)) : null;
@@ -37767,7 +37834,8 @@ function лентаЧата(о) {
     const метки = сделано ? '<span class="pc-cht pc-cht-ok">выполнено</span>' : вПравках ? '<span class="pc-cht">в правках</span>' : '';
     h += '<div class="pc-chm' + (мой ? ' me' : '') + (сделано ? ' done' : '') + '" id="pcChm-' + ид + '" data-mid="' + ид + '">'
       + '<div class="pc-chb"><div class="pc-chw"><b>' + escapeHtml(ктоВЧате(с)) + '</b>'
-      + (датаЕсть ? ' · ' + д.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '') + метки + '</div>'
+      + (датаЕсть ? ' · ' + д.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '')
+      + (с.edited_at ? '<span class="pc-ched">изменено</span>' : '') + метки + '</div>'
       + цитата
       + (с.body ? '<div class="pc-chx">' + текстЧата(с.body) + '</div>' : '')
       + вложенияЧатаHtml(с, неподписаны) + '</div>'
@@ -37775,15 +37843,21 @@ function лентаЧата(о) {
       + '<button type="button" data-act="ch-reply" data-mid="' + ид + '">' + ЗНАЧОК_ОТВЕТ + 'Ответить</button>'
       + '<button type="button" class="pc-chflag" data-act="ch-flag" data-mid="' + ид + '" aria-pressed="' + вПравках + '" title="' + (вПравках ? 'Убрать из правок' : 'Отразить в правках') + '" aria-label="' + (вПравках ? 'Убрать из правок' : 'Отразить в правках') + '">' + ЗНАЧОК_В_ПРАВКИ + '</button>'
       + '<button type="button" class="pc-chdone" data-act="ch-done" data-mid="' + ид + '" aria-pressed="' + сделано + '">' + ЗНАЧОК_ГАЛКА + 'Выполнено</button>'
+      + (можноИзменитьВЧате(с) ? '<button type="button" class="pc-chedit" data-act="ch-edit" data-mid="' + ид + '" aria-label="Изменить" title="Изменить — первые 5 минут, пока нет ответа"'
+        + (_чатИзменение && String(_чатИзменение.id) === String(с.id) ? ' aria-pressed="true"' : '') + '>' + ЗНАЧОК_КАРАНДАШ + '</button>' : '')
       + '</div></div>';
   });
-  if (ч.сообщения.length >= ЧАТ_ПОТОЛОК) h = '<div class="pc-chday">Показаны последние ' + ЧАТ_ПОТОЛОК + ' сообщений</div>' + h;
+  if (ч.ещё) h = '<button type="button" class="pc-chold" data-act="ch-older"' + (ч.раньшеГрузится ? ' disabled' : '') + '>'
+    + (ч.раньшеГрузится ? 'Загружаются ранние…' : 'Показать ранние сообщения') + '</button>' + h;
   if (неподписаны.length) setTimeout(() => подписатьВложения(неподписаны), 0);
   return h;
 }
 // Над полем — на что отвечаем и что прикреплено.
 function надПолемЧата() {
   const ч = _чатЧерновик;
+  const ред = _чатИзменение && сообщениеЧата(_чатИзменение.id);
+  if (ред) return '<div class="pc-chr pc-chr-ed"><span><b>Изменение</b>' + escapeHtml(перваяСтрокаЧата(ред)) + '</span>'
+    + '<button type="button" data-act="ch-edit-x" aria-label="Не изменять">' + ЗНАЧОК_КРЕСТ + '</button></div>';
   let h = '';
   if (ч.ответ) h += '<div class="pc-chr"><span><b>Ответ: ' + escapeHtml(ч.ответ.кто) + '</b>' + escapeHtml(ч.ответ.строка) + '</span>'
     + '<button type="button" data-act="ch-reply-x" aria-label="Не отвечать">' + ЗНАЧОК_КРЕСТ + '</button></div>';
@@ -37810,18 +37884,25 @@ function отрисоватьЧат(к) {
   const лента = пане.querySelector('#pcChatList'), над = пане.querySelector('#pcChatExtra');
   const поле = пане.querySelector('#pcChatText'), выбор = пане.querySelector('#pcChatFile');
   if (!лента || !поле) return;
+  if (_чатИзменение && _чатИзменение.код !== о.код) _чатИзменение = null;
   const ч = черновикЧата(о.код);
   const h = лентаЧата(о);
   const свежая = лента.dataset.h === undefined;
   if (лента.dataset.h !== h) {
     const былоДно = свежая ? !_чатПрокрутка || _чатПрокрутка.уДна : лента.scrollTop + лента.clientHeight >= лента.scrollHeight - 30;
     const было = свежая ? (_чатПрокрутка ? _чатПрокрутка.сверху : 0) : лента.scrollTop;
+    const высотаДо = лента.scrollHeight;
     лента.dataset.h = h; лента.innerHTML = h;
-    if (!_чатКСообщению) {
+    if (_чатСверху) {
+      // Ранние встали сверху — на экране остаётся то же сообщение, что было.
+      _чатСверху = false;
+      лента.scrollTop = было + (лента.scrollHeight - высотаДо);
+    } else if (!_чатКСообщению) {
       if (_чатВниз || былоДно) { лента.scrollTop = лента.scrollHeight; _чатВниз = false; }
       else лента.scrollTop = было;
     }
   }
+  запланироватьСрокПравки();
   _чатПрокрутка = null;
   if (_чатВниз && чатТекущий()) { лента.scrollTop = лента.scrollHeight; _чатВниз = false; }
   if (_чатКСообщению && чатТекущий()) {
@@ -37850,6 +37931,7 @@ function отрисоватьЧат(к) {
     поле.value = ч.текст;
     поле.addEventListener('input', function () { _чатЧерновик.текст = поле.value; ростПоляЧата(поле); кнопкиЧата(); });
     поле.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && _чатИзменение) { e.preventDefault(); e.stopPropagation(); завершитьИзменениеВЧате(false); return; }
       if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
       // На компьютере Enter отправляет, Shift+Enter — новая строка; на
       // телефоне Enter — новая строка, отправляет кнопка.
@@ -37906,11 +37988,13 @@ function кнопкиЧата() {
   const ч = _чатЧерновик, готов = !!чатТекущий();
   const поле = пане.querySelector('#pcChatText'), отпр = пане.querySelector('[data-act="ch-send"]'), скрепка = пане.querySelector('[data-act="ch-attach"]');
   if (поле) поле.disabled = !готов || ч.шлём;
-  if (скрепка) скрепка.disabled = !готов || ч.шлём;
+  const ред = _чатИзменение && сообщениеЧата(_чатИзменение.id);
+  if (скрепка) скрепка.disabled = !готов || ч.шлём || !!ред;
   if (отпр) {
-    отпр.disabled = !готов || ч.шлём || (!ч.текст.trim() && !ч.файлы.length);
+    const вложения = ред ? (ред.attachments || []).length : ч.файлы.length;
+    отпр.disabled = !готов || ч.шлём || (!ч.текст.trim() && !вложения);
     отпр.classList.toggle('pc-busy', !!ч.шлём);
-    отпр.setAttribute('aria-label', ч.шлём ? 'Отправляется' : 'Отправить');
+    отпр.setAttribute('aria-label', ч.шлём ? (ред ? 'Сохраняется' : 'Отправляется') : (ред ? 'Сохранить изменение' : 'Отправить'));
   }
 }
 async function добавитьФайлыВЧат(файлы, вставка) {
@@ -37948,6 +38032,7 @@ async function отправитьВЧат() {
   const о = пресетКарточки();
   const код = о && о.код;
   if (!код || !_sbUser || !чатТекущий()) return;
+  if (_чатИзменение && _чатИзменение.код === код) { сохранитьИзменениеВЧате(); return; }
   const ч = черновикЧата(код);
   if (ч.шлём) return;
   const текст = ч.текст.replace(/\s+$/, '').replace(/^(\s*\n)+/, '');
@@ -37988,6 +38073,64 @@ async function отправитьВЧат() {
   const поле = document.getElementById('pcChatText');
   if (поле && !поле.disabled && window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches) поле.focus();
 }
+// «Изменить» своё сообщение: текст встаёт в поле, над ним — «Изменение»;
+// набранное до того откладывается и возвращается, когда изменение кончено.
+function начатьИзменениеВЧате(ид) {
+  const о = пресетКарточки(), с = сообщениеЧата(ид);
+  if (!о || !о.код || !с) return;
+  if (!можноИзменитьВЧате(с)) {
+    showToast(естьОтветыЧата(с) ? 'На сообщение уже ответили — изменить его нельзя' : 'Изменить сообщение можно в первые 5 минут');
+    отрисоватьЧат(); return;
+  }
+  if (_чатЧерновик.шлём) return;
+  if (_чатИзменение) завершитьИзменениеВЧате(false);
+  const ч = черновикЧата(о.код);
+  _чатИзменение = { код: о.код, id: с.id, отложено: { текст: ч.текст, файлы: ч.файлы, ответ: ч.ответ } };
+  _чатЧерновик = { код: о.код, текст: с.body || '', файлы: [], ответ: null, шлём: false };
+  const поле = document.getElementById('pcChatText');
+  if (поле) { поле.value = _чатЧерновик.текст; ростПоляЧата(поле); }
+  отрисоватьЧат();
+  if (поле && !поле.disabled) { поле.focus(); try { поле.setSelectionRange(поле.value.length, поле.value.length); } catch (e) {} }
+}
+// Конец изменения: отложенное возвращается в поле. Не вышло — изменённый
+// текст остаётся в поле обычным черновиком, его можно отправить новым.
+function завершитьИзменениеВЧате(оставитьТекст) {
+  const ред = _чатИзменение;
+  if (!ред) return;
+  _чатИзменение = null;
+  const ч = _чатЧерновик, о = ред.отложено;
+  if (ч.код === ред.код) {
+    const текст = оставитьТекст ? [ч.текст, о.текст].filter(т => т && т.trim()).join('\n') : о.текст;
+    _чатЧерновик = { код: ред.код, текст: текст || '', файлы: о.файлы || [], ответ: о.ответ || null, шлём: false };
+  }
+  const поле = document.getElementById('pcChatText');
+  if (поле) { поле.value = _чатЧерновик.текст; ростПоляЧата(поле); }
+  отрисоватьЧат(); кнопкиЧата();
+}
+async function сохранитьИзменениеВЧате() {
+  const ред = _чатИзменение, ч = _чатЧерновик;
+  if (!ред || ч.шлём) return;
+  const с = сообщениеЧата(ред.id);
+  if (!с) { завершитьИзменениеВЧате(true); return; }
+  const текст = ч.текст.replace(/\s+$/, '').replace(/^(\s*\n)+/, '');
+  if (текст === (с.body || '')) { завершитьИзменениеВЧате(false); return; }
+  if (!текст.trim() && !(с.attachments || []).length) return;
+  ч.шлём = true; кнопкиЧата();
+  try {
+    const { data, error } = await _sb.rpc('preset_chat_edit', { p_id: String(ред.id), p_body: текст });
+    if (error) throw error;
+    if (!data || !data.id) throw new Error('база не ответила');
+    Object.assign(с, data);
+    ч.шлём = false;
+    завершитьИзменениеВЧате(false);
+  } catch (e) {
+    ч.шлём = false;
+    showToast('Не удалось изменить: ' + ((e && e.message) || 'нет связи') + '. Текст остался в поле — его можно отправить новым сообщением');
+    завершитьИзменениеВЧате(true);
+  }
+  заполнитьКарточкуЗначка();
+}
+
 // «Отразить в правках» ставит сообщение в правки или убирает из них;
 // «Выполнено» отмечает правку сделанной и снимает отметку. Сообщение не в
 // правках «Выполнено» ставит в них сразу сделанным.
@@ -38004,6 +38147,16 @@ async function отметитьВЧате(ид, что) {
     const { data, error } = await _sb.rpc('preset_chat_mark', { p_id: String(ид), p_state: новое });
     if (error) throw error;
     if (data && data.id) Object.assign(с, data);
+    // Галочка правки — в журнале действий (Константин, 17.10.2026: «В журнале
+    // действий отображай согласование пунктов ручных, которые через галочку. И
+    // в чате эту запись тоже дублируй»). Строку в чате кладёт база вместе с
+    // отметкой — она приходит каналом и переспросом ленты.
+    const стало = было.review_state !== 'done' && новое === 'done' ? 'review_done'
+      : было.review_state === 'done' && новое !== 'done' ? 'review_reopened' : '';
+    if (стало) {
+      logEvent(стало, logDetails(перваяСтрокаЧата(с, 160), []));
+      загрузитьЧат(true, true);
+    }
   } catch (e) {
     Object.assign(с, было);
     showToast('Не удалось отметить: ' + ((e && e.message) || 'нет связи'));
@@ -38352,7 +38505,8 @@ const СВ_СЛИЯНИЕ = 3 * 60 * 1000;
 // проекта при открытии, сохранение (с него график начинается) и старый чек-лист.
 const СВ_НЕ_ПРАВКИ = ['preset_saved', 'preset_opened', 'print', 'share_created', 'share_revoked',
   'client_link_created', 'client_link_updated', 'client_link_revoked', 'project_changed', 'checklist_done',
-  'contract_printed', 'contract_exported', 'approval_sent', 'approval_returned', 'approval_approved'];
+  'contract_printed', 'contract_exported', 'approval_sent', 'approval_returned', 'approval_approved',
+  'review_done', 'review_reopened'];
 function видыПравокПресета() { return видыЖурналаПресета().filter(в => СВ_НЕ_ПРАВКИ.indexOf(в) === -1); }
 async function загрузитьСводкуПресета(заново, заранее) {
   const о = пресетКарточки();
@@ -39886,6 +40040,12 @@ function нажатиеВКарточке(e) {
       { const п = к.querySelector('#pcChatText'); if (п && !п.disabled) п.focus(); }
       break;
     case 'ch-quote': _чатКСообщению = кн.getAttribute('data-mid') || ''; отрисоватьЧат(); break;
+    case 'ch-edit': начатьИзменениеВЧате(кн.getAttribute('data-mid')); break;
+    case 'ch-edit-x':
+      завершитьИзменениеВЧате(false);
+      { const п = к.querySelector('#pcChatText'); if (п && !п.disabled) п.focus(); }
+      break;
+    case 'ch-older': загрузитьРанниеЧата(); break;
     case 'ch-flag': отметитьВЧате(кн.getAttribute('data-mid'), 'flag'); break;
     case 'ch-done': отметитьВЧате(кн.getAttribute('data-mid'), 'done'); break;
     // Правка в «Проверке» — к своему сообщению в чате.
@@ -47578,6 +47738,26 @@ body.dark,body.ui-blank.dark{--pc-bub:rgba(255,255,255,.07)}
 .pc-card .pc-chact .pc-chflag{width:24px;justify-content:center;border-radius:6px}
 .pc-card .pc-chact .pc-chflag[aria-pressed="true"]{background:var(--pc-warm-tint);color:var(--pc-warm-ink)}
 .pc-card .pc-chact .pc-chdone[aria-pressed="true"]{color:var(--pc-acc);font-weight:600}
+/* «Изменить» — значком, как «Отразить в правках»: есть только у своего
+   сообщения первые 5 минут, пока на него нет ответа. */
+.pc-card .pc-chact .pc-chedit{width:24px;justify-content:center;border-radius:6px}
+.pc-card .pc-chact .pc-chedit[aria-pressed="true"]{background:var(--pc-tint);color:var(--pc-acc)}
+.pc-card .pc-ched{color:var(--pc-ink3);font-style:italic}
+/* Строка-событие: правку отметили выполненной или открыли снова. По центру
+   ленты, тише сообщения; нажатие ведёт к правке. */
+.pc-card .pc-chev{align-self:stretch;display:flex;flex-direction:column;align-items:center;gap:1px;margin:10px 0 2px;text-align:center}
+.pc-card .pc-chev button{position:relative;display:inline-flex;align-items:flex-start;gap:5px;max-width:100%;padding:3px 10px;border:0;border-radius:10px;background:var(--pc-bub);color:var(--pc-ink2);font:inherit;font-size:.64rem;line-height:1.4;text-align:left;cursor:pointer}
+.pc-card .pc-chev button::before{content:'';position:absolute;inset:-8px 0}
+.pc-card .pc-chev button svg{flex:none;margin-top:2px}
+.pc-card .pc-chev span{min-width:0;overflow-wrap:anywhere}
+.pc-card .pc-chev b{font-weight:600}
+.pc-card .pc-chev.ok button{background:var(--pc-tint);color:var(--pc-acc)}
+.pc-card .pc-chev-w{font-size:.56rem;color:var(--pc-ink3)}
+.pc-card .pc-chold{position:relative;align-self:center;margin:6px 0 2px;padding:4px 12px;border:1px solid var(--pc-line);border-radius:14px;background:none;color:var(--pc-ink2);font:inherit;font-size:.64rem;cursor:pointer}
+.pc-card .pc-chold::before{content:'';position:absolute;inset:-9px -4px}
+.pc-card .pc-chold[disabled]{opacity:.6;cursor:progress}
+.pc-card .pc-chr.pc-chr-ed{border-left-color:var(--pc-warm);background:var(--pc-warm-tint)}
+.pc-card .pc-chr.pc-chr-ed b{color:var(--pc-warm-ink)}
 @media (hover:hover){.pc-card .pc-chact button:hover{color:var(--pc-ink)}.pc-card .pc-chact .pc-chflag[aria-pressed="true"]:hover{color:var(--pc-warm-ink)}.pc-card .pc-chq:hover span{color:var(--pc-ink)}}
 .pc-card .pc-chc{flex:none;margin-top:6px}
 .pc-card .pc-chr{display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:3px 4px 3px 9px;border-left:2px solid var(--pc-acc);border-radius:0 8px 8px 0;background:var(--pc-tint);font-size:.66rem;line-height:1.35;color:var(--pc-ink2)}
