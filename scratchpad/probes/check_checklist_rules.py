@@ -133,8 +133,10 @@ def прогон(бр, порт):
     for часть in ("Форма кровли не совпадает", "только заводская"):
         if not any(х.startswith("СТОП") and часть in х for х in т):
             НАХОДКИ.append(f"[стоп] «{часть}» не стоп: {т}")
-    # Чистый расчёт с фоном — без замечаний из новых правил.
-    стр.evaluate(СБРОС); стр.evaluate("async () => { canvasAddImage(ВИЗ); canvasAddImage(ПЛАН); await Promise.all(снимкиХолста().map(видКартинки)); }")
+    # Чистый расчёт с фоном — без замечаний из новых правил. Планировка — как из
+    # PDF, с площадью парной 5 м²: базовое парное каркаса 2500×2000 ей впору
+    # (у снимка без площади стоит вопрос сверить парную с планировкой, 17.10.2026).
+    стр.evaluate(СБРОС); стр.evaluate("async () => { canvasAddImage(ВИЗ); const п = canvasAddImage(ПЛАН); const э = п && document.getElementById(п); if (э) э.dataset.steam = '5'; await Promise.all(снимкиХолста().map(видКартинки)); }")
     т = [х for х in стр.evaluate(ТЕКСТЫ) if not х.startswith("? Скидка") and not х.startswith(("? Окна Blitz 60", "? Окна Veka WHS 72", "? Окна без ламинации")) and "пробное бурение" not in х]
     if т:
         НАХОДКИ.append(f"[фон] на спокойном расчёте есть замечания: {т}")

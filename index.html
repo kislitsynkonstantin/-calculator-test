@@ -18603,7 +18603,28 @@ async function разобратьPdf(данные) {
   // Ни листа «План», ни картинок-видов — берётся первый лист целиком, как
   // раньше: вдруг это планировка без подписи.
   if (!планы.length && !виды.length && _листыДока.length) планы = await вырезатьПланировки(_листыДока.slice(0, 1));
-  return { планы, виды };
+  return { планы, виды, парная: площадьПарнойИзЛистов(_листыДока) };
+}
+// Площадь парной из текста PDF архитектора: строка экспликации «4 Парная 6,9»
+// или подпись помещения «Парная 6,9 м²». Читаются все листы — экспликация
+// бывает и отдельным листом. В таблице номер, название и площадь — разные
+// куски текста, поэтому строка собирается из кусков одной высоты слева
+// направо. Не нашлось — null: планировка, скорее всего, картинкой.
+function площадьПарнойИзЛистов(листы) {
+  let площадь = null;
+  for (const л of листы || []) {
+    const куски = (л.текст ? л.текст.items : []).filter(т => т.transform && (т.str || '').trim())
+      .map(т => ({ x: т.transform[4], y: т.transform[5], с: т.str.trim() })).sort((а, б) => б.y - а.y || а.x - б.x);
+    const ряды = [];
+    куски.forEach(к => { const р = ряды[ряды.length - 1]; if (р && Math.abs(р.y - к.y) <= 2.5) р.к.push(к); else ряды.push({ y: к.y, к: [к] }); });
+    ряды.forEach(р => {
+      const строка = р.к.sort((а, б) => а.x - б.x).map(к => к.с).join(' ');
+      const м = строка.match(/(?:^|[^а-яё])(?:парн(?:ая|ое|ой)|парилка|парильн[а-яё]*|сауна)(?![а-яё])\D{0,20}?(\d{1,2}(?:[.,]\d{1,2})?)(?![\d×xх*])/i);
+      const з = м ? parseFloat(м[1].replace(',', '.')) : 0;
+      if (з >= 2 && з <= 30) площадь = Math.max(площадь || 0, з);
+    });
+  }
+  return площадь;
 }
 let _листыДока = [];
 async function планировкиИзДока(док) {
@@ -18696,10 +18717,10 @@ async function визуализацииИзPdf(pdfjs, листы) {
 
 async function canvasLoadPdf(file) {
   try { showToast('Читаю PDF — ищу визуализации и планировки…', 2500); } catch (e) {}
-  let виды, планы;
+  let виды, планы, парная;
   try {
     const данные = new Uint8Array(await file.arrayBuffer());
-    ({ планы, виды } = await разобратьPdf(данные));
+    ({ планы, виды, парная } = await разобратьPdf(данные));
   } catch (e) {
     console.warn('[pdf] не разобран', e);
     showToast('Не удалось прочитать PDF — добавьте планировку снимком');
@@ -18718,8 +18739,11 @@ async function canvasLoadPdf(file) {
   const по = т => выбор.filter(к => к.тип === т);
   const былоНаХолсте = canvasItems.length;
   const новые = [];
-  // Вид снимка известен с разбора — он остаётся на снимке и в пресете.
-  const сВидом = (ид, вид) => { const э = ид && document.getElementById(ид); if (э) э.dataset.kind = вид; return ид; };
+  // Вид снимка известен с разбора — он остаётся на снимке и в пресете. Там же
+  // у планировки — площадь парной из экспликации: по ней «Проверка» сверяет
+  // размер парного и печь.
+  const сВидом = (ид, вид) => { const э = ид && document.getElementById(ид);
+    if (э) { э.dataset.kind = вид; if (вид === 'план' && парная) э.dataset.steam = String(парная); } return ид; };
   for (const к of по('вид')) новые.push(сВидом(canvasAddImage(await canvasCompress(к.src, 'image/jpeg')), 'вид'));
   for (const к of по('план')) новые.push(сВидом(canvasAddImage(await canvasCompress(к.src, 'image/png')), 'план'));
   await разложитьНовыеСнимки(новые, былоНаХолсте);
@@ -26540,6 +26564,14 @@ function снимкиХолстаСВидом() {
   }).filter(с => с && с.src);
 }
 function видИзРазбора(в) { return в === 'план' ? 'планировка' : в === 'вид' ? 'визуализация' : ''; }
+// Площадь парной по планировке — с разбора PDF, хранится на снимке (data-steam).
+// У планировки, добавленной картинкой, её нет: null.
+function площадьПарнойПоПланировке() {
+  const холст = document.getElementById('imageCanvas');
+  let п = null;
+  (canvasItems || []).forEach(ид => { const э = холст && холст.querySelector('[id="' + ид + '"]'); const з = э && Number(э.dataset.steam); if (з > 0) п = Math.max(п || 0, з); });
+  return п;
+}
 
 // Для проверки по чек-листу — она синхронная: берёт то, что уже узнано, а
 // неузнанные снимки узнаёт в фоне и потом перерисовывает счётчик и карточку.
@@ -30350,7 +30382,8 @@ function collectState() {
           top: parseInt(el.style.top) || 0,
           width: parseInt(el.style.width) || 340,
           height: parseInt(el.style.height) || 220,
-          kind: el.dataset.kind || undefined
+          kind: el.dataset.kind || undefined,
+          steam: Number(el.dataset.steam) || undefined
         } : null;
       }).filter(Boolean);
     })(),
@@ -37910,6 +37943,52 @@ function проверкаПоЧекЛисту() {
   // не в металле (Константин 30.09.2026: «тут дымоход не в металле, написано ламели»).
   if ((печьКамень || порталКамень) && хоть(['st26', 'st27'])) добавить('stove', 'Дымоход в металле при печи или портале в камне — привести к одной облицовке', false, отмеченнаяИз(['st26', 'st27']));
 
+  // 8-1, 8-3. Размер парного и печь — по планировке, а не по опциям: размер в
+  // опциях можно выбрать не тот, и он же сверяется с планировкой (Константин,
+  // 17.10.2026: «этот пункт в проверке сделай смотреть по планировке только.
+  // Менеджер может не правильно выбрать в опциях размер парного отделения —
+  // это тоже смотри в проверке»). Площадь берётся из экспликации PDF при
+  // добавлении планировки; у планировки картинкой её нет — тогда вопрос.
+  if (парная) {
+    const площадь = площадьПарнойПоПланировке();
+    if (площадь == null) {
+      if (selectedProject && снимкиПоВидам().план.length) спросить('Сверить размер парного отделения и печь с планировкой', '', 'imageCanvasCard');
+    } else {
+      const чс = ч => String(Math.round(ч * 10) / 10).replace('.', ',');
+      // Печь: «до N м³» в названии против объёма парной — высота 2,2 м и
+      // запас 5 м³, при панорамном окне 10 м³.
+      const печи = [];
+      (OPTIONS || []).forEach(o => { if (o.section === 'stove' && checkedOptions[o.id]) печи.push({ т: o.name, эл: 'lbl_' + o.id }); });
+      (customOptions.stove || []).forEach(co => { if (co && co.checked) печи.push({ т: co.name, эл: 'lbl_custom_' + co.id }); });
+      const печь = печи.map(п => { const м = String(п.т || '').match(/до\s+(\d+(?:[.,]\d+)?)\s*(?:м³|м3|куб)/i); return { ...п, до: м ? parseFloat(м[1].replace(',', '.')) : 0 }; })
+        .filter(п => п.до).sort((а, б) => б.до - а.до)[0];
+      const панорама = тексты.some(х => /^lbl_/.test(х.эл) && /панорам/i.test(х.т));
+      const нужно = площадь * 2.2 + (панорама ? 10 : 5);
+      if (печь && печь.до < нужно) добавить('stove', 'Печь мала для парной по планировке: нужна от ' + чс(нужно) + ' м³, выбрана до ' + чс(печь.до) + ' м³', false, печь.эл);
+      // Размер: ближайший стандартный не меньше площади по планировке (минус
+      // 0,2 м² на отделку) — против размеров в отмеченных опциях парной. У
+      // каркаса без опции увеличения парное базовое, 2500×2000.
+      const РАЗМЕРЫ = [[2500, 2000], [2500, 2500], [2500, 3000], [3000, 3000]];
+      const нужный = РАЗМЕРЫ.find(([а, б]) => а * б / 1e6 >= площадь - 0.2);
+      const имя = ([а, б]) => а + '×' + б;
+      const вОпциях = [];
+      const размерИз = (т, эл) => { const м = String(т || '').match(/(\d{4})\s*[×xх*]\s*(\d{4})/); if (м && +м[1] >= 2000 && +м[2] >= 2000) вОпциях.push({ р: [+м[1], +м[2]], эл, увел: /увеличени/i.test(т) }); };
+      (OPTIONS || []).forEach(o => { if (o.section === 'steam' && checkedOptions[o.id]) размерИз(o.name, 'lbl_' + o.id); });
+      (customOptions.steam || []).forEach(co => { if (co && co.checked) размерИз(co.name, 'lbl_custom_' + co.id); });
+      const опцияРазмера = р => { const о = (OPTIONS || []).find(o => o.section === 'steam' && !checkedOptions[o.id] && new RegExp(р[0] + '\\s*[×xх*]\\s*' + р[1]).test(o.name || '') && isOptionVisible(o)); return о ? 'lbl_' + о.id : ''; };
+      if (!нужный) спросить('Парная по планировке ' + чс(площадь) + ' м² — больше 3000×3000, уточнить размер и печь', 'steam', '');
+      else {
+        const тот = р => р[0] * р[1] === нужный[0] * нужный[1];
+        const базовое = currentTech !== 'glulam' && !вОпциях.some(в => в.увел);
+        const не = вОпциях.filter(в => !тот(в.р));
+        const поПлану = 'Размер парного по планировке — ' + имя(нужный) + ' (' + чс(площадь) + ' м²)';
+        if (базовое && !тот([2500, 2000])) добавить('steam', поПлану + ', добавить увеличение парного', false, опцияРазмера(нужный));
+        if (не.length) добавить('steam', поПлану + ', в опциях ' + [...new Set(не.map(в => имя(в.р)))].join(', '), false, не.map(в => в.эл).join(' '));
+        else if (!вОпциях.length && currentTech === 'glulam') добавить('steam', 'Выбрать ' + поПлану[0].toLowerCase() + поПлану.slice(1), false, опцияРазмера(нужный));
+      }
+    }
+  }
+
   // Сквозные: Rockwool нигде, плёнки только FINKA, никаких «либо».
   const ро = найти(/rockwool|роквул|роквол/i);
   if (ро) добавить(ро.раздел, 'Rockwool в расчёте, заменить на Knauf', false, ро.эл);
@@ -39842,7 +39921,7 @@ async function uploadCanvasToStorage(presetId, canvasImages) {
     try {
       // If already a Storage URL (not base64), keep as-is with position
       if (img.src && !img.src.startsWith('data:')) {
-        results.push({ url: img.src, left: img.left, top: img.top, width: img.width, height: img.height, kind: img.kind });
+        results.push({ url: img.src, left: img.left, top: img.top, width: img.width, height: img.height, kind: img.kind, steam: img.steam });
         continue;
       }
       // Convert base64 to blob
@@ -39854,7 +39933,7 @@ async function uploadCanvasToStorage(presetId, canvasImages) {
       const { error } = await _sb.storage.from(CANVAS_BUCKET).upload(path, blob, { upsert: true });
       if (!error) {
         const url = _sb.storage.from(CANVAS_BUCKET).getPublicUrl(path).data.publicUrl;
-        results.push({ url, left: img.left, top: img.top, width: img.width, height: img.height, kind: img.kind });
+        results.push({ url, left: img.left, top: img.top, width: img.width, height: img.height, kind: img.kind, steam: img.steam });
         // Адрес подменяется и на самой странице, а не только в пресете. Иначе
         // снимок для клиентской ссылки — он собирается из холста — продолжал бы
         // видеть картинку как data: и считать её неотправленной: в полоске
@@ -39904,8 +39983,9 @@ async function _restoreCanvasFromUrls(imageUrls) {
   // Add each image at exact saved position using canvasAddImageAt
   for (const img of imageUrls) {
     const ид = canvasAddImageAt(img.url || img.src, img.left, img.top, img.width, img.height);
-    const э = img.kind && ид && document.getElementById(ид);
-    if (э) э.dataset.kind = img.kind;
+    const э = ид && document.getElementById(ид);
+    if (э && img.kind) э.dataset.kind = img.kind;
+    if (э && img.steam) э.dataset.steam = String(img.steam);
   }
   try { обновитьМеткиСнимков(); } catch (e) {}
 }
