@@ -18638,7 +18638,11 @@ async function разобратьPdf(данные) {
   const pdfjs = await загрузитьPdfjs();
   const док = await pdfjs.getDocument({ data: данные }).promise;
   let планы = await планировкиИзДока(док);
-  const виды = await визуализацииИзPdf(pdfjs, _листыДока.filter(л => !л.план));
+  // Картинки листов: виды, а под заголовком «Планировка» — планировки
+  // картинкой (так их кладёт и наше Приложение № 2).
+  const картинки = await визуализацииИзPdf(pdfjs, _листыДока.filter(л => !л.план));
+  const виды = картинки.filter(к => к.тип === 'вид');
+  планы = планы.concat(картинки.filter(к => к.тип === 'план'));
   // Ни листа «План», ни картинок-видов — берётся первый лист целиком, как
   // раньше: вдруг это планировка без подписи.
   if (!планы.length && !виды.length && _листыДока.length) планы = await вырезатьПланировки(_листыДока.slice(0, 1));
@@ -18759,30 +18763,57 @@ function названиеЛиста(л) {
 function местаКартинок(pdfjs, стр, список, вид) {
   const О = pdfjs.OPS, умн = (а, б) => [а[0] * б[0] + а[2] * б[1], а[1] * б[0] + а[3] * б[1], а[0] * б[2] + а[2] * б[3],
     а[1] * б[2] + а[3] * б[3], а[0] * б[4] + а[2] * б[5] + а[4], а[1] * б[4] + а[3] * б[5] + а[5]];
-  let м = [1, 0, 0, 1, 0, 0]; const стек = [], места = [];
+  // Рамка в координатах листа по четырём углам прямоугольника в своих.
+  const рамка = (мат, x0, y0, x1, y1) => {
+    const т = [[x0, y0], [x1, y0], [x0, y1], [x1, y1]].map(([x, y]) => вид.convertToViewportPoint(мат[0] * x + мат[2] * y + мат[4], мат[1] * x + мат[3] * y + мат[5]));
+    const xs = т.map(т_ => т_[0]), ys = т.map(т_ => т_[1]);
+    return { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
+  };
+  const пересечь = (а, б) => !б ? а : { x0: Math.max(а.x0, б.x0), y0: Math.max(а.y0, б.y0), x1: Math.min(а.x1, б.x1), y1: Math.min(а.y1, б.y1) };
+  // Обрезка картинки маской (W n): картинку кладут крупнее и режут рамкой —
+  // так экспортируют Pages и Keynote, так собрано и наше Приложение № 2. Без
+  // маски место картинки выходило шире листа и выше заголовка над ней.
+  let м = [1, 0, 0, 1, 0, 0], клип = null, путь = null; const стек = [], места = [];
+  const лист = { x0: 0, y0: 0, x1: вид.width, y1: вид.height };
   for (let и = 0; и < список.fnArray.length; и++) {
     const ф = список.fnArray[и], а = список.argsArray[и];
-    if (ф === О.save) стек.push(м);
-    else if (ф === О.restore) м = стек.pop() || [1, 0, 0, 1, 0, 0];
+    if (ф === О.save) стек.push({ м, клип });
+    else if (ф === О.restore) { const с = стек.pop(); м = с ? с.м : [1, 0, 0, 1, 0, 0]; клип = с ? с.клип : null; }
     else if (ф === О.transform) м = умн(м, а);
-    else if (ф === О.paintFormXObjectBegin) { стек.push(м); if (а && Array.isArray(а[0]) && а[0].length === 6) м = умн(м, а[0]); }
-    else if (ф === О.paintFormXObjectEnd) м = стек.pop() || [1, 0, 0, 1, 0, 0];
+    // Рамка пути у pdf.js 3 — [minX, maxX, minY, maxY], в координатах пути.
+    else if (ф === О.constructPath) { const мм = а && а[2]; путь = мм && мм.length === 4 && isFinite(мм[0]) ? рамка(м, мм[0], мм[2], мм[1], мм[3]) : null; }
+    else if (ф === О.clip || ф === О.eoClip) { if (путь) клип = пересечь(путь, клип); }
+    else if (ф === О.paintFormXObjectBegin) { стек.push({ м, клип }); if (а && Array.isArray(а[0]) && а[0].length === 6) м = умн(м, а[0]); }
+    else if (ф === О.paintFormXObjectEnd) { const с = стек.pop(); м = с ? с.м : [1, 0, 0, 1, 0, 0]; клип = с ? с.клип : null; }
     else if (ф === О.paintImageXObject || ф === О.paintInlineImageXObject || ф === О.paintImageXObjectRepeat) {
-      const т = [[0, 0], [1, 0], [0, 1], [1, 1]].map(([x, y]) => вид.convertToViewportPoint(м[0] * x + м[2] * y + м[4], м[1] * x + м[3] * y + м[5]));
-      const xs = т.map(т_ => т_[0]), ys = т.map(т_ => т_[1]);
-      места.push({ x: Math.min(...xs), y: Math.min(...ys), ш: Math.max(...xs) - Math.min(...xs), в: Math.max(...ys) - Math.min(...ys) });
+      const р = пересечь(пересечь(рамка(м, 0, 0, 1, 1), клип), лист);
+      if (р.x1 > р.x0 && р.y1 > р.y0) места.push({ x: р.x0, y: р.y0, ш: р.x1 - р.x0, в: р.y1 - р.y0 });
     }
   }
   const площадь = вид.width * вид.height;
   return места.filter(м_ => м_.ш * м_.в >= площадь * 0.12);
 }
 
+// Заголовки разделов на листе — «Визуализация» и «Планировка»: картинка под
+// заголовком «Планировка» — планировка, даже цветная. Наше Приложение № 2
+// кладёт планировку картинкой под заголовком «ПЛАНИРОВКА», и цветные заливки
+// комнат делали её «видом»: «Проверка» просила добавить планировку, которая
+// уже стояла (Константин, 17.10.2026, приложением к договору).
+function заголовкиКартинок(л, вид1) {
+  return (л.текст ? л.текст.items : []).map(т => {
+    const с = (т.str || '').replace(/[\u200b\s]+/g, ' ').trim();
+    const м = /^(?:\d{1,2}\.\s*)?(визуализаци[яи]|планировк[аи])$/i.exec(с);
+    if (!м || !т.transform) return null;
+    return { вид: /^план/i.test(м[1]) ? 'план' : 'вид', y: вид1.convertToViewportPoint(т.transform[4], т.transform[5])[1] };
+  }).filter(Boolean);
+}
 async function визуализацииИзPdf(pdfjs, листы) {
   const картинки = [];
   for (const л of листы) {
     const вид1 = л.стр.getViewport({ scale: 1 });
     const места = местаКартинок(pdfjs, л.стр, await л.стр.getOperatorList(), вид1);
     if (!места.length) continue;
+    const заголовки = заголовкиКартинок(л, вид1);
     const масштаб = Math.min(3, 2400 / Math.max(вид1.width, вид1.height));
     const вид = л.стр.getViewport({ scale: масштаб });
     const полный = document.createElement('canvas');
@@ -18794,7 +18825,10 @@ async function визуализацииИзPdf(pdfjs, листы) {
       к.width = Math.max(1, Math.round(м.ш * масштаб)); к.height = Math.max(1, Math.round(м.в * масштаб));
       к.getContext('2d').drawImage(полный, Math.round(м.x * масштаб), Math.round(м.y * масштаб), к.width, к.height, 0, 0, к.width, к.height);
       const src = к.toDataURL('image/jpeg', 0.9);
-      if (await видКартинки(src) === 'визуализация') картинки.push({ src, тип: 'вид', подпись: 'Лист ' + (л.стр.pageNumber || '') });
+      // Ближайший заголовок над картинкой решает, что это; без заголовка — цвет.
+      const над = заголовки.filter(з => з.y <= м.y + 4).sort((а, б) => б.y - а.y)[0];
+      if (над && над.вид === 'план') картинки.push({ src, тип: 'план', подпись: 'Планировка' });
+      else if (над || await видКартинки(src) === 'визуализация') картинки.push({ src, тип: 'вид', подпись: 'Лист ' + (л.стр.pageNumber || '') });
     }
   }
   return картинки;
