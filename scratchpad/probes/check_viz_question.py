@@ -40,7 +40,9 @@ from playwright.sync_api import sync_playwright
 ]
 ВОПРОС = """async (снимки) => { canvasClearAll && (() => { canvasItems.length = 0; document.querySelectorAll('#imageCanvas .canvas-img-item').forEach(э => э.remove()); })();
   снимки.forEach(s => canvasAddImage(s)); await Promise.all(снимкиХолста().map(видКартинки));
-  return проверкаПоЧекЛисту().вопросы.filter(в => /визуализац|планировк/i.test(в)); }"""
+  return проверкаПоЧекЛисту().вопросы.filter(в => /^Добавить/.test(в) && /визуализац|планировк/i.test(в)); }"""
+# Только вопросы 1-7 «Добавить…»: «Сверить размер парного отделения и печь с
+# планировкой» (17.10.2026) стоит у планировки снимком по праву и к ним не относится.
 
 
 def прогон(бр, порт, ш, в):
