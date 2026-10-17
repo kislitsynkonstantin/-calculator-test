@@ -56,6 +56,15 @@ from playwright.sync_api import sync_playwright
     ("2-4", "отмостку", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; }", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; customNotes.foundation.push({ id: 'н2', text: 'Отмостка не входит' }); }"),
     ("2-6", "тепляк", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; document.getElementById('contractDate').value = '2026-12-10'; }", "() => { checkedOptions.f5 = false; checkedOptions.f11 = true; document.getElementById('contractDate').value = '2026-06-10'; }"),
     ("4-9", "Форма кровли не совпадает", "() => { checkedOptions.r17 = true; }", "() => {}"),
+    # 4-6, 4-2, 5-8 (17.10.2026: «Эти сделай»). Проект пробы двускатный.
+    ("4-6", "Добавить снегозадержатели", "() => {}", "() => { checkedOptions.r8 = true; }"),
+    ("4-6 примечание", "Добавить снегозадержатели", "() => {}", "() => { customNotes.roof.push({ id: 'н3', text: 'Снегозадержатели не входят в расчёт' }); }"),
+    ("4-6 плоская", "Добавить снегозадержатели", "() => {}", "() => { checkedOptions.r17 = true; }"),
+    ("4-2", "крючки, заменить трубчатые", "() => { checkedOptions.r16 = true; checkedOptions.r10 = true; }", "() => { checkedOptions.r16 = true; checkedOptions.r8 = true; }"),
+    ("4-2 старый Шинглас", "крючки, заменить трубчатые", "() => { checkedOptions.r5 = true; checkedOptions.r8 = true; }", "() => { checkedOptions.r5 = true; checkedOptions.r11 = true; }"),
+    ("4-2 своя", "крючки, заменить трубчатые", "() => { checkedOptions.r16 = true; своя('roof', 'Снегозадержатели трубчатые на свесы'); }", "() => { checkedOptions.r16 = true; своя('roof', 'Снегозадержатели-крючки на свесы'); }"),
+    ("5-8", "Указать марку ДПК", "() => { своя('exterior', 'Террасная доска ДПК 25 мм'); }", "() => { своя('exterior', 'Террасная доска ДПК Savewood 25 мм'); }"),
+    ("5-8 кавычки", "Указать марку ДПК", "() => { своя('extra', 'Ступени из ДПК'); }", "() => { своя('extra', 'Ступени из ДПК «Терропласт»'); }"),
     ("5-1", "имитацию 20 мм", "() => { checkedOptions.ex6 = true; }", "() => { checkedOptions.ex6 = false; }"),
     ("5-11", "сорт древесины", "() => { своя('interior', 'Вагонка на потолок мансарды'); }", "() => { своя('interior', 'Вагонка на потолок мансарды, сорт АВ'); }"),
     # У инженерной доски сорта нет — правку не пишем (30.09.2026, снимком).
@@ -136,7 +145,8 @@ def прогон(бр, порт):
     # Чистый расчёт с фоном — без замечаний из новых правил. Планировка — как из
     # PDF, с площадью парной 5 м²: базовое парное каркаса 2500×2000 ей впору
     # (у снимка без площади стоит вопрос сверить парную с планировкой, 17.10.2026).
-    стр.evaluate(СБРОС); стр.evaluate("async () => { canvasAddImage(ВИЗ); const п = canvasAddImage(ПЛАН); const э = п && document.getElementById(п); if (э) э.dataset.steam = '5'; await Promise.all(снимкиХолста().map(видКартинки)); }")
+    # Проект двускатный — снегозадержатели стоят (4-6).
+    стр.evaluate(СБРОС); стр.evaluate("async () => { checkedOptions.r8 = true; canvasAddImage(ВИЗ); const п = canvasAddImage(ПЛАН); const э = п && document.getElementById(п); if (э) э.dataset.steam = '5'; await Promise.all(снимкиХолста().map(видКартинки)); }")
     т = [х for х in стр.evaluate(ТЕКСТЫ) if not х.startswith("? Скидка") and not х.startswith(("? Окна Blitz 60", "? Окна Veka WHS 72", "? Окна без ламинации")) and "пробное бурение" not in х]
     if т:
         НАХОДКИ.append(f"[фон] на спокойном расчёте есть замечания: {т}")
