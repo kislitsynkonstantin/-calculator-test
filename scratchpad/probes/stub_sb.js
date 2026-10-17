@@ -243,8 +243,20 @@
     return о;
   }
 
-  var канал = { on: function () { return канал; }, subscribe: function () { return канал; },
-                unsubscribe: function () { return Promise.resolve('ok'); } };
+  /* Каналы запоминают, на что подписалась страница: проба чата шлёт по ним
+     «новое сообщение» — как пришло бы от базы — и смотрит, что лента его
+     показала. Прежний общий канал ничего не помнил. */
+  window.__КАНАЛЫ = window.__КАНАЛЫ || [];
+  function новыйКанал(имя) {
+    var к = { имя: имя, слушатели: [], закрыт: false };
+    к.on = function (вид, отбор, об) { к.слушатели.push({ вид: вид, отбор: отбор, об: об }); return к; };
+    к.subscribe = function () { return к; };
+    к.unsubscribe = function () { к.закрыт = true; return Promise.resolve('ok'); };
+    window.__КАНАЛЫ.push(к);
+    return к;
+  }
+  /* Загруженное в хранилище запоминается: проба смотрит путь и тип файла. */
+  window.__ЗАГРУЖЕНО = window.__ЗАГРУЖЕНО || [];
 
   var клиент = {
     from: запрос,
@@ -254,13 +266,18 @@
       return Promise.resolve(typeof д === 'function' ? д(арг) : (д === undefined ? null : д))
         .then(function (з) { return { data: з, error: null }; });
     },
-    channel: function () { return канал; },
-    removeChannel: function () { return Promise.resolve('ok'); },
-    storage: { from: function () { return {
-      upload: function () { return Promise.resolve({ data: { path: 'проба' }, error: null }); },
+    channel: function (имя) { return новыйКанал(имя); },
+    removeChannel: function (к) { if (к) к.закрыт = true; return Promise.resolve('ok'); },
+    storage: { from: function (корзина) { return {
+      upload: function (путь, файл, наст) {
+        window.__ЗАГРУЖЕНО.push({ корзина: корзина, путь: путь, тип: (наст && наст.contentType) || (файл && файл.type) || '', размер: файл && файл.size });
+        if (typeof window.__СБОЙ_ЗАГРУЗКИ === 'string') return Promise.resolve({ data: null, error: { message: window.__СБОЙ_ЗАГРУЗКИ } });
+        return Promise.resolve({ data: { path: путь }, error: null });
+      },
       remove: function () { return Promise.resolve({ data: [], error: null }); },
       getPublicUrl: function (п) { return { data: { publicUrl: '/assets/logo-bmsk-dark.png' } }; },
-      createSignedUrl: function () { return Promise.resolve({ data: { signedUrl: '/assets/logo-bmsk-dark.png' }, error: null }); },
+      createSignedUrl: function (путь, срок, наст) { return Promise.resolve({ data: { signedUrl: '/assets/logo-bmsk-dark.png?p=' + encodeURIComponent(путь) + (наст && наст.download ? '&download=' + encodeURIComponent(наст.download) : '') }, error: null }); },
+      createSignedUrls: function (пути) { return Promise.resolve({ data: (пути || []).map(function (п) { return { path: п, signedUrl: '/assets/logo-bmsk-dark.png?p=' + encodeURIComponent(п), error: null }; }), error: null }); },
     }; } },
     auth: {
       getSession: function () { return Promise.resolve({ data: { session: СЕССИЯ }, error: null }); },

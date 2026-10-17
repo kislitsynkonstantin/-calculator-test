@@ -36857,6 +36857,7 @@ function элементыЗначка() {
       if (_пкМеню) { _пкМеню = false; заполнитьКарточкуЗначка(); const м = к.querySelector('[data-act="more"]'); if (м) м.focus(); return; }
       if (_пкПодтв) { _пкПодтв = false; заполнитьКарточкуЗначка(); return; }
       if (_пкИмя) { _пкИмя = null; заполнитьКарточкуЗначка(); const с = к.querySelector('[data-act="save"]'); if (с) с.focus(); return; }
+      if (_пкВкладка === 'm' && _чатЧерновик.ответ) { _чатЧерновик.ответ = null; отрисоватьЧат(); return; }
       if (_значокРежим === 'profile') _профильПозже = true;
       закрытьКарточкуЗначка();
       const т = з.querySelector('.pc-body'); if (т) т.focus();
@@ -36868,7 +36869,7 @@ function элементыЗначка() {
       if (e.target && e.target.id === 'pcFirst' && e.key === 'Enter') { e.preventDefault(); сохранитьПрофильИзМиниОкна(); return; }
       const т = e.target.closest ? e.target.closest('.pc-tab') : null;
       if (!т || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
-      const все = ['p', 's', 'l', 'c'];
+      const все = ['p', 's', 'l', 'c', 'm'];
       const н = (все.indexOf(т.getAttribute('data-tab')) + (e.key === 'ArrowRight' ? 1 : все.length - 1)) % все.length;
       e.preventDefault();
       const след = к.querySelector('#pcTab-' + все[н]); if (след) след.click();
@@ -37223,6 +37224,10 @@ function переключитьКарточкуЗначка() {
   if (_значокРежим === 'own' || _значокРежим === 'shared') {
     if (_пкВкладка === 'l') загрузитьЖурналПресета();
     if (_пкВкладка === 's') загрузитьСводкуПресета();
+    if (_пкВкладка === 'm') _чатВниз = true;
+    // Чат — с любой вкладки: правки из него стоят в «Проверке», а
+    // непрочитанное — числом на вкладке «Чат».
+    загрузитьЧат(false, _пкВкладка !== 'm');
   }
   нарисоватьГрафикСводки();
   // Открылось само (вернулось напоминание «Сохранить»), а панель открыта и
@@ -37245,7 +37250,7 @@ function закрытьКарточкуЗначка() {
    Перерисовка идёт по состоянию, а не по событию: карточку зовут из десятка
    мест (замок, очередь, публикация, список), и если разметка не изменилась,
    она не трогается — иначе сбивались бы прокрутка журнала и фокус. */
-let _пкВкладка = 'p';      // p — пресет, s — сводка, l — журнал, c — проверка
+let _пкВкладка = 'p';      // p — пресет, s — сводка, l — журнал, c — проверка, m — чат
 let _пкМеню = false;       // открыто меню «⋯»
 let _пкПодтв = false;      // идёт подтверждение снятия с публикации
 let _пкПресет = '';        // для какого пресета нарисована карточка
@@ -37364,7 +37369,7 @@ function подгрузитьВкладкиПресета() {
   setTimeout(function () {
     const о2 = пресетКарточки();
     if (!о2 || о2.код !== код) { if (_пкПодгрузкаКод === код) _пкПодгрузкаКод = ''; return; }
-    try { загрузитьЖурналПресета(false, true); загрузитьСводкуПресета(false, true); } catch (e) {}
+    try { загрузитьЖурналПресета(false, true); загрузитьСводкуПресета(false, true); загрузитьЧат(false, true); } catch (e) {}
   }, 1500);
 }
 async function событияПресетаБазыЗапрос(код) {
@@ -37600,6 +37605,521 @@ function панельЖурналаКарточки(о) {
   });
   if (ж.события.length >= ЖП_ПОТОЛОК) из += '<li class="pc-lg-cap">Показаны последние ' + ЖП_ПОТОЛОК + ' действий — остальные в полном журнале.</li>';
   return '<div class="pc-lg-sc"><ul class="pc-lg">' + из + '</ul></div>' + низ(события.length);
+}
+
+/* ── Вкладка «Чат»: переписка внутри пресета ──
+   Вариант А макета mockups/approval-flow-v1.html (Константин, 17.10.2026:
+   «Давай сначала сделаем чат пресета»), и к нему: файлы скрепкой и снимки
+   вставкой, у каждого сообщения значок «Отразить в правках» и рядом
+   «Выполнено», «Ответить» — с первой строкой отвеченного, по которой к нему
+   можно вернуться. Отражённое встаёт во вкладке «Проверка» списком с
+   галочкой, как в варианте Б того же макета.
+   Чат привязан к коду пресета: видит его каждый, кто открыл пресет по коду, —
+   как журнал пресета. Участником делает функция базы preset_chat_join, она же
+   проверяет, что такой код есть; сообщения и вложения отдаются только
+   участнику. Вложения лежат в закрытой корзине и открываются подписанной
+   ссылкой на час.
+   Список и строка над полем рисуются отдельно от карточки: карточку
+   перерисовывают из десятка мест, и поле ввода, пересоздаваемое каждый раз,
+   на телефоне закрывало бы клавиатуру посреди фразы. */
+const ЧАТ_КОРЗИНА = 'preset-chat';
+const ЧАТ_ФАЙЛ_МАКС = 20 * 1024 * 1024;
+const ЧАТ_ФАЙЛОВ_МАКС = 10;
+const ЧАТ_ПОТОЛОК = 500;
+const ЧАТ_ТЕКСТ_МАКС = 8000;
+let _чат = { код: '', сообщения: null, прочитано: 0, ошибка: '', грузится: false, когда: 0, нет: false };
+// Набранное, прикреплённое и «Ответить» — до отправки; у каждого пресета свой.
+let _чатЧерновик = { код: '', текст: '', файлы: [], ответ: null, шлём: false };
+let _чатКанал = null, _чатКаналКод = '';
+let _чатКСообщению = '';   // к какому сообщению прокрутить при следующей отрисовке
+let _чатВниз = false;      // прокрутить к последнему сообщению
+let _чатФокус = null;      // поле было в фокусе до перерисовки карточки: [начало, конец]
+let _чатПрокрутка = null;  // лента до перерисовки карточки: { сверху, уДна }
+let _чатОпрос = 0;
+const _чатПодписи = new Map();   // путь вложения → { адрес, до }
+const _чатПодписываются = new Set();
+const _чатНеПодписано = new Map();  // путь → когда подпись не вышла: повтор не раньше чем через минуту
+const ЗНАЧОК_СКРЕПКА = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>';
+const ЗНАЧОК_ОТПРАВИТЬ = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+const ЗНАЧОК_В_ПРАВКИ = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6M12 11v6"/></svg>';
+const ЗНАЧОК_ГАЛКА = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"/></svg>';
+const ЗНАЧОК_ОТВЕТ = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 17l-5-5 5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>';
+const ЗНАЧОК_ФАЙЛ = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>';
+
+function новыйИдЧата() {
+  try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (e) {}
+  const б = new Uint8Array(16); crypto.getRandomValues(б);
+  б[6] = (б[6] & 15) | 64; б[8] = (б[8] & 63) | 128;
+  const х = [...б].map(ч => ч.toString(16).padStart(2, '0')).join('');
+  return х.slice(0, 8) + '-' + х.slice(8, 12) + '-' + х.slice(12, 16) + '-' + х.slice(16, 20) + '-' + х.slice(20);
+}
+function черновикЧата(код) {
+  if (_чатЧерновик.код !== (код || '')) {
+    _чатЧерновик.файлы.forEach(ф => { if (ф.превью) try { URL.revokeObjectURL(ф.превью); } catch (e) {} });
+    _чатЧерновик = { код: код || '', текст: '', файлы: [], ответ: null, шлём: false };
+  }
+  return _чатЧерновик;
+}
+function чатТекущий() {
+  const о = пресетКарточки();
+  return о && о.код && _чат.код === о.код && _чат.сообщения ? _чат.сообщения : null;
+}
+function сообщениеЧата(ид) { return (чатТекущий() || []).find(с => String(с.id) === String(ид)) || null; }
+function времяЧата(с) { const т = Date.parse(с && с.created_at); return isNaN(т) ? 0 : т; }
+function правкиЧата() { return (чатТекущий() || []).filter(с => с.review_state === 'open' || с.review_state === 'done'); }
+function открытыхПравокЧата() { return правкиЧата().filter(с => с.review_state === 'open').length; }
+function непрочитаноВЧате() {
+  const свой = (_sbUser || {}).id;
+  return (чатТекущий() || []).filter(с => с.author_id !== свой && времяЧата(с) > _чат.прочитано).length;
+}
+function ктоВЧате(с) { return с.author_id === (_sbUser || {}).id ? 'Вы' : имяКратко(с.author_name || 'Сотрудник'); }
+// Первая строка сообщения — для «Ответить» и для пункта в «Проверке». Нет
+// текста — то, что прикреплено.
+function перваяСтрокаЧата(с, длина) {
+  длина = длина || 90;
+  const т = String((с && с.body) || '').split('\n').map(х => х.trim()).find(Boolean);
+  if (т) return т.length > длина ? т.slice(0, длина - 1) + '…' : т;
+  const в = ((с && с.attachments) || [])[0];
+  if (!в) return '';
+  return /^image\//.test(в.type || '') ? 'Снимок' : 'Файл «' + (в.name || 'без имени') + '»';
+}
+function размерФайлаЧата(б) {
+  б = Number(б) || 0;
+  return б < 1048576 ? Math.max(1, Math.round(б / 1024)) + ' КБ' : (б / 1048576).toFixed(1).replace('.', ',') + ' МБ';
+}
+// Текст сообщения: экранирован, адреса — ссылками в новой вкладке, переносы
+// строк держит сама разметка (white-space: pre-wrap).
+function текстЧата(т) {
+  return escapeHtml(String(т || '')).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)\]'"»])/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+}
+
+async function загрузитьЧат(заново, тихо) {
+  const о = пресетКарточки();
+  const код = о && о.код;
+  if (!код || !_sb || !_sbUser) return;
+  const ч = _чат;
+  if (ч.код === код && (ч.грузится || (!заново && Date.now() - ч.когда < 30000))) return;
+  _чат = { код, сообщения: ч.код === код ? ч.сообщения : null, прочитано: ч.код === код ? ч.прочитано : 0,
+    ошибка: '', грузится: true, когда: 0, нет: false };
+  if (!тихо) заполнитьКарточкуЗначка();
+  let сообщения = null, прочитано = _чат.прочитано, ошибка = '', нет = false;
+  try {
+    const { data: вход, error: о1 } = await _sb.rpc('preset_chat_join', { p_code: String(код) });
+    if (о1) throw о1;
+    if (вход == null) нет = true;
+    else {
+      const т = Date.parse(вход);
+      if (!isNaN(т)) прочитано = Math.max(прочитано, т);
+      const { data, error } = await _sb.from('preset_messages').select('*').eq('code', String(код))
+        .order('created_at', { ascending: false }).limit(ЧАТ_ПОТОЛОК);
+      if (error) throw error;
+      сообщения = (data || []).slice().sort((а, б) => времяЧата(а) - времяЧата(б));
+    }
+  } catch (e) { ошибка = (e && e.message) || 'нет связи'; }
+  if (_чат.код !== код) return;
+  // Пришедшее по каналу, пока шёл запрос, не теряется.
+  const пришло = (_чат.сообщения || []).filter(с => сообщения && !сообщения.some(х => х.id === с.id) && времяЧата(с) > Date.now() - 60000);
+  if (сообщения && пришло.length) сообщения = сообщения.concat(пришло).sort((а, б) => времяЧата(а) - времяЧата(б));
+  _чат = { код, сообщения: сообщения || _чат.сообщения, прочитано, ошибка, грузится: false, когда: Date.now(), нет };
+  if (сообщения) подписатьсяНаЧат(код);
+  заполнитьКарточкуЗначка();
+  обновитьСчётчикПроверки();
+}
+// Новые сообщения и отметки приходят каналом базы; если канал не поднялся,
+// открытая вкладка всё равно переспрашивает базу раз в 20 секунд.
+function подписатьсяНаЧат(код) {
+  if (_чатКанал && _чатКаналКод === код) return;
+  отписатьсяОтЧата();
+  try {
+    _чатКаналКод = код;
+    _чатКанал = _sb.channel('preset_chat_' + код)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'preset_messages', filter: 'code=eq.' + код }, приходЧата)
+      .subscribe();
+  } catch (e) { _чатКанал = null; _чатКаналКод = ''; }
+}
+function отписатьсяОтЧата() {
+  if (_чатКанал) { try { _sb.removeChannel(_чатКанал); } catch (e) {} }
+  _чатКанал = null; _чатКаналКод = '';
+}
+function приходЧата(п) {
+  const с = п && п.new;
+  if (!с || !с.id || String(с.code) !== _чат.код || !_чат.сообщения) return;
+  const и = _чат.сообщения.findIndex(х => х.id === с.id);
+  if (и >= 0) _чат.сообщения[и] = Object.assign({}, _чат.сообщения[и], с);
+  else { _чат.сообщения.push(с); _чат.сообщения.sort((а, б) => времяЧата(а) - времяЧата(б)); }
+  заполнитьКарточкуЗначка();
+  обновитьСчётчикПроверки();
+}
+function запланироватьОпросЧата() {
+  if (_чатОпрос) return;
+  _чатОпрос = setTimeout(function () {
+    _чатОпрос = 0;
+    const к = document.getElementById('presetChipCard');
+    if (!к || !к.classList.contains('show') || _пкВкладка !== 'm' || document.hidden) return;
+    загрузитьЧат(true, true);
+    запланироватьОпросЧата();
+  }, 20000);
+}
+// Прочитано — когда лента видна на экране: открыто мини-окно на вкладке «Чат».
+function отметитьЧатПрочитанным() {
+  const свой = (_sbUser || {}).id;
+  const чужие = (чатТекущий() || []).filter(с => с.author_id !== свой);
+  const последнее = чужие.length ? Math.max(...чужие.map(времяЧата)) : 0;
+  if (!последнее || последнее <= _чат.прочитано) return;
+  _чат.прочитано = последнее;
+  const код = _чат.код;
+  try { _sb.rpc('preset_chat_read', { p_code: код, p_at: new Date(последнее).toISOString() }).then(() => {}, () => {}); } catch (e) {}
+}
+
+// Подписанные ссылки на вложения: картинки — одним запросом, файлы — каждый
+// со своим именем для скачивания (в корзине файл лежит под номером).
+function адресВложения(в) {
+  const п = _чатПодписи.get(в.path);
+  return п && п.до > Date.now() ? п.адрес : '';
+}
+async function подписатьВложения(список) {
+  const нужно = список.filter(в => в && в.path && !адресВложения(в) && !_чатПодписываются.has(в.path)
+    && !(Date.now() - (_чатНеПодписано.get(в.path) || 0) < 60000));
+  if (!нужно.length || !_sb) return;
+  нужно.forEach(в => _чатПодписываются.add(в.path));
+  const до = Date.now() + 50 * 60 * 1000;
+  const корзина = _sb.storage.from(ЧАТ_КОРЗИНА);
+  const картинки = нужно.filter(в => /^image\//.test(в.type || ''));
+  const файлы = нужно.filter(в => !/^image\//.test(в.type || ''));
+  try {
+    if (картинки.length && typeof корзина.createSignedUrls === 'function') {
+      const { data } = await корзина.createSignedUrls(картинки.map(в => в.path), 3600);
+      (data || []).forEach(з => { if (з && з.path && з.signedUrl) _чатПодписи.set(з.path, { адрес: з.signedUrl, до }); });
+    } else {
+      await Promise.all(картинки.map(async в => {
+        const { data } = await корзина.createSignedUrl(в.path, 3600);
+        if (data && data.signedUrl) _чатПодписи.set(в.path, { адрес: data.signedUrl, до });
+      }));
+    }
+    await Promise.all(файлы.map(async в => {
+      const { data } = await корзина.createSignedUrl(в.path, 3600, { download: в.name || true });
+      if (data && data.signedUrl) _чатПодписи.set(в.path, { адрес: data.signedUrl, до });
+    }));
+  } catch (e) {}
+  нужно.forEach(в => { _чатПодписываются.delete(в.path); if (!адресВложения(в)) _чатНеПодписано.set(в.path, Date.now()); });
+  отрисоватьЧат();
+}
+function вложенияЧатаHtml(с, неподписаны) {
+  const все = Array.isArray(с.attachments) ? с.attachments : [];
+  if (!все.length) return '';
+  const картинки = все.filter(в => /^image\//.test(в.type || ''));
+  const файлы = все.filter(в => !/^image\//.test(в.type || ''));
+  let h = '';
+  if (картинки.length) {
+    h += '<div class="pc-chim' + (картинки.length > 1 ? ' pc-chim2' : '') + '">' + картинки.map(в => {
+      const адрес = адресВложения(в);
+      if (!адрес) неподписаны.push(в);
+      const пропорция = в.w && в.h ? ' style="aspect-ratio:' + Number(в.w) + ' / ' + Number(в.h) + '"' : '';
+      const имя = escapeHtml(в.name || 'Снимок');
+      return адрес
+        ? '<a href="' + escapeHtml(адрес) + '" target="_blank" rel="noopener" title="' + имя + '"' + пропорция + '><img src="' + escapeHtml(адрес) + '" alt="' + имя + '"></a>'
+        : '<span class="pc-chim-w"' + пропорция + ' aria-label="' + имя + ' загружается"></span>';
+    }).join('') + '</div>';
+  }
+  h += файлы.map(в => {
+    const адрес = адресВложения(в);
+    if (!адрес) неподписаны.push(в);
+    const внутри = ЗНАЧОК_ФАЙЛ + '<span class="pc-chfl-n">' + escapeHtml(в.name || 'Файл') + '</span><span class="pc-chfl-s">' + размерФайлаЧата(в.size) + '</span>';
+    return адрес ? '<a class="pc-chfl" href="' + escapeHtml(адрес) + '" target="_blank" rel="noopener" download="' + escapeHtml(в.name || '') + '">' + внутри + '</a>'
+      : '<span class="pc-chfl pc-chfl-w">' + внутри + '</span>';
+  }).join('');
+  return h;
+}
+
+// Лента: день, сообщения, у каждого — «Ответить», «Отразить в правках» и
+// «Выполнено». Своё — справа и подкрашено, чужое — слева.
+function лентаЧата(о) {
+  const пусто = (заголовок, текст, кнопка) => '<div class="pc-lg-empty pc-ch-empty"><b>' + заголовок + '</b>' + текст
+    + (кнопка ? '<button type="button" class="pc-ch-retry" data-act="ch-retry">Повторить</button>' : '') + '</div>';
+  if (!о.код) return пусто('Код ещё выдаётся', 'Чат пресета появится вместе с кодом.');
+  if (!_sbUser) return пусто('Нужен вход', 'Чат доступен после входа в аккаунт.');
+  const ч = _чат;
+  if (ч.код !== о.код || (!ч.сообщения && !ч.ошибка && !ч.нет)) return загрузкаМиниОкна('Чат загружается…');
+  if (ч.нет && !ч.сообщения) return пусто('Чат недоступен', 'Пресета с этим кодом в базе нет.');
+  if (!ч.сообщения) return пусто('Не удалось загрузить', escapeHtml(ч.ошибка), true);
+  if (!ч.сообщения.length) return пусто('Сообщений пока нет', 'Переписку видит каждый, кто открывает этот пресет.');
+  const свой = (_sbUser || {}).id;
+  const неподписаны = [];
+  let h = '', день = '';
+  ч.сообщения.forEach(с => {
+    const д = new Date(с.created_at), датаЕсть = !isNaN(д);
+    const метка = датаЕсть ? деньЖурналаПресета(д) : '';
+    if (метка && метка !== день) { h += '<div class="pc-chday">' + escapeHtml(метка) + '</div>'; день = метка; }
+    const мой = с.author_id === свой;
+    const вПравках = с.review_state === 'open' || с.review_state === 'done', сделано = с.review_state === 'done';
+    const ид = escapeHtml(String(с.id));
+    const на = с.reply_to ? ч.сообщения.find(х => String(х.id) === String(с.reply_to)) : null;
+    const цитата = с.reply_to
+      ? '<button type="button" class="pc-chq" data-act="ch-quote" data-mid="' + escapeHtml(String(с.reply_to)) + '" aria-label="К сообщению, на которое ответ">'
+        + (на ? '<b>' + escapeHtml(ктоВЧате(на)) + '</b><span>' + escapeHtml(перваяСтрокаЧата(на)) + '</span>' : '<span>Сообщение раньше загруженных</span>') + '</button>'
+      : '';
+    const метки = сделано ? '<span class="pc-cht pc-cht-ok">выполнено</span>' : вПравках ? '<span class="pc-cht">в правках</span>' : '';
+    h += '<div class="pc-chm' + (мой ? ' me' : '') + (сделано ? ' done' : '') + '" id="pcChm-' + ид + '" data-mid="' + ид + '">'
+      + '<div class="pc-chb"><div class="pc-chw"><b>' + escapeHtml(ктоВЧате(с)) + '</b>'
+      + (датаЕсть ? ' · ' + д.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '') + метки + '</div>'
+      + цитата
+      + (с.body ? '<div class="pc-chx">' + текстЧата(с.body) + '</div>' : '')
+      + вложенияЧатаHtml(с, неподписаны) + '</div>'
+      + '<div class="pc-chact">'
+      + '<button type="button" data-act="ch-reply" data-mid="' + ид + '">' + ЗНАЧОК_ОТВЕТ + 'Ответить</button>'
+      + '<button type="button" class="pc-chflag" data-act="ch-flag" data-mid="' + ид + '" aria-pressed="' + вПравках + '" title="' + (вПравках ? 'Убрать из правок' : 'Отразить в правках') + '" aria-label="' + (вПравках ? 'Убрать из правок' : 'Отразить в правках') + '">' + ЗНАЧОК_В_ПРАВКИ + '</button>'
+      + '<button type="button" class="pc-chdone" data-act="ch-done" data-mid="' + ид + '" aria-pressed="' + сделано + '">' + ЗНАЧОК_ГАЛКА + 'Выполнено</button>'
+      + '</div></div>';
+  });
+  if (ч.сообщения.length >= ЧАТ_ПОТОЛОК) h = '<div class="pc-chday">Показаны последние ' + ЧАТ_ПОТОЛОК + ' сообщений</div>' + h;
+  if (неподписаны.length) setTimeout(() => подписатьВложения(неподписаны), 0);
+  return h;
+}
+// Над полем — на что отвечаем и что прикреплено.
+function надПолемЧата() {
+  const ч = _чатЧерновик;
+  let h = '';
+  if (ч.ответ) h += '<div class="pc-chr"><span><b>Ответ: ' + escapeHtml(ч.ответ.кто) + '</b>' + escapeHtml(ч.ответ.строка) + '</span>'
+    + '<button type="button" data-act="ch-reply-x" aria-label="Не отвечать">' + ЗНАЧОК_КРЕСТ + '</button></div>';
+  if (ч.файлы.length) h += '<div class="pc-chf">' + ч.файлы.map((ф, i) => '<span class="pc-chfi">'
+    + (ф.превью ? '<img src="' + escapeHtml(ф.превью) + '" alt="">' : ЗНАЧОК_ФАЙЛ)
+    + '<span>' + escapeHtml(ф.имя) + '</span><button type="button" data-act="ch-file-x" data-i="' + i + '" aria-label="Убрать «' + escapeHtml(ф.имя) + '»">' + ЗНАЧОК_КРЕСТ + '</button></span>').join('') + '</div>';
+  return h;
+}
+// Каркас вкладки — в разметке карточки; лента и строка над полем — отдельно.
+function панельЧатаКарточки() {
+  return '<div class="pc-chl" id="pcChatList" role="log" aria-label="Сообщения"></div>'
+    + '<div class="pc-chc"><div id="pcChatExtra"></div><div class="pc-chin">'
+    + '<button type="button" class="pc-chclip" data-act="ch-attach" aria-label="Прикрепить файл">' + ЗНАЧОК_СКРЕПКА + '</button>'
+    + '<textarea id="pcChatText" rows="1" maxlength="' + ЧАТ_ТЕКСТ_МАКС + '" placeholder="Сообщение" aria-label="Сообщение" enterkeyhint="send"></textarea>'
+    + '<button type="button" class="pc-chsend" data-act="ch-send" aria-label="Отправить">' + ЗНАЧОК_ОТПРАВИТЬ + '</button></div>'
+    + '<input type="file" id="pcChatFile" multiple hidden></div>';
+}
+function отрисоватьЧат(к) {
+  к = к || document.getElementById('presetChipCard');
+  const пане = к && к.querySelector('#pcPane-m.on');
+  if (!пане) return;
+  const о = пресетКарточки();
+  if (!о) return;
+  const лента = пане.querySelector('#pcChatList'), над = пане.querySelector('#pcChatExtra');
+  const поле = пане.querySelector('#pcChatText'), выбор = пане.querySelector('#pcChatFile');
+  if (!лента || !поле) return;
+  const ч = черновикЧата(о.код);
+  const h = лентаЧата(о);
+  const свежая = лента.dataset.h === undefined;
+  if (лента.dataset.h !== h) {
+    const былоДно = свежая ? !_чатПрокрутка || _чатПрокрутка.уДна : лента.scrollTop + лента.clientHeight >= лента.scrollHeight - 30;
+    const было = свежая ? (_чатПрокрутка ? _чатПрокрутка.сверху : 0) : лента.scrollTop;
+    лента.dataset.h = h; лента.innerHTML = h;
+    if (!_чатКСообщению) {
+      if (_чатВниз || былоДно) { лента.scrollTop = лента.scrollHeight; _чатВниз = false; }
+      else лента.scrollTop = было;
+    }
+  }
+  _чатПрокрутка = null;
+  if (_чатВниз && чатТекущий()) { лента.scrollTop = лента.scrollHeight; _чатВниз = false; }
+  if (_чатКСообщению && чатТекущий()) {
+    const ид = _чатКСообщению; _чатКСообщению = '';
+    const эл = [...лента.querySelectorAll('.pc-chm')].find(х => х.getAttribute('data-mid') === ид);
+    if (эл) {
+      лента.scrollTop += эл.getBoundingClientRect().top - лента.getBoundingClientRect().top - Math.max(0, (лента.clientHeight - эл.offsetHeight) / 2);
+      эл.classList.remove('pc-chm-flash'); void эл.offsetWidth; эл.classList.add('pc-chm-flash');
+      setTimeout(() => эл.classList.remove('pc-chm-flash'), 2200);
+    } else showToast('Это сообщение старше загруженных — его нет в ленте');
+  }
+  // Лента, стоявшая на последнем сообщении, на нём и остаётся, когда над полем
+  // встаёт «Ответ» или прикреплённое, а поле растёт: иначе последнее уезжало
+  // под них.
+  if (!лента._чат) {
+    лента._чат = true;
+    const дно = () => { лента._чатДно = лента.scrollTop + лента.clientHeight >= лента.scrollHeight - 30; };
+    лента.addEventListener('scroll', дно, { passive: true });
+    дно();
+    if (window.ResizeObserver) new ResizeObserver(() => { if (лента._чатДно) лента.scrollTop = лента.scrollHeight; }).observe(лента);
+  }
+  const нh = надПолемЧата();
+  if (над.dataset.h !== нh) { над.dataset.h = нh; над.innerHTML = нh; }
+  if (!поле._чат) {
+    поле._чат = true;
+    поле.value = ч.текст;
+    поле.addEventListener('input', function () { _чатЧерновик.текст = поле.value; ростПоляЧата(поле); кнопкиЧата(); });
+    поле.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+      // На компьютере Enter отправляет, Shift+Enter — новая строка; на
+      // телефоне Enter — новая строка, отправляет кнопка.
+      if (!(window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches)) return;
+      e.preventDefault(); отправитьВЧат();
+    });
+    поле.addEventListener('paste', function (e) {
+      const дан = e.clipboardData;
+      if (!дан) return;
+      // Скопирован текст — вставляется текст: таблица из Excel несёт ещё и
+      // картинку ячеек, и она прикрепилась бы сама.
+      if ((дан.getData('text/plain') || '').trim()) return;
+      const файлы = [...(дан.files || [])];
+      if (!файлы.length) return;
+      e.preventDefault();
+      добавитьФайлыВЧат(файлы, true);
+    });
+    ростПоляЧата(поле);
+  }
+  if (выбор && !выбор._чат) {
+    выбор._чат = true;
+    выбор.addEventListener('change', function () { добавитьФайлыВЧат([...(выбор.files || [])], false); выбор.value = ''; });
+  }
+  if (!пане._чат) {
+    пане._чат = true;
+    пане.addEventListener('dragover', function (e) {
+      if (!e.dataTransfer || [...(e.dataTransfer.types || [])].indexOf('Files') === -1) return;
+      e.preventDefault(); пане.classList.add('pc-ch-drop');
+    });
+    пане.addEventListener('dragleave', function (e) { if (!пане.contains(e.relatedTarget)) пане.classList.remove('pc-ch-drop'); });
+    пане.addEventListener('drop', function (e) {
+      пане.classList.remove('pc-ch-drop');
+      const файлы = [...((e.dataTransfer && e.dataTransfer.files) || [])];
+      if (!файлы.length) return;
+      e.preventDefault(); добавитьФайлыВЧат(файлы, false);
+    });
+  }
+  кнопкиЧата();
+  if (_чатФокус) {
+    const [н, к2] = _чатФокус; _чатФокус = null;
+    if (!поле.disabled) { поле.focus(); try { поле.setSelectionRange(н, к2); } catch (e) {} }
+  }
+  if (к.classList.contains('show') && чатТекущий()) { отметитьЧатПрочитанным(); запланироватьОпросЧата(); }
+}
+function ростПоляЧата(поле) {
+  поле.style.height = 'auto';
+  поле.style.height = Math.min(поле.scrollHeight, 120) + 'px';
+}
+// Доступность кнопок — без перерисовки: набор каждой буквы карточку не трогает.
+function кнопкиЧата() {
+  const к = document.getElementById('presetChipCard');
+  const пане = к && к.querySelector('#pcPane-m.on');
+  if (!пане) return;
+  const ч = _чатЧерновик, готов = !!чатТекущий();
+  const поле = пане.querySelector('#pcChatText'), отпр = пане.querySelector('[data-act="ch-send"]'), скрепка = пане.querySelector('[data-act="ch-attach"]');
+  if (поле) поле.disabled = !готов || ч.шлём;
+  if (скрепка) скрепка.disabled = !готов || ч.шлём;
+  if (отпр) {
+    отпр.disabled = !готов || ч.шлём || (!ч.текст.trim() && !ч.файлы.length);
+    отпр.classList.toggle('pc-busy', !!ч.шлём);
+    отпр.setAttribute('aria-label', ч.шлём ? 'Отправляется' : 'Отправить');
+  }
+}
+async function добавитьФайлыВЧат(файлы, вставка) {
+  const о = пресетКарточки();
+  if (!о || !о.код) return;
+  const ч = черновикЧата(о.код);
+  for (const ф of файлы) {
+    if (ч.файлы.length >= ЧАТ_ФАЙЛОВ_МАКС) { showToast('К одному сообщению — не больше ' + ЧАТ_ФАЙЛОВ_МАКС + ' файлов'); break; }
+    if (ф.size > ЧАТ_ФАЙЛ_МАКС) { showToast('Файл «' + ф.name + '» больше 20 МБ — не прикреплён'); continue; }
+    let имя = ф.name || 'Файл';
+    // Снимок экрана из буфера приходит безымянным «image.png».
+    if (вставка && /^image\.\w+$/i.test(имя)) {
+      const д = new Date();
+      имя = 'Снимок ' + д.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) + ' '
+        + д.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }).replace(':', '-') + имя.slice(имя.lastIndexOf('.'));
+    }
+    const з = { ид: новыйИдЧата(), файл: ф, имя, превью: '', w: 0, h: 0 };
+    if (/^image\//.test(ф.type || '')) {
+      з.превью = URL.createObjectURL(ф);
+      await new Promise(готово => {
+        const и = new Image();
+        и.onload = () => { з.w = и.naturalWidth; з.h = и.naturalHeight; готово(); };
+        и.onerror = () => готово();
+        и.src = з.превью;
+      });
+    }
+    if (_чатЧерновик !== ч) return;
+    ч.файлы.push(з);
+  }
+  отрисоватьЧат();
+  const поле = document.getElementById('pcChatText');
+  if (поле && !поле.disabled) поле.focus();
+}
+async function отправитьВЧат() {
+  const о = пресетКарточки();
+  const код = о && о.код;
+  if (!код || !_sbUser || !чатТекущий()) return;
+  const ч = черновикЧата(код);
+  if (ч.шлём) return;
+  const текст = ч.текст.replace(/\s+$/, '').replace(/^(\s*\n)+/, '');
+  if (!текст.trim() && !ч.файлы.length) return;
+  ч.шлём = true; кнопкиЧата();
+  const ид = новыйИдЧата();
+  const вложения = [];
+  try {
+    for (let i = 0; i < ч.файлы.length; i++) {
+      const ф = ч.файлы[i];
+      // В корзине файл лежит под номером: имя с кириллицей и пробелами
+      // хранилище в пути не принимает. Настоящее имя — в самом сообщении.
+      const расш = ((/\.([a-z0-9]{1,8})$/i.exec(ф.имя) || [])[1] || '').toLowerCase();
+      const путь = код + '/' + _sbUser.id + '/' + ид + '/' + (i + 1) + (расш ? '.' + расш : '');
+      const { error } = await _sb.storage.from(ЧАТ_КОРЗИНА).upload(путь, ф.файл, { contentType: ф.файл.type || 'application/octet-stream', upsert: false });
+      if (error) throw error;
+      вложения.push({ path: путь, name: ф.имя, size: ф.файл.size, type: ф.файл.type || '', w: ф.w || null, h: ф.h || null });
+      if (ф.превью) _чатПодписи.set(путь, { адрес: ф.превью, до: Infinity });
+    }
+    const строка = { id: ид, code: String(код), body: текст, reply_to: ч.ответ ? ч.ответ.id : null, attachments: вложения };
+    const { data, error } = await _sb.from('preset_messages').insert(строка).select().maybeSingle();
+    if (error) throw error;
+    const с = Object.assign({ author_id: _sbUser.id, author_name: фиоИзПрофиля(window._sbProfile) || '', created_at: new Date().toISOString(), review_state: null }, строка, data || {});
+    if (_чат.код === код && _чат.сообщения) {
+      if (!_чат.сообщения.some(х => х.id === с.id)) _чат.сообщения.push(с);
+      _чат.сообщения.sort((а, б) => времяЧата(а) - времяЧата(б));
+    }
+    if (_чатЧерновик === ч) _чатЧерновик = { код, текст: '', файлы: [], ответ: null, шлём: false };
+    _чатВниз = true;
+    const поле = document.getElementById('pcChatText');
+    if (поле && _чатЧерновик.код === код) { поле.value = ''; ростПоляЧата(поле); }
+  } catch (e) {
+    ч.шлём = false;
+    showToast('Не удалось отправить: ' + ((e && e.message) || 'нет связи'));
+  }
+  заполнитьКарточкуЗначка();
+  кнопкиЧата();
+  const поле = document.getElementById('pcChatText');
+  if (поле && !поле.disabled && window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches) поле.focus();
+}
+// «Отразить в правках» ставит сообщение в правки или убирает из них;
+// «Выполнено» отмечает правку сделанной и снимает отметку. Сообщение не в
+// правках «Выполнено» ставит в них сразу сделанным.
+async function отметитьВЧате(ид, что) {
+  const с = сообщениеЧата(ид);
+  if (!с) return;
+  const было = { review_state: с.review_state || null, done_by: с.done_by || null, done_at: с.done_at || null };
+  const новое = что === 'flag' ? (было.review_state ? null : 'open') : (было.review_state === 'done' ? 'open' : 'done');
+  с.review_state = новое;
+  с.done_by = новое === 'done' ? (_sbUser || {}).id : null;
+  с.done_at = новое === 'done' ? new Date().toISOString() : null;
+  заполнитьКарточкуЗначка(); обновитьСчётчикПроверки();
+  try {
+    const { data, error } = await _sb.rpc('preset_chat_mark', { p_id: String(ид), p_state: новое });
+    if (error) throw error;
+    if (data && data.id) Object.assign(с, data);
+  } catch (e) {
+    Object.assign(с, было);
+    showToast('Не удалось отметить: ' + ((e && e.message) || 'нет связи'));
+  }
+  заполнитьКарточкуЗначка(); обновитьСчётчикПроверки();
+}
+// Правки из чата — над автоматическими пунктами «Проверки», галочкой
+// «Выполнено»; текст ведёт к сообщению в чате.
+function правкиЧатаHtml() {
+  const все = правкиЧата();
+  if (!все.length) return '';
+  const сделано = все.filter(с => с.review_state === 'done').length;
+  return '<div class="pc-grp"><span>Правки из чата</span><span>' + сделано + ' из ' + все.length + '</span></div><ul class="pc-pr">'
+    + все.map(с => {
+      const готово = с.review_state === 'done', ид = escapeHtml(String(с.id));
+      const д = new Date(с.created_at);
+      const когда = isNaN(д) ? '' : деньЖурналаПресета(д) + ', ' + д.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+      return '<li' + (готово ? ' class="done"' : '') + '>'
+        + '<button type="button" class="pc-pr-box" role="checkbox" aria-checked="' + готово + '" data-act="ch-done" data-mid="' + ид + '" aria-label="Выполнено">' + ЗНАЧОК_ГАЛКА + '</button>'
+        + '<button type="button" class="pc-pr-t" data-act="ch-go" data-mid="' + ид + '"><span class="pc-pr-tx">' + escapeHtml(перваяСтрокаЧата(с, 160)) + '</span>'
+        + '<span class="pc-pr-l">' + escapeHtml(ктоВЧате(с)) + (когда ? ' · ' + escapeHtml(когда) : '') + '</span></button></li>';
+    }).join('') + '</ul>';
 }
 
 /* ── Вкладка «Сводка»: как шёл расчёт этого пресета ──
@@ -38591,7 +39111,9 @@ function панельПроверкиКарточки(пр) {
   const акт = активнаяПроверка(пр);
   const н = акт.замечания.length, стоп = акт.замечания.filter(з => з.стоп).length;
   const пропущено = (пр.замечания.length - н) + (пр.вопросы.length - акт.вопросы.length);
-  let h = '<div class="pc-ck-s">' + (н
+  const правки = правкиЧатаHtml();
+  let h = правки ? правки + '<div class="pc-grp"><span>Автоматическая проверка</span><span>' + (н + акт.вопросы.length) + '</span></div>' : '';
+  h += '<div class="pc-ck-s">' + (н
     ? н + ' ' + склонЗамечаний(н) + ' по чек-листу' + (стоп ? ', ' + (стоп === 1 ? (н === 1 ? 'это — стоп' : 'одно — стоп') : стоп + ' — стоп') : '')
     : 'По чек-листу замечаний нет') + (пропущено ? ' · пропущено ' + пропущено : '') + '</div>';
   const строка = (з, серый) => '<button type="button" data-act="ck" data-sec="' + escapeHtml(з.раздел) + '" data-el="' + escapeHtml(з.эл || '') + '"><span class="pc-ck-tx">'
@@ -38660,6 +39182,8 @@ function обновитьСчётчикПроверки() {
   let проект = null; try { проект = selectedProject; } catch (e) {}
   if (проект && (_значокРежим === 'own' || _значокРежим === 'shared') && appSettings.showCheckBadge === true) {
     try { const пр = активнаяПроверка(проверкаПоЧекЛисту()); н = пр.замечания.length; вопр = пр.вопросы.length; } catch (e) { н = 0; вопр = 0; }
+    // Открытые правки из чата — пункты той же «Проверки».
+    try { н += открытыхПравокЧата(); } catch (e) {}
   }
   // Подсказки «Проверки» считаются вместе с замечаниями: одно число, без
   // точки (Константин, 30.09.2026: «убери точку, эти рекомендации прибавляй
@@ -38785,7 +39309,9 @@ function заполнитьКарточкуЗначка() {
     const пр = проверкаПоЧекЛисту();
     // Число на вкладке — то же, что на значке: замечания вместе с подсказками.
     const активные = активнаяПроверка(пр);
-    const н = активные.замечания.length + активные.вопросы.length;
+    const н = активные.замечания.length + активные.вопросы.length + открытыхПравокЧата();
+    // Непрочитанное в чате — числом на его вкладке; открытая вкладка его читает.
+    const непроч = _пкВкладка === 'm' ? 0 : непрочитаноВЧате();
     const надзаг = о.вид === 'other' ? (открытПоКоду(о.sp) ? 'Пресет по коду' : 'Общий пресет') : о.вид === 'pub' && о.где === 'общие' ? 'Общий пресет · мой' : 'Мой пресет';
     const вкладка = (в, имя, доп) => '<button class="pc-tab" role="tab" type="button" data-act="tab" data-tab="' + в + '" id="pcTab-' + в + '"'
       + ' aria-selected="' + (_пкВкладка === в) + '" aria-controls="pcPane-' + в + '"' + (_пкВкладка === в ? '' : ' tabindex="-1"') + '>' + имя + (доп || '') + '</button>';
@@ -38799,11 +39325,13 @@ function заполнитьКарточкуЗначка() {
       + '<div class="pc-tabs" role="tablist">'
       + вкладка('p', 'Пресет') + вкладка('s', 'Сводка') + вкладка('l', 'Журнал')
       + вкладка('c', 'Проверка', н ? ' <span class="pc-cnt pc-cnt-w">' + н + '</span>' : '')
+      + вкладка('m', 'Чат', непроч ? ' <span class="pc-cnt">' + непроч + '</span>' : '')
       + '</div>'
       + панель('p', панельПресетаКарточки(о))
       + панель('s', _пкВкладка === 's' ? панельСводкиКарточки(о) : '')
       + панель('l', _пкВкладка === 'l' ? панельЖурналаКарточки(о) : '')
-      + панель('c', _пкВкладка === 'c' ? панельПроверкиКарточки(пр) : '');
+      + панель('c', _пкВкладка === 'c' ? панельПроверкиКарточки(пр) : '')
+      + панель('m', _пкВкладка === 'm' ? панельЧатаКарточки() : '');
     к.className = 'pc-card pc-tabbed' + (о.вид === 'pub' ? ' pc-pub' : '') + (к.classList.contains('show') ? ' show' : '');
   } else if (режим === 'profile') {
     if (!_пкПрофиль) _пкПрофиль = { фам: '', имя: ((window._sbProfile && _sbProfile.first_name) || '').trim() };
@@ -38819,12 +39347,19 @@ function заполнитьКарточкуЗначка() {
       + '<button type="button" class="pc-pri" data-act="prof-save">' + ЗНАЧОК_ДИСК + 'Сохранить</button></div>';
     к.className = 'pc-card' + (к.classList.contains('show') ? ' show' : '');
   } else { закрытьКарточкуЗначка(); return; }
-  if (к.dataset.h === h) { нарисоватьГрафикСводки(); return; }
+  if (к.dataset.h === h) { нарисоватьГрафикСводки(); отрисоватьЧат(к); return; }
   // Прокрутка журнала переживает перерисовку: карточку перерисовывают и
   // замок, и очередь, и ответ базы.
   const лента = к.querySelector('.pc-lg-sc');
   const былоЛента = лента ? лента.scrollTop : 0;
+  // Лента чата и поле ввода — так же: прокрутка, фокус и место курсора.
+  const чатЛента = к.querySelector('#pcChatList');
+  if (чатЛента) _чатПрокрутка = { сверху: чатЛента.scrollTop, уДна: чатЛента.scrollTop + чатЛента.clientHeight >= чатЛента.scrollHeight - 30 };
+  const чатПоле = к.querySelector('#pcChatText');
+  if (чатПоле && document.activeElement === чатПоле) _чатФокус = [чатПоле.selectionStart, чатПоле.selectionEnd];
   const фокус = document.activeElement && к.contains(document.activeElement) ? document.activeElement.getAttribute('data-act') : null;
+  // Кнопки сообщений чата одинаковы у всех сообщений — фокус ищется по своему.
+  const фокусСообщ = фокус && document.activeElement.getAttribute('data-mid');
   const ссылкаЖдала = к.querySelector('.pc-lg-plate.pc-lg-wait .pc-lg-pl');
   const былоСлева = ссылкаЖдала ? ссылкаЖдала.getBoundingClientRect().left : null;
   к.dataset.h = h;
@@ -38837,7 +39372,12 @@ function заполнитьКарточкуЗначка() {
     новая.addEventListener('scroll', край, { passive: true });
     край();
   }
-  if (фокус) { const ф = к.querySelector('[data-act="' + фокус + '"]'); if (ф) ф.focus(); }
+  отрисоватьЧат(к);
+  if (фокус) {
+    const ф = фокусСообщ ? [...к.querySelectorAll('[data-act="' + фокус + '"]')].find(х => х.getAttribute('data-mid') === фокусСообщ)
+      : к.querySelector('[data-act="' + фокус + '"]');
+    if (ф) ф.focus({ preventScroll: true });
+  }
   нарисоватьГрафикСводки();
   кСобытиюЖурнала(к);
   // Набранные фамилия и имя переживают перерисовку.
@@ -38890,9 +39430,11 @@ function нажатиеВКарточке(e) {
     case 'name-yes': сохранитьИзМиниОкна(); break;
     case 'tab':
       _пкВкладка = кн.getAttribute('data-tab') || 'p'; _пкПодтв = false;
+      if (_пкВкладка === 'm') _чатВниз = true;
       заполнитьКарточкуЗначка();
       if (_пкВкладка === 'l') загрузитьЖурналПресета();
       if (_пкВкладка === 's') загрузитьСводкуПресета();
+      if (_пкВкладка === 'm') загрузитьЧат();
       { const т = к.querySelector('#pcTab-' + _пкВкладка); if (т) т.focus(); }
       break;
     case 'star':
@@ -38956,6 +39498,39 @@ function нажатиеВКарточке(e) {
       const с = [...к.querySelectorAll('[data-act="lg-x"]')].find(x => x.getAttribute('data-ev') === ид); if (с) с.focus();
       break;
     }
+    // Чат пресета.
+    case 'ch-send': отправитьВЧат(); break;
+    case 'ch-attach': { const в = к.querySelector('#pcChatFile'); if (в) в.click(); break; }
+    case 'ch-file-x': {
+      const ч = _чатЧерновик, i = Number(кн.getAttribute('data-i'));
+      const [ф] = ч.файлы.splice(i, 1);
+      if (ф && ф.превью) try { URL.revokeObjectURL(ф.превью); } catch (e2) {}
+      отрисоватьЧат();
+      { const п = к.querySelector('#pcChatText'); if (п && !п.disabled) п.focus(); }
+      break;
+    }
+    case 'ch-reply': {
+      const с = сообщениеЧата(кн.getAttribute('data-mid'));
+      if (!с || !о) break;
+      черновикЧата(о.код).ответ = { id: с.id, кто: ктоВЧате(с), строка: перваяСтрокаЧата(с) };
+      отрисоватьЧат();
+      { const п = к.querySelector('#pcChatText'); if (п && !п.disabled) п.focus(); }
+      break;
+    }
+    case 'ch-reply-x':
+      _чатЧерновик.ответ = null; отрисоватьЧат();
+      { const п = к.querySelector('#pcChatText'); if (п && !п.disabled) п.focus(); }
+      break;
+    case 'ch-quote': _чатКСообщению = кн.getAttribute('data-mid') || ''; отрисоватьЧат(); break;
+    case 'ch-flag': отметитьВЧате(кн.getAttribute('data-mid'), 'flag'); break;
+    case 'ch-done': отметитьВЧате(кн.getAttribute('data-mid'), 'done'); break;
+    // Правка в «Проверке» — к своему сообщению в чате.
+    case 'ch-go':
+      _пкВкладка = 'm'; _чатКСообщению = кн.getAttribute('data-mid') || '';
+      заполнитьКарточкуЗначка();
+      загрузитьЧат();
+      break;
+    case 'ch-retry': загрузитьЧат(true); break;
   }
 }
 // Имя из поля мини-окна: пустое — имя по умолчанию, как в окне имени.
@@ -46517,6 +47092,111 @@ button.pc-q{display:flex;align-items:center;gap:10px;width:100%;border-top:0;bor
 @media (prefers-reduced-motion:reduce){.pc-card .pc-ck-chev svg{transition:none}}
 .pc-card .pc-ck-f{margin-top:10px;font-size:.64rem;line-height:1.45;color:var(--pc-ink3)}
 @media (hover:hover){.pc-card .pc-menu button:hover,.pc-card .pc-more:hover,.pc-card .pc-ck button:hover{background:var(--pc-tint)}.pc-card .pc-tab:hover{color:var(--pc-ink)}}
+/* Правки из чата во вкладке «Проверка» — над автоматическими пунктами,
+   галочкой «Выполнено» (вариант Б макета approval-flow-v1). Поле нажатия
+   галочки — 44 px невидимым полем, сама она рисуется в 18. */
+.pc-card .pc-grp{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:14px;padding-bottom:5px;border-bottom:1px solid var(--pc-rule);font-size:.56rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--pc-ink2)}
+.pc-card .pc-pane > .pc-grp:first-child{margin-top:10px}
+.pc-card .pc-grp span:last-child{letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.pc-card .pc-grp + .pc-ck-s{margin-top:6px}
+.pc-card .pc-pr{list-style:none;padding:0;margin:0}
+.pc-card .pc-pr li{display:flex;align-items:flex-start;gap:12px;border-bottom:1px solid var(--pc-rule)}
+.pc-card .pc-pr li:last-child{border-bottom:0}
+.pc-card .pc-pr-box{position:relative;flex:none;width:20px;height:20px;margin-top:9px;display:flex;align-items:center;justify-content:center;padding:0;border:1.5px solid var(--pc-line);border-radius:4px;background:none;color:transparent;cursor:pointer}
+.pc-card .pc-pr-box::before{content:'';position:absolute;inset:-12px -12px -12px -6px}
+.pc-card .pc-pr-box[aria-checked="true"]{background:var(--pc-fill);border-color:var(--pc-fill);color:var(--pc-on-fill)}
+.pc-card .pc-pr-t{flex:1;min-width:0;display:block;padding:9px 0;border:0;background:none;font:inherit;color:var(--pc-ink);text-align:left;cursor:pointer}
+.pc-card .pc-pr-tx{display:block;font-size:.74rem;line-height:1.4;overflow-wrap:anywhere}
+.pc-card .pc-pr-l{display:block;margin-top:2px;font-size:.62rem;color:var(--pc-ink3)}
+.pc-card .pc-pr li.done .pc-pr-tx{color:var(--pc-ink3);text-decoration:line-through}
+@media (hover:hover){.pc-card .pc-pr-t:hover .pc-pr-tx{color:var(--pc-acc)}.pc-card .pc-pr li.done .pc-pr-t:hover .pc-pr-tx{color:var(--pc-ink2)}}
+/* ── Чат пресета (вариант А макета approval-flow-v1) ──
+   Своё — справа и цветом схемы, чужое — слева и нейтральным. Кнопки под
+   сообщением тихие: весом подписи, а не кнопки; до 44 px нажатие добирают
+   невидимые поля. Высота вкладки постоянная: поле ввода не прыгает, когда
+   сообщений два или двести. */
+body{--pc-bub:#f1f3ef}
+body.ui-blank{--pc-bub:#eef4f4}
+body.dark,body.ui-blank.dark{--pc-bub:rgba(255,255,255,.07)}
+.pc-card #pcPane-m.on{display:flex;flex-direction:column;overflow:hidden;height:min(52vh,420px)}
+/* Вкладок пять: в мини-окне телефона (316 px) они встают в ряд только
+   мельче — макет об этом предупреждал («подписи мельчают»). На компьютере
+   окно шире (340 px), и подписи прежнего размера. Число на вкладке остаётся
+   18 px — оно того же размера, что кружок на значке (Константин, 30.09.2026).
+   «Чат» стоит у правого края и короче всех — его поле нажатия добирается
+   вправо, в поле карточки. */
+@media (max-width:899px){
+  .pc-card .pc-tabs{gap:6px}
+  .pc-card .pc-tab{gap:4px;font-size:.7rem}
+  .pc-card .pc-tab::before{left:-3px;right:-3px}
+}
+@media (max-width:359px){.pc-card .pc-tab{font-size:.64rem}}
+.pc-card .pc-tab:last-child::before{left:-6px;right:-16px}
+.pc-card .pc-chl{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;margin:0 -6px;padding:0 6px 6px;
+  -webkit-mask-image:linear-gradient(transparent,#000 14px);mask-image:linear-gradient(transparent,#000 14px)}
+.pc-card .pc-chl > :first-child{margin-top:auto}
+.pc-card .pc-chl > .pc-wait,.pc-card .pc-chl > .pc-ch-empty{margin:auto 0}
+.pc-card .pc-ch-empty{text-align:center;padding:18px 8px}
+.pc-card .pc-ch-retry{position:relative;display:inline-flex;align-items:center;margin-top:10px;height:34px;padding:0 14px;border:1px solid var(--pc-line);border-radius:9px;background:none;color:var(--pc-ink);font:inherit;font-size:.72rem;font-weight:600;cursor:pointer}
+.pc-card .pc-ch-retry::before{content:'';position:absolute;inset:-5px 0}
+.pc-card .pc-chday{align-self:center;margin:14px 0 0;font-size:.56rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--pc-ink3)}
+.pc-card .pc-chm{display:flex;flex-direction:column;align-items:flex-start;margin-top:8px;min-width:0}
+.pc-card .pc-chm.me{align-items:flex-end}
+.pc-card .pc-chb{max-width:86%;min-width:0;padding:6px 10px 8px;border-radius:12px 12px 12px 4px;background:var(--pc-bub);color:var(--pc-ink)}
+.pc-card .pc-chm.me .pc-chb{border-radius:12px 12px 4px 12px;background:var(--pc-tint)}
+.pc-card .pc-chm.pc-chm-flash .pc-chb{animation:pcChFlash 2.1s ease}
+@keyframes pcChFlash{0%,55%{box-shadow:0 0 0 2px var(--pc-acc)}100%{box-shadow:0 0 0 2px transparent}}
+.pc-card .pc-chw{display:flex;flex-wrap:wrap;align-items:center;gap:0 4px;font-size:.6rem;line-height:1.6;color:var(--pc-ink3)}
+.pc-card .pc-chw b{font-weight:600;color:var(--pc-ink2)}
+.pc-card .pc-cht{margin-left:4px;padding:0 6px;border-radius:8px;background:var(--pc-warm-tint);color:var(--pc-warm-ink);font-size:.56rem;font-weight:600;line-height:15px}
+.pc-card .pc-cht.pc-cht-ok{background:var(--pc-bg);color:var(--pc-acc)}
+.pc-card .pc-chx{margin-top:1px;font-size:.76rem;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.pc-card .pc-chx a{color:var(--pc-acc);text-decoration:underline;text-underline-offset:2px}
+.pc-card .pc-chq{position:relative;display:block;width:100%;min-width:0;margin:3px 0 3px;padding:2px 0 2px 8px;border:0;border-left:2px solid var(--pc-acc);background:none;font:inherit;font-size:.66rem;line-height:1.4;text-align:left;color:var(--pc-ink2);cursor:pointer}
+.pc-card .pc-chq b{display:block;font-weight:600;color:var(--pc-acc)}
+.pc-card .pc-chq span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc-card .pc-chim{display:grid;gap:4px;width:220px;max-width:100%;margin-top:6px}
+.pc-card .pc-chim2{grid-template-columns:1fr 1fr}
+.pc-card .pc-chim a,.pc-card .pc-chim-w{display:block;overflow:hidden;max-height:180px;border-radius:8px;background:var(--pc-rule)}
+.pc-card .pc-chim-w{aspect-ratio:4 / 3}
+.pc-card .pc-chim img{display:block;width:100%;height:100%;max-height:180px;object-fit:cover}
+.pc-card .pc-chfl{display:flex;align-items:center;gap:6px;min-height:36px;max-width:240px;margin-top:6px;padding:0 9px 0 7px;border-radius:8px;background:var(--pc-bg);color:var(--pc-ink);font-size:.68rem;text-decoration:none}
+.pc-card .pc-chfl svg{flex:none;color:var(--pc-acc)}
+.pc-card .pc-chfl-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.pc-card .pc-chfl-s{flex:none;font-size:.6rem;color:var(--pc-ink3)}
+.pc-card .pc-chfl-w{opacity:.6}
+.pc-card .pc-chact{display:flex;align-items:center;gap:14px;margin-top:2px;padding:0 6px}
+.pc-card .pc-chact button{position:relative;display:inline-flex;align-items:center;gap:4px;height:24px;padding:0;border:0;background:none;color:var(--pc-ink3);font:inherit;font-size:.62rem;font-weight:500;white-space:nowrap;cursor:pointer}
+.pc-card .pc-chact button::before{content:'';position:absolute;inset:-10px -7px}
+.pc-card .pc-chact .pc-chflag{width:24px;justify-content:center;border-radius:6px}
+.pc-card .pc-chact .pc-chflag[aria-pressed="true"]{background:var(--pc-warm-tint);color:var(--pc-warm-ink)}
+.pc-card .pc-chact .pc-chdone[aria-pressed="true"]{color:var(--pc-acc);font-weight:600}
+@media (hover:hover){.pc-card .pc-chact button:hover{color:var(--pc-ink)}.pc-card .pc-chact .pc-chflag[aria-pressed="true"]:hover{color:var(--pc-warm-ink)}.pc-card .pc-chq:hover span{color:var(--pc-ink)}}
+.pc-card .pc-chc{flex:none;margin-top:6px}
+.pc-card .pc-chr{display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:3px 4px 3px 9px;border-left:2px solid var(--pc-acc);border-radius:0 8px 8px 0;background:var(--pc-tint);font-size:.66rem;line-height:1.35;color:var(--pc-ink2)}
+.pc-card .pc-chr span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc-card .pc-chr b{margin-right:6px;font-weight:600;color:var(--pc-acc)}
+.pc-card .pc-chr button,.pc-card .pc-chfi button{position:relative;flex:none;width:26px;height:26px;display:flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:7px;background:none;color:var(--pc-ink3);cursor:pointer}
+.pc-card .pc-chr button::before,.pc-card .pc-chfi button::before{content:'';position:absolute;inset:-9px -6px}
+.pc-card .pc-chf{display:flex;flex-wrap:wrap;gap:8px 6px;margin-bottom:6px}
+.pc-card .pc-chfi{display:inline-flex;align-items:center;gap:6px;max-width:100%;height:36px;padding:0 2px 0 4px;border:1px solid var(--pc-line);border-radius:9px;font-size:.64rem;color:var(--pc-ink)}
+.pc-card .pc-chfi img{flex:none;width:28px;height:28px;border-radius:6px;object-fit:cover}
+.pc-card .pc-chfi > svg{flex:none;color:var(--pc-acc)}
+.pc-card .pc-chfi > span{min-width:0;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc-card .pc-chin{display:flex;align-items:flex-end;gap:2px;min-height:42px;padding:3px;border:1px solid var(--pc-line);border-radius:21px;background:var(--pc-bg)}
+.pc-card .pc-chin:focus-within,.pc-card #pcPane-m.pc-ch-drop .pc-chin{border-color:var(--pc-acc)}
+.pc-card #pcPane-m.pc-ch-drop .pc-chin{border-style:dashed;background:var(--pc-tint)}
+.pc-card .pc-chin textarea{flex:1 1 auto;min-width:0;height:34px;min-height:34px;max-height:120px;padding:8px 4px;border:0;background:none;color:var(--pc-ink);font-family:'Geologica',sans-serif;font-size:.78rem;line-height:1.4;resize:none;outline:none}
+@media (pointer:coarse){.pc-card .pc-chin textarea{font-size:16px;line-height:1.15}}
+.pc-card .pc-chin textarea::placeholder{color:var(--pc-ink3)}
+.pc-card .pc-chin textarea:disabled{opacity:.6}
+.pc-card .pc-chclip,.pc-card .pc-chsend{position:relative;flex:none;width:34px;height:34px;display:flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:50%;background:none;color:var(--pc-ink2);cursor:pointer}
+.pc-card .pc-chclip::before,.pc-card .pc-chsend::before{content:'';position:absolute;inset:-5px}
+.pc-card .pc-chsend{background:var(--pc-fill);color:var(--pc-on-fill)}
+.pc-card .pc-chsend[disabled],.pc-card .pc-chclip[disabled]{opacity:.35;cursor:default}
+.pc-card .pc-chsend.pc-busy{opacity:.7;cursor:progress;animation:pcBlink .8s ease-in-out infinite}
+@media (hover:hover){.pc-card .pc-chclip:not([disabled]):hover{background:var(--pc-tint);color:var(--pc-ink)}}
+@media (prefers-reduced-motion:reduce){.pc-card .pc-chm.pc-chm-flash .pc-chb{animation:none;box-shadow:0 0 0 2px var(--pc-acc)}.pc-card .pc-chsend.pc-busy{animation:none}}
 /* Место, к которому привели замечание проверки или поиск опций, коротко
    подсвечивается гаснущей заливкой — вариант 01 макета
    mockups/jump-highlight-v1.html, нейтральным цветом для всех тем и тонов
