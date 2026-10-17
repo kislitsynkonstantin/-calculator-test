@@ -70,7 +70,9 @@ from playwright.sync_api import sync_playwright
     ячейки: document.querySelectorAll('.cells').length, шкала: document.querySelectorAll('.bars .bar').length, подписи: document.querySelectorAll('.v1-sign .line').length,
     старые: document.querySelectorAll('.parties,.requisites,.emails,.pay-table,.warranty-table,.hours-table,.obj-table').length,
     надзаголовок: document.body.textContent.includes('Каркасный дом / Баня') };
-  const буквы = [...document.querySelectorAll('ol.lettered > li')].slice(0, 3).map(э => getComputedStyle(э, '::before').content);
+  // Самый длинный буквенный список — перечень приложений: с версии 2.2 в п. 5.5 букв две.
+  const списки = [...document.querySelectorAll('ol.lettered')].sort((а, б) => б.children.length - а.children.length);
+  const буквы = списки.length ? [...списки[0].children].slice(0, 3).map(э => getComputedStyle(э, '::before').content) : [];
   const пункт = getComputedStyle(document.querySelector('.clause')).textAlign;
   // Кромка текста пункта: левый край пункта плюс его отступ слева.
   const пн = [...document.querySelectorAll('p.clause:not(.sub)')].find(э => э.querySelector('.clause-num'));
