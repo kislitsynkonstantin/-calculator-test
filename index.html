@@ -9846,6 +9846,7 @@ body:not(.ui-blank) #printStyleDropMenu button.active {
 #previewEntityMenu button.ent-locked > svg,
 #previewEntityMenu button.ent-locked .ent-name > span { opacity: .5; }
 #previewEntityMenu button.ent-locked:hover { background: none !important; }
+#previewEntityMenu button.ent-approved .ent-lock { display: block; opacity: .7; }
 body.ui-blank .entity-check,
 body.ui-blank #printParamsParamsCheck,
 body.ui-blank #printParamsHideTotalsCheck { color: var(--bl-acc) !important; }
@@ -17952,6 +17953,9 @@ function calc() {
   if (_sbUser && typeof renderKitLockIcon === 'function') renderKitLockIcon();
   document.getElementById('breakdownCard').style.display = 'block';
   _currentTotal = totalAfterKit; // displayed total (incl. kit discount) — used by analytics
+  // Сумма со скидкой и процент — их помнит согласование расчёта.
+  window._итогСоСкидкой = discount;
+  window._скидкаПроцент = Number(_ск.процент) || 0;
   document.getElementById('totalDisplay').textContent = fmt(totalAfterKit);
   // Relabel the headline when a kit discount is active.
   const _totalLabel = document.getElementById('totalLabel');
@@ -25878,10 +25882,14 @@ function getContractVarsKar(ид) {
 // (assets/vendor/docx.min.js) и грузится только по нажатию; шрифты не вшиты —
 // Unbounded и Geologica у Google Документов свои.
 // Договоры открыты администратору и редактору. Менеджер видит пункты, но они
-// закрыты: договор откроется ему после согласования спецификации — этот шаг
-// появится отдельным модулем (Константин, 02.10.2026).
+// закрыты: договор откроется ему после согласования спецификации
+// (Константин, 02.10.2026) — согласованием расчёта в мини-окне, пока
+// согласованный состав и сумма не менялись.
 const РОЛИ_ДОГОВОРА = ['admin', 'editor'];
-function договорДоступен() { return РОЛИ_ДОГОВОРА.includes(window._sbProfile?.role); }
+function договорДоступен() {
+  if (РОЛИ_ДОГОВОРА.includes(window._sbProfile?.role)) return true;
+  try { return согласованиеДействует(); } catch (e) { return false; }
+}
 const РОЛИ_ДИСКА = ['admin', 'editor'];
 function можноНаДиск() { return РОЛИ_ДИСКА.includes(window._sbProfile?.role); }
 function _загрузитьСкрипт(адрес) {
@@ -26306,10 +26314,19 @@ function обновитьМенюДокумента() {
   const пунктПравил = document.querySelector('#previewEntityMenu [data-contract="rules"]');
   if (пунктПравил) пунктПравил.style.display = естьДоговор(1) || естьДоговор(2) ? 'flex' : 'none';
   const закрыт = !договорДоступен();
+  // Открыт согласованием — подпись под пунктом говорит, когда согласован.
+  const поСогласованию = !закрыт && !РОЛИ_ДОГОВОРА.includes(window._sbProfile?.role);
+  const а = поСогласованию ? согласованиеПресета() : null;
+  const когда = а && !isNaN(new Date(а.approved_at)) ? new Date(а.approved_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) : '';
   document.querySelectorAll('#previewEntityMenu [data-contract]').forEach(к => {
     к.classList.toggle('ent-locked', закрыт);
+    к.classList.toggle('ent-approved', поСогласованию);
     к.setAttribute('aria-disabled', закрыт ? 'true' : 'false');
+    const п = к.querySelector('.ent-lock');
+    if (п) п.textContent = поСогласованию ? 'Согласован ' + когда : 'После согласования спецификации';
   });
+  // Согласование могло смениться, пока окно печати было закрыто.
+  try { загрузитьСогласование(); } catch (e) {}
 }
 
 // Выбор договора в меню документа: состав окна печати становится составом
@@ -31874,6 +31891,9 @@ function пометитьПрочитанными() {
 async function собратьУведомления() {
   _уведомления = [];
   if (!_sbUser) return _уведомления;
+  // Согласование расчёта — до ссылок: ссылок у человека может не быть вовсе.
+  try { await уведомленияСогласования(_уведомления); } catch (e) { console.warn('[уведомления] согласование', e?.message); }
+  const поВремени = () => _уведомления.sort((a, b) => new Date(b.когда) - new Date(a.когда));
   try {
     // Администратору приходят заходы по ссылкам всех менеджеров: база его
     // пускает (политика «client_links read own or staff»), и разбираться,
@@ -31885,7 +31905,7 @@ async function собратьУведомления() {
     if (!всеМенеджеры) запрос = запрос.eq('author_id', _sbUser.id);
     const { data: ссылки, error: е1 } = await запрос;
     if (е1) throw е1;
-    if (!ссылки || !ссылки.length) return _уведомления;
+    if (!ссылки || !ссылки.length) return поВремени();
     const поКоду = {}; ссылки.forEach(с => { поКоду[с.code] = с; });
     const { data: заходы, error: е2 } = await _sb.from('client_link_visits')
       .select('code,seen_at,version_at').in('code', ссылки.map(с => с.code))
@@ -31925,9 +31945,8 @@ async function собратьУведомления() {
                (отстал ? ' · <b>прежняя версия</b>' : ''),
       });
     });
-    _уведомления.sort((a, b) => new Date(b.когда) - new Date(a.когда));
   } catch (e) { console.warn('[уведомления]', e?.message); }
-  return _уведомления;
+  return поВремени();
 }
 
 /* Точка загоралась только после того, как колокольчик открыли руками: собрать
@@ -32010,7 +32029,10 @@ function нарисоватьУведомления() {
         // Ссылка, выданная без пресета, открывать нечего — такая строка не
         // нажимается и не притворяется нажимаемой.
         // Чужая ссылка открывается снимком по коду, своя — пресетом.
-        const вызов = у.чужая
+        // Согласование ведёт в пресет на вкладку «Проверка».
+        const вызов = у.согласование
+          ? 'открытьСогласование(\'' + у.код + '\')'
+          : у.чужая
           ? (у.код ? 'открытьЧужойРасчёт(\'' + у.код + '\')' : '')
           : (у.пресет ? 'открытьПоУведомлению(\'' + у.пресет + '\')' : '');
         const зов = вызов
@@ -32026,7 +32048,9 @@ function нарисоватьУведомления() {
               .replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>'
           : '';
         return '<div class="nt-i' + (новое ? ' new' : '') + (вызов ? ' go' : '') + '"' + зов + '>' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>' +
+          (у.согласование
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m9 15 2 2 4-4"/></svg>'
+            : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>') +
           '<span class="t">' + у.текст + подпись + '<span class="tm">' + когда(у.когда) + '</span></span>' +
           (вызов ? '<svg class="nt-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
             'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
@@ -32035,7 +32059,7 @@ function нарисоватьУведомления() {
       }).join('')
     : (_прошлыеСкрыты && прошлых
       ? '<div class="nt-empty">Новых уведомлений нет. Прошлые скрыты.</div>'
-      : '<div class="nt-empty">Пока пусто. Здесь появится отметка, что ссылку открыли.</div>');
+      : '<div class="nt-empty">Пока пусто. Здесь появятся заходы клиента по ссылке и ответы по согласованию расчётов.</div>');
   // Кнопка нужна, только когда прошлые есть: скрывать нечего — её нет.
   const кнопка = прошлых
     ? '<button type="button" class="nt-tg" onclick="переключитьПрошлыеУведомления(event)" aria-pressed="' + _прошлыеСкрыты + '">'
@@ -32815,6 +32839,10 @@ const AL_ВИДЫ = {
   contract_printed:      'Договор отправлен на печать',
   contract_exported:     'Договор выгружен в Word',
   contract_term_changed: 'Срок работ по договору изменён',
+  // Согласование расчёта (Константин, 17.10.2026).
+  approval_sent:         'Расчёт отправлен на согласование',
+  approval_returned:     'Расчёт возвращён с правками',
+  approval_approved:     'Расчёт согласован',
   // Комплектации — их правят администратор и редактор, и по базе строки видны
   // только им: менеджер в своём журнале видит лишь свои действия.
   kit_created:           'Комплектация заведена',
@@ -37105,6 +37133,7 @@ function переключитьКарточкуЗначка() {
     // Чат — с любой вкладки: правки из него стоят в «Проверке», а
     // непрочитанное — числом на вкладке «Чат».
     загрузитьЧат(false, _пкВкладка !== 'm');
+    загрузитьСогласование();
   }
   нарисоватьГрафикСводки();
   // Открылось само (вернулось напоминание «Сохранить»), а панель открыта и
@@ -37246,7 +37275,7 @@ function подгрузитьВкладкиПресета() {
   setTimeout(function () {
     const о2 = пресетКарточки();
     if (!о2 || о2.код !== код) { if (_пкПодгрузкаКод === код) _пкПодгрузкаКод = ''; return; }
-    try { загрузитьЖурналПресета(false, true); загрузитьСводкуПресета(false, true); загрузитьЧат(false, true); } catch (e) {}
+    try { загрузитьЖурналПресета(false, true); загрузитьСводкуПресета(false, true); загрузитьЧат(false, true); загрузитьСогласование(); } catch (e) {}
   }, 1500);
 }
 async function событияПресетаБазыЗапрос(код) {
@@ -37999,6 +38028,313 @@ function правкиЧатаHtml() {
     }).join('') + '</ul>';
 }
 
+/* ── Согласование расчёта ──
+   Макет mockups/approval-flow-v1.html: шаги варианта В и раздел «Решения за
+   тобой» (Константин, 17.10.2026: «Вот тут отлично, делай как тут написал»).
+   Правки пишутся в чате пресета и встают в «Проверку» значком «Отразить в
+   правках»; здесь — сам круг: автор отправляет расчёт, проверяющий
+   возвращает его с правками или согласует, и согласованный расчёт открывает
+   автору договоры в окне печати.
+   Решения раздела: согласуют администратор и редактор; согласование снимает
+   любое изменение суммы — опции, цены, проект, толщина, скидка, — а
+   реквизиты, примечания и картинки его не снимают; со стопом не отправить,
+   вопросы «Проверки» отправке не мешают; весть о расчёте на согласовании и об
+   ответе — в колокольчике (уведомление ботом в Telegram — позже).
+   Согласование помнит отпечаток расчёта — технологию, проект, толщину, итог
+   до и после скидки и каждую отмеченную позицию с ценой — и снимок для «Что
+   изменилось». Отпечаток считает тот, кто смотрит: разошёлся с запомненным —
+   согласование снято, договор снова закрыт. */
+const СГ_ПОДРЯД = 30000;
+let _согласование = { код: '', строка: null, грузится: false, когда: 0, ошибка: '', шлём: false };
+const ЗНАЧОК_ЧАСЫ = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+const ЗНАЧОК_СОГЛАСОВАН = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
+const ЗНАЧОК_ВНИМАНИЕ = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>';
+const ЗНАЧОК_ЗАМОК_МАЛ = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+
+function проверяющийЛи() { return РОЛИ_ДОГОВОРА.includes(window._sbProfile?.role); }
+
+// Состав расчёта, как он идёт в итог: отмеченные позиции с ценой (подарок —
+// ноль и отметка), свои — ещё и с названием. Порядок — по ключу, чтобы
+// отпечаток не зависел от порядка строк на экране.
+function составДляСогласования() {
+  let проект = null; try { проект = selectedProject; } catch (e) {}
+  if (!проект) return null;
+  const строки = [];
+  OPTIONS.forEach(o => {
+    if (!checkedOptions[o.id]) return;
+    строки.push({ к: o.id, т: o.name, р: o.section, ц: o.included ? 0 : Math.round(ценаОпцииВИтог(o)), п: giftedOpts.has(o.id) ? 1 : 0 });
+  });
+  SECTIONS.forEach(sec => getCustomOpts(sec.key).forEach(co => {
+    if (!co.checked) return;
+    const к = 'custom_' + co.id, подарок = giftedOpts.has(к);
+    строки.push({ к, т: String(co.name || ''), р: sec.key, ц: подарок ? 0 : Math.round(Number(co.price) || 0), п: подарок ? 1 : 0, свой: 1 });
+  }));
+  строки.sort((а, б) => а.к < б.к ? -1 : а.к > б.к ? 1 : 0);
+  const кн = document.querySelectorAll('.thick-btn')[currentThickness];
+  return {
+    в: 1, тех: currentTech, проект: String(проект[0] || ''), толщина: currentThickness,
+    толщинаТ: кн ? кн.textContent.replace(/\s+/g, ' ').trim() : '',
+    итог: Math.round(Number(_currentTotal) || 0), соСкидкой: Math.round(Number(window._итогСоСкидкой) || 0),
+    скидка: Math.round((Number(window._скидкаПроцент) || 0) * 10) / 10,
+    строки,
+  };
+}
+// Отпечаток — короткая строка вместо снимка целиком: её сравнивают при каждой
+// перерисовке меню печати. Название своей позиции в нём есть, каталожной —
+// нет: каталожную переименовывают в базе, расчёт от этого не меняется.
+function отпечатокСостава(с) {
+  if (!с) return '';
+  const т = JSON.stringify([с.в, с.тех, с.проект, с.толщина, с.итог, с.соСкидкой, с.скидка,
+    с.строки.map(р => [р.к, р.ц, р.п, р.свой ? р.т : ''])]);
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < т.length; i++) {
+    const ч = т.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ч, 2654435761); h2 = Math.imul(h2 ^ ч, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return 'v1-' + (h2 >>> 0).toString(16).padStart(8, '0') + (h1 >>> 0).toString(16).padStart(8, '0');
+}
+function согласованиеПресета() {
+  if (_значокРежим !== 'own' && _значокРежим !== 'shared') return null;
+  const о = пресетКарточки();
+  return о && о.код && _согласование.код === String(о.код) ? _согласование.строка : null;
+}
+function согласованиеДействует() {
+  const а = согласованиеПресета();
+  return !!(а && а.state === 'approved' && а.approved_print && а.approved_print === отпечатокСостава(составДляСогласования()));
+}
+function когдаСогласования(iso) {
+  const д = new Date(iso);
+  if (isNaN(д)) return '';
+  const вр = д.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  if (д.toDateString() === new Date().toDateString()) return 'сегодня в ' + вр;
+  return д.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) + ' в ' + вр;
+}
+// «Ждёт согласования с 11:20», «Что изменилось с 16.10, 15:40»: после «с»
+// «сегодня в» не говорят.
+function сКакогоСогласования(iso) {
+  const д = new Date(iso);
+  if (isNaN(д)) return '';
+  const вр = д.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  if (д.toDateString() === new Date().toDateString()) return 'с ' + вр;
+  return 'с ' + д.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) + ', ' + вр;
+}
+// Части строки состояния — через точку в середине, в конце одна точка:
+// сокращённое имя («Ольга П.») уже кончается своей.
+function строкаСогласования(части) {
+  const т = части.filter(Boolean).join(' · ');
+  return /\.$/.test(т) ? т : т + '.';
+}
+
+async function загрузитьСогласование(заново) {
+  const о = пресетКарточки();
+  const код = о && о.код ? String(о.код) : '';
+  if (!код || !_sb || !_sbUser) return;
+  const с = _согласование;
+  if (с.код === код && (с.грузится || (!заново && Date.now() - с.когда < СГ_ПОДРЯД))) return;
+  _согласование = { код, строка: с.код === код ? с.строка : null, грузится: true, когда: 0, ошибка: '', шлём: с.код === код && с.шлём };
+  let строка = null, ошибка = '';
+  try {
+    const { data, error } = await _sb.from('preset_approvals').select('*').eq('code', код).maybeSingle();
+    if (error) throw error;
+    строка = data || null;
+  } catch (e) { ошибка = (e && e.message) || 'нет связи'; }
+  if (_согласование.код !== код) return;
+  _согласование = Object.assign({}, _согласование, { строка: ошибка ? _согласование.строка : строка, грузится: false, когда: Date.now(), ошибка });
+  заполнитьКарточкуЗначка();
+  try { обновитьМенюДокумента(); } catch (e) {}
+}
+
+// Что изменилось между запомненным составом и нынешним — строками для
+// «Проверки». Проверяющему при повторном согласовании показывается только это.
+function разницаСогласования(было, стало) {
+  const пункты = [];
+  if (!было || !стало || !Array.isArray(было.строки)) return { пункты, дельта: 0 };
+  const деньги = н => (н > 0 ? '+' : '−') + fmt(Math.abs(н));
+  const проц = н => String(н).replace('.', ',') + ' %';
+  if (было.тех !== стало.тех || было.проект !== стало.проект) пункты.push({ т: 'Проект: ' + было.проект + ' → ' + стало.проект, п: '' });
+  else if (было.толщина !== стало.толщина)
+    пункты.push({ т: (стало.тех === 'glulam' ? 'Сечение бруса' : 'Толщина утепления') + ': ' + (было.толщинаТ || '—') + ' → ' + (стало.толщинаТ || '—'), п: '' });
+  const прежние = new Map(было.строки.map(р => [р.к, р]));
+  стало.строки.forEach(р => {
+    const б = прежние.get(р.к);
+    if (!б) { пункты.push({ т: 'Добавлено: ' + р.т, п: имяРаздела(р.р) + (р.ц ? ' · ' + деньги(р.ц) : '') }); return; }
+    прежние.delete(р.к);
+    if (б.п !== р.п) пункты.push({ т: (р.п ? 'В подарок: ' : 'Не в подарок: ') + р.т, п: имяРаздела(р.р) + (р.ц !== б.ц ? ' · ' + деньги(р.ц - б.ц) : '') });
+    else if (б.ц !== р.ц) пункты.push({ т: 'Цена: ' + р.т, п: имяРаздела(р.р) + ' · ' + деньги(р.ц - б.ц) });
+    else if (р.свой && б.т !== р.т) пункты.push({ т: 'Переименовано: ' + б.т + ' → ' + р.т, п: имяРаздела(р.р) });
+  });
+  прежние.forEach(б => пункты.push({ т: 'Убрано: ' + б.т, п: имяРаздела(б.р) + (б.ц ? ' · ' + деньги(-б.ц) : '') }));
+  if ((было.скидка || 0) !== (стало.скидка || 0)) пункты.push({ т: 'Скидка: ' + проц(было.скидка || 0) + ' → ' + проц(стало.скидка || 0), п: '' });
+  if (!пункты.length && было.итог !== стало.итог) пункты.push({ т: 'Цены проекта: ' + fmt(было.итог) + ' → ' + fmt(стало.итог), п: 'Итог до скидки' });
+  return { пункты, дельта: (стало.соСкидкой || 0) - (было.соСкидкой || 0) };
+}
+function разницаСогласованияHtml(было, стало, с) {
+  const р = разницаСогласования(было, стало);
+  if (!р.пункты.length) return '';
+  const ПОКАЗАТЬ = 12;
+  const д = р.дельта ? (р.дельта > 0 ? '+' : '−') + fmt(Math.abs(р.дельта)) : 'сумма та же';
+  return '<div class="pc-grp"><span>Что изменилось ' + escapeHtml(с) + '</span><span>' + д + '</span></div><ul class="pc-ap-df">'
+    + р.пункты.slice(0, ПОКАЗАТЬ).map(п => '<li><span class="pc-ap-dt">' + escapeHtml(п.т) + '</span>'
+      + (п.п ? '<span class="pc-ap-ds">' + escapeHtml(п.п) + '</span>' : '') + '</li>').join('')
+    + (р.пункты.length > ПОКАЗАТЬ ? '<li class="pc-ap-more">и ещё ' + (р.пункты.length - ПОКАЗАТЬ) + '</li>' : '') + '</ul>';
+}
+
+// Блок наверху вкладки «Проверка»: где расчёт в круге согласования и что
+// с ним можно сделать тому, кто смотрит.
+function блокСогласованияHtml(пр) {
+  const о = пресетКарточки();
+  if (!о || !о.код) return '';
+  const а = согласованиеПресета();
+  const ревьюер = проверяющийЛи();
+  const автор = о.вид !== 'other';
+  // Администратору и редактору договор открыт и без согласования, а чужой
+  // неотправленный расчёт показать нечем.
+  if (!а && (ревьюер || !автор)) return '';
+  const сейчас = составДляСогласования();
+  const отп = отпечатокСостава(сейчас);
+  const шлём = _согласование.шлём;
+  const открыто = открытыхПравокЧата();
+  const стоп = пр.замечания.find(з => з.стоп);
+  const плашка = (вид, значок, текст) => '<div class="pc-st pc-ap' + (вид ? ' ' + вид : '') + '">' + значок + '<span>' + текст + '</span></div>';
+  const кнопка = (act, текст, главная, выкл) => '<button type="button" data-act="' + act + '"' + (главная ? ' class="pc-pri"' : '') + (выкл || шлём ? ' disabled' : '') + '>' + текст + '</button>';
+  const сумма = н => н != null && Number(н) > 0 ? fmt(Number(н)) : '';
+  let h = '';
+  // Кнопка отправки автора: со стопом — выключена и называет стоп.
+  const отправка = (текст) => {
+    let под = '';
+    if (стоп) под = 'Сначала снимите стоп: «' + стоп.т + '».';
+    else if (о.здесь) под = 'Пресет пока только в этом браузере — отправить можно, когда он уйдёт в облако.';
+    return '<div class="pc-row">' + кнопка('ap-send', текст, true, !!под) + '</div>' + (под ? '<div class="pc-hint pc-ap-why">' + escapeHtml(под) + '</div>' : '');
+  };
+  if (!а) {
+    h = плашка('pc-ap-off', ЗНАЧОК_ЗАМОК_МАЛ, '<b>Не согласован.</b> Договор откроется после согласования.') + отправка('Отправить на согласование');
+  } else if (а.state === 'approved' && а.approved_print === отп) {
+    h = плашка('pc-ap-ok', ЗНАЧОК_СОГЛАСОВАН, '<b>Согласовано</b> ' + escapeHtml(строкаСогласования([когдаСогласования(а.approved_at), сумма(а.approved_total),
+      а.approved_name ? имяКратко(а.approved_name) : ''])) + ' Договор можно печатать.');
+  } else if (а.state === 'approved') {
+    h = плашка('pc-warm', ЗНАЧОК_ВНИМАНИЕ, '<b>Изменён после согласования</b> — согласование снято.')
+      + разницаСогласованияHtml(а.approved_snapshot, сейчас, сКакогоСогласования(а.approved_at))
+      + (автор && !ревьюер ? отправка('Отправить на повторное согласование') : '');
+  } else if (а.state === 'returned') {
+    h = плашка('pc-warm', ЗНАЧОК_ВНИМАНИЕ, '<b>Возвращён с правками</b> ' + escapeHtml(строкаСогласования([когдаСогласования(а.decided_at),
+      а.decided_name ? имяКратко(а.decided_name) : '']))
+      + (ревьюер ? ' Ждёт повторной отправки.' : открыто ? ' Открытых правок: ' + открыто + '.' : ''));
+    if (автор && !ревьюер) h += отправка('Отправить снова');
+  } else {
+    h = плашка('', ЗНАЧОК_ЧАСЫ, '<b>Ждёт согласования</b> ' + escapeHtml(строкаСогласования([сКакогоСогласования(а.sent_at), сумма(а.sent_total),
+      ревьюер && а.sent_name ? имяКратко(а.sent_name) : ''])));
+    if (ревьюер) {
+      // Повторное согласование — только разница с прошлым.
+      if (а.approved_snapshot && а.approved_print && а.approved_print !== отп)
+        h += разницаСогласованияHtml(а.approved_snapshot, сейчас, сКакогоСогласования(а.approved_at));
+      h += '<div class="pc-row">' + кнопка('ap-back', 'Вернуть с правками', false, false) + кнопка('ap-ok', 'Согласовать', true, открыто > 0) + '</div>';
+      if (открыто) h += '<div class="pc-hint pc-ap-why">«Согласовать» откроется, когда открытых правок не останется: сейчас ' + открыто + '.</div>';
+    } else if (автор && а.sent_print && а.sent_print !== отп) {
+      h += '<div class="pc-hint">Расчёт изменён после отправки.</div>' + отправка('Отправить снова');
+    }
+  }
+  return '<div class="pc-ap-blk">' + h + '</div>';
+}
+
+async function отправитьНаСогласование() {
+  const о = пресетКарточки();
+  if (!о || !о.код || _согласование.шлём || !_sb) return;
+  const стоп = проверкаПоЧекЛисту().замечания.find(з => з.стоп);
+  if (стоп) { showToast('Сначала снимите стоп: «' + стоп.т + '»'); return; }
+  const код = String(о.код);
+  _согласование = Object.assign({}, _согласование.код === код ? _согласование : { код, строка: null, когда: 0, ошибка: '' }, { шлём: true });
+  заполнитьКарточкуЗначка();
+  try {
+    // Отложенная правка уходит в базу раньше отправки: проверяющий откроет
+    // пресет по коду и должен увидеть ровно отправленное.
+    await дописатьПравкуПресета();
+    const с = составДляСогласования();
+    if (!с) throw new Error('проект не выбран');
+    const { data, error } = await _sb.rpc('preset_approval_send', { p_code: код, p_total: с.соСкидкой, p_print: отпечатокСостава(с),
+      p_snapshot: с, p_preset: о.имя || '', p_project: с.проект });
+    if (error) throw error;
+    if (!data || !data.code) throw new Error('база не ответила');
+    _согласование = { код, строка: data, грузится: false, когда: Date.now(), ошибка: '', шлём: false };
+    showToast('Расчёт отправлен на согласование');
+    logEvent('approval_sent', logDetails(о.имя || с.проект, [['Сумма', '', fmt(с.соСкидкой)]]));
+  } catch (e) {
+    if (_согласование.код === код) _согласование.шлём = false;
+    showToast('Не удалось отправить на согласование: ' + ((e && e.message) || 'нет связи'));
+  }
+  заполнитьКарточкуЗначка();
+  try { обновитьМенюДокумента(); } catch (e) {}
+}
+async function решитьСогласование(решение) {
+  const о = пресетКарточки();
+  if (!о || !о.код || _согласование.шлём || !_sb || !проверяющийЛи()) return;
+  if (решение === 'approved' && открытыхПравокЧата()) { showToast('Сначала закройте открытые правки'); return; }
+  const код = String(о.код);
+  _согласование = Object.assign({}, _согласование, { шлём: true });
+  заполнитьКарточкуЗначка();
+  try {
+    const с = составДляСогласования();
+    const { data, error } = await _sb.rpc('preset_approval_decide', { p_code: код, p_state: решение,
+      p_total: с ? с.соСкидкой : null, p_print: отпечатокСостава(с), p_snapshot: с });
+    if (error) throw error;
+    if (!data || !data.code) throw new Error('база не ответила');
+    _согласование = { код, строка: data, грузится: false, когда: Date.now(), ошибка: '', шлём: false };
+    showToast(решение === 'approved' ? 'Расчёт согласован' : 'Расчёт возвращён с правками');
+    logEvent(решение === 'approved' ? 'approval_approved' : 'approval_returned',
+      logDetails(о.имя || '', решение === 'approved' && с ? [['Сумма', '', fmt(с.соСкидкой)]] : []));
+  } catch (e) {
+    if (_согласование.код === код) _согласование.шлём = false;
+    showToast((решение === 'approved' ? 'Не удалось согласовать: ' : 'Не удалось вернуть: ') + ((e && e.message) || 'нет связи'));
+  }
+  заполнитьКарточкуЗначка();
+  try { обновитьМенюДокумента(); } catch (e) {}
+}
+
+// Колокольчик: проверяющему — расчёты, которые ждут согласования; автору —
+// ответ по своим: вернули с правками или согласовали.
+async function уведомленияСогласования(список) {
+  const ревьюер = проверяющийЛи();
+  let з = _sb.from('preset_approvals')
+    .select('code,state,preset_name,project_name,sent_by,sent_name,sent_at,decided_name,decided_at')
+    .order('sent_at', { ascending: false }).limit(30);
+  if (!ревьюер) з = з.eq('sent_by', _sbUser.id);
+  const { data, error } = await з;
+  if (error) throw error;
+  (data || []).forEach(а => {
+    const код = String(а.code || '').replace(/\D/g, '');
+    if (!код) return;
+    const имя = escapeHtml(а.preset_name || а.project_name || кодКрасиво(код));
+    if (ревьюер && а.state === 'pending' && а.sent_by !== _sbUser.id) {
+      список.push({ вид: 'согласование', когда: а.sent_at, код, согласование: true, чужая: true,
+        автор: String(а.sent_name || '').trim(), текст: 'Ждёт согласования: <b>' + имя + '</b>' });
+    } else if (а.sent_by === _sbUser.id && (а.state === 'returned' || а.state === 'approved') && а.decided_at) {
+      список.push({ вид: 'согласование', когда: а.decided_at, код, согласование: true, чужая: true,
+        автор: String(а.decided_name || '').trim(),
+        текст: (а.state === 'approved' ? 'Расчёт согласован: <b>' : 'Расчёт вернули с правками: <b>') + имя + '</b>' });
+    }
+  });
+}
+// Из колокольчика — в пресет и сразу на вкладку «Проверка».
+async function открытьСогласование(код) {
+  код = String(код || '').replace(/\D/g, '');
+  if (!код) return;
+  закрытьОкноУведомлений();
+  const свой = Object.entries(loadAllPresets()).find(([, p]) => p && (p.shortCode === код || p.sharedId === код));
+  if (свой) loadPreset(свой[0]);
+  else {
+    const sp = строкаПоКоду(код) || await fetchPrivatePresetByCode(код);
+    if (!sp) { showToast('Пресет с кодом ' + кодКрасиво(код) + ' не найден'); return; }
+    openSharedPresetByCode(код);
+  }
+  _пкВкладка = 'c';
+  setTimeout(() => {
+    загрузитьСогласование(true);
+    const { к } = элементыЗначка();
+    if (к && !к.classList.contains('show') && (_значокРежим === 'own' || _значокРежим === 'shared')) переключитьКарточкуЗначка();
+  }, 700);
+}
+
 /* ── Вкладка «Сводка»: как шёл расчёт этого пресета ──
    Макет mockups/preset-summary-v2.html, числа — вариант А (Константин,
    29.09.2026: «вот этот делаем»). Итог сейчас и разница с сохранением, график
@@ -38016,7 +38352,7 @@ const СВ_СЛИЯНИЕ = 3 * 60 * 1000;
 // проекта при открытии, сохранение (с него график начинается) и старый чек-лист.
 const СВ_НЕ_ПРАВКИ = ['preset_saved', 'preset_opened', 'print', 'share_created', 'share_revoked',
   'client_link_created', 'client_link_updated', 'client_link_revoked', 'project_changed', 'checklist_done',
-  'contract_printed', 'contract_exported'];
+  'contract_printed', 'contract_exported', 'approval_sent', 'approval_returned', 'approval_approved'];
 function видыПравокПресета() { return видыЖурналаПресета().filter(в => СВ_НЕ_ПРАВКИ.indexOf(в) === -1); }
 async function загрузитьСводкуПресета(заново, заранее) {
   const о = пресетКарточки();
@@ -39136,7 +39472,8 @@ function панельПроверкиКарточки(пр) {
   const н = акт.замечания.length, стоп = акт.замечания.filter(з => з.стоп).length;
   const пропущено = (пр.замечания.length - н) + (пр.вопросы.length - акт.вопросы.length);
   const правки = правкиЧатаHtml();
-  let h = правки ? правки + '<div class="pc-grp"><span>Автоматическая проверка</span><span>' + (н + акт.вопросы.length) + '</span></div>' : '';
+  const согл = блокСогласованияHtml(пр);
+  let h = согл + правки + (правки || согл ? '<div class="pc-grp"><span>Автоматическая проверка</span><span>' + (н + акт.вопросы.length) + '</span></div>' : '');
   h += '<div class="pc-ck-s">' + (н
     ? н + ' ' + склонЗамечаний(н) + ' по чек-листу' + (стоп ? ', ' + (стоп === 1 ? (н === 1 ? 'это — стоп' : 'одно — стоп') : стоп + ' — стоп') : '')
     : 'По чек-листу замечаний нет') + (пропущено ? ' · пропущено ' + пропущено : '') + '</div>';
@@ -39461,6 +39798,7 @@ function нажатиеВКарточке(e) {
       if (_пкВкладка === 'l') загрузитьЖурналПресета();
       if (_пкВкладка === 's') загрузитьСводкуПресета();
       if (_пкВкладка === 'm') загрузитьЧат();
+      if (_пкВкладка === 'c') загрузитьСогласование();
       { const т = к.querySelector('#pcTab-' + _пкВкладка); if (т) т.focus(); }
       break;
     case 'star':
@@ -39557,6 +39895,10 @@ function нажатиеВКарточке(e) {
       загрузитьЧат();
       break;
     case 'ch-retry': загрузитьЧат(true); break;
+    // Согласование расчёта.
+    case 'ap-send': отправитьНаСогласование(); break;
+    case 'ap-ok': решитьСогласование('approved'); break;
+    case 'ap-back': решитьСогласование('returned'); break;
   }
 }
 // Имя из поля мини-окна: пустое — имя по умолчанию, как в окне имени.
@@ -47161,6 +47503,20 @@ button.pc-q{display:flex;align-items:center;gap:10px;width:100%;border-top:0;bor
 .pc-card .pc-pr-l{display:block;margin-top:2px;font-size:.62rem;color:var(--pc-ink3)}
 .pc-card .pc-pr li.done .pc-pr-tx{color:var(--pc-ink3);text-decoration:line-through}
 @media (hover:hover){.pc-card .pc-pr-t:hover .pc-pr-tx{color:var(--pc-acc)}.pc-card .pc-pr li.done .pc-pr-t:hover .pc-pr-tx{color:var(--pc-ink2)}}
+/* Согласование расчёта — наверху «Проверки»: плашка состояния, кнопки круга
+   и «Что изменилось» строками, как пункты проверки. «Не согласован» —
+   нейтральной плашкой: это не ошибка, а ещё не пройденный шаг. */
+.pc-card .pc-ap-blk .pc-st b{font-weight:600}
+.pc-card .pc-st.pc-ap-off{border-left-color:var(--pc-line);background:var(--pc-bub);color:var(--pc-ink2)}
+.pc-card .pc-st.pc-ap-off b{color:var(--pc-ink)}
+.pc-card .pc-ap-blk .pc-row button[disabled]{cursor:not-allowed}
+.pc-card .pc-ap-blk .pc-row button[disabled]:not(.pc-pri){opacity:.45}
+.pc-card .pc-ap-df{list-style:none;padding:0;margin:2px 0 0}
+.pc-card .pc-ap-df li{padding:7px 0;border-bottom:1px solid var(--pc-rule)}
+.pc-card .pc-ap-df li:last-child{border-bottom:0}
+.pc-card .pc-ap-dt{display:block;font-size:.72rem;line-height:1.4;overflow-wrap:anywhere}
+.pc-card .pc-ap-ds{display:block;margin-top:2px;font-size:.64rem;font-weight:600;color:var(--pc-acc)}
+.pc-card .pc-ap-more{font-size:.66rem;color:var(--pc-ink3)}
 /* ── Чат пресета (вариант А макета approval-flow-v1) ──
    Своё — справа и цветом схемы, чужое — слева и нейтральным. Кнопки под
    сообщением тихие: весом подписи, а не кнопки; до 44 px нажатие добирают

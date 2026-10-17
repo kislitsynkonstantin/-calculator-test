@@ -534,8 +534,12 @@
     rpc: function (имя, арг) {
       var д = window.__RPC[имя];
       // Функция может вернуть обещание — так проба задерживает ответ базы.
+      // Отказ базы — { __ошибка: 'текст' }: как raise exception в функции.
       return Promise.resolve(typeof д === 'function' ? д(арг) : (д === undefined ? null : д))
-        .then(function (з) { return { data: з, error: null }; });
+        .then(function (з) {
+          if (з && typeof з === 'object' && з.__ошибка) return { data: null, error: { message: String(з.__ошибка) } };
+          return { data: з, error: null };
+        });
     },
     channel: function (имя) { return новыйКанал(имя); },
     removeChannel: function (к) { if (к) к.закрыт = true; return Promise.resolve('ok'); },
