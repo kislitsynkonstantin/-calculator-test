@@ -18630,28 +18630,74 @@ async function разобратьPdf(данные) {
   // Ни листа «План», ни картинок-видов — берётся первый лист целиком, как
   // раньше: вдруг это планировка без подписи.
   if (!планы.length && !виды.length && _листыДока.length) планы = await вырезатьПланировки(_листыДока.slice(0, 1));
-  return { планы, виды, парная: площадьПарнойИзЛистов(_листыДока) };
+  return { планы, виды, парная: площадьПарнойИзЛистов(_листыДока), планировка: сведенияПланировки(_листыДока) };
+}
+// Строки текста листа. В таблице номер, название и площадь — разные куски
+// текста, поэтому строка собирается из кусков одной высоты слева направо.
+function строкиЛиста(л) {
+  const куски = (л.текст ? л.текст.items : []).filter(т => т.transform && (т.str || '').trim())
+    .map(т => ({ x: т.transform[4], y: т.transform[5], с: т.str.trim() })).sort((а, б) => б.y - а.y || а.x - б.x);
+  const ряды = [];
+  куски.forEach(к => { const р = ряды[ряды.length - 1]; if (р && Math.abs(р.y - к.y) <= 2.5) р.к.push(к); else ряды.push({ y: к.y, к: [к] }); });
+  return ряды.map(р => р.к.sort((а, б) => а.x - б.x).map(к => к.с).join(' '));
 }
 // Площадь парной из текста PDF архитектора: строка экспликации «4 Парная 6,9»
 // или подпись помещения «Парная 6,9 м²». Читаются все листы — экспликация
-// бывает и отдельным листом. В таблице номер, название и площадь — разные
-// куски текста, поэтому строка собирается из кусков одной высоты слева
-// направо. Не нашлось — null: планировка, скорее всего, картинкой.
+// бывает и отдельным листом. Не нашлось — null: планировка, скорее всего,
+// картинкой.
 function площадьПарнойИзЛистов(листы) {
   let площадь = null;
-  for (const л of листы || []) {
-    const куски = (л.текст ? л.текст.items : []).filter(т => т.transform && (т.str || '').trim())
-      .map(т => ({ x: т.transform[4], y: т.transform[5], с: т.str.trim() })).sort((а, б) => б.y - а.y || а.x - б.x);
-    const ряды = [];
-    куски.forEach(к => { const р = ряды[ряды.length - 1]; if (р && Math.abs(р.y - к.y) <= 2.5) р.к.push(к); else ряды.push({ y: к.y, к: [к] }); });
-    ряды.forEach(р => {
-      const строка = р.к.sort((а, б) => а.x - б.x).map(к => к.с).join(' ');
-      const м = строка.match(/(?:^|[^а-яё])(?:парн(?:ая|ое|ой)|парилка|парильн[а-яё]*|сауна)(?![а-яё])\D{0,20}?(\d{1,2}(?:[.,]\d{1,2})?)(?![\d×xх*])/i);
-      const з = м ? parseFloat(м[1].replace(',', '.')) : 0;
-      if (з >= 2 && з <= 30) площадь = Math.max(площадь || 0, з);
-    });
-  }
+  for (const л of листы || []) строкиЛиста(л).forEach(строка => {
+    const м = строка.match(/(?:^|[^а-яё])(?:парн(?:ая|ое|ой)|парилка|парильн[а-яё]*|сауна)(?![а-яё])\D{0,20}?(\d{1,2}(?:[.,]\d{1,2})?)(?![\d×xх*])/i);
+    const з = м ? parseFloat(м[1].replace(',', '.')) : 0;
+    if (з >= 2 && з <= 30) площадь = Math.max(площадь || 0, з);
+  });
   return площадь;
+}
+// Что ещё «Проверка» сверяет с планировкой по тексту PDF (Константин,
+// 17.10.2026: «вот эти пункты все добавь к проверке по планировке и
+// визуализации»). Этажность — по названиям листов: «План 1 этажа», «План
+// мансарды». Терраса — строка экспликации или подпись на плане; `rooms` —
+// сколько строк экспликации прочитано: без них отсутствие террасы ничего не
+// значит. Габариты — размерные числа плана («9 600», в мм): число повёрнуто
+// так же, как его размерная линия, поэтому горизонтальное мерит одну сторону,
+// повёрнутое — другую. С каждой стороны три самых больших: общий размер с
+// террасой, без неё и запас. Чертёж без текста — null.
+function сведенияПланировки(листы) {
+  const св = { first: false, upper: '', rooms: 0, terrace: false, terraceArea: 0, w: [], d: [] };
+  const ш = new Set(), г = new Set(), террасы = new Set();
+  for (const л of листы || []) {
+    const всё = (л.текст ? л.текст.items : []).map(т => т.str || '').join(' ');
+    if (/План\s+(?:(?:1|перв\S*)(?:-?го)?\s+)?этажа/i.test(всё)) св.first = true;
+    if (/План\s+мансард/i.test(всё)) св.upper = 'мансарда';
+    else if (!св.upper && /План\s+(?:2|втор\S*)(?:-?го)?\s+этаж/i.test(всё)) св.upper = 'этаж';
+    строкиЛиста(л).forEach(с => {
+      if (/^(?:\d{1,2}\s+)?[а-яё][а-яё\/\-\s]{1,40}\s\d{1,3}[.,]\d{1,2}(?:\s*м²)?$/i.test(с)) св.rooms++;
+      const м = с.match(/(?:^|[^а-яё])(?:террас|веранд|патио)[а-яё]*\D{0,20}?(\d{1,3}(?:[.,]\d{1,2})?)(?![\d×xх*])/i);
+      const з = м ? parseFloat(м[1].replace(',', '.')) : 0;
+      if (з >= 1 && з <= 200) { св.terrace = true; террасы.add(з); }
+      else if (/^(?:\d{1,2}\s+)?(?:(?:крыт|открыт)[а-яё]*\s+)?(?:террас|веранд)[а-яё]*$/i.test(с)) св.terrace = true;
+    });
+    // Размеры — только с листов планов (и «Обмеров») и только внутри чертежа:
+    // в штампе и в таблице справа числа другие — год, номер листа.
+    if (!л.стр || !/План\s/i.test(всё) || /Разрез|Фасад|Кровл/i.test(всё)) continue;
+    try {
+      const вид = л.стр.getViewport({ scale: 1 }), о = областьПланировки(л.стр, л.текст);
+      л.текст.items.forEach(т => {
+        const с = (т.str || '').trim();
+        if (!т.transform || !/^\d{1,2}[\s ]?\d{3}$/.test(с)) return;
+        const мм = Number(с.replace(/\D/g, ''));
+        if (мм < 1500 || мм > 40000) return;
+        const [x, y] = вид.convertToViewportPoint(т.transform[4], т.transform[5]);
+        if (x < о.x || x > о.x + о.ш || y < о.y || y > о.y + о.в) return;
+        (Math.abs(т.transform[1]) > Math.abs(т.transform[0]) ? г : ш).add(мм);
+      });
+    } catch (e) {}
+  }
+  const три = н => [...н].sort((а, б) => б - а).slice(0, 3);
+  св.w = три(ш); св.d = три(г);
+  св.terraceArea = [...террасы].reduce((а, б) => а + б, 0);
+  return св.first || св.upper || св.terrace || св.rooms >= 2 || (св.w.length && св.d.length) ? св : null;
 }
 let _листыДока = [];
 async function планировкиИзДока(док) {
@@ -18744,10 +18790,10 @@ async function визуализацииИзPdf(pdfjs, листы) {
 
 async function canvasLoadPdf(file) {
   try { showToast('Читаю PDF — ищу визуализации и планировки…', 2500); } catch (e) {}
-  let виды, планы, парная;
+  let виды, планы, парная, планировка;
   try {
     const данные = new Uint8Array(await file.arrayBuffer());
-    ({ планы, виды, парная } = await разобратьPdf(данные));
+    ({ планы, виды, парная, планировка } = await разобратьPdf(данные));
   } catch (e) {
     console.warn('[pdf] не разобран', e);
     showToast('Не удалось прочитать PDF — добавьте планировку снимком');
@@ -18767,10 +18813,11 @@ async function canvasLoadPdf(file) {
   const былоНаХолсте = canvasItems.length;
   const новые = [];
   // Вид снимка известен с разбора — он остаётся на снимке и в пресете. Там же
-  // у планировки — площадь парной из экспликации: по ней «Проверка» сверяет
-  // размер парного и печь.
+  // у планировки — площадь парной из экспликации, этажность, терраса и
+  // габариты: по ним «Проверка» сверяет парное, печь и проект.
   const сВидом = (ид, вид) => { const э = ид && document.getElementById(ид);
-    if (э) { э.dataset.kind = вид; if (вид === 'план' && парная) э.dataset.steam = String(парная); } return ид; };
+    if (э) { э.dataset.kind = вид; if (вид === 'план' && парная) э.dataset.steam = String(парная);
+      if (вид === 'план' && планировка) э.dataset.plan = JSON.stringify(планировка); } return ид; };
   for (const к of по('вид')) новые.push(сВидом(canvasAddImage(await canvasCompress(к.src, 'image/jpeg')), 'вид'));
   for (const к of по('план')) новые.push(сВидом(canvasAddImage(await canvasCompress(к.src, 'image/png')), 'план'));
   await разложитьНовыеСнимки(новые, былоНаХолсте);
@@ -26605,6 +26652,26 @@ function площадьПарнойПоПланировке() {
   (canvasItems || []).forEach(ид => { const э = холст && холст.querySelector('[id="' + ид + '"]'); const з = э && Number(э.dataset.steam); if (з > 0) п = Math.max(п || 0, з); });
   return п;
 }
+// Этажность, терраса и габариты по планировке — тоже с разбора PDF, на
+// снимке (data-plan). Снимков несколько — сведения складываются; ни на одном
+// их нет — null.
+function сведенияСнимка(э) {
+  try { return э && э.dataset.plan ? JSON.parse(э.dataset.plan) : undefined; } catch (e) { return undefined; }
+}
+function сведенияПоПланировке() {
+  const холст = document.getElementById('imageCanvas');
+  let св = null;
+  (canvasItems || []).forEach(ид => {
+    const п = сведенияСнимка(холст && холст.querySelector('[id="' + ид + '"]'));
+    if (!п) return;
+    if (!св) св = { first: false, upper: '', rooms: 0, terrace: false, terraceArea: 0, w: [], d: [] };
+    св.first = св.first || !!п.first; св.upper = св.upper || п.upper || '';
+    св.rooms = Math.max(св.rooms, п.rooms || 0); св.terrace = св.terrace || !!п.terrace;
+    св.terraceArea = Math.max(св.terraceArea, п.terraceArea || 0);
+    св.w = [...new Set([...св.w, ...(п.w || [])])]; св.d = [...new Set([...св.d, ...(п.d || [])])];
+  });
+  return св;
+}
 
 // Для проверки по чек-листу — она синхронная: берёт то, что уже узнано, а
 // неузнанные снимки узнаёт в фоне и потом перерисовывает счётчик и карточку.
@@ -30424,7 +30491,8 @@ function collectState() {
           width: parseInt(el.style.width) || 340,
           height: parseInt(el.style.height) || 220,
           kind: el.dataset.kind || undefined,
-          steam: Number(el.dataset.steam) || undefined
+          steam: Number(el.dataset.steam) || undefined,
+          plan: сведенияСнимка(el)
         } : null;
       }).filter(Boolean);
     })(),
@@ -37991,11 +38059,13 @@ function проверкаПоЧекЛисту() {
   // 17.10.2026: «этот пункт в проверке сделай смотреть по планировке только.
   // Менеджер может не правильно выбрать в опциях размер парного отделения —
   // это тоже смотри в проверке»). Площадь берётся из экспликации PDF при
-  // добавлении планировки; у планировки картинкой её нет — тогда вопрос.
+  // добавлении планировки; у планировки картинкой её нет — тогда вопрос. У
+  // картинки нет и остальных сведений — вопрос про всё сразу задаёт блок
+  // «по планировке» ниже.
   if (парная) {
     const площадь = площадьПарнойПоПланировке();
     if (площадь == null) {
-      if (selectedProject && снимкиПоВидам().план.length) спросить('Сверить размер парного отделения и печь с планировкой', '', 'imageCanvasCard');
+      if (selectedProject && снимкиПоВидам().план.length && сведенияПоПланировке()) спросить('Сверить размер парного отделения и печь с планировкой', '', 'imageCanvasCard');
     } else {
       const чс = ч => String(Math.round(ч * 10) / 10).replace('.', ',');
       // Печь: «до N м³» в названии против объёма парной — высота 2,2 м и
@@ -38068,6 +38138,46 @@ function проверкаПоЧекЛисту() {
       : (видов === 0 ? 'Добавить два вида визуализации и планировку'
         : видов === 1 ? 'Добавить ещё один вид визуализации и планировку' : 'Добавить планировку');
     if (вопрос) спросить(вопрос, '', 'imageCanvasCard');
+    // Проект по планировке: этажность, терраса, габариты. Сведения — с разбора
+    // PDF (сведенияПланировки); планировка картинкой их не несёт, и тогда один
+    // вопрос про всё, что сверяется глазами. Форму кровли и этажность по
+    // визуализации код не видит — для этого нужно чтение картинки.
+    const св = есть_план ? сведенияПоПланировке() : null;
+    if (есть_план && !св) спросить('Сверить с планировкой габариты, этажность, террасу'
+      + (парная && площадьПарнойПоПланировке() == null ? ', размер парного отделения и печь' : ''), '', 'imageCanvasCard');
+    if (св) {
+      const м = мм => String(Math.round(мм / 100) / 10).replace('.', ',');
+      // Этажность. «План 2 этажа» у проекта в полтора этажа и мансарда у
+      // двухэтажного — так архитекторы называют одно и то же, молчим.
+      const этажей = Number(String(selectedProject[4] == null ? '' : selectedProject[4]).replace(',', '.'));
+      if (св.upper && этажей === 1)
+        добавить('project', 'По планировке есть ' + (св.upper === 'мансарда' ? 'мансарда' : 'второй этаж') + ', в проекте один этаж — сверить этажность', false, 'projectInfo');
+      else if (св.first && !св.upper && этажей >= 1.5)
+        добавить('project', 'По планировке один этаж, в проекте ' + (этажей === 1.5 ? 'полтора' : 'два') + ' — сверить этажность', false, 'projectInfo');
+      // Терраса: на плане есть, в проекте площадей террас нет — и наоборот,
+      // если экспликация прочитана.
+      const террасВПроекте = (Number(selectedProject[7]) || 0) + (Number(selectedProject[8]) || 0);
+      if (св.terrace && !террасВПроекте)
+        добавить('project', 'По планировке есть терраса' + (св.terraceArea ? ' ' + String(Math.round(св.terraceArea * 10) / 10).replace('.', ',') + ' м²' : '') + ', в проекте площади террас нет — сверить', false, 'projectInfo');
+      else if (!св.terrace && террасВПроекте && св.rooms >= 2)
+        добавить('project', 'В проекте терраса ' + String(Math.round(террасВПроекте * 10) / 10).replace('.', ',') + ' м², в экспликации планировки её нет — сверить', false, 'projectInfo');
+      // Габариты: размер в названии проекта («9х5») против размеров плана,
+      // ±0,5 м, стороны в любом порядке, с террасой или без — поэтому подходит
+      // любая пара из трёх больших размеров каждой стороны.
+      const н = String(selectedProject[0] || '').match(/(\d+(?:[.,]\d+)?)\s*[хx×]\s*(\d+(?:[.,]\d+)?)\s*$/i);
+      const а = н ? parseFloat(н[1].replace(',', '.')) * 1000 : 0, б = н ? parseFloat(н[2].replace(',', '.')) * 1000 : 0;
+      const ш = св.w.filter(x => x >= 3000), г = св.d.filter(x => x >= 3000);
+      if (а >= 2000 && б >= 2000 && а <= 40000 && б <= 40000 && ш.length && г.length) {
+        let лучшая = null;
+        ш.forEach(x => г.forEach(y => {
+          const р = Math.min(Math.max(Math.abs(x - а), Math.abs(y - б)), Math.max(Math.abs(x - б), Math.abs(y - а)));
+          if (!лучшая || р < лучшая.р) лучшая = { x, y, р };
+        }));
+        if (лучшая.р > 500)
+          добавить('project', 'Габариты по планировке ' + м(лучшая.x) + '×' + м(лучшая.y) + ' м, в названии проекта ' + н[1] + '×' + н[2]
+            + ' — расхождение ' + м(лучшая.р) + ' м, сверить проект', false, 'projectInfo');
+      }
+    }
   }
   // 1-10. Бытовка и биотуалет — подсказка выбрать опции. Примечание «не
   // входят в расчёт» стоит само, поэтому его наличие подсказку не снимает
@@ -40108,7 +40218,7 @@ async function uploadCanvasToStorage(presetId, canvasImages) {
     try {
       // If already a Storage URL (not base64), keep as-is with position
       if (img.src && !img.src.startsWith('data:')) {
-        results.push({ url: img.src, left: img.left, top: img.top, width: img.width, height: img.height, kind: img.kind, steam: img.steam });
+        results.push({ url: img.src, left: img.left, top: img.top, width: img.width, height: img.height, kind: img.kind, steam: img.steam, plan: img.plan });
         continue;
       }
       // Convert base64 to blob
@@ -40120,7 +40230,7 @@ async function uploadCanvasToStorage(presetId, canvasImages) {
       const { error } = await _sb.storage.from(CANVAS_BUCKET).upload(path, blob, { upsert: true });
       if (!error) {
         const url = _sb.storage.from(CANVAS_BUCKET).getPublicUrl(path).data.publicUrl;
-        results.push({ url, left: img.left, top: img.top, width: img.width, height: img.height, kind: img.kind, steam: img.steam });
+        results.push({ url, left: img.left, top: img.top, width: img.width, height: img.height, kind: img.kind, steam: img.steam, plan: img.plan });
         // Адрес подменяется и на самой странице, а не только в пресете. Иначе
         // снимок для клиентской ссылки — он собирается из холста — продолжал бы
         // видеть картинку как data: и считать её неотправленной: в полоске
@@ -40173,6 +40283,7 @@ async function _restoreCanvasFromUrls(imageUrls) {
     const э = ид && document.getElementById(ид);
     if (э && img.kind) э.dataset.kind = img.kind;
     if (э && img.steam) э.dataset.steam = String(img.steam);
+    if (э && img.plan) э.dataset.plan = typeof img.plan === 'string' ? img.plan : JSON.stringify(img.plan);
   }
   try { обновитьМеткиСнимков(); } catch (e) {}
 }

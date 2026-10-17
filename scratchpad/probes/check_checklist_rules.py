@@ -160,10 +160,12 @@ def прогон(бр, порт):
             НАХОДКИ.append(f"[стоп] «{часть}» не стоп: {т}")
     # Чистый расчёт с фоном — без замечаний из новых правил. Планировка — как из
     # PDF, с площадью парной 5 м²: базовое парное каркаса 2500×2000 ей впору
-    # (у снимка без площади стоит вопрос сверить парную с планировкой, 17.10.2026).
+    # (у снимка без площади стоит вопрос сверить парную с планировкой, 17.10.2026),
+    # и со сведениями, совпадающими с проектом (размер из названия, этажность,
+    # терраса), — иначе вопрос сверить проект с планировкой глазами.
     # Проект двускатный — снегозадержатели стоят (4-6); фасад деревянный —
     # заводская покраска снаружи стоит (7-1а).
-    стр.evaluate(СБРОС); стр.evaluate("async () => { checkedOptions.r8 = true; checkedOptions.p15 = true; canvasAddImage(ВИЗ); const п = canvasAddImage(ПЛАН); const э = п && document.getElementById(п); if (э) э.dataset.steam = '5'; await Promise.all(снимкиХолста().map(видКартинки)); }")
+    стр.evaluate(СБРОС); стр.evaluate("async () => { checkedOptions.r8 = true; checkedOptions.p15 = true; canvasAddImage(ВИЗ); const п = canvasAddImage(ПЛАН); const э = п && document.getElementById(п); if (э) { э.dataset.steam = '5'; const н = String(selectedProject[0]).match(/(\\d+(?:[.,]\\d+)?)\\s*[хx×]\\s*(\\d+(?:[.,]\\d+)?)\\s*$/i), мм = к => Math.round(parseFloat(к.replace(',', '.')) * 1000); э.dataset.plan = JSON.stringify({ first: true, upper: Number(selectedProject[4]) > 1 ? 'мансарда' : '', rooms: 4, terrace: (+selectedProject[7] || 0) + (+selectedProject[8] || 0) > 0, terraceArea: 0, w: н ? [мм(н[1])] : [], d: н ? [мм(н[2])] : [] }); } await Promise.all(снимкиХолста().map(видКартинки)); }")
     т = [х for х in стр.evaluate(ТЕКСТЫ) if not х.startswith("? Скидка") and not х.startswith(("? Окна Blitz 60", "? Окна Veka WHS 72", "? Окна без ламинации")) and "пробное бурение" not in х]
     if т:
         НАХОДКИ.append(f"[фон] на спокойном расчёте есть замечания: {т}")
