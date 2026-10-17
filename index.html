@@ -34407,7 +34407,12 @@ function showPresetNameDialog(defaultName, onConfirm) {
 function renamePreset(id) {
   const nameEl = document.getElementById('pname-' + id);
   if (!nameEl) return;
-  const oldName = nameEl.textContent.replace(/^● /, '').trim();
+  // Имя — из самого пресета, а не из текста карточки: у активного перед именем
+  // стоит точка, и прежний отрез «● » с пробелом её не снимал — пробела там
+  // нет, отступ задан полем. Точка уходила в поле и сохранялась в имени
+  // (Константин, 17.10.2026, снимками). Текст карточки — только запасной путь.
+  const запись = loadAllPresets()[id];
+  const oldName = String((запись && запись.name) || nameEl.textContent).replace(/^\s*●\s*/, '').trim();
   const input = document.createElement('input');
   input.className = 'pcard-rename-input';
   input.value = oldName;
