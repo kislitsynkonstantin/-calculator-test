@@ -11890,257 +11890,16 @@ const SECTION_NOTES = {
 // Base section multipliers (% of G16)
 const SECTION_PCT = {};
 
-const OPTIONS = [
-  {"id":"f1","section":"foundation","name":"Консультация менеджера по выбору типа фундамента","included":true},
-  {"id":"f2","section":"foundation","name":"Выезд инженера по свайному фундаменту","included":true},
-  {"id":"f3","section":"foundation","name":"Пробное бурение для определения несущей способности грунта","included":true},
-  {"id":"f4","section":"foundation","name":"Приёмка фундамента технадзором (фундамент заказчика)","included":false,"status":"legacy"},
-  {"id":"f5","section":"foundation","name":"Свайно-винтовой фундамент без обвязки (D108/L2500)","included":false},
-  {"id":"f6","section":"foundation","name":"Двойная обвязка профилированной трубой к свайно-винтовому фундаменту","included":false},
-  {"id":"f9","section":"foundation","name":"Забивные сваи (D150/L3000), без учёта перепада высот","included":false},
-  {"id":"f7","section":"foundation","name":"Закрытие цоколя декоративными панелями (материал заказчика)","included":false},
-  {"id":"f8","section":"foundation","name":"Закрытие цоколя профилированным листом (цвет на выбор)","included":false},
-  {"id":"f12","section":"foundation","name":"Отливы на цоколь (металл)","included":false},
-  {"id":"f10","section":"foundation","name":"Ленточный фундамент (мелкозаглублённый)","included":false,"status":"legacy"},
-  {"id":"f11","section":"foundation","name":"Плитный фундамент (мелкозаглублённый), без учёта перепада высот","included":false},
-  {"id":"fr1","section":"frame","name":"Одинарная обвязка фундамента — брус непрофилированный 150×200 мм (транспортная влажность)","included":true},
-  {"id":"fr2","section":"frame","name":"Лаги пола — строганная доска камерной сушки 45×145 мм с шагом 580 мм","included":true},
-  {"id":"fr3","section":"frame","name":"Черновой пол — обрезная доска 40×90 мм (транспортная влажность)","included":true},
-  {"id":"fr4","section":"frame","name":"Антисептирование — обработка обвязки и лаг пола","included":true},
-  {"id":"fr5","section":"frame","name":"Каркас наружных стен — строганная доска камерной сушки 45×145 мм","included":true},
-  {"id":"fr6","section":"frame","name":"Каркас внутренних перегородок — строганная доска камерной сушки 45×95 мм","included":true},
-  {"id":"fr7","section":"frame","name":"Клееные столбы на террасе 200×200 мм","included":true},
-  {"id":"fr8","section":"frame","name":"Стропильная система — доска сухая строганная 45×145 мм","included":true},
-  {"id":"fr9","section":"frame","name":"Обрешётка кровли — доска 25×100 мм","included":true},
-  {"id":"fr10","section":"frame","name":"Контробрешётка кровли — доска 50×50 мм","included":true},
-  {"id":"fr11","section":"frame","name":"Высота пол/потолок в комнате отдыха — согласно проекту","included":true},
-  {"id":"fr12","section":"frame","name":"Материал чистового пола — фанера 21 мм (под стяжку/чистовое покрытие)","included":false},
-  {"id":"fr13","section":"frame","name":"Обработка каркаса бани несмываемым антисептиком (огне- и биозащита)","included":false},
-  {"id":"fr14","section":"frame","name":"Обработка фасада на зиму консервирующим средством","included":false,"status":"legacy"},
-  {"id":"fr15","section":"frame","name":"Заводской комплект поставки усиленного каркаса (антисептированный Неомид)","included":false,"status":"legacy"},
-  {"id":"fr16","section":"frame","name":"Поднятие конька (по проекту)","included":false,"status":"legacy"},
-  {"id":"fr17","section":"frame","name":"Поднятие стен второго этажа (по проекту)","included":false,"status":"legacy"},
-  {"id":"fr18","section":"frame","name":"Защитная сетка от грызунов","included":false},
-  {"id":"in1","section":"insulation","name":"Утеплитель — минеральная вата KNAUF Aquastatik","included":true},
-  {"id":"in2","section":"insulation","name":"Утепление наружных стен — 150 мм","included":true},
-  {"id":"in3","section":"insulation","name":"Утепление пола и потолка — 150 мм","included":true},
-  {"id":"in4","section":"insulation","name":"Утепление каркасных перегородок — 100 мм","included":true},
-  {"id":"in5","section":"insulation","name":"Мембранные плёнки Finka Premium (гидро-, ветрозащита, пароизоляция)","included":true},
-  {"id":"in6","section":"insulation","name":"Утепление пола и потолка — 200 мм","included":false},
-  {"id":"in7","section":"insulation","name":"Утепление пола и потолка — 250 мм (перекрёстное утепление)","included":false},
-  {"id":"in8","section":"insulation","name":"Дополнительная ветро-, шумо- и теплоизоляция (Изоплат/Белтермо)","included":false},
-  {"id":"in9","section":"insulation","name":"Утеплитель премиальный KNAUF","included":false,"status":"legacy"},
-  {"id":"in10","section":"insulation","name":"Базовая система вентиляции (рекуператор + активная вытяжная)","included":false},
-  {"id":"in11","section":"insulation","name":"Дополнительное утепление стен +50 мм (перекрёстное утепление)","included":false},
-  {"id":"in12","section":"insulation","name":"Обшивка каркаса плитами OSB (укрепление, ветро- и шумозащита)","included":false},
-  {"id":"ex1","section":"exterior","name":"Фасад с вентзазором 50×50 мм","included":true},
-  {"id":"ex2","section":"exterior","name":"Обшивка стен фасада — имитация бруса 20×135 мм сорт АВ (горизонтально)","included":true},
-  {"id":"ex3","section":"exterior","name":"Декоративные элементы — наличники, плинтусы, нащельник из сухой строганной доски","included":true},
-  {"id":"ex4","section":"exterior","name":"Террасная доска — лиственница 28 мм (сорт Б)","included":true},
-  {"id":"ex5","section":"exterior","name":"Обшивка стен — имитация бруса 20×185 мм сорт АВ (горизонтально)","included":false,"status":"legacy"},
-  {"id":"ex6","section":"exterior","name":"Обшивка стен — имитация бруса 16×135 мм «Карельский профиль»","included":false,"status":"legacy"},
-  {"id":"ex7","section":"exterior","name":"Обшивка стен — планкен из сосны 20×140 сорт АВ (горизонтально)","included":false,"status":"legacy"},
-  {"id":"ex8","section":"exterior","name":"Обшивка стен — планкен из лиственницы 20×140 «Прима»","included":false,"status":"legacy"},
-  {"id":"ex9","section":"exterior","name":"Обшивка стен — фиброцементный сайдинг (на выбор)","included":false,"status":"legacy"},
-  {"id":"ex10","section":"exterior","name":"Обшивка стен фасада — имитация бруса 28×185 мм сорт АВ (горизонтально)","included":false,"status":"legacy"},
-  {"id":"ex11","section":"exterior","name":"Террасная доска — ДПК UnoDeck Ultra (пустотелая)","included":false,"status":"formula"},
-  {"id":"ex12","section":"exterior","name":"Обшивка стен — имитация рейки, профиль TFS (вертикально)","included":false,"status":"formula"},
-  {"id":"ex13","section":"exterior","name":"Белтермо 25 мм (дополнительный слой тепло- и шумоизоляции)","included":false,"status":"formula"},
-  {"id":"ex14","section":"exterior","name":"Белтермо 35 мм (дополнительный слой тепло- и шумоизоляции)","included":false,"status":"formula"},
-  {"id":"ex15","section":"exterior","name":"Обшивка стен — имитация бруса 20×185 сорт АБ (горизонтально)","included":false,"status":"formula"},
-  {"id":"ex16","section":"exterior","name":"Обшивка стен — имитация бруса 28×185 сорт АБ (горизонтально)","included":false,"status":"formula"},
-  {"id":"ex17","section":"exterior","name":"Вертикальный монтаж имитации бруса (толщина по спецификации)","included":false,"status":"formula"},
-  {"id":"ex18","section":"exterior","name":"Обшивка стен — планкен из сосны 140 мм сорт АБ (горизонтально)","included":false,"status":"formula"},
-  {"id":"ex19","section":"exterior","name":"Обшивка стен — планкен из сосны 140 мм сорт А (горизонтально)","included":false,"status":"formula"},
-  {"id":"ex20","section":"exterior","name":"Обшивка стен — планкен из сосны 140 мм сорт АБ (вертикально)","included":false,"status":"formula"},
-  {"id":"ex21","section":"exterior","name":"Обшивка стен — планкен из сосны 140 мм сорт А (вертикально)","included":false,"status":"formula"},
-  {"id":"ex22","section":"exterior","name":"Обшивка стен — планкен из лиственницы 140 мм сорт АБ (горизонтально)","included":false,"status":"formula"},
-  {"id":"ex23","section":"exterior","name":"Обшивка стен — планкен из лиственницы 140 мм сорт А (горизонтально)","included":false,"status":"formula"},
-  {"id":"ex24","section":"exterior","name":"Обшивка стен — планкен из лиственницы 140 мм сорт экстра (горизонтально)","included":false,"status":"formula"},
-  {"id":"ex25","section":"exterior","name":"Обшивка стен — планкен из лиственницы 140 мм сорт АБ (вертикально)","included":false,"status":"formula"},
-  {"id":"ex26","section":"exterior","name":"Обшивка стен — планкен из лиственницы 140 мм сорт А (вертикально)","included":false,"status":"formula"},
-  {"id":"ex27","section":"exterior","name":"Обшивка стен — планкен из лиственницы 140 мм сорт экстра (вертикально)","included":false,"status":"formula"},
-  {"id":"ex28","section":"exterior","name":"Обшивка стен — скандинавская доска АБ, 20×185 (поднятый ворс)","included":false,"status":"formula"},
-  {"id":"ex29","section":"exterior","name":"Обшивка стен — профлист 0,5 мм глянец","included":false,"status":"formula"},
-  {"id":"ex30","section":"exterior","name":"Обшивка стен — кликфальц 0,5 мм глянец","included":false,"status":"formula"},
-  {"id":"ex31","section":"exterior","name":"Обшивка стен — БЕТЭКО Вудстон ёлочкой","included":false,"status":"formula"},
-  {"id":"ex32","section":"exterior","name":"Обшивка стен — БЕТЭКО Вудстон клик (шип-паз)","included":false,"status":"formula"},
-  {"id":"ex33","section":"exterior","name":"Обшивка стен — фиброцемент Каньон","included":false,"status":"formula"},
-  {"id":"ex34","section":"exterior","name":"Обшивка стен — штукатурка фасада (на ЦСП)","included":false,"status":"formula"},
-  {"id":"w1","section":"windows","name":"Пластиковые окна Veka WHS 72, 5 камер (с фурнитурой Internika)","included":true},
-  {"id":"w2","section":"windows","name":"Двойной стеклопакет с белым профилем, без ламинации","included":true},
-  {"id":"w3","section":"windows","name":"Установка стеклопакета по центру каркаса","included":true},
-  {"id":"w4","section":"windows","name":"Пластиковые подоконники","included":true},
-  {"id":"w5","section":"windows","name":"Входная дверь — металлическая с терморазрывом 900×2000 мм","included":true},
-  {"id":"w6","section":"windows","name":"Установка и регулировка базовых окон и дверей","included":true},
-  {"id":"w7","section":"windows","name":"Окно в парном отделении — деревянное из липы 500×500 мм","included":true},
-  {"id":"w8","section":"windows","name":"Пластиковые окна Veka softline 70, 5 камер, класс стенок А (с фурнитурой Internika)","included":false},
-  {"id":"w9","section":"windows","name":"Пластиковые окна Veka softline 82 MD, 7 камер, 3 контура утепления (с фурнитурой Internika)","included":false},
-  {"id":"w10","section":"windows","name":"Двойной стеклопакет с ламинацией снаружи (цвет на выбор)","included":false},
-  {"id":"w11","section":"windows","name":"Двойной стеклопакет с ламинацией снаружи и внутри (цвет на выбор)","included":false},
-  {"id":"w12","section":"windows","name":"Штульповые двери (открывание наружу, с замком)","included":false},
-  {"id":"w13","section":"windows","name":"Алюминиевые окна Alumark S70 (индивидуальная комплектация)","included":false},
-  {"id":"w14","section":"windows","name":"Входная дверь — стеклянная ПВХ Veka","included":false},
-  {"id":"w15","section":"windows","name":"Межкомнатные двери — МДФ (доборы, наличники, ручки), за 1 дверь","included":false},
-  {"id":"w16","section":"windows","name":"Энергосберегающие стёкла ClimaGuard (напыление/плёнка)","included":false},
-  {"id":"r1","section":"roof","name":"Металлочерепица GrandLine 0,5 мм глянцевая (цвет на выбор)","included":true},
-  {"id":"r2","section":"roof","name":"Подшив свесов кровли — сухая строганная доска с зазором 5–8 мм","included":true},
-  {"id":"r3","section":"roof","name":"Карнизная, ветровая планки из металла (в цвет кровли)","included":true},
-  {"id":"r5","section":"roof","name":"Кровельное покрытие — мягкая черепица Шинглас Кантри","included":false,"status":"legacy"},
-  {"id":"r6","section":"roof","name":"Водосточная система (пластик)","included":false},
-  {"id":"r7","section":"roof","name":"Водосточная система (металл)","included":false},
-  {"id":"r8","section":"roof","name":"Снегозадержатели","included":false},
-  {"id":"r9","section":"roof","name":"Материал кровельного покрытия — кликфальц 0,5 мм, глянец (матовый — за доплату)","included":false,"status":"legacy"},
-  {"id":"r10","section":"roof","name":"Снегозадержатели трубчатые","included":false,"status":"legacy"},
-  {"id":"r11","section":"roof","name":"Снегозадержатели-скоба (шинглас, ЦПЧ)","included":false,"status":"legacy"},
-  {"id":"r12","section":"roof","name":"Водосточная система пластик","included":false,"status":"legacy"},
-  {"id":"r13","section":"roof","name":"Водосточная система металл","included":false,"status":"legacy"},
-  {"id":"r14","section":"roof","name":"Замена водосточки пластик на металл","included":false,"status":"legacy"},
-  {"id":"r15","section":"roof","name":"Замена плоской наплавляемой кровли на ПВХ","included":false,"status":"formula"},
-  {"id":"r16","section":"roof","name":"Материал кровельного покрытия — Шинглас Кантри","included":false,"status":"formula"},
-  {"id":"r17","section":"roof","name":"Материал кровельного покрытия — наплавляемая ТехноНИКОЛЬ","included":false,"status":"formula"},
-  {"id":"r18","section":"roof","name":"Материал кровельного покрытия — профлист, глянец (матовый — за доплату)","included":false,"status":"formula"},
-  {"id":"r19","section":"roof","name":"Материал кровельного покрытия — кликфальц 0,5 глянец (матовый — за доплату)","included":false,"status":"formula"},
-  {"id":"r20","section":"roof","name":"Материал кровельного покрытия — двойной стоячий фальц, глянец (матовый — за доплату)","included":false,"status":"formula"},
-  {"id":"r21","section":"roof","name":"Материал кровельного покрытия — ЦПЧ Braas","included":false,"status":"formula"},
-  {"id":"r22","section":"roof","name":"Замена профлиста на фальц","included":false,"status":"formula"},
-  {"id":"r23","section":"roof","name":"Кровельный вентиляционный выход с колпаком Flow Vilpe (1 шт.)","included":false,"status":"formula"},
-  {"id":"r24","section":"roof","name":"Вальмовая кровля","included":false},
-  {"id":"p1","section":"paint","name":"Подбор цвета и типа лакокрасочных материалов","included":true},
-  {"id":"p2","section":"paint","name":"Обработка деревянного фасада и свесов укрывной краской Tikkurila или аналоги в 2 слоя","included":false,"status":"legacy"},
-  {"id":"p3","section":"paint","name":"Обработка наличников и углов другим цветом — укрывная краска Tikkurila или аналоги в 2 слоя","included":false,"status":"legacy"},
-  {"id":"p4","section":"paint","name":"Обработка фасада и свесов маслом Osmo или аналоги в 2 слоя","included":false,"status":"legacy"},
-  {"id":"p5","section":"paint","name":"Обработка стен и потолка внутри укрывной краской Tikkurila или аналоги в 2 слоя","included":false,"status":"legacy"},
-  {"id":"p6","section":"paint","name":"Обработка стен и потолка внутри маслом Osmo или аналоги в 2 слоя","included":false,"status":"legacy"},
-  {"id":"p7","section":"paint","name":"Покраска террасной доски маслом G-Nature","included":false,"status":"legacy"},
-  {"id":"p8","section":"paint","name":"Обработка парного отделения защитным воском","included":false,"status":"legacy"},
-  {"id":"p9","section":"paint","name":"Покраска деревянного пола специальным маслом","included":false,"status":"legacy"},
-  {"id":"p10","section":"paint","name":"Покраска террасы в 2 слоя маслом G-Nature (за 1 м²)","included":false,"status":"legacy"},
-  {"id":"p11","section":"paint","name":"Заводская покраска фасада укрывной краской, включая декор-элементы (Sikkens, Zobel)","included":false,"status":"legacy"},
-  {"id":"p12","section":"paint","name":"Заводская покраска фасада маслом, включая декор-элементы (Sikkens, Zobel)","included":false,"status":"legacy"},
-  // Заводская покраска — сразу после подбора цвета, ручная — за ней (Константин,
-  // 30.09.2026: «заводскую покраску поставь после подбора цвета, а потом ручную»).
-  {"id":"p15","section":"paint","name":"Заводская покраска снаружи (укрывная краска Sikkens, Zobel или аналоги)","included":false,"status":"formula"},
-  {"id":"p16","section":"paint","name":"Заводская покраска снаружи маслом (Osmo или аналоги)","included":false,"status":"formula"},
-  {"id":"p13","section":"paint","name":"Покраска снаружи (укрывная краска Sikkens, Zobel или аналоги)","included":false,"status":"formula"},
-  {"id":"p14","section":"paint","name":"Покраска снаружи маслом со шлифовкой (Osmo или аналоги)","included":false,"status":"formula"},
-  {"id":"p17","section":"paint","name":"Покраска клеёного бруса со шлифовкой (укрывная краска Sikkens, Zobel или аналоги)","included":false,"status":"formula"},
-  {"id":"p18","section":"paint","name":"Покраска террасной доски маслом G-Nature","included":false,"status":"formula"},
-  {"id":"i1","section":"interior","name":"Чистовой пол — доска шпунтованная 27 мм (жилая зона)","included":true},
-  {"id":"i2","section":"interior","name":"Обшивка стен — имитация бруса 16×135 мм (сорт АВ)","included":true},
-  {"id":"i3","section":"interior","name":"Обшивка потолка — вагонка штиль 16×120 мм (сорт АВ)","included":true},
-  {"id":"i4","section":"interior","name":"Дополнительный венец обвязки","included":false},
-  {"id":"i5","section":"interior","name":"Материал чистового пола — доска шпунтованная 36 мм","included":false},
-  {"id":"i6","section":"interior","name":"Обшивка стен — имитация бруса 16×135 мм «Карельский профиль»","included":false},
-  {"id":"i7","section":"interior","name":"Подготовка пола и укладка ламината эконом-класса","included":false},
-  {"id":"i8","section":"interior","name":"Подготовка пола и укладка плитки (материал заказчика)","included":false},
-  {"id":"i9","section":"interior","name":"Обшивка стен — планкен из лиственницы 20×120 мм (горизонтально)","included":false,"status":"legacy"},
-  {"id":"i10","section":"interior","name":"Внутренняя обшивка — два слоя гипсокартона KNAUF 12,5 мм","included":false},
-  {"id":"i11","section":"interior","name":"Обшивка санузла ОСБ+ГВЛВ под укладку плитки (пол и стены)","included":false},
-  {"id":"i12","section":"interior","name":"Обшивка моечного отделения ОСБ+ГВЛВ под укладку плитки (пол и стены)","included":false},
-  {"id":"s1","section":"steam","name":"Теплоизоляция парного отделения — фольгированный материал","included":true},
-  {"id":"s2","section":"steam","name":"Вагонка из осины вертикально (сорт АБ), полки из осины","included":true},
-  {"id":"s3","section":"steam","name":"Чистовой пол — доска шпунтованная 27 мм (парная)","included":true},
-  {"id":"s4","section":"steam","name":"Лежаки в парном отделении — осиновый полок (1–2 уровня)","included":true},
-  {"id":"s5","section":"steam","name":"Тип плафона на выбор заказчика — 2 шт.","included":true},
-  {"id":"s6","section":"steam","name":"Фасад за печью и в комнате отдыха из минерита","included":true},
-  {"id":"s7","section":"steam","name":"Дверь в парную — стеклянная жаропрочная с фурнитурой 700×1900 мм","included":true},
-  {"id":"s8","section":"steam","name":"Высота пол/потолок в парном отделении — 2200 мм","included":true},
-  {"id":"s9","section":"steam","name":"Увеличение парного до 2500×2500 мм (осина, сорт АБ)","included":false},
-  {"id":"s10","section":"steam","name":"Увеличение парного до 2500×3000 мм (осина, сорт АБ)","included":false},
-  {"id":"s11","section":"steam","name":"Увеличение парного до 3000×3000 (осина, сорт АБ)","included":false},
-  {"id":"s12","section":"steam","name":"Отделка парного — вагонка из липы (экстра) + полок из липы 2500×2000 мм","included":false},
-  {"id":"s13","section":"steam","name":"Отделка парного — вагонка из липы (экстра) + полок из липы 2500×2500 мм","included":false},
-  {"id":"s14","section":"steam","name":"Отделка парного — вагонка из липы (экстра) + полок из липы 2500×3000 мм","included":false},
-  {"id":"s15","section":"steam","name":"Отделка парного — вагонка из липы (экстра) + полок из липы 3000×3000","included":false},
-  {"id":"s16","section":"steam","name":"Материал полков — африканский абаш","included":false},
-  {"id":"s17","section":"steam","name":"Парящий полок","included":false},
-  {"id":"s18","section":"steam","name":"Ограждение для печи из липы","included":false},
-  {"id":"s19","section":"steam","name":"Подсветка полков стандарт","included":false},
-  {"id":"s20","section":"steam","name":"Подсветка полков LED с пультом","included":false},
-  {"id":"s21","section":"steam","name":"Подготовка пола под укладку плитки (парная)","included":false},
-  {"id":"s22","section":"steam","name":"Деревянный пол из палубной доски лиственница (парная)","included":false},
-  {"id":"s23","section":"steam","name":"Панно из Гималайской соли с подсветкой 300×1500 мм","included":false},
-  {"id":"s24","section":"steam","name":"Спилы можжевельника с подсветкой 1000×1000 мм","included":false},
-  {"id":"s25","section":"steam","name":"Спилы можжевельника без подсветки 1000×1000 мм","included":false},
-  {"id":"s26","section":"steam","name":"Спинки (липа)","included":false},
-  {"id":"s27","section":"steam","name":"Подсветка потолка","included":false},
-  {"id":"s28","section":"steam","name":"Комбинированные полки (с термолипой), включая спинки","included":false},
-  {"id":"s29","section":"steam","name":"Приточно-вытяжная вентиляция в парном отделении с клапаном","included":false},
-  {"id":"s30","section":"steam","name":"Пароиспаритель (ПИФ)","included":false},
-  {"id":"s31","section":"steam","name":"Покрытие полков и стен маслом для саун","included":false},
-  {"id":"s32","section":"steam","name":"Талькохлорит «рваный камень» (фасад за печкой)","included":false},
-  {"id":"s33","section":"steam","name":"Деревянный настил (если есть плитка)","included":false},
-  {"id":"s34","section":"steam","name":"Сборка премиальной парной (специальная бригада, LED-монтаж)","included":false},
-  {"id":"st1","section":"stove","name":"Установка дровяной печи — топка из комнаты отдыха (проходной узел из минерита)","included":false},
-  {"id":"st6","section":"stove","name":"Вывод дымохода в крышу (1 этаж, нержавейка, сэндвич, зонт с искрогасителем)","included":false},
-  {"id":"st12","section":"stove","name":"Притопочный лист из нержавеющей стали 600×400 мм","included":false},
-  {"id":"st15","section":"stove","name":"Пожаростойкий портал из минерита (для последующей облицовки)","included":false},
-  {"id":"st20","section":"stove","name":"Камень для печи «Жадеит» 80 кг","included":false},
-  {"id":"st2","section":"stove","name":"Установка дровяной печи — топка из парного отделения (проходной узел из минерита)","included":false},
-  {"id":"st3","section":"stove","name":"Угловая печь для сауны Harvia Glow Corner TRC 90, 9 кВт","included":false},
-  {"id":"st4","section":"stove","name":"Подвесная электрическая печь Sawo Cumulus CML-60NB-P 6 кВт","included":false},
-  {"id":"st5","section":"stove","name":"Подвесная электрическая печь Sawo Cumulus CML-60Ni2-P с выносным пультом (талькохлорит)","included":false,"status":"legacy"},
-  {"id":"st35","section":"stove","name":"Монтаж электрической печи","included":false},
-  {"id":"st7","section":"stove","name":"Вывод дымохода в крышу (2 этажа)","included":false},
-  {"id":"st8","section":"stove","name":"Вывод дымохода в стену (1 этаж)","included":false},
-  {"id":"st9","section":"stove","name":"Вывод дымохода в стену (2 этажа)","included":false},
-  {"id":"st10","section":"stove","name":"Навесной бак на трубу 50 л с краном","included":false,"status":"legacy"},
-  {"id":"st11","section":"stove","name":"Выносной бак 50 л с регистром на печь и трубками","included":false,"status":"legacy"},
-  {"id":"st13","section":"stove","name":"Фирменный защитный экран Термофор (портал для печи)","included":false},
-  {"id":"st14","section":"stove","name":"Кладка портала из специального термостойкого кирпича","included":false},
-  {"id":"st16","section":"stove","name":"Печь-каменка Ферингер Малютка до 18 м³","included":false},
-  {"id":"st17","section":"stove","name":"Печь Ферингер Квадра до 25 м³","included":false},
-  {"id":"st18","section":"stove","name":"Печь Ферингер Оптима до 28 м³","included":false},
-  {"id":"st19","section":"stove","name":"Печь Ферингер Уют-18 до 18 м³ (топка внутри парной)","included":false},
-  {"id":"st21","section":"stove","name":"Печь Ферингер Малютка «Змеевик Наборный» до 18 м³","included":false},
-  {"id":"st22","section":"stove","name":"Печь Ферингер Оптима «Змеевик Наборный» до 28 м³","included":false},
-  {"id":"st23","section":"stove","name":"Печь Ферингер Малютка «Окаменевшее дерево» до 18 м³","included":false},
-  {"id":"st24","section":"stove","name":"Печь Ферингер Оптима «Окаменевшее дерево» до 23 м³","included":false},
-  {"id":"st25","section":"stove","name":"Дровяная банная печь Grill’D Cometa Vega 240 Long Max (до 24 кубов)","included":false},
-  {"id":"st34","section":"stove","name":"Печь Изистим Ялта в камне до 25 м³","included":false},
-  {"id":"st26","section":"stove","name":"Дымоход Grill’D черный премиальный с увеличенной теплоизоляцией","included":false},
-  {"id":"st27","section":"stove","name":"Дымоход Ферингер Экономайзер в металле (кожух)","included":false},
-  {"id":"st28","section":"stove","name":"Дымоход Экономайзер Ламели (в ассортименте)","included":false},
-  {"id":"st29","section":"stove","name":"Кассеты для печей Ферингер с системой подачи воды — 2 кассеты","included":false},
-  {"id":"st30","section":"stove","name":"Кассеты для печей Ферингер — 3 кассеты","included":false},
-  {"id":"st31","section":"stove","name":"Пароиспаритель Ферингера (эффект русской бани)","included":false},
-  {"id":"st32","section":"stove","name":"Портал для печи Ферингер из камня (змеевик)","included":false},
-  {"id":"st33","section":"stove","name":"Портал для печи Ферингер из камня (окаменевшее дерево)","included":false},
-  {"id":"e1","section":"extra","name":"Проектирование базового проекта (архитектурное решение + каркас + фундамент)","included":true},
-  {"id":"e2","section":"extra","name":"Ступени на террасу или крыльцо — временные","included":true},
-  {"id":"e3","section":"extra","name":"Логистика (до 100 км от МКАД)","included":true},
-  {"id":"e4","section":"extra","name":"Разгрузка материалов (до 30 метров)","included":true},
-  {"id":"e5","section":"extra","name":"Проживание бригады (постройка бытовки на участке)","included":false},
-  {"id":"e6","section":"extra","name":"Аренда бытовки с доставкой и установкой на время строительства","included":false},
-  {"id":"e7","section":"extra","name":"Аренда биотуалета с обслуживанием на время строительства","included":false},
-  {"id":"e8","section":"extra","name":"Бензиновый электрогенератор на время строительства (1 месяц)","included":false},
-  {"id":"e9","section":"extra","name":"Сборка лесов (вышка-тура)","included":false},
-  {"id":"e10","section":"extra","name":"Устройство открытой террасы 12 м²","included":false},
-  {"id":"e12","section":"extra","name":"Вывоз мусора (1 контейнер с грузчиками)","included":false,"price":37000},
-  {"id":"e11","section":"extra","name":"Индивидуальное проектирование (полное архитектурное решение)","included":false,"status":"legacy"},
-  {"id":"eng1","section":"engineering","name":"Консультация по инженерным коммуникациям","included":true},
-  {"id":"eng2","section":"engineering","name":"ПВУ с рекуперацией Zenit Heco V 350 E EPP (до 85 м²)","included":false,"status":"legacy"},
-  {"id":"eng3","section":"engineering","name":"ПВУ с рекуперацией Zenit Heco V 550 E (до 150 м²)","included":false,"status":"legacy"},
-  {"id":"eng4","section":"engineering","name":"ПВУ с рекуперацией Zenit Heco V 750 E (до 220 м²)","included":false,"status":"legacy"},
-  {"id":"eng5","section":"engineering","name":"Охладитель к 350-й модели","included":false,"status":"legacy"},
-  {"id":"eng6","section":"engineering","name":"Охладитель к 550-й модели","included":false,"status":"legacy"},
-  {"id":"eng7","section":"engineering","name":"Охладитель к 750-й модели","included":false,"status":"legacy"},
-  {"id":"eng8","section":"engineering","name":"Увлажнитель к 350-й модели","included":false,"status":"legacy"},
-  {"id":"eng9","section":"engineering","name":"Увлажнитель к 550-й модели","included":false,"status":"legacy"},
-  {"id":"eng10","section":"engineering","name":"Увлажнитель к 750-й модели","included":false,"status":"legacy"},
-  {"id":"eng11","section":"engineering","name":"Внутренние сантехнические работы — ванная/санузел (КАН + ГВС + ХВС)","included":false},
-  {"id":"eng12","section":"engineering","name":"Внутренние сантехнические работы — кухня","included":false,"status":"legacy"},
-  {"id":"eng13","section":"engineering","name":"Установка сантехники заказчика (унитаз, раковина, душ)","included":false,"status":"legacy"},
-  {"id":"eng14","section":"engineering","name":"Септик 5-ка (септик + сбросной колодец + трасса 5 м + монтаж)","included":false},
-  {"id":"eng15","section":"engineering","name":"Скрытые электротехнические работы (щит, розетки, выключатели, заземление)","included":false},
-  {"id":"eng16","section":"engineering","name":"Наружные электротехнические работы (ретро-кабель с керамическими изоляторами)","included":false,"status":"legacy"},
-  {"id":"eng17","section":"engineering","name":"Установка светильников до 10 шт.","included":false},
-  {"id":"eng18","section":"engineering","name":"Тёплый пол электрический (включая регулятор) — от 2700 ₽/м²","included":false,"status":"legacy"},
-  {"id":"eng19","section":"engineering","name":"Котёл Protherm Скат 6 кВт (отопление до 60 м²)","included":false,"status":"legacy"},
-  {"id":"eng20","section":"engineering","name":"Котёл Protherm Скат 9 кВт (отопление до 90 м²)","included":false,"status":"legacy"},
-  {"id":"eng21","section":"engineering","name":"Котёл Protherm Скат 12 кВт (отопление до 120 м²)","included":false,"status":"legacy"}
-];
+// Список опций каркаса лежит в базе, в pricing_options (product 'frame'):
+// название, раздел, «в базовой комплектации», порядок (sort), цена, формула и
+// статус — как у клеёного бруса. В файле он стоял до 17.10.2026, и
+// переименовать позицию можно было только выпуском (Константин, 17.10.2026,
+// о загрузке правок из Excel: «Перенеси»). OPTIONS всегда описывает активную
+// технологию и наполняется при загрузке цен — до входа он пуст, как у бруса.
+// Порядок строк в базе — прежний порядок файла: заводская покраска сразу после
+// подбора цвета, ручная за ней (Константин, 30.09.2026), забивные сваи за
+// двойной обвязкой.
+const OPTIONS = [];
 
 // ============================================================
 // ТЕХНОЛОГИИ
@@ -12293,8 +12052,10 @@ const TECH_THICK = { frame:  ['100 мм', '150 мм', '200 мм'],
                      glulam: ['125х185', '160х185', '205х185'] };
 const TECH_THICK_LABEL = { frame: 'Толщина утепления', glulam: 'Толщина бруса' };
 
-// Каркасные наборы — снимок того, что лежит в файле
-const FRAME_OPTIONS  = OPTIONS.slice();
+// Список каркаса — из базы (заполнитьСписокКаркаса). Он нужен и брусу: общие с
+// каркасом строки бруса берут у него название, окно в парную и монтаж
+// электропечи — строку целиком.
+const FRAME_OPTIONS  = [];
 
 // ── Поштучные позиции без формулы ──
 // Цена в каталоге — за одну штуку, количество ставит менеджер счётчиком на
@@ -12304,9 +12065,8 @@ const FRAME_OPTIONS  = OPTIONS.slice();
 // правка там включила бы счётчик на боевом раньше выпуска. Цена за дверь в
 // каталоге не тронута — итог считается как цена × количество.
 // Вывоз мусора — за контейнер с грузчиками, количество счётчиком, как у дверей
-// (Константин, 30.09.2026). Цена 37 000 ₽ за контейнер лежит в файле: строки
-// в каталоге цен у позиции нет, а заводить её в общей с боем базе раньше
-// выпуска незачем — бой позицию всё равно не покажет.
+// (Константин, 30.09.2026). Цена 37 000 ₽ за контейнер — в строке каталога, с
+// 17.10.2026, когда список каркаса переехал в базу; до того она лежала в файле.
 // У бруса та же опция — kb_e3: прежняя строка «Вывоз мусора (Один контейнер
 // 8 кубов)» без цены стала ею в базе (Константин, 30.09.2026: «добавить и для
 // бруса — да»).
@@ -46053,16 +45813,22 @@ async function loadPricing(product, force) {
       // раньше: цена берётся из выбранного проекта или вписывается руками.
       // Поэтому отказ этой выборки загрузку цен не валит.
       _fetchAllRows('pricing_rates', 'key,value', product, ['key']).catch(() => []),
-      // Общие с каркасом строки бруса берут цену, формулу и статус у строки
-      // каркаса — поэтому у бруса нужны и они, даже если каркас ещё не открывали.
+      // Общие с каркасом строки бруса берут название, цену, формулу и статус у
+      // строки каркаса — поэтому у бруса нужен и список каркаса, даже если
+      // каркас ещё не открывали.
       product === 'glulam'
-        ? _fetchAllRows('pricing_options', 'option_id,price,formula,status', 'frame', ['option_id']).catch(() => [])
+        ? _fetchAllRows('pricing_options', 'option_id,name,section,included,price,formula,status,sort', 'frame', ['sort']).catch(() => [])
         : Promise.resolve([])
     ]);
     const pr = { data: prData }, mx = { data: mxData }, op = { data: opData }, sc = { data: scData };
     if (!pr.data || !pr.data.length) {
       throw new Error('база вернула пустой ответ');
     }
+    // Список каркаса приходит с ценами: без него калькулятор пуст, и считать
+    // по нему нельзя — так же, как без проектов.
+    if (product === 'frame') {
+      if (!заполнитьСписокКаркаса(opData)) throw new Error('база вернула пустой список опций');
+    } else if (!_techData.frame) заполнитьСписокКаркаса(frOpData);
     _techData[product] = { pr: pr.data, mx: mx.data || [], op: op.data || [], sc: sc.data || [],
                            frOp: frOpData || [] };
     _ставкиРучного[product] = {};
@@ -46093,10 +45859,28 @@ async function loadPricing(product, force) {
   }
 }
 
+// ── Список опций каркаса из базы ─────────────────────────────────────────
+// Строки идут в порядке sort, строка без названия не берётся. Возвращает
+// число строк: ноль — список не пришёл, и прежний остаётся как был.
+function заполнитьСписокКаркаса(строки) {
+  const список = (строки || []).filter(r => r && r.option_id && String(r.name || '').trim())
+    .slice().sort((а, б) => (Number(а.sort) || 0) - (Number(б.sort) || 0));
+  if (!список.length) return 0;
+  FRAME_OPTIONS.length = 0;
+  список.forEach(r => {
+    const o = { id: r.option_id, section: r.section, name: r.name, included: !!r.included,
+                price: (r.price === null || r.price === undefined) ? null : Number(r.price) };
+    if (r.formula) o.formula = r.formula;
+    const st = (r.status === null || r.status === undefined) ? '' : String(r.status).trim();
+    if (st) o.status = st;
+    FRAME_OPTIONS.push(o);
+  });
+  return FRAME_OPTIONS.length;
+}
+
 // ── Общие с каркасом опции бруса ─────────────────────────────────────────
 // Строка бруса с пометкой shared_option в базе — та же позиция, что строка
-// каркаса с этим id: название берётся из списка каркаса в файле, цена, формула
-// и статус — из строки каркаса в базе. Своя строка у бруса остаётся, поэтому
+// каркаса с этим id: название, цена, формула и статус — из строки каркаса. Своя строка у бруса остаётся, поэтому
 // сохранённые расчёты и комплектации не ломаются, а цена правится в одном
 // месте — в строке каркаса. Константин 09.10.2026, ответом на разбор: «Сам
 // реши, как это устроить в базе и файлах выгрузки. Главное, чтобы в
@@ -46111,8 +45895,8 @@ function взятьОбщиеСКаркасом(строкиКаркаса) {
     if (!o.общаяС) return;
     const ф = вФайле[o.общаяС], р = вБазе[o.общаяС];
     if (ф && (ф._базовоеИмя || ф.name)) o.name = ф._базовоеИмя || ф.name;
-    // Строки в базе каркаса нет, а в файле позиция с ценой есть — так живёт
-    // вывоз мусора: цена 37 000 ₽ лежит в файле. Тогда цена — из файла.
+    // Ответ каркаса без цен, а в списке позиция с ценой есть — тогда цена из
+    // списка (так до 17.10.2026 жил вывоз мусора, с ценой в файле).
     const из = р || (ф && ф.price != null ? { price: ф.price, formula: null, status: ф.status } : null);
     if (!из) return;   // каркас не пришёл — остаётся своя строка бруса
     o.price = (из.price === null || из.price === undefined) ? null : Number(из.price);
@@ -46234,9 +46018,10 @@ function applyTechData(product) {
   Object.keys(SECTION_NOTES).forEach(k => delete SECTION_NOTES[k]);
   Object.keys(прим).forEach(k => { SECTION_NOTES[k] = прим[k].slice(); });
 
-  // Опции. У каркаса список лежит в файле, база даёт только цены и статусы.
-  // У бруса из базы приходит весь список: держать 165 позиций ещё и в файле
-  // значило бы вести их в двух местах.
+  // Опции. Список обеих технологий приходит из базы: держать позиции ещё и в
+  // файле значило бы вести их в двух местах. У каркаса он собран в
+  // FRAME_OPTIONS при загрузке (заполнитьСписокКаркаса), цены поверх — снова
+  // из ответа: позиции живут между переключениями и меняются по ходу расчёта.
   OPTIONS.length = 0;
   if (брус) {
     d.op.forEach(r => {
