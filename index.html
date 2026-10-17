@@ -1204,6 +1204,8 @@ body.dark .result-card { background: var(--br-15); }
   background: #e05555;
   color: #fff;
 }
+#confirmDialog.cd-info #confirmDialogCancel { display: none; }
+#confirmDialog.cd-info #confirmDialogOk { background: var(--green-dark); }
 /* Окно выбора снимков из PDF проекта */
 #pdfPick {
   position: fixed; inset: 0; z-index: 10000;
@@ -10027,6 +10029,7 @@ body.ui-blank #confirmDialogCancel {
 }
 body.ui-blank #confirmDialogCancel:hover { border-color: var(--bl-acc2) !important; color: var(--bl-acc) !important; }
 body.ui-blank #confirmDialogOk { background: #c0392b; }
+body.ui-blank #confirmDialog.cd-info #confirmDialogOk { background: var(--bl-fill); color: var(--bl-on-acc, #fff); }
 
 /* ── Окно выбора из PDF — язык листа ── */
 body.ui-blank #pdfPick { background: rgba(var(--br-12в-rgb),.45); }
@@ -13336,8 +13339,13 @@ function showConfirmDialog(title, msg, onConfirm, okLabel, iconSvg) {
   document.getElementById('confirmDialog').classList.add('show');
 }
 function closeConfirmDialog() {
-  document.getElementById('confirmDialog').classList.remove('show');
+  document.getElementById('confirmDialog').classList.remove('show', 'cd-info');
   _confirmCallback = null;
+}
+// То же окно сообщением: одна кнопка «Понятно» и без красного «Удалить».
+function сообщитьОкном(заголовок, текст, iconSvg) {
+  showConfirmDialog(заголовок, текст, null, 'Понятно', iconSvg);
+  document.getElementById('confirmDialog').classList.add('cd-info');
 }
 
 function cpCopyFromSelected() {
@@ -35306,12 +35314,33 @@ function exportAllPresets() {
 }
 
 // ── Delete preset ──
-function deletePreset(id) {
+// Пресет с перепиской в чате или отправленный на согласование удалить нельзя
+// (Константин, 17.10.2026: «Можно только отозвать из публичных автору. Но
+// доступ к нему также останется по коду»). Держит база (триггеры миграции
+// preset_approval); здесь — вопрос до подтверждения и объяснение словами.
+// Ответа нет (сеть, старая база) — удаление идёт, как прежде: откажет база.
+async function можноУдалитьПресет(код) {
+  if (!код || !_sb || !_sbUser) return null;
+  try {
+    const { data, error } = await _sb.rpc('preset_can_delete', { p_code: String(код) });
+    if (error || typeof data !== 'boolean') return null;
+    return data;
+  } catch (e) { return null; }
+}
+function пресетНеУдаляется(имя, код) {
+  сообщитьОкном('Пресет удалить нельзя',
+    'У пресета' + (имя ? ' «' + имя + '»' : '') + ' есть переписка в чате или согласование, поэтому он остаётся в базе. '
+    + (код ? 'По коду ' + кодКрасиво(код) + ' он по-прежнему открывается.' : 'По коду он по-прежнему открывается.'),
+    ЗНАЧОК_ЗАМОК_МАЛ.replace('width="14" height="14"', 'width="20" height="20"'));
+}
+async function deletePreset(id) {
   const presets = loadAllPresets();
   const p = presets[id];
   // Опубликованный сначала отзывают — корзины у него на карточке нет, но
   // удаление могут позвать и не с карточки.
   if (p && p.publishedAs) { showToast('Опубликованный пресет не удаляется — сначала отзовите его'); return; }
+  const кодПресета = p ? (p.shortCode || p.sharedId || '') : '';
+  if (кодПресета && (await можноУдалитьПресет(кодПресета)) === false) { пресетНеУдаляется(p.name, кодПресета); return; }
   const name = p ? p.name : '';
   const isPublished = !!p?.publishedAs;
   const sharedId = p?.sharedId;
@@ -35336,7 +35365,15 @@ function deletePreset(id) {
     }
     renderPresetList();
     showToast(былОткрыт ? 'Пресет удалён. Расчёт на экране остался, но больше не сохраняется' : 'Пресет удалён');
-    await sbDeletePreset(id);
+    const отказ = await sbDeletePreset(id);
+    // База отказала: у пресета появилась переписка или согласование, пока
+    // шло подтверждение. Пресет возвращается в список, строка кода остаётся.
+    if (отказ && отказ.code === '42501') {
+      const все = loadAllPresets(); все[id] = p; saveAllPresets(все);
+      renderPresetList();
+      пресетНеУдаляется(name, кодПресета);
+      return;
+    }
     // Строку в `preset_links` убираем у любого пресета, а не только у
     // опубликованного: номер теперь есть у каждого, и без этого удалённый
     // расчёт продолжал бы открываться по своему номеру.
@@ -40917,14 +40954,16 @@ async function sbSavePreset(preset) {
    в облаке нет, а у другого браузера своя память, и он ничего про удаление не
    знал. Метка — то самое знание: по ней остальные устройства убирают пресет
    у себя и заново его не заливают. */
+// Отказ базы возвращается — по нему удаление откатывается.
 async function sbDeletePreset(id) {
-  if (!_sbUser) return;
+  if (!_sbUser) return null;
   try {
     const { error } = await _sb.from('presets')
       .update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
       .eq('id', id).eq('user_id', _sbUser.id);
-    if (error) console.warn('[sbDeletePreset]', error.message);
+    if (error) { console.warn('[sbDeletePreset]', error.message); return error; }
   } catch(e) { console.warn('Supabase delete failed:', e); }
+  return null;
 }
 
 // Частота синхронизации — настройка аккаунта (appSettings.syncIntervalMin).
