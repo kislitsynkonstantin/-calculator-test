@@ -24048,7 +24048,12 @@ function getPPContracts() {
 let ppState = {};
 let ppActiveTab = 'plan';
 
-function ppRound(n) { return Math.round(n / 1000) * 1000; }
+// Этапы оплаты — кратно 5 000 ₽ с округлением вверх; остатки округления
+// собирает финальный платёж, а в договоре без него — последний этап (чек-лист
+// договора, С-ДЗ-7; Константин, 17.10.2026: «Это все делай»). До этого суммы
+// округлялись до тысяч в обе стороны. Рубли сначала округляются: 70 % цены
+// иногда выходят 70 000,0000001.
+function ppRound(n) { const р = Math.round(n); return р > 0 ? Math.ceil(р / 5000) * 5000 : 0; }
 function ppFmt(n) { return Math.round(n).toLocaleString('ru-RU'); }
 
 
@@ -24091,9 +24096,10 @@ function ppInitContractТело(contract, итогЗадан) {
   const fixedFinalBase = fixedFinalP ? fixedFinalP.finalFixed : 0;
 
   // ── Special rule for hasFinalFixed contracts (e.g. Договор на отделку):
-  // 1. Compute each non-final stage by pct (rounded to thousands)
-  // 2. Middle stage(s) get the remainder: total − advance − fixedFinal
-  // 3. Kopeyks (< 1000) from the middle stage move to finalAmt
+  // 1. Compute each non-final stage by pct (rounded up to 5 000)
+  // 2. Middle stage(s) get the remainder: total − advance − fixedFinal,
+  //    rounded up to 5 000
+  // 3. The rest goes to finalAmt — not above the fixed 50 000, often not round
   if (hasFinalFixed && !hasFinal) {
     const amounts = nonFinal.map(p => ppRound(total * p.pct / 100));
     // Find the "remainder" stage — last non-final with pct=0, or just last non-final
@@ -24111,10 +24117,9 @@ function ppInitContractТело(contract, итогЗадан) {
     }
     const fixedSum = amounts.reduce((a,b,i) => i === остатокВ ? a : a+b, 0);
     const midRaw = total - fixedSum - fixedFinalBase;
-    // Round mid down to thousands, kopeyks go to final
-    const midRounded = Math.floor(midRaw / 1000) * 1000;
-    const kopeyks = midRaw - midRounded;
-    amounts[остатокВ] = Math.max(0, midRounded);
+    // Остаток — кратно 5 000 вверх; недостающее до цены остаётся финальному
+    // платежу, и он выходит не больше 50 000.
+    amounts[остатокВ] = ppRound(midRaw);
     // Этап парной — не меньше 150 000 ₽: недостающее берётся из аванса, аванс
     // по правилу остаётся 70 % (Константин, 03.10.2026: «оставь аванс 70 %.
     // Внедри только правило, что этап за парную не менее 150 000 р. Если
@@ -24130,8 +24135,9 @@ function ppInitContractТело(contract, итогЗадан) {
     }
     // Договор без цены — без платежей: и финальных 50 000 нет (Константин,
     // 02.10.2026: «когда договора на отделку нет — то последние 50 000 р тоже
-    // убирай»). Цена меньше финального платежа — финальный равен цене.
-    const finalAmt = total <= 0 ? 0 : Math.min(total, fixedFinalBase + kopeyks);
+    // убирай»). Финальный — всё, что этапы не собрали: этапы и он в сумме дают
+    // цену и при цене меньше 50 000.
+    const finalAmt = total <= 0 ? 0 : Math.max(0, total - amounts.reduce((a, b) => a + b, 0));
     const finalPct = total > 0 ? parseFloat((finalAmt / total * 100).toFixed(1)) : 0;
     const pcts = amounts.map(a => total > 0 ? parseFloat((a / total * 100).toFixed(1)) : 0);
     ppState[contract.id] = { pcts, amounts, finalAmt, finalPct, hasFinal, hasFinalFixed };
@@ -24170,18 +24176,15 @@ function ppInitContractТело(contract, итогЗадан) {
       // No плёнки stage — fall back to absorbing into last stage
       absorbRemainder(remainder);
     }
-    // If плёнки > 100 000 → excess to каркас (keeps roof at fixed 7%)
+    // If плёнки > 100 000 → excess to каркас (keeps roof at fixed 7%). Каркас
+    // takes it rounded up to 5 000 and stays a multiple of 5 000; плёнки keep
+    // the exact rest — up to 100 000, not round: it collects the remainders.
     if (plenikIdx >= 0 && amounts[plenikIdx] > 100000) {
-      const excess = amounts[plenikIdx] - 100000;
-      amounts[plenikIdx] = 100000;
       const karkasIdx = nonFinal.findIndex(p => p.label && p.label.toLowerCase().includes('\u043a\u0430\u0440\u043a\u0430\u0441'));
-      if (karkasIdx >= 0) amounts[karkasIdx] += excess;
-      // Note: excess may have kopeyks — that's fine, they stay on каркас
-      // But we want kopeyks back on плёнки, so:
-      const newDust = total - amounts.reduce((a,b)=>a+b, 0);
-      if (Math.abs(newDust) > 0 && Math.abs(newDust) < 1000 && plenikIdx >= 0) {
-        amounts[plenikIdx] = Math.max(0, amounts[plenikIdx] + newDust);
-      }
+      if (karkasIdx >= 0) {
+        amounts[karkasIdx] += ppRound(amounts[plenikIdx] - 100000);
+        amounts[plenikIdx] = Math.max(0, total - amounts.reduce((a, b, i) => i === plenikIdx ? a : a + b, 0));
+      } else amounts[plenikIdx] = 100000;
     }
     const finalAmt = 0;
     const finalPct = 0;
@@ -24190,9 +24193,10 @@ function ppInitContractТело(contract, итогЗадан) {
     return;
   }
 
-  // hasFinal: if remainder < 1000 (rounding dust), absorb into last non-final stage
+  // hasFinal: the final payment collects the rounding remainder. Stages above
+  // the price (overshoot) give the excess back from the last stage.
   let finalAmt;
-  if (Math.abs(remainder) < 1000 && nonFinal.length > 0) {
+  if (remainder < 0 && nonFinal.length > 0) {
     absorbRemainder(remainder);
     finalAmt = Math.max(0, fixedFinalAmt || 0);
   } else {
@@ -24314,17 +24318,19 @@ function подогнатьПланКЦене(c) {
     st.amounts = amounts;
     ppRecalcFinal(c.id);
   } else {
-    // Остаток после округления — в самый крупный этап, без копеек; копейки —
-    // в финальный платёж, как при распределении по правилу. Без финального —
-    // туда же, в крупный этап.
+    // Остаток после округления — в самый крупный этап, кратно 5 000; что не
+    // уложилось — в финальный платёж, как при распределении по правилу (он
+    // выходит не больше прежнего). Без финального — в последний этап: он, как
+    // и по правилу, собирает остатки.
     const финал = st.hasFinalFixed ? финалБаза : 0;
-    let крупный = -1;
-    amounts.forEach((a, i) => { if (!фикс[i] && (крупный < 0 || a > amounts[крупный])) крупный = i; });
+    let крупный = -1, последний = -1;
+    amounts.forEach((a, i) => { if (!фикс[i] && (крупный < 0 || a > amounts[крупный])) крупный = i; if (!фикс[i]) последний = i; });
     const пыль = total - финал - amounts.reduce((a, b) => a + b, 0);
     if (крупный >= 0) {
-      const тысячи = st.hasFinalFixed ? Math.floor(пыль / 1000) * 1000 : пыль;
-      amounts[крупный] = Math.max(0, amounts[крупный] + тысячи);
-      st.finalAmt = st.hasFinalFixed ? финал + (пыль - тысячи) : (st.finalAmt || 0);
+      const кратно = st.hasFinalFixed ? Math.ceil(пыль / 5000) * 5000 : Math.floor(пыль / 5000) * 5000;
+      amounts[крупный] = Math.max(0, amounts[крупный] + кратно);
+      if (st.hasFinalFixed) st.finalAmt = финал + (пыль - кратно);
+      else amounts[последний] = Math.max(0, amounts[последний] + (пыль - кратно));
     }
     st.amounts = amounts;
     st.finalPct = total > 0 ? parseFloat(((st.finalAmt || 0) / total * 100).toFixed(1)) : 0;
@@ -27453,6 +27459,9 @@ function ppDistribute(cid) {
     const nonFinal = contract.payments.filter(p => !p.final && !p.finalFixed);
     const hasFinalFixed = contract.payments.some(p => p.finalFixed);
     const fixedFinal = hasFinalFixed ? contract.payments.find(p => p.finalFixed).finalFixed : 0;
+    // Финальный «остаток» (своя схема «Аванс — Финальный платёж») собирает всё,
+    // что не взяли этапы. Прежде он здесь пропадал: план выходил 70 % цены.
+    const hasFinal = !hasFinalFixed && contract.payments.some(p => p.final);
     const remaining = total - fixedFinal;
     const n = nonFinal.length;
     if (n > 0) {
@@ -27462,12 +27471,13 @@ function ppDistribute(cid) {
         // Split remaining 30% evenly among middle stages
         const midAmt = ppRound((remaining - amounts[0]) / (n - 1));
         for (let i = 1; i < n; i++) amounts[i] = midAmt;
-        // Absorb remainder into last middle stage
+        // Absorb remainder into last middle stage — when no final collects it
         const used = amounts.reduce((a,b)=>a+b,0);
-        amounts[n-1] = Math.max(0, amounts[n-1] + (remaining - used));
+        if (!hasFinal) amounts[n-1] = Math.max(0, amounts[n-1] + (remaining - used));
       }
       const pcts = amounts.map(a => total > 0 ? parseFloat((a / total * 100).toFixed(1)) : 0);
-      ppState[cid] = { pcts, amounts, finalAmt: fixedFinal, finalPct: total > 0 ? parseFloat((fixedFinal/total*100).toFixed(1)) : 0, hasFinal: false, hasFinalFixed };
+      const finalAmt = hasFinal ? Math.max(0, total - amounts.reduce((a, b) => a + b, 0)) : fixedFinal;
+      ppState[cid] = { pcts, amounts, finalAmt, finalPct: total > 0 ? parseFloat((finalAmt/total*100).toFixed(1)) : 0, hasFinal, hasFinalFixed };
       // Своё распределение не по правилу договора — при смене цены доли сохраняются.
       ppПравкаРуками(cid);
     }
@@ -38128,6 +38138,27 @@ function проверкаПоЧекЛисту() {
   // сорт древесины не надо указывать».
   const безСорта = свои.find(х => /вагонк|имитац|планкен|доск/i.test(х.т) && !/сорт|экстра|прима/i.test(х.т) && !/инженерн|(^|[^а-яё])дпк([^а-яё]|$)|древесно-полимер/i.test(х.т));
   if (безСорта) добавить(безСорта.раздел, 'Указать сорт древесины', false, безСорта.эл);
+  // Свои позиции по чек-листу (Константин, 17.10.2026: «Это все делай»).
+  // Строки каталога эти правила уже соблюдают — проверяются свои.
+  // 2-12. Плита — «без учёта перепада высот»: в самой позиции или примечанием.
+  const плитаСвоя = свои.find(х => х.раздел === 'foundation' && /плит(?!к)/i.test(х.т) && !/перепад/i.test(х.т));
+  if (плитаСвоя && !найти(/перепад/i, 'foundation')) добавить('foundation', 'Дописать у плиты: без учёта перепада высот', false, плитаСвоя.эл);
+  // 4-1. Шинглас — с типом покрытия (серией), например «Кантри».
+  const шингласБезТипа = свои.find(х => /шинглас|shinglas|мягк\S*\s+черепиц/i.test(х.т) && !/снегозадерж|планк|капельник|ендов|выход|аэратор/i.test(х.т)
+    && !/кантри|джайв|финск|ранчо|классик|континент|самба|танго|вестерн|соната|фокстрот|аккорд|кадриль|джаз|ультра|атлантик|[«"„][^»"“]{2,}[»"“]/i.test(х.т));
+  if (шингласБезТипа) добавить(шингласБезТипа.раздел, 'Указать тип Шингласа, например «Кантри»', false, шингласБезТипа.эл);
+  // 5-1а. Имитация шириной 185 мм — толщиной 28 мм, снаружи и внутри.
+  const имитация185 = свои.find(х => /имитац/i.test(х.т) && /(\d{2})\s*[×xх*]\s*185/i.test(х.т) && х.т.match(/(\d{2})\s*[×xх*]\s*185/i)[1] !== '28');
+  if (имитация185) добавить(имитация185.раздел, 'Имитация 185 мм должна быть толщиной 28 мм', false, имитация185.эл);
+  // 5-5. Фасадные панели — не «Каньон».
+  const каньон = свои.find(х => /каньон/i.test(х.т));
+  if (каньон) добавить(каньон.раздел, 'Фасадные панели — не «Каньон»: указать другие', false, каньон.эл);
+  // Отделка, 4. Плитка — с типом: мозаика, керамогранит и т. п. (ориентир по
+  // цене). Подготовка «под плитку» и настил «если есть плитка» — не плитка.
+  const плиткаБезТипа = свои.find(х => (х.раздел === 'interior' || х.раздел === 'steam') && /плитк/i.test(х.т)
+    && !/под\s+(укладк\S*\s+)?плитк|если\s+есть\s+плитк|без\s+плитк/i.test(х.т)
+    && !/мозаик|керамогранит|керамическ|кафел|клинкер|котто|терракот|стеклянн|натуральн\S*\s+камн|мрамор|травертин|гранит/i.test(х.т));
+  if (плиткаБезТипа) добавить(плиткаБезТипа.раздел, 'Указать тип плитки: мозаика, керамогранит и т. п.', false, плиткаБезТипа.эл);
 
   // 6-6. Панорамное окно: размер, подогрев, тонировка.
   const панорама = своя(/панорам|термоокн/i);
@@ -38153,12 +38184,35 @@ function проверкаПоЧекЛисту() {
     const заводская = покраскаСнаружи.find(х => /заводск/i.test(х.т));
     if (заводская) добавить('paint', 'На брусе покраска снаружи только ручная', true, заводская.эл);
   }
+  // 7-1а. Каркас: деревянный фасад — с заводской покраской. Покраски снаружи
+  // нет вовсе — ни строки, ни своей позиции, ни примечания о ней в «Покраске»
+  // (Константин, 17.10.2026, снимком разбора проверок: «Это все делай»).
+  // Фасад из панелей, фиброцемента или металла её не требует.
+  if (техн === 'frame' && деревФасад && !покраскаСнаружи.length)
+    добавить('paint', 'Добавить заводскую покраску фасада', false, перваяИз(['p15', 'p16']));
+  // 7-10. Клеёный брус: покраска — отдельным договором подряда. Раздел
+  // «Покраска» с позициями стоит в договоре вместе с другими разделами.
+  if (техн === 'glulam') {
+    const покраскаЕсть = (OPTIONS || []).some(o => o.section === 'paint' && !o.included && checkedOptions[o.id]) || своиВРазделе('paint');
+    const договорПокраски = (contractsConfig || []).find(д => (д.sections || []).includes('paint'));
+    if (покраскаЕсть && договорПокраски && договорПокраски.sections.some(к => к !== 'paint'))
+      добавить('paint', 'Вынести покраску в отдельный договор', false, '');
+  }
   // 7-5. Масло — с полной шлифовкой.
   const масло = тексты.find(х => х.раздел === 'paint' && /масл/i.test(х.т) && /фасад|снаружи|стен/i.test(х.т) && !/шлифовк/i.test(х.т));
   if (масло && !найти(/шлифовк/i)) добавить('paint', 'Добавить полную шлифовку под масло', false, масло.эл);
 
   // 8-5. Ферингер — с камнями.
   if (ферингер && !есть('st20') && !найти(/жадеит|камн\S*[^\n]*кг|камен\S*[^\n]*кг/i)) добавить('stove', 'Добавить камни для печи 80 кг', false, строка('st20'));
+  // Дымоход и этажность: вывод на 2 этажа в одноэтажном проекте или на 1 этаж
+  // в двухэтажном. Этажность — поле проекта; полтора этажа (мансарда) и
+  // пустое поле — молчим: у проектов бруса из каталога этажности нет.
+  const этажей = selectedProject ? Number(String(selectedProject[4] == null ? '' : selectedProject[4]).replace(',', '.')) : NaN;
+  if (этажей === 1 || этажей === 2) {
+    const неТот = тексты.find(х => /^lbl_/.test(х.эл) && /дымоход/i.test(х.т) && ((х.т.match(/(?:^|[^\d])([12])\s*этаж/i) || [])[1] || String(этажей)) !== String(этажей));
+    if (неТот) добавить('stove', этажей === 1 ? 'Дымоход на 2 этажа в одноэтажном проекте — выбрать вывод на 1 этаж'
+      : 'Дымоход на 1 этаж в двухэтажном проекте — выбрать вывод на 2 этажа', false, неТот.эл);
+  }
 
   // 9-3. Водяной тёплый пол — со стяжкой.
   if (найти(/водян\S*[^\n]*т[её]пл\S*\s+пол|т[её]пл\S*\s+пол[^\n]*водян/i) && !найти(/стяжк/i))
@@ -38219,11 +38273,38 @@ function проверкаПоЧекЛисту() {
   // 9-6. Котёл — техническое помещение.
   if (хоть(['eng19', 'eng20', 'eng21']) || найти(/кот[её]л/i)) спросить('Котёл в расчёте — согласовано ли техническое помещение под него?', 'engineering', отмеченнаяИз(['eng19', 'eng20', 'eng21']) || (найти(/кот[её]л/i) || {}).эл);
 
+  // С-ДЗ 5, 7, 8. Этапы оплаты договора: в сумме — цена договора; авансы
+  // кратны 5 000 ₽; финальный платёж не больше 50 000 ₽ и собирает остатки
+  // округления, поэтому бывает некруглым. Этап за фундамент — по смете,
+  // кратности не требует. У договора без финального платежа (основного)
+  // остатки собирает последний этап — его кратность не проверяется.
+  // Раздел пунктов — платёжный план ('pp'), нажатие открывает его окно.
+  if (typeof getPPContracts === 'function' && typeof ppState !== 'undefined') getPPContracts().forEach(c => {
+    const st = ppState[c.id];
+    if (!st || !Array.isArray(st.amounts)) return;
+    const цена = ppGetTotal(c);
+    if (!(цена > 0)) return;
+    const этапы = c.payments.filter(p => !p.final && !p.finalFixed);
+    const сФиналом = !!(st.hasFinal || st.hasFinalFixed);
+    const сумма = st.amounts.reduce((а, б) => а + (б || 0), 0) + (сФиналом ? (st.finalAmt || 0) : 0);
+    const договор = '«' + c.name + '»';
+    if (Math.abs(сумма - цена) > 10)
+      добавить('pp', 'Этапы оплаты договора ' + договор + ' не сходятся с ценой: этапы ' + ppFmt(сумма) + ' ₽, цена ' + ppFmt(цена) + ' ₽', false, '');
+    const собираетОстатки = сФиналом ? -1 : этапы.length - 1;
+    const некратный = этапы.findIndex((p, i) => i !== собираетОстатки && !p.foundationFixed && (st.amounts[i] || 0) % 5000 !== 0);
+    if (некратный >= 0)
+      добавить('pp', 'Этап «' + этапы[некратный].label + '» договора ' + договор + ' — округлить вверх до 5 000 ₽, разницу — в финальный платёж', false, '');
+    if (сФиналом && (st.finalAmt || 0) > 50000)
+      добавить('pp', 'Финальный платёж договора ' + договор + ' — ' + ppFmt(st.finalAmt) + ' ₽, не больше 50 000 ₽: разницу — на прежние этапы', false, '');
+  });
+
   const порядок = SECTIONS.map(с => с.key);
-  замечания.sort((а, б) => (б.стоп - а.стоп) || (порядок.indexOf(а.раздел) - порядок.indexOf(б.раздел)));
+  const место = к => { const и = порядок.indexOf(к); return и < 0 ? порядок.length : и; };
+  замечания.sort((а, б) => (б.стоп - а.стоп) || (место(а.раздел) - место(б.раздел)));
   return { замечания, вопросы, адреса };
 }
 function имяРаздела(ключ) {
+  if (ключ === 'pp') return 'Платёжный план';
   const с = SECTIONS.find(x => x.key === ключ);
   return с ? с.name.replace(/^\d+\.\s*/, '') : '';
 }
@@ -38349,6 +38430,8 @@ function запланироватьСчётчикПроверки() {
 // шапку и коротко подсвечивается.
 function кРазделуИзПроверки(ключ, строкаИд) {
   закрытьКарточкуЗначка();
+  // Пункты платёжного плана правятся в его окне — оно и открывается.
+  if (ключ === 'pp') { try { openPaymentPlan(); } catch (e) {} return; }
   // Строка есть и видна — встаёт посередине между шапкой и полоской итога и
   // коротко подсвечивается. Скрыта «глазом» или её нет в этой технологии —
   // переход, как прежде, к шапке раздела. Адресов может быть несколько через
