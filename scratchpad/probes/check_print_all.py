@@ -121,6 +121,18 @@ def прогон(бр, порт, ш, полный):
     с = стр.evaluate(СПИСОК)
     if кн["т"] != "Печать · 6" or [х["да"] for х in с][-1]:
         плохо(f"{н} снятая галочка: {кн}, {с[-1]}")
+    # Список не закрывается от галочки — их ставят по одной (Константин,
+    # 18.10.2026: «чтобы можно было галочки по одной нажимать и окно не
+    # закрывалось. Сейчас закрывается, каждый раз когда нажимаю»).
+    открыт = "() => getComputedStyle(document.getElementById('printAllMenu')).display !== 'none'"
+    if not стр.evaluate(открыт):
+        плохо(f"{н} список «Печатать всё» закрылся после галочки")
+    else:
+        стр.locator("#printAllMenu .pa-i", has_text="Правила").click(); стр.wait_for_timeout(200)
+        кн2 = стр.evaluate("() => document.querySelector('#printAllMenu .pa-go').textContent.trim()")
+        if not стр.evaluate(открыт) or кн2 != "Печать · 5":
+            плохо(f"{н} вторая галочка подряд: список открыт {стр.evaluate(открыт)}, кнопка «{кн2}»")
+        стр.locator("#printAllMenu .pa-i", has_text="Правила").click(); стр.wait_for_timeout(200)
     стр.evaluate("() => { закрытьКомплект(); }"); стр.locator("#printAllBtn").click(); стр.wait_for_timeout(200)
     if стр.evaluate(СПИСОК)[-1]["да"]:
         плохо(f"{н} снятая галочка не запомнилась")
@@ -164,6 +176,17 @@ def прогон(бр, порт, ш, полный):
             плохо(f"{н} в комплекте остался счётчик страниц")
         if "Версия " not in к_["h"]:
             плохо(f"{н} в комплекте пропала версия договора")
+        # Safari на iPhone именованных страниц не знает: у всех листов комплекта
+        # поля по умолчанию. Лист шире поля — и Safari уменьшает всё задание
+        # (18.10.2026, «в общей печати вот так первый лист мелко»). Комплект
+        # открывается без свойства page в ширину A4 за вычетом полей Safari.
+        сф = бр.new_page(viewport={"width": 704, "height": 1000}); сф.emulate_media(media="print")
+        сф.set_content(re.sub(r"(?<![-\w])page\s*:\s*[^;{}]+;?", "", к_["h"]), wait_until="load"); сф.wait_for_timeout(1200)
+        шире = сф.evaluate("""() => { const W = document.documentElement.clientWidth;
+          return [...document.body.children].filter(б => б.scrollWidth > W + 1).map(б => б.className + ' ' + б.scrollWidth); }""")
+        сф.close()
+        if шире:
+            плохо(f"{н} в печати Safari лист комплекта шире поля страницы — Safari уменьшит всё задание: {шире}")
         ключи = стр.evaluate("() => документыКомплекта().filter(х => х.можно).map(х => х.к)")
         with tempfile.TemporaryDirectory() as папка:
             отд = {кл: в_пдф(к, стр.evaluate("async (к) => сПалитрой(await htmlДокументаКомплекта(к))", кл), f"{папка}/{кл}.pdf") for кл in ключи}
