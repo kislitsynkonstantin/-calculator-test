@@ -17,7 +17,7 @@
     пункт: в печати его нет, номера в разделе подряд, ссылка «п. 5.6» в
     пункте о кредите стала «п. 5.5»; ссылка на убранный пункт — предупреждение
     в списке изменений;
-  • печать, PDF и Word — с правками, без инструментов, зачёркиваний и черты:
+  • печать, PDF и Word — с правками, без инструментов, зачёркиваний и заливки:
     черта у изменённого пункта только на экране;
   • строка «Текст договора изменён: N пунктов · кто, роль, дата» вне правки;
   • каждая правка — строка журнала «Текст договора изменён» с пунктом, было и
@@ -151,9 +151,12 @@ def прогон(бр, порт, ш):
         НАХОДКИ.append(f"{н} в печати остались инструменты, зачёркивания или поля правки: {п['инстр']}")
     # Черта у изменённого — только на экране.
     черта = стр.evaluate("""async () => { const к = document.createElement('iframe'); document.body.appendChild(к); const д = к.contentDocument; д.open(); д.write(сПалитрой(htmlОткрытогоДокумента())); д.close();
-      await new Promise(r => setTimeout(r, 200)); const п = д.querySelector('p.пр-изм'); const экр = п ? к.contentWindow.getComputedStyle(п, '::before').content : null; к.remove(); return экр; }""")
-    if черта in (None, "none", "normal"):
-        НАХОДКИ.append(f"{н} у изменённого пункта на экране нет черты: {черта}")
+      await new Promise(r => setTimeout(r, 200)); const п = д.querySelector('p.пр-изм');
+      const экр = п ? { слой: к.contentWindow.getComputedStyle(п, '::before').content, фон: к.contentWindow.getComputedStyle(п).backgroundColor } : null; к.remove(); return экр; }""")
+    # С 18.10.2026 черты сбоку нет нигде («Вот боковое выделение убери — нигде
+    # его не используй»): изменённый пункт на экране — бледной заливкой.
+    if not черта or черта["фон"] in ("rgba(0, 0, 0, 0)", "transparent") or черта["слой"] not in ("none", "normal"):
+        НАХОДКИ.append(f"{н} изменённый пункт на экране не залит или снова с чертой: {черта}")
     if ш == 1440:
         печать = стр.context.new_page()
         печать.set_content(стр.evaluate("() => сПалитрой(htmlОткрытогоДокумента())")); печать.emulate_media(media="print"); печать.wait_for_timeout(300)
@@ -218,7 +221,11 @@ def прогон(бр, порт, ш):
         стр.evaluate("(н) => { document.body.classList.toggle('dark', н); переключитьПравкуДоговора(true); }", ночь); стр.wait_for_timeout(400)
         кт = стр.evaluate("""() => { const ц = с => { const м = с.match(/[\\d.]+/g).map(Number); return м.slice(0, 3); };
           const я = rgb => { const к = x => { x /= 255; return x <= .03928 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4; }; const [r, g, b] = rgb.map(к); return .2126 * r + .7152 * g + .0722 * b; };
-          const фон = э => { while (э) { const б = getComputedStyle(э).backgroundColor; if (б && !/rgba\\(0, 0, 0, 0\\)|transparent/.test(б)) return б; э = э.parentElement; } return 'rgb(255,255,255)'; };
+          const фон = э => { const слои = []; while (э) { const б = getComputedStyle(э).backgroundColor; const м = (б.match(/[\\d.]+/g) || []).map(Number);
+              if (м.length >= 3 && !(м.length === 4 && м[3] === 0)) { слои.push(м); if (м.length < 4 || м[3] >= 1) break; } э = э.parentElement; }
+            let ц_ = [255, 255, 255]; if (слои.length && (слои[слои.length - 1].length < 4 || слои[слои.length - 1][3] >= 1)) ц_ = слои.pop().slice(0, 3);
+            for (let и = слои.length - 1; и >= 0; и--) { const [r, g, b, a] = слои[и]; ц_ = [r * a + ц_[0] * (1 - a), g * a + ц_[1] * (1 - a), b * a + ц_[2] * (1 - a)]; }
+            return 'rgb(' + ц_.join(',') + ')'; };
           const д = document.querySelector('#contractPreviewDoc iframe').contentDocument;
           return [...document.querySelectorAll('.пр-полоса .пр-баннер span, .пр-полоса .пр-пункт-в, .пр-полоса .пр-пункт-ш span, .пр-полоса .пр-низ, .пр-полоса .пр-кн, .пр-полоса .пр-пусто'), ...д.querySelectorAll('.пр-инстр .пр-кн, .пр-прим')].map(э => {
             const а = я(ц(getComputedStyle(э).color)), б = я(ц(фон(э))); return [э.className || э.tagName, ((Math.max(а, б) + .05) / (Math.min(а, б) + .05))]; }); }""")
