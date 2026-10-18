@@ -488,6 +488,30 @@
       });
       return о;
     };
+    /* `.or('a.eq.1,and(b.in.(x,y),c.in.(z))')` — как PostgREST: условия через
+       запятую верхнего уровня, `and(…)` — все внутри. Понимает eq и in. */
+    о.or = function (выр) {
+      function части(т) {
+        var out = [], гл = 0, нач = 0;
+        for (var i = 0; i < т.length; i++) {
+          if (т[i] === '(') гл++; else if (т[i] === ')') гл--;
+          else if (т[i] === ',' && гл === 0) { out.push(т.slice(нач, i)); нач = i + 1; }
+        }
+        out.push(т.slice(нач)); return out;
+      }
+      function годится(р, усл) {
+        if (/^and\(/.test(усл)) return части(усл.slice(4, -1)).every(function (у) { return годится(р, у); });
+        if (/^or\(/.test(усл)) return части(усл.slice(3, -1)).some(function (у) { return годится(р, у); });
+        var м = усл.match(/^([^.]+)\.(eq|in)\.(.*)$/);
+        if (!м) return false;
+        var в = значение(р, м[1]);
+        if (м[2] === 'eq') return String(в) === м[3];
+        return части(м[3].replace(/^\(|\)$/g, '')).indexOf(String(в)) >= 0;
+      }
+      var у = части(выр);
+      строки = строки.filter(function (р) { return у.some(function (x) { return годится(р, x); }); });
+      return о;
+    };
     о.limit = function (н) { строки = строки.slice(0, н); return о; };
     о.single = о.maybeSingle = function () { один = true; return о; };
     /* Задержка сети: `window.__ЗАДЕРЖКА` (мс) заставляет ответ приходить не
