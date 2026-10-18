@@ -4,7 +4,11 @@
 
 Константин 17.10.2026, раздел «Решения за тобой» макета
 mockups/approval-flow-v1.html: «Вот тут отлично, делай как тут написал».
-Согласуют администратор и редактор; согласование снимает любое изменение
+С 18.10.2026 согласование двойное (Константин: «должно быть 2 согласования:
+от роли Редактор… и от Администратора/Специалиста… Но у меня должно быть
+админское ещё согласование, типа «Согласовать за всех»»): цену согласует
+редактор, чек-лист — администратор или специалист, администратор может
+согласовать оба места разом. Согласование снимает любое изменение
 суммы (опции, цены, проект, толщина, скидка), реквизиты его не снимают; со
 стопом не отправить, вопросы не мешают; весть — в колокольчике.
 
@@ -13,12 +17,20 @@ mockups/approval-flow-v1.html: «Вот тут отлично, делай как
     договоры в окне печати закрыты подписью «После согласования спецификации»;
   • отправка: функция базы получает код, отпечаток текущего расчёта, сумму со
     скидкой и снимок; плашка «Ждёт согласования»; действие в журнале;
-  • проверяющий (редактор): «Вернуть с правками» и «Согласовать»; открытая
+  • два места под плашкой: «Цена» и «Чек-лист», кто и когда или «ждёт»;
+  • проверяющий (редактор): «Вернуть с правками» и «Согласовать цену»; открытая
     правка из чата держит «Согласовать» выключенным и говорит почему, база
     при этом не спрашивается; возврат — плашка «Возвращён с правками»;
   • автор после возврата: число открытых правок и «Отправить снова»;
-  • согласование: отпечаток запомнен; у автора «Согласовано», договоры
+  • согласование цены одно договор не открывает: расчёт ждёт чек-листа, у
+    редактора кнопки «Согласовать» больше нет, автору в колокольчик —
+    «Цена согласована, ждёт чек-листа»; специалист видит «Согласовать
+    чек-лист», после него — «Согласовано», в плашке оба имени, договоры
     открыты, подпись «Согласован ДД.ММ»; реквизиты согласования не снимают;
+  • администратор: «Согласовать чек-лист» и отдельно «Согласовать за всех»;
+    «за всех» согласует оба места, в плашке «за всех»;
+  • специалисту договор без согласования закрыт: проверять он может, а
+    договоры открыты только администратору и редактору;
   • добавленная опция снимает согласование: «Изменён после согласования»,
     «Что изменилось» с опцией, разделом и суммой, договоры снова закрыты;
   • повторная отправка — проверяющий видит только разницу;
@@ -59,7 +71,7 @@ def плохо(т):
   if (!блок) return н;
   const пане = к.querySelector('.pc-pane.on');
   if (пане && пане.scrollWidth > пане.clientWidth + 1) н.push('вкладка «Проверка» шире себя на ' + (пане.scrollWidth - пане.clientWidth) + ' px');
-  блок.querySelectorAll('.pc-st, .pc-row button, .pc-hint, .pc-grp, .pc-ap-df li').forEach(э => {
+  блок.querySelectorAll('.pc-st, .pc-row button, .pc-hint, .pc-grp, .pc-ap-df li, .pc-ap-sl li').forEach(э => {
     const б = э.getBoundingClientRect();
     if (!б.width) return;
     const имя = (э.getAttribute('data-act') || э.className || э.tagName) + ' «' + (э.innerText || '').trim().slice(0, 18) + '»';
@@ -75,8 +87,13 @@ def плохо(т):
     if (h < 43.5) н.push('поле нажатия «' + э.innerText.trim() + '» по высоте ' + Math.round(h) + ' px');
   });
   // Зазоры: кнопки — от плашки, подсказки и друг от друга.
-  const кн = [...блок.querySelectorAll('.pc-row button')];
-  кн.forEach((э, i) => { if (i && э.getBoundingClientRect().left - кн[i - 1].getBoundingClientRect().right < 4) н.push('кнопки ближе 4 px друг к другу'); });
+  // Соседи по ряду — по горизонтали, ряды между собой — по вертикали.
+  const ряды = [...блок.querySelectorAll('.pc-row')];
+  ряды.forEach((р, j) => {
+    const кн = [...р.querySelectorAll('button')];
+    кн.forEach((э, i) => { if (i && э.getBoundingClientRect().left - кн[i - 1].getBoundingClientRect().right < 4) н.push('кнопки ближе 4 px друг к другу'); });
+    if (j && р.getBoundingClientRect().top - ряды[j - 1].getBoundingClientRect().bottom < 6) н.push('ряды кнопок ближе 6 px: ' + Math.round(р.getBoundingClientRect().top - ряды[j - 1].getBoundingClientRect().bottom));
+  });
   const пл = блок.querySelector('.pc-st'), ряд = блок.querySelector('.pc-row');
   if (пл && ряд && ряд.getBoundingClientRect().top - пл.getBoundingClientRect().bottom < 8) н.push('кнопки прилипли к плашке: ' + Math.round(ряд.getBoundingClientRect().top - пл.getBoundingClientRect().bottom) + ' px');
   const подс = блок.querySelector('.pc-row + .pc-hint');
@@ -90,18 +107,24 @@ def вёрстка(стр, н, что):
         плохо(f"{н} {что}: {т}")
 
 
-# База согласования — по правилам миграции preset_approval: решает только
-# администратор и редактор, согласовать нельзя при открытой правке чата.
+# База согласования — по правилам миграций preset_approval и
+# preset_approval_two_slots: цену решает редактор, чек-лист — администратор
+# или специалист, «за всех» — администратор; согласовать нельзя при открытой
+# правке чата; расчёт согласован, когда оба места согласованы одним отпечатком.
 ДАННЫЕ = """(код) => {
   const т = window.__ТАБЛИЦЫ;
   т.profiles.push({ id: 'u-ред', role: 'editor', first_name: 'Ольга', last_name: 'Проверкина' });
+  т.profiles.push({ id: 'u-спец', role: 'specialist', first_name: 'Нина', last_name: 'Офисная' });
   т.preset_messages = [];
   т.preset_approvals = [];
   window.__ВЫЗОВЫ = [];
   window.__RPC.preset_chat_join = (а) => а.p_code === код ? new Date(Date.now() - 864e5).toISOString() : null;
   window.__RPC.preset_chat_read = () => null;
   window.__RPC.preset_chat_mark = (а) => { const с = т.preset_messages.find(х => х.id === а.p_id); if (!с) return null; с.review_state = а.p_state; return Object.assign({}, с); };
-  const кто = () => window._sbProfile && window._sbProfile.role === 'editor' ? ['u-ред', 'Ольга Проверкина'] : ['u-проба', 'Проба Пробная'];
+  const кто = () => { const р = window._sbProfile && window._sbProfile.role;
+    return р === 'editor' ? ['u-ред', 'Ольга Проверкина'] : р === 'specialist' ? ['u-спец', 'Нина Офисная'] : р === 'admin' ? ['u-адм', 'Константин Главный'] : ['u-проба', 'Проба Пробная']; };
+  const МЕСТА = ['price', 'check'];
+  const снять = (с, м) => { с[м + '_by'] = null; с[м + '_name'] = null; с[м + '_at'] = null; с[м + '_print'] = null; };
   window.__RPC.preset_approval_send = (а) => {
     window.__ВЫЗОВЫ.push(['send', JSON.parse(JSON.stringify(а))]);
     if (window.__СБОЙ_СОГЛАСОВАНИЯ) return { __ошибка: 'нет связи' };
@@ -109,18 +132,32 @@ def вёрстка(стр, н, что):
     if (!с) { с = { code: а.p_code }; т.preset_approvals.push(с); }
     Object.assign(с, { state: 'pending', preset_name: а.p_preset, project_name: а.p_project, sent_by: кто()[0], sent_name: кто()[1],
       sent_at: new Date().toISOString(), sent_total: а.p_total, sent_print: а.p_print, sent_snapshot: а.p_snapshot,
-      decided_by: null, decided_name: null, decided_at: null });
+      decided_by: null, decided_name: null, decided_at: null, for_all: false });
+    МЕСТА.forEach(м => { if (с[м + '_print'] !== а.p_print) снять(с, м); });
     return Object.assign({}, с);
   };
   window.__RPC.preset_approval_decide = (а) => {
     window.__ВЫЗОВЫ.push(['decide', JSON.parse(JSON.stringify(а))]);
-    if (!window._sbProfile || ['admin', 'editor'].indexOf(window._sbProfile.role) < 0) return { __ошибка: 'согласуют администратор и редактор' };
+    const р = (window._sbProfile || {}).role || '';
+    if (['admin', 'editor', 'specialist'].indexOf(р) < 0) return { __ошибка: 'согласуют редактор, администратор и специалист' };
+    if (['price', 'check', 'all'].indexOf(а.p_slot) < 0) return { __ошибка: 'неверное место согласования' };
+    if (а.p_slot === 'price' && р !== 'editor') return { __ошибка: 'цену согласует редактор' };
+    if (а.p_slot === 'check' && ['admin', 'specialist'].indexOf(р) < 0) return { __ошибка: 'чек-лист согласует администратор или специалист' };
+    if (а.p_slot === 'all' && р !== 'admin') return { __ошибка: 'согласовать за всех может администратор' };
     if (а.p_state === 'approved' && т.preset_messages.some(м => м.code === а.p_code && м.review_state === 'open')) return { __ошибка: 'есть открытые правки' };
     const с = т.preset_approvals.find(х => х.code === а.p_code);
     if (!с) return { __ошибка: 'расчёт не отправлен на согласование' };
-    Object.assign(с, { state: а.p_state, decided_by: кто()[0], decided_name: кто()[1], decided_at: new Date().toISOString() });
-    if (а.p_state === 'approved') Object.assign(с, { approved_by: кто()[0], approved_name: кто()[1], approved_at: new Date().toISOString(),
-      approved_total: а.p_total, approved_print: а.p_print, approved_snapshot: а.p_snapshot });
+    if (с.state !== 'pending') return { __ошибка: 'расчёт сейчас не ждёт согласования' };
+    const мои = а.p_slot === 'all' ? МЕСТА : [а.p_slot];
+    Object.assign(с, { decided_by: кто()[0], decided_name: кто()[1], decided_at: new Date().toISOString() });
+    if (а.p_state === 'returned') { с.state = 'returned'; с.for_all = false; мои.forEach(м => снять(с, м)); return Object.assign({}, с); }
+    с.for_all = а.p_slot === 'all';
+    МЕСТА.forEach(м => {
+      if (мои.includes(м)) Object.assign(с, { [м + '_by']: кто()[0], [м + '_name']: кто()[1], [м + '_at']: new Date().toISOString(), [м + '_print']: а.p_print });
+      else if (с[м + '_print'] !== а.p_print) снять(с, м);
+    });
+    if (с.price_print === а.p_print && с.check_print === а.p_print) Object.assign(с, { state: 'approved', approved_by: кто()[0], approved_name: кто()[1],
+      approved_at: new Date().toISOString(), approved_total: а.p_total, approved_print: а.p_print, approved_snapshot: а.p_snapshot });
     return Object.assign({}, с);
   };
   _чат = { код: '', сообщения: null, прочитано: 0, ошибка: '', грузится: false, когда: 0, нет: false };
@@ -132,6 +169,7 @@ def вёрстка(стр, н, что):
     кнопки: б ? [...б.querySelectorAll('.pc-row button')].map(х => ({ т: х.innerText.trim(), выкл: х.disabled, act: х.getAttribute('data-act') })) : [],
     подсказки: б ? [...б.querySelectorAll('.pc-hint')].map(х => х.innerText.trim()) : [],
     разница: б ? [...б.querySelectorAll('.pc-ap-df li')].map(х => х.innerText.replace(/\\s+/g, ' ').trim()) : [],
+    места: б ? [...б.querySelectorAll('.pc-ap-sl li')].map(х => ({ к: х.querySelector('.pc-ap-sl-k').innerText.trim(), в: х.querySelector('.pc-ap-sl-v').innerText.trim(), да: х.classList.contains('pc-ap-sl-ok') })) : [],
     группа: б ? ((б.querySelector('.pc-grp') || {}).innerText || '').replace(/\\s+/g, ' ').trim() : '',
     договор: договорДоступен() }; }"""
 
@@ -239,8 +277,9 @@ def прогон(бр, порт, ш, в, ночь, полный):
     if о["код"] != код or not о["отпечаток"] or о["сумма"] != о["соСкидкой"] or not о["снимок"] or not о["журнал"]:
         плохо(f"{н} отправка на согласование: {о}")
     с = стр.evaluate(СОСТОЯНИЕ)
-    if "Ждёт согласования" not in с["плашка"] or с["кнопки"]:
+    if "Ждёт согласования" not in с["плашка"] or с["кнопки"] or с["места"] != [{"к": "Цена", "в": "ждёт", "да": False}, {"к": "Чек-лист", "в": "ждёт", "да": False}]:
         плохо(f"{н} после отправки: {с}")
+    вёрстка(стр, н, "ждёт согласования, автор")
 
     # ── проверяющий: открытая правка держит «Согласовать» ──
     роль(стр, "editor")
@@ -250,13 +289,13 @@ def прогон(бр, порт, ш, в, ночь, полный):
     стр.evaluate("() => загрузитьЧат(true)"); стр.wait_for_timeout(500)
     с = стр.evaluate(СОСТОЯНИЕ)
     кн = {к["act"]: к for к in с["кнопки"]}
-    if "Ждёт согласования" not in с["плашка"] or set(кн) != {"ap-back", "ap-ok"} or not кн["ap-ok"]["выкл"] or кн["ap-back"]["выкл"] or not any("открытых правок не останется" in п for п in с["подсказки"]):
+    if "Ждёт согласования" not in с["плашка"] or set(кн) != {"ap-back", "ap-ok"} or кн["ap-ok"]["т"] != "Согласовать цену" or not кн["ap-ok"]["выкл"] or кн["ap-back"]["выкл"] or not any("открытых правок не останется" in п for п in с["подсказки"]):
         плохо(f"{н} проверяющий при открытой правке: {с}")
     вёрстка(стр, н, "проверяющий, открытая правка")
     стр.mouse.move(5, 5)
     стр.screenshot(path=str(СНИМКИ / f"approval-review-{ш}{'-n' if ночь else ''}.png"))
     было = стр.evaluate("() => window.__ВЫЗОВЫ.length")
-    стр.evaluate("() => решитьСогласование('approved')"); стр.wait_for_timeout(300)
+    стр.evaluate("() => решитьСогласование('approved', 'price')"); стр.wait_for_timeout(300)
     if стр.evaluate("() => window.__ВЫЗОВЫ.length") != было:
         плохо(f"{н} «Согласовать» при открытой правке спросило базу")
     нажать(стр, "ap-back")
@@ -285,11 +324,40 @@ def прогон(бр, порт, ш, в, ночь, полный):
         плохо(f"{н} «Согласовать» выключено без открытых правок: {с}")
     нажать(стр, "ap-ok")
     а = стр.evaluate("(код) => window.__ТАБЛИЦЫ.preset_approvals.find(х => х.code === код)", код)
+    if not а or а.get("state") != "pending" or а.get("price_name") != "Ольга Проверкина" or а.get("check_by"):
+        плохо(f"{н} согласование цены: {а}")
+    if not any(т == "Цена согласована — ждёт чек-листа" for т in стр.evaluate("() => window.__тосты")):
+        плохо(f"{н} тост после согласования цены: {стр.evaluate('() => window.__тосты.slice(-3)')}")
+    с = стр.evaluate(СОСТОЯНИЕ)
+    if [к["act"] for к in с["кнопки"]] != ["ap-back"] or not any("Цену вы согласовали" in п for п in с["подсказки"]) \
+            or not (с["места"] and с["места"][0]["да"] and с["места"][0]["в"].startswith("Ольга П.") and not с["места"][1]["да"]):
+        плохо(f"{н} редактор после своего согласования: {с}")
+    вёрстка(стр, н, "редактор согласовал цену")
+    роль(стр, "manager")
+    с = стр.evaluate(СОСТОЯНИЕ)
+    if "Ждёт согласования" not in с["плашка"] or с["договор"]:
+        плохо(f"{н} одно согласование цены открыло договор или сняло ожидание: {с}")
+    стр.evaluate("(код) => { window.__ТАБЛИЦЫ.preset_approvals.find(х => х.code === код).sent_by = 'u-проба'; }", код)
+    у = стр.evaluate("""async () => { await собратьУведомления(); return _уведомления.filter(у => у.согласование).map(у => у.текст.replace(/<[^>]+>/g, '')); }""")
+    if not any(т.startswith("Цена согласована, ждёт чек-листа") for т in у):
+        плохо(f"{н} колокольчик автора без половины пути: {у}")
+    # Специалист: договоры без согласования ему закрыты; чек-лист — его место.
+    роль(стр, "specialist")
+    с = стр.evaluate(СОСТОЯНИЕ)
+    кн = {к["act"]: к for к in с["кнопки"]}
+    if кн.get("ap-ok", {}).get("т") != "Согласовать чек-лист" or "ap-all" in кн or с["договор"]:
+        плохо(f"{н} специалист перед согласованием чек-листа: {с}")
+    вёрстка(стр, н, "специалист")
+    стр.mouse.move(5, 5)
+    стр.screenshot(path=str(СНИМКИ / f"approval-half-{ш}{'-n' if ночь else ''}.png"))
+    нажать(стр, "ap-ok")
+    а = стр.evaluate("(код) => window.__ТАБЛИЦЫ.preset_approvals.find(х => х.code === код)", код)
     if not а or а.get("state") != "approved" or а.get("approved_print") != стр.evaluate("() => отпечатокСостава(составДляСогласования())"):
         плохо(f"{н} согласование не запомнило отпечаток: {а}")
     роль(стр, "manager")
     с = стр.evaluate(СОСТОЯНИЕ)
-    if "Согласовано" not in с["плашка"] or "Договор можно печатать" not in с["плашка"] or not с["договор"]:
+    if "Согласовано" not in с["плашка"] or "Договор можно печатать" not in с["плашка"] or not с["договор"] \
+            or "цена — Ольга П., чек-лист — Нина О." not in с["плашка"]:
         плохо(f"{н} автор после согласования: {с}")
     меню = стр.evaluate(МЕНЮ)
     if not меню or not all(not п["закрыт"] and п["согл"] and re.match(r"^Согласован \d\d\.\d\d$", п["подпись"]) and п["видна"] for п in меню):
@@ -332,7 +400,22 @@ def прогон(бр, порт, ш, в, ночь, полный):
         if "Ждёт согласования" not in с["плашка"] or not any(("Добавлено: " + оп["имя"]) in р for р in с["разница"]):
             плохо(f"{н} проверяющий при повторной отправке не видит разницы: {с}")
         вёрстка(стр, н, "повторное согласование")
+        роль(стр, "admin")
+        с = стр.evaluate(СОСТОЯНИЕ)
+        кн = {к["act"]: к for к in с["кнопки"]}
+        if кн.get("ap-ok", {}).get("т") != "Согласовать чек-лист" or кн.get("ap-all", {}).get("т") != "Согласовать за всех" or кн["ap-all"]["выкл"]:
+            плохо(f"{н} администратор: нет «Согласовать за всех»: {с}")
+        вёрстка(стр, н, "администратор, «за всех»")
+        стр.mouse.move(5, 5)
+        стр.screenshot(path=str(СНИМКИ / f"approval-admin-{ш}{'-n' if ночь else ''}.png"))
+        нажать(стр, "ap-all")
+        а = стр.evaluate("(код) => window.__ТАБЛИЦЫ.preset_approvals.find(х => х.code === код)", код)
+        if not а or а.get("state") != "approved" or not а.get("for_all") or а.get("price_name") != "Константин Главный":
+            плохо(f"{н} «за всех» не согласовало оба места: {а}")
         роль(стр, "manager")
+        с = стр.evaluate(СОСТОЯНИЕ)
+        if "за всех — Константин Г." not in с["плашка"] or not с["договор"]:
+            плохо(f"{н} автор после «за всех»: {с}")
 
     # ── отпечаток тот же у восстановленного того же расчёта ──
     д = стр.evaluate("""async () => { const до = отпечатокСостава(составДляСогласования());
@@ -345,7 +428,7 @@ def прогон(бр, порт, ш, в, ночь, полный):
     # Проверяющий и автор здесь — один вход; своё отправленное колокольчик не
     # показывает, поэтому отправителем ставится другой человек.
     роль(стр, "editor")
-    стр.evaluate("(код) => { const а = window.__ТАБЛИЦЫ.preset_approvals.find(х => х.code === код); Object.assign(а, { state: 'pending', sent_by: 'u-автор', sent_name: 'Пётр Автор' }); }", код)
+    стр.evaluate("(код) => { const а = window.__ТАБЛИЦЫ.preset_approvals.find(х => х.code === код); Object.assign(а, { state: 'pending', sent_by: 'u-автор', sent_name: 'Пётр Автор', price_by: null, price_print: null, check_by: null, check_print: null, for_all: false }); }", код)
     у = стр.evaluate("""async () => { await собратьУведомления(); return _уведомления.filter(у => у.согласование).map(у => у.текст.replace(/<[^>]+>/g, '') + ' · ' + у.автор); }""")
     if not any(т.startswith("Ждёт согласования") and т.endswith("Пётр Автор") for т in у):
         плохо(f"{н} колокольчик проверяющего без «Ждёт согласования» с именем автора: {у}")
@@ -384,7 +467,8 @@ def главная():
         for т in НАХОДКИ:
             print(" —", т)
         sys.exit(1)
-    print("Чисто: отправка с отпечатком и снимком, стоп и отказ базы, возврат с правками и «Согласовать» за открытыми правками, "
+    print("Чисто: два места — цена у редактора, чек-лист у специалиста или администратора, «за всех» у администратора, одно место договор не открывает; "
+          "отправка с отпечатком и снимком, стоп и отказ базы, возврат с правками и «Согласовать» за открытыми правками, "
           "договоры открываются согласованием и закрываются изменением суммы, реквизиты его не снимают, разница при повторном согласовании, "
           "колокольчик обеим сторонам, вёрстка на 390 и 1440 днём и ночью.")
 
