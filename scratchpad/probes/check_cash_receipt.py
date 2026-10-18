@@ -177,6 +177,26 @@ def прогон(бр, порт, ш, полный):
     тса = стр.evaluate("() => { const ф = document.querySelector('#contractPreviewDoc iframe'); const с = getComputedStyle(ф.contentDocument.documentElement); return с.webkitTextSizeAdjust || с.textSizeAdjust || ''; }")
     if тса != "100%":
         плохо(f"{н} у листа ордера не снято укрупнение текста телефоном: «{тса}»")
+    # Линейки многострочных полей при печати — строки, а не заливка
+    # (Константин 18.10.2026: «В превью нормально, а выдает на печать с черными
+    # полосками»). Safari заливал чёрным повторяющийся градиент; Chromium так
+    # не делает, поэтому проба держит и правило — градиентов на листе нет, — и
+    # вид: в печатном виде поле светлое, а черты идут через 15 px.
+    градиенты = стр.evaluate("() => { const д = document.querySelector('#contractPreviewDoc iframe').contentDocument; return [...д.querySelectorAll('*')].filter(э => /gradient\\(/.test(getComputedStyle(э).backgroundImage)).map(э => э.className || э.tagName).slice(0, 5); }")
+    if градиенты:
+        плохо(f"{н} на листе ордера градиенты — Safari печатает их чёрным: {градиенты}")
+    стр.emulate_media(media="print"); стр.wait_for_timeout(300)
+    import io
+    from PIL import Image
+    поля = стр.frame_locator("#contractPreviewDoc iframe").locator(".multi .v")
+    for и in range(поля.count()):
+        к = Image.open(io.BytesIO(поля.nth(и).screenshot())).convert("L")
+        w, h = к.size
+        тёмных = sum(1 for x in к.tobytes() if x < 128) / (w * h)
+        строк = sum(1 for y in range(h) if sum(1 for x in range(w) if к.getpixel((x, y)) < 128) > w * 0.8)
+        if тёмных > 0.35 or not строк:
+            плохо(f"{н} печатный вид поля {и + 1}: тёмного {тёмных:.0%}, черт во всю ширину {строк}")
+    стр.emulate_media(media="screen"); стр.wait_for_timeout(300)
     # Ни одного платежа.
     стр.evaluate("() => { _ордер.отмечены[_ордер.договор] = []; refreshContractPreview(); }"); стр.wait_for_timeout(400)
     п = стр.evaluate(ПАНЕЛЬ)
