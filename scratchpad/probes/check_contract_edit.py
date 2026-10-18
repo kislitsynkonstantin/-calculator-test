@@ -180,6 +180,20 @@ def прогон(бр, порт, ш):
     стр.evaluate("() => { closePrintPreview(); кРазделуИзПроверки('contract', 'договор:1'); }"); стр.wait_for_timeout(1200)
     if not стр.evaluate("() => document.getElementById('printOverlay').style.display === 'block' && previewEntity === 'contract' && _правкаДоговора"):
         НАХОДКИ.append(f"{н} пункт «Проверки» не открыл договор в правке")
+    # Из списка изменений — к пункту в листе (Константин, 18.10.2026: «по
+    # нажатию на правку перекидывай на неё»): пункт встаёт в кадр экрана и
+    # вспыхивает; нажатие по номеру и по отрывку — одинаково.
+    ГДЕ = """(н) => { const ф = document.querySelector('#contractPreviewDoc iframe'), д = ф.contentDocument, п = д.querySelector('[data-pr="' + н + '"]');
+      if (!п) return null; const ф_ = ф.getBoundingClientRect(), р = п.getBoundingClientRect(), верх = ф_.top + р.top;
+      return { верх: Math.round(верх), низ: Math.round(верх + р.height), экран: innerHeight, вспышка: п.classList.contains('пр-вспышка') }; }"""
+    номера = стр.evaluate("() => Object.keys(_правкиДоговора.kar).filter(н => (_типовыеПункты.kar || {})[н]).sort((а, б) => а.localeCompare(б, 'ru', { numeric: true }))")
+    for н_, как in ((номера[-1], ".пр-полоса button.пр-к"), (номера[0], ".пр-полоса .пр-пункт-к")):
+        стр.locator(f'{как}[data-n="{н_}"]').click(); стр.wait_for_timeout(1300)
+        г = стр.evaluate(ГДЕ, н_)
+        if not г or г["верх"] < 0 or г["низ"] > г["экран"] or not г["вспышка"]:
+            НАХОДКИ.append(f"{н} нажатие на правку п. {н_} ({как}) не привело к пункту: {г}")
+        elif н_ == номера[-1]:
+            стр.screenshot(path=str(СНИМКИ / f"contract-jump-{ш}.png"))
     # Типовой текст обновился.
     стр.evaluate("() => { _правкиДоговора.kar['2.5'].база = [{ к: 'p', т: 'прежний типовой текст' }]; renderContractPreviewKarDom(); }"); стр.wait_for_timeout(500)
     if "Типовой текст пункта обновился" not in стр.locator(".пр-полоса").inner_text():
