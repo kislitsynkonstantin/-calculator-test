@@ -110,6 +110,14 @@ def прогон(бр, порт, ш, в, полный):
             плохо(f"{н} подраздел помещения не выделен заливкой")
         if "Техническое задание на строительство" not in д["текст"]:
             плохо(f"{н} в ТЗ нет заголовка")
+        # Внутри пунктов жирного нет (Константин, 18.10.2026: «В ТЗ зачем ты
+        # столько жирным сделал. Внутри пунктов жирным ничего не надо делать»).
+        жир = стр.evaluate("""async (h) => { const ф = document.createElement('iframe'); ф.style.cssText = 'position:fixed;left:-9999px;width:800px;height:600px';
+          document.body.appendChild(ф); ф.srcdoc = h; await new Promise(r => ф.onload = r);
+          const д = ф.contentDocument, в = [...д.querySelectorAll('.tz-r .tz-v, .tz-r .tz-val, .tz-r .tz-p')].map(э => [э.textContent.trim().slice(0, 40), +getComputedStyle(э).fontWeight]);
+          ф.remove(); return в.filter(х => х[1] > 400).slice(0, 5); }""", д["html"])
+        if жир:
+            плохо(f"{н} в PDF ТЗ внутри пунктов жирное: {жир}")
 
     # ── кнопка «Загрузить ТЗ в чат» ──
     стр.locator("#presetChip .pc-body").click(); стр.wait_for_timeout(300)
@@ -141,6 +149,16 @@ def прогон(бр, порт, ш, в, полный):
             import subprocess, tempfile
             ф = pathlib.Path(tempfile.mkdtemp(prefix="tz-")) / "t.pdf"; ф.write_bytes(данные)
             subprocess.run(["pdftoppm", "-r", "80", "-png", str(ф), str(СНИМКИ / "tz-pdf")], check=True)
+            # Последний лист не пустой: на нём больше, чем одни условные
+            # обозначения (так ТЗ выходило с четвёртым листом из одной строки).
+            from PIL import Image, ImageOps
+            листы = sorted(СНИМКИ.glob("tz-pdf-*.png"), key=lambda п: int(п.stem.rsplit("-", 1)[-1]))
+            if листы:
+                к_ = Image.open(листы[-1]).convert("L")
+                ш_, в_ = к_.size
+                тело = ImageOps.invert(к_.crop((0, 0, ш_, int(в_ * 0.92)))).point(lambda v: 255 if v > 40 else 0).getbbox()
+                if not тело or (тело[3] - тело[1]) < в_ * 0.03:
+                    плохо(f"{н} последний лист ТЗ почти пустой — на нём одни условные обозначения ({листы[-1].name})")
 
     # ── Word: те же строки, жёсткие ширины колонок, вёрстка не едет ──
     if полный and not стр.evaluate("() => typeof тзDocx === 'function'"):
@@ -155,6 +173,13 @@ def прогон(бр, порт, ш, в, полный):
         for что in ["Техническое задание на строительство", "Фундамент", "Не входит", "Парная", "Комната отдыха", "Внутренняя отделка"]:
             if что not in текст:
                 плохо(f"{н} в Word ТЗ нет «{что}»")
+        значения = set(стр.evaluate("""() => { const д = данныеТЗ(null), в = [];
+          д.разделы.forEach(р => р.строки.forEach(с => в.push(String(с.з).trim())));
+          д.отделка.общие.forEach(с => в.push(String(с.з).trim())); д.отделка.комнаты.forEach(к => к.строки.forEach(с => в.push(String(с.з).trim())));
+          return в; }"""))
+        жирные = {re.sub(r"<[^>]+>", "", р).strip() for р in re.findall(r"<w:r>(?:(?!</w:r>).)*?<w:b/>(?:(?!</w:r>).)*?</w:r>", xml, re.S)}
+        if жирные & значения:
+            плохо(f"{н} в Word ТЗ внутри пунктов жирное: {sorted(жирные & значения)[:5]}")
         if 'w:tblLayout w:type="fixed"' not in xml:
             плохо(f"{н} таблицы Word ТЗ без жёстких ширин — в Google Документах колонки разъедутся")
         папка = pathlib.Path(tempfile.mkdtemp(prefix="tzdocx-"))

@@ -48,7 +48,7 @@ def прогон(бр, порт, ш, в, ночь):
     код = стр.evaluate("() => { const p = loadAllPresets()[activePresetId]; return p && (p.shortCode || p.sharedId); }")
     if not код:
         плохо(f"{н} пресету не выдан код"); стр.close(); return
-    ждём = "код " + код[:3] + " " + код[3:]
+    ждём = "код\u00a0" + код[:3] + "\u00a0" + код[3:]
     стр.evaluate("() => { window.__RPC.preset_chat_join = () => new Date().toISOString(); window.__RPC.preset_chat_read = () => null; }")
     ч.открыть(стр)
     for вк in ("p", "s", "l", "c", "m"):
