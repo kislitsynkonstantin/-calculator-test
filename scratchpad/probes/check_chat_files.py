@@ -215,6 +215,34 @@ def прогон(бр, порт, ш, в, ночь):
     п = стр.evaluate(ПРОСМОТР)
     if not п or п["имя"] != "Планировка.pdf" or п["счёт"] != "3 из 4":
         плохо(f"{н} нажатие на PDF в ленте: {п}")
+    # Смахнуть вниз — закрыть (Константин, 18.10.2026). PDF, пролистанный
+    # вниз, тем же движением листается назад и не закрывается; в самом верху
+    # просмотр едет за пальцем и закрывается, мини-окно с чатом остаётся.
+    ВНИЗ = """(dy) => { const в = document.querySelector('.ch-view'), т = (y) => new Touch({ identifier: 2, target: в, clientX: 200, clientY: y });
+      в.dispatchEvent(new TouchEvent('touchstart', { touches: [т(200)], changedTouches: [т(200)], bubbles: true }));
+      в.dispatchEvent(new TouchEvent('touchmove', { touches: [т(200 + dy)], changedTouches: [т(200 + dy)], bubbles: true }));
+      const сдвиг = (document.querySelector('.ch-view-body') || {}).style.transform || '';
+      в.dispatchEvent(new TouchEvent('touchend', { touches: [], changedTouches: [т(200 + dy)], bubbles: true }));
+      return сдвиг; }"""
+    стр.wait_for_function("() => document.querySelectorAll('.ch-view-page canvas').length >= 1", timeout=20000)
+    прокр = стр.evaluate("() => { const б = document.querySelector('.ch-view-body'); б.scrollTop = 300; return [б.scrollTop, б.scrollHeight, б.clientHeight]; }")
+    if прокр[0] <= 0:
+        плохо(f"{н} PDF в просмотре не прокручивается — смахивание вниз у пролистанного PDF не проверено: {прокр}")
+    else:
+        стр.evaluate(ВНИЗ, 160); стр.wait_for_timeout(300)
+        if not стр.evaluate("() => !!document.querySelector('.ch-view')"):
+            плохо(f"{н} смахивание вниз закрыло PDF, пролистанный вниз, — ждали прокрутку назад")
+            стр.locator(f"#presetChipCard .pc-chm[data-mid='{мид}'] .pc-chfl[data-act='ch-view']").click(timeout=8000); стр.wait_for_timeout(800)
+        стр.evaluate("() => { document.querySelector('.ch-view-body').scrollTop = 0; }")
+    стр.evaluate(ВНИЗ, 40); стр.wait_for_timeout(300)
+    if not стр.evaluate("() => !!document.querySelector('.ch-view') && !document.querySelector('.ch-view-body').style.transform"):
+        плохо(f"{н} короткое движение вниз закрыло просмотр или оставило его сдвинутым")
+    сдвиг = стр.evaluate(ВНИЗ, 160); стр.wait_for_timeout(300)
+    з = стр.evaluate("() => ({ просмотр: !!document.querySelector('.ch-view'), окно: document.getElementById('presetChipCard').classList.contains('show'), прокрутка: document.documentElement.style.overflow })")
+    if "translateY" not in сдвиг or з["просмотр"] or not з["окно"] or з["прокрутка"]:
+        плохо(f"{н} смахивание вниз в верху просмотра: сдвиг {сдвиг!r}, {з}")
+    if not з["просмотр"]:
+        стр.locator(f"#presetChipCard .pc-chm[data-mid='{мид}'] .pc-chfl[data-act='ch-view']").click(timeout=8000); стр.wait_for_timeout(500)
     стр.locator(".ch-view [data-v='x']").click(); стр.wait_for_timeout(250)
     стр.locator(f"#presetChipCard .pc-chm[data-mid='{мид}'] .pc-chim a").first.click(); стр.wait_for_timeout(600)
     стр.mouse.click(8, в - 8); стр.wait_for_timeout(250)
