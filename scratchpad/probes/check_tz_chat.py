@@ -18,7 +18,11 @@
     помещения залит цветом; подписей сторон нет;
   • без экспликации — помещения расчёта и оговорка об этом;
   • «Загрузить ТЗ в чат» в конце «Сводки» — только у администратора; нажатие
-    кладёт в чат PDF «ТЗ_код_дата.pdf», A4, страницы не пустые;
+    кладёт в чат одним сообщением PDF и Word «ТЗ_код_дата»; PDF — A4,
+    страницы не пустые;
+  • Word (Константин, 18.10.2026: «в PDF и docX, для гугл документов.
+    Проверь, чтобы верстка не ехала»): те же строки, таблицы с жёсткими
+    ширинами колонок, открывается LibreOffice, текст не упирается в край;
   • «Подписан» кладёт в чат и заключение, и ТЗ.
 
     python3 check_tz_chat.py
@@ -122,7 +126,12 @@ def прогон(бр, порт, ш, в, полный):
         кн.click()
         if not ждатьPdf(стр, f"ТЗ_{код}_"):
             плохо(f"{н} «Загрузить ТЗ в чат» не положила PDF в чат: {ошибки[:3]}")
-        elif полный:
+        else:
+            стр.wait_for_timeout(800)
+            вл = стр.evaluate("(и) => { const с = window.__ТАБЛИЦЫ.preset_messages.filter(х => (х.attachments || []).some(в => (в.name || '').startsWith(и))).pop(); return с ? с.attachments.map(в => в.name) : []; }", f"ТЗ_{код}_")
+            if not (any(x.endswith(".pdf") for x in вл) and any(x.endswith(".docx") for x in вл)):
+                плохо(f"{н} в сообщении с ТЗ нет пары PDF и Word: {вл}")
+        if кн.count() and полный:
             данные = base64.b64decode(стр.evaluate("(и) => window.__PDF.find(п => п.имя.startsWith(и)).данные", f"ТЗ_{код}_"))
             картинки, инфо = з.страницыPdf(данные, н)
             if "595.28 x 841.89" not in инфо and "595 x 842" not in инфо:
@@ -132,6 +141,35 @@ def прогон(бр, порт, ш, в, полный):
             import subprocess, tempfile
             ф = pathlib.Path(tempfile.mkdtemp(prefix="tz-")) / "t.pdf"; ф.write_bytes(данные)
             subprocess.run(["pdftoppm", "-r", "80", "-png", str(ф), str(СНИМКИ / "tz-pdf")], check=True)
+
+    # ── Word: те же строки, жёсткие ширины колонок, вёрстка не едет ──
+    if полный and not стр.evaluate("() => typeof тзDocx === 'function'"):
+        плохо(f"{н} в калькуляторе нет сборки ТЗ в Word")
+    elif полный:
+        import io, re, subprocess, tempfile, zipfile
+        б64 = стр.evaluate("""async () => { const б = await тзDocx(данныеТЗ(null)); const м = new Uint8Array(await б.arrayBuffer()); let s = '';
+          for (let i = 0; i < м.length; i += 8192) s += String.fromCharCode.apply(null, м.subarray(i, i + 8192)); return btoa(s); }""")
+        байты = base64.b64decode(б64)
+        xml = zipfile.ZipFile(io.BytesIO(байты)).read("word/document.xml").decode("utf8")
+        текст = re.sub(r"<[^>]+>", "", xml)
+        for что in ["Техническое задание на строительство", "Фундамент", "Не входит", "Парная", "Комната отдыха", "Внутренняя отделка"]:
+            if что not in текст:
+                плохо(f"{н} в Word ТЗ нет «{что}»")
+        if 'w:tblLayout w:type="fixed"' not in xml:
+            плохо(f"{н} таблицы Word ТЗ без жёстких ширин — в Google Документах колонки разъедутся")
+        папка = pathlib.Path(tempfile.mkdtemp(prefix="tzdocx-"))
+        (папка / "tz.docx").write_bytes(байты)
+        subprocess.run(["soffice", "--headless", "--convert-to", "pdf", "--outdir", str(папка), str(папка / "tz.docx")], capture_output=True, timeout=180)
+        if not (папка / "tz.pdf").exists():
+            плохо(f"{н} Word ТЗ не открылся в LibreOffice")
+        else:
+            subprocess.run(["pdftoppm", "-r", "60", "-png", str(папка / "tz.pdf"), str(СНИМКИ / "tz-docx")], check=True)
+            import pymupdf
+            док = pymupdf.open(str(папка / "tz.pdf"))
+            for i, стр_ in enumerate(док, 1):
+                for б in стр_.get_text("blocks"):
+                    if б[2] > стр_.rect.width - 20:
+                        плохо(f"{н} Word ТЗ, стр. {i}: текст у правого края листа — «{б[4][:40]}»"); break
 
     # ── «Подписан» шлёт и заключение, и ТЗ ──
     стр.evaluate("() => { window.__PDF.length = 0; }")
@@ -176,7 +214,7 @@ def главная():
         sys.exit(1)
     print("Чисто: экспликация читается в помещения, ТЗ — шапка, разделы с договором, «Не входит», отделка по помещениям с выделенным "
           "подразделом, без подписей; без экспликации — помещения расчёта; кнопка «Загрузить ТЗ в чат» только у администратора, "
-          "PDF A4 в чате; «Подписан» шлёт заключение и ТЗ.")
+          "PDF и Word одним сообщением, Word с жёсткими колонками открывается LibreOffice без наезда на край; «Подписан» шлёт заключение и ТЗ.")
 
 
 if __name__ == "__main__":
