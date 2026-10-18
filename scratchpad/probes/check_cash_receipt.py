@@ -164,6 +164,17 @@ def прогон(бр, порт, ш, полный):
     стр.evaluate("() => выбратьОрдер()"); стр.wait_for_timeout(500)
     if стр.evaluate("() => document.getElementById('koNum').value"):
         плохо(f"{н} стёртый номер ордера подставился снова")
+    # Правки в панели ордера помечают пресет изменённым — автосохранение
+    # уносит ордер вместе с расчётом.
+    стр.evaluate("() => { window.__грязно = 0; const был = window.пометитьПресетГрязным; window.пометитьПресетГрязным = function () { window.__грязно++; return был.apply(this, arguments); }; }")
+    стр.locator("#koNum").click(); стр.keyboard.type("4"); стр.wait_for_timeout(300)
+    стр.locator("#contractPreviewDoc .ко-кнопка").click(); стр.wait_for_timeout(200)
+    стр.locator('#contractPreviewDoc [data-ko-p="1"]').click(); стр.wait_for_timeout(400)
+    стр.locator('#contractPreviewDoc [data-ko-p="1"]').click(); стр.wait_for_timeout(400)
+    стр.mouse.click(5, 5); стр.wait_for_timeout(200)
+    if стр.evaluate("() => window.__грязно") < 3:
+        плохо(f"{н} правка ордера не пометила пресет изменённым: {стр.evaluate('() => window.__грязно')}")
+    стр.locator("#koNum").click(); стр.keyboard.press("Control+A"); стр.keyboard.press("Backspace"); стр.wait_for_timeout(300)
     # Кнопка «Печать» окна печати печатает ордер, а не договор и не спецификацию
     # (Константин, 18.10.2026: «когда нажимаю печать, печатает договор»).
     стр.evaluate("() => { const ф = document.getElementById('contractPrintFrame'); if (ф) ф.remove(); window.__печатьСпец = 0; const был = window.print; window.print = function () { window.__печатьСпец++; }; }")
