@@ -81,7 +81,7 @@ def сервер():
 ОСМОТР = """() => {
   const кар = document.querySelector('#sharedPresetList .shared-pcard[data-scode="111111"]');
   const замок = кар && кар.querySelector('.btn-shared-lock');
-  const скач = кар && [...кар.querySelectorAll('.btn-shared-act')].find(к => /Скачать/.test(к.getAttribute('title') || ''));
+  const скач = кар && [...кар.querySelectorAll('.btn-shared-act')].find(к => /Скачать/.test(к.getAttribute('aria-label') || к.getAttribute('title') || ''));
   const вид = e => { const c = getComputedStyle(e); return c.backgroundColor + ' | ' + c.borderTopColor; };
   const все = кар ? [...кар.querySelectorAll('.shared-pcard-actions > *')] : [];
   const мойЗамок = document.querySelector('#presetList .pcard .btn-shared-lock');
@@ -150,7 +150,7 @@ def главная():
                     стр.evaluate("() => { _замокВПути.set('111111', false); перерисоватьЗамок('111111'); }")
                     стр.wait_for_timeout(200)
                     вп = стр.evaluate("""() => { const к = document.querySelector('#sharedPresetList .shared-pcard[data-scode="111111"]');
-                      const з = к.querySelector('.btn-shared-lock'); const с = [...к.querySelectorAll('.btn-shared-act')].find(x => /Скачать/.test(x.getAttribute('title') || ''));
+                      const з = к.querySelector('.btn-shared-lock'); const с = [...к.querySelectorAll('.btn-shared-act')].find(x => /Скачать/.test(x.getAttribute('aria-label') || x.getAttribute('title') || ''));
                       const в = e => { const c = getComputedStyle(e); return c.backgroundColor + ' | ' + c.borderTopColor; };
                       return { ждёт: з.classList.contains('wait'), замок: в(з), скач: в(с) }; }""")
                     if not вп["ждёт"] or вп["замок"] == вп["скач"]:
