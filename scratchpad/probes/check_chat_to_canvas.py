@@ -61,6 +61,33 @@ def отправить(стр, файлы, текст=""):
     стр.locator("#presetChipCard [data-act='ch-send']").click(); стр.wait_for_timeout(600)
 
 
+ДОКУМЕНТЫ = {}
+
+
+def документы(бр):
+    """Два PDF без видов и планировок: текстовый (как договор или смета) и
+    листы картинками во всю страницу (так собирается ТЗ на строительство)."""
+    if ДОКУМЕНТЫ:
+        return ДОКУМЕНТЫ
+    с = бр.new_page(viewport={"width": 794, "height": 1123})
+    строки = "".join(f"<tr><td>{н}.1</td><td>Пункт работ учебный {н}</td><td>Не входит</td></tr>" for н in range(1, 40))
+    тз = ("<html><head><meta charset='utf-8'><style>body{font-family:sans-serif;margin:40px}h1{color:#24271f}"
+          "td{border-bottom:1px solid #dfe3dc;padding:4px 8px;font-size:12px}h2{border-bottom:2px solid #70ad34;color:#24271f}</style></head>"
+          "<body><div style='color:#4f7d26;font-size:10px'>ПРИЛОЖЕНИЕ К ДОГОВОРУ ПОДРЯДА · КОД 000 000</div><h1>Техническое задание на строительство</h1>"
+          "<h2>01 Фундамент</h2><table>" + строки + "</table></body></html>")
+    с.set_content(тз); с.wait_for_timeout(200)
+    ДОКУМЕНТЫ["текст"] = с.pdf(format="A4", print_background=True)
+    картинка = с.screenshot(full_page=False)
+    import base64
+    с.set_content("<html><body style='margin:0'><img style='width:210mm;height:297mm;display:block' src='data:image/png;base64,"
+                  + base64.b64encode(картинка).decode() + "'><img style='width:210mm;height:297mm;display:block' src='data:image/png;base64,"
+                  + base64.b64encode(картинка).decode() + "'></body></html>")
+    с.wait_for_timeout(300)
+    ДОКУМЕНТЫ["картинкой"] = с.pdf(format="A4", print_background=True, margin={"top": "0", "bottom": "0", "left": "0", "right": "0"})
+    с.close()
+    return ДОКУМЕНТЫ
+
+
 def прогон(бр, порт, ш, в, ночь):
     н = f"[{ш}{' ночь' if ночь else ''}]"
     стр, ошибки = ч.начать(бр, порт, ш, в, ночь)
@@ -117,6 +144,24 @@ def прогон(бр, порт, ш, в, ночь):
         плохо(f"{н} добавленное из чата ушло копией обратно в чат")
     if стр.locator("#presetChipCard .pc-chvz").count():
         плохо(f"{н} кнопка осталась после нажатия")
+
+    # Только PDF архитектора с планировкой — предложение всплывает, когда
+    # разбор нашёл планировку.
+    отправить(стр, [pdf], "Только планировка")
+    стр.wait_for_timeout(4000)
+    if not стр.locator("#presetChipCard .pc-chvz").count():
+        плохо(f"{н} PDF с планировкой без снимков — кнопка не всплыла")
+    стр.evaluate("() => { if (_чатВВиз) _чатВВиз.закрыто = true; _чатВВиз = null; отрисоватьЧат(); }")
+    # Документы без видов и планировок — ТЗ, договор, смета — не предлагаются
+    # (Константин, 18.10.2026, снимком кнопки под ТЗ: «Не нужно предлагать
+    # добавить»).
+    док = документы(бр)
+    for имя_, байты in (("ТЗ_учебное.pdf", док["картинкой"]), ("Смета_учебная.pdf", док["текст"])):
+        отправить(стр, [{"name": имя_, "mimeType": "application/pdf", "buffer": байты}], "")
+        стр.wait_for_timeout(5000)
+        if стр.locator("#presetChipCard .pc-chvz").count():
+            плохо(f"{н} кнопка всплыла после документа без видов и планировок: {имя_}")
+            стр.evaluate("() => { _чатВВиз = null; отрисоватьЧат(); }")
 
     # Крестик — предложение уходит, полотно не меняется.
     отправить(стр, [снимок])
