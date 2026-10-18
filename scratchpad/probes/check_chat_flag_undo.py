@@ -67,6 +67,15 @@ def плохо(т):
   const зазор = Math.max(ф.left - б.right, б.left - ф.right);
   if (зазор < 4) н.push('«Отменить» вплотную к значку: ' + Math.round(зазор) + ' px');
   if (зазор > 26) н.push('«Отменить» далеко от значка: ' + Math.round(зазор) + ' px');
+  // Вся строка кнопок — в ленте: на телефоне «Выполнено» уходило за её край
+  // (18.10.2026, когда у флажка появилась подпись). Кнопка с подписью,
+  // спрятанной ради места, остаётся значком в ленте.
+  const л = document.getElementById('pcChatList').getBoundingClientRect();
+  м_.querySelectorAll('.pc-chact button').forEach(к2 => { const r2 = к2.getBoundingClientRect();
+    if (r2.left < л.left - .5 || r2.right > л.right + .5) н.push('кнопка «' + к2.textContent.trim() + '» за краем ленты'); });
+  // Флажок «В правки» — с подписью, а не голым значком.
+  const фк = м_.querySelector('[data-act="ch-flag"]');
+  if (фк.innerText.trim() !== 'В правки' || ф.width < 50) н.push('флажок без подписи «В правки» или узкий: ' + JSON.stringify([фк.innerText, Math.round(ф.width)]));
   return н; }"""
 
 

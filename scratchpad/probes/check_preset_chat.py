@@ -226,7 +226,7 @@ def прогон(бр, порт, ш, в, ночь, полный):
         плохо(f"{н} открытая лента не отметила прочитанное в базе: {читал}")
     кн = стр.evaluate("""() => { const м_ = document.querySelector('#presetChipCard .pc-chm:not(.me)');
       return м_ ? [...м_.querySelectorAll('.pc-chact button')].map(б => (б.getAttribute('aria-label') || б.innerText).trim()) : []; }""")
-    if кн != ["Ответить", "Отразить в правках", "Выполнено"]:
+    if кн != ["Ответить", "В правки", "Выполнено"]:
         плохо(f"{н} кнопки под сообщением: {кн}")
     # Вес: кнопки под сообщением мельче текста сообщения.
     вес = стр.evaluate("""() => { const к = document.getElementById('presetChipCard');
