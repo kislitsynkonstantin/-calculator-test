@@ -126,6 +126,9 @@ def вёрстка(стр, н, что):
   const МЕСТА = ['price', 'check'];
   const снять = (с, м) => { с[м + '_by'] = null; с[м + '_name'] = null; с[м + '_at'] = null; с[м + '_print'] = null; };
   window.__RPC.preset_approval_send = (а) => {
+    // Медленная база: ответ через __ЖДАТЬ_ОТПРАВКИ мс — экран обязан показать статус сразу.
+    if (window.__ЖДАТЬ_ОТПРАВКИ) { const ж = window.__ЖДАТЬ_ОТПРАВКИ; window.__ЖДАТЬ_ОТПРАВКИ = 0;
+      return new Promise(r => setTimeout(() => r(window.__RPC.preset_approval_send(а)), ж)); }
     window.__ВЫЗОВЫ.push(['send', JSON.parse(JSON.stringify(а))]);
     if (window.__СБОЙ_СОГЛАСОВАНИЯ) return { __ошибка: 'нет связи' };
     let с = т.preset_approvals.find(х => х.code === а.p_code);
@@ -269,8 +272,14 @@ def прогон(бр, порт, ш, в, ночь, полный):
         плохо(f"{н} отказ базы при отправке: {с}")
     стр.evaluate("() => { window.__СБОЙ_СОГЛАСОВАНИЯ = false; window.__ВЫЗОВЫ = []; }")
 
-    # ── отправка ──
-    нажать(стр, "ap-send")
+    # ── отправка: статус сразу, база за кулисами, строка в журнале пресета сразу ──
+    стр.evaluate("(код) => { window.__ЖДАТЬ_ОТПРАВКИ = 1500; _журналПресета = { код: String(код), события: [], ошибка: '', грузится: false, когда: Date.now(), заранее: false }; }", код)
+    стр.locator("#presetChipCard .pc-ap-blk [data-act='ap-send']").click(); стр.wait_for_timeout(150)
+    с = стр.evaluate(СОСТОЯНИЕ)
+    сразу = стр.evaluate("(код) => ({ вБазе: window.__ТАБЛИЦЫ.preset_approvals.some(х => х.code === код), журнал: (_журналПресета.события || []).map(е => е.event_type) })", код)
+    if "Ждёт согласования" not in с["плашка"] or с["кнопки"] or сразу["вБазе"] or сразу["журнал"][:1] != ["approval_sent"]:
+        плохо(f"{н} отправка не сразу: плашка «{с['плашка']}», кнопки {с['кнопки']}, {сразу}")
+    стр.wait_for_timeout(1700)
     о = стр.evaluate("""(код) => { const в = (window.__ВЫЗОВЫ.find(х => х[0] === 'send') || [])[1] || {}, с = составДляСогласования();
       return { код: в.p_code, отпечаток: в.p_print === отпечатокСостава(с), сумма: в.p_total, соСкидкой: с.соСкидкой, снимок: !!(в.p_snapshot && в.p_snapshot.строки && в.p_snapshot.строки.length),
         журнал: (window.__ТАБЛИЦЫ.events || []).some(е => е.event_type === 'approval_sent' && е.details && String(е.details.presetCode) === String(код)) }; }""", код)
@@ -432,6 +441,11 @@ def прогон(бр, порт, ш, в, ночь, полный):
     у = стр.evaluate("""async () => { await собратьУведомления(); return _уведомления.filter(у => у.согласование).map(у => у.текст.replace(/<[^>]+>/g, '') + ' · ' + у.автор); }""")
     if not any(т.startswith("Ждёт согласования") and т.endswith("Пётр Автор") for т in у):
         плохо(f"{н} колокольчик проверяющего без «Ждёт согласования» с именем автора: {у}")
+    роль(стр, "specialist")
+    стр.evaluate("(код) => { const а = window.__ТАБЛИЦЫ.preset_approvals.find(х => х.code === код); Object.assign(а, { state: 'approved', approved_at: new Date().toISOString(), decided_by: 'u-ред', decided_name: 'Ольга Проверкина', decided_at: new Date().toISOString() }); }", код)
+    у = стр.evaluate("""async () => { await собратьУведомления(); return _уведомления.filter(у => у.согласование).map(у => у.текст.replace(/<[^>]+>/g, '') + ' · ' + у.автор); }""")
+    if not any(т.startswith("Расчёт согласован") and т.endswith("Ольга Проверкина") for т in у):
+        плохо(f"{н} колокольчик специалиста без статуса чужого согласованного расчёта: {у}")
     стр.evaluate("(код) => { const а = window.__ТАБЛИЦЫ.preset_approvals.find(х => х.code === код); а.sent_by = 'u-проба'; }", код)
     роль(стр, "manager")
     стр.evaluate("(код) => { const а = window.__ТАБЛИЦЫ.preset_approvals.find(х => х.code === код); Object.assign(а, { state: 'approved', decided_name: 'Ольга Проверкина', decided_at: new Date().toISOString() }); }", код)
