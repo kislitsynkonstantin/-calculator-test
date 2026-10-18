@@ -177,6 +177,18 @@ def прогон(бр, порт, ш, полный):
     тса = стр.evaluate("() => { const ф = document.querySelector('#contractPreviewDoc iframe'); const с = getComputedStyle(ф.contentDocument.documentElement); return с.webkitTextSizeAdjust || с.textSizeAdjust || ''; }")
     if тса != "100%":
         плохо(f"{н} у листа ордера не снято укрупнение текста телефоном: «{тса}»")
+    # Поля ордера — бледно-жёлтые, как в договоре, в любом тоне калькулятора
+    # (Константин 18.10.2026: «поля заполнения сделай бледно желтыми как в
+    # договоре. От темы устройства цветовой чтобы не зависели»).
+    тона = стр.evaluate("() => ['teal'].concat(Object.keys((window.ТОНЫ_ПАЛИТРЫ || {}).сдвиг || {}))")
+    был = стр.evaluate("() => appSettings.tone")
+    for тон in тона:
+        цв = стр.evaluate("""async (тон) => { appSettings.tone = тон; refreshContractPreview(); await new Promise(р => setTimeout(р, 400));
+          const д = document.querySelector('#contractPreviewDoc iframe').contentDocument, п = [...д.querySelectorAll('.fv')].map(э => getComputedStyle(э));
+          return { полей: п.length, фон: [...new Set(п.map(с => с.backgroundColor))], цвет: [...new Set(п.map(с => с.color))] }; }""", тон)
+        if not цв["полей"] or цв["фон"] != ["rgb(255, 244, 209)"] or цв["цвет"] != ["rgb(110, 85, 16)"]:
+            плохо(f"{н} поля ордера в тоне «{тон}» не жёлтые, как в договоре: {цв}")
+    стр.evaluate("async (т) => { appSettings.tone = т; refreshContractPreview(); await new Promise(р => setTimeout(р, 400)); }", был)
     # Линейки многострочных полей при печати — строки, а не заливка
     # (Константин 18.10.2026: «В превью нормально, а выдает на печать с черными
     # полосками»). Safari заливал чёрным повторяющийся градиент; Chromium так
