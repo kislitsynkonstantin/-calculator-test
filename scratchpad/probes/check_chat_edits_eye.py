@@ -17,6 +17,9 @@
   • птичка сворачивает весь список, при глазе и без него; глаз при свёрнутом
     списке его не разворачивает;
   • выбор глаза и птички помнится после закрытия и открытия мини-окна;
+  • птичка «Автоматической проверки» — мелкая, поле нажатия 32×44, в
+    карточке; сворачивает итог, пункты и подсказку, число в шапке остаётся,
+    фокус на птичке; выбор помнится;
   • вёрстка на 390 и 1440 — как в пробе чата.
 
     python3 check_chat_edits_eye.py
@@ -106,6 +109,38 @@ def прогон(бр, порт, ш, в, ночь):
     if not б or б["пунктов"] or not б["скрыто"] or "3 из 3" not in б["шапка"]:
         плохо(f"{н} все выполнены и спрятаны: {б}")
     ч.вёрстка(стр, н, "«Проверка», выполненные скрыты")
+    # Птичка «Автоматической проверки» (Константин 18.10.2026: «На
+    # автоматическую проверку поставь тоже птичку, чтобы свернуть можно было»).
+    стр.evaluate("() => { try { localStorage.removeItem('banya_auto_check_folded'); } catch (e) {} _автоПроверкаСвёрнута = false; заполнитьКарточкуЗначка(); }")
+    стр.wait_for_timeout(300)
+    АВТО = """() => { const к = document.getElementById('presetChipCard'), пт = к.querySelector('[data-act="ck-fold"]');
+      if (!пт) return null;
+      const г = пт.closest('.pc-grp'), р = пт.getBoundingClientRect(), с = getComputedStyle(пт, '::before');
+      const кр = к.getBoundingClientRect(), cs = getComputedStyle(к), край = кр.right - parseFloat(cs.borderRightWidth) - parseFloat(cs.paddingRight);
+      return { шапка: г.innerText.replace(/\\s+/g, ' ').trim().toLowerCase(), развёрнут: пт.getAttribute('aria-expanded'), фокус: document.activeElement === пт,
+        итог: !!к.querySelector('.pc-ck-s'), пунктов: к.querySelectorAll('.pc-ck > li, .pc-q').length,
+        рисунок: Math.round(р.height), поле: [Math.round(р.width - parseFloat(с.left) - parseFloat(с.right)), Math.round(р.height - parseFloat(с.top) - parseFloat(с.bottom))],
+        доКрая: Math.round(край - р.right) }; }"""
+    а = стр.evaluate(АВТО)
+    if not а or "автоматическая проверка" not in а["шапка"] or а["развёрнут"] != "true" or not а["итог"] or а["рисунок"] > 18 \
+            or а["поле"][0] < 31.5 or а["поле"][1] < 43.5 or а["доКрая"] < 0:
+        плохо(f"{н} птичка «Автоматической проверки»: {а}")
+    if а:
+        число = а["шапка"].replace("автоматическая проверка", "").strip()
+        стр.locator("#presetChipCard [data-act='ck-fold']").click(); стр.wait_for_timeout(300)
+        б = стр.evaluate(АВТО)
+        if not б or б["развёрнут"] != "false" or б["итог"] or б["пунктов"] or not б["фокус"] or б["шапка"].replace("автоматическая проверка", "").strip() != число:
+            плохо(f"{н} «Автоматическая проверка» не свернулась или потеряла число: {б}")
+        стр.screenshot(path=str(СНИМКИ / f"autofold-{ш}{'-n' if ночь else ''}.png"))
+        стр.evaluate("() => закрытьКарточкуЗначка()"); стр.wait_for_timeout(300); ч.открыть(стр); стр.wait_for_timeout(300)
+        б = стр.evaluate(АВТО)
+        if not б or б["развёрнут"] != "false" or стр.evaluate("() => localStorage.getItem('banya_auto_check_folded')") != "1":
+            плохо(f"{н} свёрнутая «Автоматическая проверка» не запомнилась: {б}")
+        стр.locator("#presetChipCard [data-act='ck-fold']").click(); стр.wait_for_timeout(300)
+        б = стр.evaluate(АВТО)
+        if not б or б["развёрнут"] != "true" or not б["итог"]:
+            плохо(f"{н} «Автоматическая проверка» не развернулась: {б}")
+        ч.вёрстка(стр, н, "«Проверка», птичка автоматической проверки")
     if ошибки:
         плохо(f"{н} ошибки страницы: {ошибки[:3]}")
     стр.close()

@@ -12,8 +12,10 @@
   • колокольчик берёт шаги из preset_approval_log: каждый шаг — отдельное
     уведомление, новыми первыми, с текстом шага и именем того, кто его
     сделал; свой шаг тоже новый и зажигает красную точку; менеджеру — только
-    шаги по расчётам, которые отправил он; журнал пуст — строка на расчёт,
-    как прежде;
+    шаги по расчётам, которые отправил он; журнал пуст — каждый шаг
+    нынешнего круга из строки расчёта: отправка, место, итог или возврат;
+  • новое уведомление — значок на бледном круге, черты слева нет ни у
+    одной строки, круг не касается черты под шапкой и края окна;
   • всплывашка «Расчёт согласован» и «Расчёт вернули с правками» — тому,
     кто отправил, и только за решение другого человека; решение до первого
     захода не всплывает; одно решение второй раз не всплывает; «Открыть
@@ -96,9 +98,50 @@ def прогон(бр, порт, ш, в, ночь, модерн):
     к = стр.evaluate(КОЛОКОЛЬЧИК)
     if any("Пётр Автор" in х["кто"] or "Ждёт" in х["т"] for х in к["шаги"]) or len(к["шаги"]) != 4:
         плохо(f"{н} менеджеру — чужой расчёт или не все свои шаги: {[х['т'] for х in к['шаги']]}")
-    стр.evaluate("() => { window.__ТАБЛИЦЫ.preset_approval_log = []; }")
+    # Журнал пуст — каждый шаг нынешнего круга из строки расчёта, а не одна
+    # строка на расчёт (Константин 18.10.2026: «по одному пресету если
+    # проходит новое согласование, то в уведомлениях старое затирает»).
+    стр.evaluate("""(код) => { const т = window.__ТАБЛИЦЫ, д = Date.now(), в = м => new Date(д - м * 60e3).toISOString();
+      т.preset_approval_log = [];
+      т.preset_approvals = [{ code: код, state: 'approved', preset_name: 'Баня «Проба»', sent_by: _sbUser.id, sent_name: 'Проба', sent_at: в(50), sent_print: 'о1',
+        price_by: 'u-ред', price_name: 'Ольга Проверкина', price_at: в(40), price_print: 'о1',
+        check_by: 'u-спец', check_name: 'Анна Специалист', check_at: в(20), check_print: 'о1',
+        decided_by: 'u-спец', decided_name: 'Анна Специалист', decided_at: в(20), approved_at: в(20), for_all: false },
+        { code: '888888', state: 'returned', preset_name: 'Баня «Возврат»', sent_by: _sbUser.id, sent_name: 'Проба', sent_at: в(35), sent_print: 'о2',
+        decided_by: 'u-ред', decided_name: 'Ольга Проверкина', decided_at: в(15), for_all: false }]; }""", код)
     к = стр.evaluate(КОЛОКОЛЬЧИК)
-    стр.evaluate("() => { window._sbProfile.role = 'admin'; }")
+    вышло = [х["т"] + "|" + х["кто"] for х in к["шаги"]]
+    if вышло != ["Расчёт вернули с правками: Баня «Возврат»|Ольга Проверкина", "Расчёт согласован: Баня «Проба»|Анна Специалист",
+                 "Отправлен на согласование: Баня «Возврат»|", "Цена согласована: Баня «Проба»|Ольга Проверкина",
+                 "Отправлен на согласование: Баня «Проба»|"]:
+        плохо(f"{н} без журнала шаги круга затёрты: {вышло}")
+    стр.evaluate("() => { window.__ТАБЛИЦЫ.preset_approvals = []; window._sbProfile.role = 'admin'; }")
+    # Новое уведомление — без черты слева: значок на бледном круге, круг не
+    # касается черты под шапкой и края окна.
+    стр.evaluate(ЖУРНАЛ, код)
+    стр.evaluate("() => { appSettings.notifReadAt = new Date(Date.now() - 3600e3).toISOString(); }")
+    стр.locator("#bellBtn").click(); стр.wait_for_timeout(700)
+    о = стр.evaluate("""() => { const м = document.getElementById('bellMenu'), н = [];
+      if (!м || getComputedStyle(м).display === 'none') return ['окно уведомлений не открылось'];
+      const нов = м.querySelectorAll('.nt-i.new');
+      if (!нов.length) н.push('нет новых строк');
+      const мр = м.getBoundingClientRect(), ш = м.querySelector('.nt-h').getBoundingClientRect();
+      м.querySelectorAll('.nt-i').forEach(и => { const с = getComputedStyle(и);
+        if (parseFloat(с.borderLeftWidth) >= 1.5) н.push('черта слева у строки: ' + с.borderLeftWidth);
+        if (/inset/.test(с.boxShadow)) н.push('черта тенью у строки'); });
+      нов.forEach(и => { const з = и.querySelector('svg:not(.nt-go)'), зр = з.getBoundingClientRect();
+        if (getComputedStyle(з).backgroundColor === 'rgba(0, 0, 0, 0)') н.push('у нового значка нет круга');
+        if (зр.left - мр.left < 4) н.push('круг у края окна: ' + Math.round(зр.left - мр.left));
+        if (зр.top - ш.bottom < 4 && зр.top > ш.bottom - 1) н.push('круг касается черты под шапкой: ' + Math.round(зр.top - ш.bottom));
+        if (зр.bottom > и.getBoundingClientRect().bottom) н.push('круг вылез из строки');
+        const с = и.querySelector('.nt-go');
+        if (с && getComputedStyle(с).backgroundColor !== 'rgba(0, 0, 0, 0)') н.push('круг и у стрелки справа'); });
+      return н; }""")
+    for т in о:
+        плохо(f"{н} колокольчик: {т}")
+    стр.mouse.move(5, 5)
+    стр.screenshot(path=str(СНИМКИ / f"bell-{ш}{'-n' if ночь else ''}{'-m' if модерн else ''}.png"))
+    стр.evaluate("() => закрытьОкноУведомлений()"); стр.wait_for_timeout(200)
     # ── всплывашки о решении ──
     стр.evaluate("""(код) => { const т = window.__ТАБЛИЦЫ; т.preset_approvals = т.preset_approvals || [];
       window.__ОТКРЫТО = []; window.открытьСогласование = к => window.__ОТКРЫТО.push('пров:' + к); window.открытьУпоминание = (к, и) => window.__ОТКРЫТО.push('чат:' + к + ':' + и);
