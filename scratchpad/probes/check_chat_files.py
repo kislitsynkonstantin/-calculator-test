@@ -63,7 +63,12 @@ def это_pdf(адрес):
   т.preset_messages = [{ id: 'c0000000-0000-4000-8000-000000000001', code: код, author_id: 'u-коллега', author_name: 'Ольга Проверкина',
     body: 'Снимки участка и планировка.', reply_to: null, review_state: null, kind: 'msg', created_at: new Date(д - 600e3).toISOString(),
     attachments: [п('1.png', 'Участок.png', 'image/png', { w: 400, h: 300 }), п('2.png', 'Въезд.png', 'image/png', { w: 300, h: 400 }),
-      п('3.pdf', 'Планировка.pdf', 'application/pdf'), п('4.docx', 'Смета.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')] }];
+      п('3.pdf', 'Планировка.pdf', 'application/pdf'), п('4.docx', 'Смета.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')] },
+    // Второе сообщение со снимком: просмотр листает вложения всего чата, а не
+    // одного сообщения (Константин, 18.10.2026).
+    { id: 'c0000000-0000-4000-8000-000000000002', code: код, author_id: 'u-коллега', author_name: 'Ольга Проверкина',
+      body: 'И фасад.', reply_to: null, review_state: null, kind: 'msg', created_at: new Date(д - 500e3).toISOString(),
+      attachments: [{ path: код + '/u-коллега/c0000000-0000-4000-8000-000000000002/1.png', name: 'Фасад.png', size: 40211, type: 'image/png', w: 400, h: 300 }] }];
   window.__RPC.preset_chat_join = (а) => а.p_code === код ? new Date(д).toISOString() : null;
   window.__RPC.preset_chat_read = () => null;
   // Загрузка в хранилище — с задержкой, которую задаёт проба.
@@ -127,7 +132,7 @@ def прогон(бр, порт, ш, в, ночь):
     # ── снимок ──
     стр.locator(f"#presetChipCard .pc-chm[data-mid='{мид}'] .pc-chim a").first.click(); стр.wait_for_timeout(700)
     п = стр.evaluate(ПРОСМОТР)
-    if not п or п["имя"] != "Участок.png" or п["счёт"] != "1 из 3" or not п["снимок"] or not п["вКадре"] or "download=" not in п["скачать"] \
+    if not п or п["имя"] != "Участок.png" or п["счёт"] != "1 из 4" or not п["снимок"] or not п["вКадре"] or "download=" not in п["скачать"] \
             or п["скачатьИмя"] != "Участок.png" or not п["окно"] or п["прокрутка"] != "hidden" or п["фокус"] != "x" or п["мелкие"]:
         плохо(f"{н} просмотр снимка: {п}")
     if п:
@@ -135,7 +140,7 @@ def прогон(бр, порт, ш, в, ночь):
         стр.screenshot(path=str(СНИМКИ / f"view-img-{ш}{'-n' if ночь else ''}.png"))
     стр.keyboard.press("ArrowRight"); стр.wait_for_timeout(500)
     п = стр.evaluate(ПРОСМОТР)
-    if not п or п["имя"] != "Въезд.png" or п["счёт"] != "2 из 3" or not п["снимок"] or not п["вКадре"]:
+    if not п or п["имя"] != "Въезд.png" or п["счёт"] != "2 из 4" or not п["снимок"] or not п["вКадре"]:
         плохо(f"{н} стрелка вправо — второй снимок: {п}")
     стр.keyboard.press("ArrowRight")
     try:
@@ -145,19 +150,48 @@ def прогон(бр, порт, ш, в, ночь):
     стр.wait_for_timeout(600)
     п = стр.evaluate(ПРОСМОТР)
     рисунок = стр.evaluate(РИСУНОК)
-    if not п or п["имя"] != "Планировка.pdf" or п["счёт"] != "3 из 3" or п["листов"] != 3 or рисунок < 50 or п["листШире"] or п["вбок"] or (ш < 700 and п["накрыли"]):
+    if not п or п["имя"] != "Планировка.pdf" or п["счёт"] != "3 из 4" or п["листов"] != 3 or рисунок < 50 or п["листШире"] or п["вбок"] or (ш < 700 and п["накрыли"]):
         плохо(f"{н} PDF в просмотре: {п}, точек рисунка {рисунок}")
     else:
         стр.screenshot(path=str(СНИМКИ / f"view-pdf-{ш}{'-n' if ночь else ''}.png"))
+    # Дальше — снимок следующего сообщения, а смахивание пальцем влево и
+    # вправо листает так же, как стрелки.
+    стр.keyboard.press("ArrowRight"); стр.wait_for_timeout(600)
+    п = стр.evaluate(ПРОСМОТР)
+    if not п or п["имя"] != "Фасад.png" or п["счёт"] != "4 из 4" or not п["снимок"]:
+        плохо(f"{н} стрелка вправо после последнего вложения сообщения — снимок следующего сообщения: {п}")
+    СМАХНУТЬ = """(dx) => { const в = document.querySelector('.ch-view'); const т = (x) => new Touch({ identifier: 1, target: в, clientX: x, clientY: 300 });
+      в.dispatchEvent(new TouchEvent('touchstart', { touches: [т(200)], changedTouches: [т(200)], bubbles: true }));
+      в.dispatchEvent(new TouchEvent('touchend', { touches: [], changedTouches: [т(200 + dx)], bubbles: true })); }"""
+    стр.evaluate(СМАХНУТЬ, 150); стр.wait_for_timeout(400)
+    п = стр.evaluate(ПРОСМОТР)
+    if not п or п["имя"] != "Планировка.pdf":
+        плохо(f"{н} смахнули вправо — ждали предыдущее, PDF: {п and п['имя']}")
+    стр.evaluate(СМАХНУТЬ, -150); стр.wait_for_timeout(400)
+    п = стр.evaluate(ПРОСМОТР)
+    if not п or п["имя"] != "Фасад.png":
+        плохо(f"{н} смахнули влево — ждали следующее, снимок фасада: {п and п['имя']}")
+    if стр.evaluate("() => typeof sideNavOpen !== 'undefined' && sideNavOpen"):
+        плохо(f"{н} смахивание в просмотре открыло боковую панель разделов под ним")
+        стр.evaluate("() => closeSideNav()")
+    if not стр.evaluate("() => document.getElementById('presetChipCard').classList.contains('show')"):
+        плохо(f"{н} смахивание в просмотре закрыло мини-окно под ним"); стр.close(); return
+    стр.evaluate(СМАХНУТЬ, 30); стр.wait_for_timeout(300)
+    if (стр.evaluate(ПРОСМОТР) or {}).get("имя") != "Фасад.png":
+        плохо(f"{н} короткое движение пальцем перелистнуло вложение")
     стр.keyboard.press("Escape"); стр.wait_for_timeout(300)
     з = стр.evaluate("""() => ({ просмотр: !!document.querySelector('.ch-view'), окно: document.getElementById('presetChipCard').classList.contains('show'),
       прокрутка: document.documentElement.style.overflow, фокус: document.activeElement && document.activeElement.closest('.pc-chim') ? 'снимок' : (document.activeElement || {}).tagName }) """)
     if з["просмотр"] or not з["окно"] or з["прокрутка"] or з["фокус"] != "снимок":
         плохо(f"{н} Escape: {з}")
     # PDF из ленты — сразу им; нажатие по полю вокруг снимка закрывает.
-    стр.locator(f"#presetChipCard .pc-chm[data-mid='{мид}'] .pc-chfl[data-act='ch-view']").click(); стр.wait_for_timeout(500)
+    try:
+        стр.locator(f"#presetChipCard .pc-chm[data-mid='{мид}'] .pc-chfl[data-act='ch-view']").click(timeout=8000); стр.wait_for_timeout(500)
+    except Exception:
+        стр.screenshot(path=str(СНИМКИ / f"view-blocked-{ш}{'-n' if ночь else ''}.png"))
+        плохо(f"{н} после просмотра PDF в ленте не нажимается — его что-то накрыло (снимок view-blocked)"); стр.close(); return
     п = стр.evaluate(ПРОСМОТР)
-    if not п or п["имя"] != "Планировка.pdf" or п["счёт"] != "3 из 3":
+    if not п or п["имя"] != "Планировка.pdf" or п["счёт"] != "3 из 4":
         плохо(f"{н} нажатие на PDF в ленте: {п}")
     стр.locator(".ch-view [data-v='x']").click(); стр.wait_for_timeout(250)
     стр.locator(f"#presetChipCard .pc-chm[data-mid='{мид}'] .pc-chim a").first.click(); стр.wait_for_timeout(600)
