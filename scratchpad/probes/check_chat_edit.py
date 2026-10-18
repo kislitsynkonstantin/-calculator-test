@@ -224,7 +224,7 @@ def прогон(бр, порт, ш, в, полный):
     # Поставить в правки и снять: «добавлена в проверку», «убрана из проверки».
     с2 = "a0000000-0000-4000-8000-000000000002"
     for _ in range(2):
-        стр.locator(f"#presetChipCard .pc-chm[data-mid='{с2}'] [data-act='ch-flag']").click(); стр.wait_for_timeout(700)
+        стр.locator(f"#presetChipCard .pc-chm[data-mid='{с2}'] [data-act='ch-flag']").click(); стр.wait_for_timeout(3400)
     ж = стр.evaluate("""() => (window.__ТАБЛИЦЫ.events || []).filter(х => /^review_/.test(х.event_type))
       .map(х => [х.event_type, ((х.details || {}).rows || []).filter(р => р.k === 'Правка').map(р => р.b)[0] || '',
         typeof названиеСобытияЖурнала === 'function' ? названиеСобытияЖурнала(х) : (AL_ВСЕ_ВИДЫ[х.event_type] || х.event_type)])""")
