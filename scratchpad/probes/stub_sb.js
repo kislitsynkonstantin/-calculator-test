@@ -403,8 +403,10 @@
        обычная вставка на занятый номер молча клала вторую строку, и проба
        столкновения кодов зеленела бы при сломанной перевыдаче: в жизни база
        отвечает 23505, а заглушка — «ошибки нет». */
+    /* Ключ из нескольких столбцов — массивом: номера ордеров уникальны по
+       году и номеру вместе. */
     var УНИКАЛЬНО = { preset_links: 'short_code', client_links: 'code', presets: 'id',
-                      app_docs: null };
+                      app_docs: null, cash_order_numbers: ['year', 'number'] };
     var сбой = null;
     function применить() {
       if (добавить) {
@@ -412,7 +414,9 @@
         var уник = УНИКАЛЬНО[таблица];
         if (уник && !ключСлияния) {
           var занят = добавить.filter(function (новая) {
-            return все.some(function (р) { return String(р[уник]) === String(новая[уник]); });
+            return все.some(function (р) {
+              return [].concat(уник).every(function (к) { return String(р[к]) === String(новая[к]); });
+            });
           });
           if (занят.length) {
             сбой = { code: '23505', message: 'duplicate key value violates unique constraint "'
