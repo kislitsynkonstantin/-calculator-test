@@ -84,7 +84,9 @@ def прогон(бр, порт, ш, роль):
             НАХОДКИ.append(f"{н} менеджеру открылись правила")
         к.close(); return
     меню(стр)
-    порядок = [т.split("\n")[0].strip() for т in стр.locator("#previewEntityMenu button").all_inner_texts()]
+    # Только видимые пункты: «Приходный ордер» есть лишь при «за наличные» (check_cash_receipt.py).
+    порядок = стр.evaluate("""() => [...document.querySelectorAll('#previewEntityMenu button')].filter(б => getComputedStyle(б).display !== 'none')
+      .map(б => б.innerText.split('\\n')[0].trim())""")
     if порядок[3:6] != ["Договор на отделку", "Правила эксплуатации", "Согласие на обработку данных"]:
         НАХОДКИ.append(f"{н} порядок меню: {порядок}")
     стр.locator('#previewEntityMenu [data-entity="rules"]').click(); стр.wait_for_timeout(1500)
