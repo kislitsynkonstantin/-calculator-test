@@ -121,6 +121,11 @@ def прогон(бр, порт, ш, в, ночь):
     if not код:
         плохо(f"{н} пресету не выдан код"); стр.close(); return
     стр.evaluate(ДАННЫЕ, код)
+    # «Поделиться» — системное окно; в браузере пробы его нет, поэтому оно
+    # подменено и запоминает, что ему отдали.
+    стр.evaluate("""() => { window.__ПОДЕЛИЛИСЬ = [];
+      navigator.share = async (д) => { window.__ПОДЕЛИЛИСЬ.push((д.files || []).map(ф => [ф.name, ф.type, ф.size])); };
+      navigator.canShare = () => true; }""")
     ч.открыть(стр); ч.вкладка(стр, "m"); стр.wait_for_timeout(800)
     мид = "c0000000-0000-4000-8000-000000000001"
     сс = стр.evaluate("""(мид) => { const м_ = document.querySelector('#presetChipCard .pc-chm[data-mid="' + мид + '"]');
@@ -138,6 +143,19 @@ def прогон(бр, порт, ш, в, ночь):
     if п:
         стр.mouse.move(5, 5)
         стр.screenshot(path=str(СНИМКИ / f"view-img-{ш}{'-n' if ночь else ''}.png"))
+    # «Поделиться» у снимка: отдаёт сам файл с именем и типом.
+    ПОДЕЛИТЬСЯ = """async () => { const к = document.querySelector('.ch-view [data-v="share"]'); if (!к) return { есть: false };
+      for (let i = 0; i < 50 && к.getAttribute('aria-disabled') === 'true'; i++) await new Promise(r => setTimeout(r, 100));
+      const было = window.__ПОДЕЛИЛИСЬ.length; к.click(); await new Promise(r => setTimeout(r, 300));
+      const бар = document.querySelector('.ch-view-bar'), имя = document.querySelector('.ch-view-n');
+      return { есть: true, отдали: window.__ПОДЕЛИЛИСЬ.slice(было), вбок: бар.scrollWidth > бар.clientWidth + 1, имяШир: имя.getBoundingClientRect().width }; }"""
+    д = стр.evaluate(ПОДЕЛИТЬСЯ)
+    if not д["есть"]:
+        плохо(f"{н} в просмотре нет кнопки «Поделиться»")
+    elif not д["отдали"] or not д["отдали"][0] or д["отдали"][0][0][:2] != ["Участок.png", "image/png"] or not д["отдали"][0][0][2]:
+        плохо(f"{н} «Поделиться» у снимка отдал не тот файл: {д['отдали']}")
+    if д.get("вбок") or (д.get("имяШир") or 99) < 50:
+        плохо(f"{н} строка просмотра с «Поделиться» не помещается: {д}")
     стр.keyboard.press("ArrowRight"); стр.wait_for_timeout(500)
     п = стр.evaluate(ПРОСМОТР)
     if not п or п["имя"] != "Въезд.png" or п["счёт"] != "2 из 4" or not п["снимок"] or not п["вКадре"]:
@@ -154,6 +172,10 @@ def прогон(бр, порт, ш, в, ночь):
         плохо(f"{н} PDF в просмотре: {п}, точек рисунка {рисунок}")
     else:
         стр.screenshot(path=str(СНИМКИ / f"view-pdf-{ш}{'-n' if ночь else ''}.png"))
+    # PDF уходит тем же файлом, что лежит в хранилище, а не листом-картинкой.
+    д = стр.evaluate(ПОДЕЛИТЬСЯ)
+    if not д["есть"] or not д["отдали"] or not д["отдали"][0] or д["отдали"][0][0][:2] != ["Планировка.pdf", "application/pdf"] or not д["отдали"][0][0][2]:
+        плохо(f"{н} «Поделиться» у PDF отдал не тот файл: {д}")
     # Дальше — снимок следующего сообщения, а смахивание пальцем влево и
     # вправо листает так же, как стрелки.
     стр.keyboard.press("ArrowRight"); стр.wait_for_timeout(600)
