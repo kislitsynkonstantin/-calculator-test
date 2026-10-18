@@ -14,6 +14,7 @@
   • «Снять базу» в парной снимает все её базовые позиции, итог падает на
     стоимость базы раздела, этап парной уходит из платёжного плана договора
     на отделку; «Добавить базу» возвращает итог и план как были;
+  • цвет кнопки — серый подписи слева во всех тонах, днём и ночью;
   • вёрстка на 390 и 1440: кнопка в строке подписи раздела, у правого края,
     под суммой, не налезает на подпись и не вылезает за раздел; поле
     нажатия не меньше 44 px по высоте; ничего не шире экрана.
@@ -68,6 +69,18 @@ def прогон(бр, порт, ш):
         плохо(f"{н} в начале база парной снята: {до['база']}")
     for т in стр.evaluate(ВЁРСТКА):
         плохо(f"{н} {т}")
+    # Цвет — серый подписи слева, в каждом тоне днём и ночью (Константин,
+    # 18.10.2026: «Эту кнопку сделай серой на всех темах (как текст слева)»).
+    цвета = стр.evaluate("""async () => { const н = [], тоны = Object.keys(ТОНЫ_ПОДПИСИ), былТон = appSettings.tone, ночь = document.body.classList.contains('dark');
+      for (const т of тоны) for (const темно of [false, true]) {
+        applyTone(т, false); document.body.classList.toggle('dark', темно); await new Promise(r => setTimeout(r, 30));
+        const б = document.getElementById('sec_base_steam'), л = б.parentElement.querySelector('.sec-note-t');
+        const цб = getComputedStyle(б).color, цл = getComputedStyle(л).color;
+        if (цб !== цл) н.push(т + (темно ? ' ночь' : ' день') + ': кнопка ' + цб + ', подпись ' + цл);
+      }
+      applyTone(былТон, false); document.body.classList.toggle('dark', ночь); return н; }""")
+    for т in цвета:
+        плохо(f"{н} «Снять базу» не серая, как подпись слева: {т}")
     стр.evaluate("() => document.getElementById('sec_base_steam').scrollIntoView({ block: 'center' })"); стр.wait_for_timeout(300)
     стр.mouse.move(5, 5)
     стр.screenshot(path=str(СНИМКИ / f"section-base-{ш}.png"))
