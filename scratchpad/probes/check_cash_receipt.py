@@ -12,6 +12,11 @@
   • над листом — панель: договор (если их два), № ордера, дата (сегодня),
     платежи графика выбранного договора с суммами; первый отмечен, итог —
     его сумма;
+  • платежи — выпадающим списком (Константин 18.10.2026: «Галочки выбор
+    платежей сделай выпадающим списком»): на кнопке «№ 1 — сумма», список
+    открывается кнопкой, после отметки остаётся открытым, закрывается
+    нажатием мимо и Esc; при открытом списке выбор договора срабатывает с
+    первого нажатия; список не выходит за экран;
   • лист: «ПРИХОДНЫЙ КАССОВЫЙ ОРДЕР» и «КВИТАНЦИЯ»; принято от — заказчик;
     основание «Оплата по договору подряда № … от …, платёж № 1»; два
     платежа — номера с суммами; сумма цифрами и прописью; НДС 5 % с
@@ -21,7 +26,7 @@
     фокус; без отмеченного платежа — подсказка, печать выключена, а
     печать вызовом говорит словами и кадра не создаёт;
   • сумма прописью — на шести числах, с родом тысяч;
-  • вёрстка на 390 и 1440: панель без прокрутки вбок, поля нажатия чипов и
+  • вёрстка на 390 и 1440: панель без прокрутки вбок, поля нажатия списка и
     договора не меньше 44 px, лист ордера в ширину кадра.
 
     python3 check_cash_receipt.py
@@ -48,7 +53,8 @@ def плохо(т):
 
 ПАНЕЛЬ = """() => { const п = document.querySelector('#contractPreviewDoc .ко-панель'); if (!п || п.hidden) return null;
   return { договоры: [...п.querySelectorAll('[data-ko-dog]')].map(к => к.textContent + (к.getAttribute('aria-pressed') === 'true' ? '*' : '')),
-    чипы: [...п.querySelectorAll('.ко-чип')].map(к => к.innerText.replace(/\\s+/g, ' ').trim() + (к.getAttribute('aria-pressed') === 'true' ? '*' : '')),
+    чипы: [...п.querySelectorAll('.ко-пункт')].map(к => к.textContent.replace(/\\s+/g, ' ').trim() + (к.getAttribute('aria-selected') === 'true' ? '*' : '')),
+    кнопка: (п.querySelector('.ко-кнопка') || {}).textContent || '', открыт: !!п.querySelector('.ко-список:not([hidden])'),
     итог: (п.querySelector('.ко-итог b') || {}).textContent || '', дата: (п.querySelector('#koDate') || {}).value || '',
     подсказка: (п.querySelector('.ко-подск') || {}).textContent || '', печать: document.getElementById('printDocBtn').disabled }; }"""
 
@@ -61,8 +67,9 @@ def плохо(т):
       if (б.left < пр.left - .5 || б.right > пр.right + .5) н.push((э.id || э.textContent.trim()) + ' за панелью');
       if (э.tagName === 'BUTTON') { const с = getComputedStyle(э, '::before'); const h = б.height - (parseFloat(с.top) || 0) - (parseFloat(с.bottom) || 0);
         if (h < 43.5) н.push('поле нажатия «' + э.textContent.trim() + '» по высоте ' + Math.round(h)); } });
-    const ч = [...п.querySelectorAll('.ко-чип')];
-    ч.forEach((э, i) => { if (i && Math.abs(э.getBoundingClientRect().top - ч[i - 1].getBoundingClientRect().top) < 2 && э.getBoundingClientRect().left - ч[i - 1].getBoundingClientRect().right < 6) н.push('чипы ближе 6 px'); });
+    const с = п.querySelector('.ко-список:not([hidden])');
+    if (с) { const б = с.getBoundingClientRect(); if (б.left < 0 || б.right > innerWidth + .5) н.push('список платежей за краем экрана');
+      с.querySelectorAll('.ко-пункт').forEach(э => { if (э.scrollWidth > э.clientWidth + 1) н.push('пункт списка шире себя'); }); }
   }
   return н; }"""
 
@@ -103,15 +110,31 @@ def прогон(бр, порт, ш, полный):
         плохо(f"{н} НДС: ждали «{ндс}», на листе «{л['текст'][и:и + 40]!r}»")
     if л and (л["ширина"] > л["кадр"] + 1 or л["лист"] > л["кадр"] + 1):
         плохо(f"{н} лист ордера шире кадра: {л['ширина']} / {л['кадр']}, правый край листа {л['лист']}")
+    if п and not re.match(r"^№ 1 — ", п["кнопка"].replace("\u00a0", " ").strip()):
+        плохо(f"{н} на кнопке списка платежей: «{п['кнопка']}»")
+    стр.locator("#contractPreviewDoc .ко-кнопка").click(); стр.wait_for_timeout(300)
+    if not (стр.evaluate(ПАНЕЛЬ) or {}).get("открыт"):
+        плохо(f"{н} кнопка не открыла список платежей")
     for т in стр.evaluate(ВЁРСТКА):
         плохо(f"{н} панель: {т}")
     стр.mouse.move(5, 5)
     стр.screenshot(path=str(СНИМКИ / f"cash-{ш}.png"))
+    стр.keyboard.press("Escape"); стр.wait_for_timeout(200)
+    if (стр.evaluate(ПАНЕЛЬ) or {}).get("открыт"):
+        плохо(f"{н} Esc не закрыл список платежей")
 
     # Два платежа.
     if len(р["п"]) > 1:
+        стр.locator("#contractPreviewDoc .ко-кнопка").click(); стр.wait_for_timeout(200)
         стр.locator('#contractPreviewDoc [data-ko-p="2"]').click(); стр.wait_for_timeout(500)
         л = стр.evaluate(ЛИСТ); п = стр.evaluate(ПАНЕЛЬ)
+        if not п["открыт"]:
+            плохо(f"{н} список платежей закрылся после отметки — второй платёж пришлось бы открывать заново")
+        if п["кнопка"].replace("\u00a0", " ").strip() != "№ 1, № 2":
+            плохо(f"{н} на кнопке при двух платежах: «{п['кнопка']}»")
+        стр.mouse.click(5, 5); стр.wait_for_timeout(200)
+        if стр.evaluate(ПАНЕЛЬ)["открыт"]:
+            плохо(f"{н} нажатие мимо не закрыло список платежей")
         п2 = р["п"][1]["amount"]
         деньги = lambda x: f"{x:,}".replace(",", " ")
         ждали = f"платежи № 1 ({деньги(п1)} руб.) и № 2 ({деньги(п2)} руб.)"
@@ -127,7 +150,7 @@ def прогон(бр, порт, ш, полный):
     # Ни одного платежа.
     стр.evaluate("() => { _ордер.отмечены[_ордер.договор] = []; refreshContractPreview(); }"); стр.wait_for_timeout(400)
     п = стр.evaluate(ПАНЕЛЬ)
-    if not п or "Отметьте хотя бы один платёж" not in п["подсказка"] or not п["печать"]:
+    if not п or "Выберите хотя бы один платёж" not in п["подсказка"] or not п["печать"]:
         плохо(f"{н} без платежей: {п}")
     стр.evaluate("() => { window.__тосты = []; const был = window.showToast; window.showToast = function (т) { window.__тосты.push(String(т)); return был.apply(this, arguments); }; document.getElementById('contractPrintFrame') && document.getElementById('contractPrintFrame').remove(); printContractKar(); }")
     з = стр.evaluate("() => ({ тосты: window.__тосты, кадр: !!document.getElementById('contractPrintFrame') })")
@@ -135,7 +158,10 @@ def прогон(бр, порт, ш, полный):
         плохо(f"{н} печать без платежей: {з}")
     # Договор на отделку: финальный платёж — 62.01.
     if полный:
+        стр.locator("#contractPreviewDoc .ко-кнопка").click(); стр.wait_for_timeout(200)
         стр.locator('#contractPreviewDoc [data-ko-dog="2"]').click(); стр.wait_for_timeout(500)
+        if стр.evaluate("() => _ордер.договор") != 2:
+            плохо(f"{н} при открытом списке платежей договор не выбрался с первого нажатия")
         р2 = стр.evaluate("() => getContractVarsKar(2).paymentRows")
         if len(р2) > 1:
             последний = р2[-1]["no"]
