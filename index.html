@@ -10780,7 +10780,10 @@ function входПоказатьКто() {
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         Импорт файла
       </button>
-      <button class="ptoolbar-btn" onclick="exportAllPresets()">
+      <!-- «Скачать все» — только во вкладке «Мои» и только личные пресеты
+           (Константин, 19.10.2026: «В общих убери кнопку «Скачать все», только
+           в Личных оставь. Скачивает только личные»). -->
+      <button class="ptoolbar-btn" id="presetExportAll" onclick="exportAllPresets()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Скачать все
       </button>
@@ -37024,9 +37027,11 @@ function exportPreset(id) {
 }
 
 // ── Export ALL presets as single JSON file ──
+// Только личные: опубликованный не скачивается и поодиночке (СКАЧАТЬ_НЕЛЬЗЯ).
 function exportAllPresets() {
-  const presets = loadAllPresets();
-  if (!Object.keys(presets).length) { showToast('Нет пресетов для скачивания'); return; }
+  const все = loadAllPresets(), presets = {};
+  Object.keys(все).forEach(к => { if (все[к] && !все[к].publishedAs) presets[к] = все[к]; });
+  if (!Object.keys(presets).length) { showToast('Личных пресетов для скачивания нет'); return; }
   const date = new Date().toLocaleDateString('ru-RU').replace(/\./g, '-');
   triggerDownload(JSON.stringify({ presets, exportedAt: new Date().toISOString() }, null, 2), 'banya_msk_all_presets_' + date.replace(/\.|-/g, d => d) + '.txt');
 }
@@ -37283,6 +37288,7 @@ function switchPresetTab(tab) {
     if (c) c.style.display = t === tab ? 'flex' : 'none';
   });
   inputs.forEach(id => { const el = document.getElementById(id); if (el) el.value = currentVal; });
+  { const кн = document.getElementById('presetExportAll'); if (кн) кн.style.display = tab === 'my' ? '' : 'none'; }
   навеситьВсеКрестики();
   обновитьКрестикиПоиска();
   if (tab === 'shared') { loadSharedPresets(); }
