@@ -1640,8 +1640,7 @@ body.ui-light .opt-check {
   background: #fff;
   border-radius: 5px;
 }
-body.ui-light .opt-item.active .opt-check,
-body.ui-light .pc-choc-st.on .opt-check {
+body.ui-light .opt-item.active .opt-check {
   background: var(--br-28);
   border-color: var(--br-28);
 }
@@ -2352,8 +2351,7 @@ body.dark .roof-field.is-err .roof-hint { color: #f08a80; }
   transition: all 0.15s;
   margin-top: 1px;
 }
-.opt-item.active .opt-check,
-.pc-choc-st.on .opt-check {
+.opt-item.active .opt-check {
   border-color: var(--green-dark);
   background: var(--green-dark);
 }
@@ -2365,8 +2363,7 @@ body.dark .roof-field.is-err .roof-hint { color: #f08a80; }
   border-top: none; border-left: none;
   transform: rotate(42deg) translate(-1px,-1px);
 }
-.opt-item.active .opt-check::after,
-.pc-choc-st.on .opt-check::after { display: block; }
+.opt-item.active .opt-check::after { display: block; }
 .opt-info { flex: 1; padding-right: 28px; }
 .opt-name {
   font-size: 0.82rem;
@@ -3755,8 +3752,6 @@ body.dark .canvas-img-item .img-resize:hover { background: rgba(var(--br-10-rgb)
 body.dark .btn-shared-act.btn-shared-lock.wait, body.dark .btn-shared-act.btn-shared-lock:not(:disabled):active { background: rgba(var(--br-85-rgb),0.16) !important; border-color: rgba(var(--br-85-rgb),0.45) !important; color: rgba(var(--br-85-rgb),1) !important; }
 .btn-retract { padding: 5px 9px; border-radius: 7px; border: 1px solid #f5d9a0; background: #fff3e0; color: #b06000; font-size: 0.65rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: background 0.15s; }
 .btn-retract:hover { background: #ffe8b0; }
-/* Отправленный на согласование — «Отозвать» бледная, нажатие объясняет словами. */
-.btn-retract[aria-disabled="true"], .pcard-retract[aria-disabled="true"] { opacity: .38 !important; cursor: default !important; }
 .publish-dropdown-preset { position: absolute; bottom: calc(100% + 4px); right: 0; background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 4px 16px rgba(var(--br-28-rgb),0.12); min-width: 190px; overflow: hidden; z-index: 200; display: none; }
 .pub-preset-opt { padding: 10px 13px; font-size: 0.71rem; cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text); transition: background 0.12s; }
 .pub-preset-opt:hover { background: var(--green-bg); }
@@ -6317,8 +6312,7 @@ body.ui-blank .opt-check {
   background: none;
   border-radius: 4px;
 }
-body.ui-blank .opt-item.active .opt-check,
-body.ui-blank .pc-choc-st.on .opt-check {
+body.ui-blank .opt-item.active .opt-check {
   background: var(--bl-fill);
   box-shadow: none;
 }
@@ -9886,9 +9880,6 @@ body:not(.ui-blank) #printStyleDropMenu button.active {
    (Константин, 02.10.2026). Пункт приглушён и не подсвечивается под курсором;
    строка под названием говорит, когда он откроется. */
 #previewEntityMenu .ent-name { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-/* Значок пункта не сжимается: у «Согласия на обработку данных» название
-   в две строки, и значок ужимался, сдвигая название влево от соседних. */
-#previewEntityMenu button > svg { flex-shrink: 0; }
 #previewEntityMenu .ent-lock { display: none; font-size: .66rem; line-height: 1.3; opacity: .8; white-space: nowrap; }
 #previewEntityMenu button.ent-locked { cursor: default !important; }
 #previewEntityMenu button.ent-locked .ent-lock { display: block; }
@@ -9899,19 +9890,9 @@ body:not(.ui-blank) #printStyleDropMenu button.active {
 /* «Печатать всё»: список документов с флажками и кнопка печати внизу. Флажок —
    квадрат с галочкой, как в списках разделов; закрытый документ приглушён и
    говорит, когда откроется. */
-#printAllMenu { position: absolute; left: 0; top: calc(100% + 6px); z-index: 9999; min-width: 270px; width: max-content; max-width: calc(100vw - 24px); padding: 6px 0 0;
+#printAllMenu { position: absolute; left: 0; top: calc(100% + 6px); z-index: 9999; min-width: 270px; padding: 6px 0 0;
   background: var(--green-dark); border: 1px solid rgba(255,255,255,.2); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.4); color: #fff; }
 #printAllMenu .pa-h { padding: 6px 14px 4px; font-size: .62rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
-/* Заголовок с переключателем «Выбрать все / Снять все» справа: надпись того же
-   веса, что заголовок, а нажатие расширено невидимым полем (Константин,
-   19.10.2026: «добавь кнопку снять/выбрать все — чтобы менялась. Долго по одной
-   нажимать»). */
-#printAllMenu .pa-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-right: 14px; }
-#printAllMenu .pa-top .pa-h { white-space: nowrap; opacity: 1; color: rgba(255,255,255,.7); }
-#printAllMenu .pa-all { position: relative; flex: none; padding: 0; background: none; border: 0; color: inherit; cursor: pointer;
-  font-family: 'Geologica', sans-serif; font-size: .74rem; font-weight: 500; text-decoration: underline; text-underline-offset: 3px;
-  text-decoration-color: rgba(255,255,255,.4); }
-#printAllMenu .pa-all::before { content: ''; position: absolute; inset: -12px -10px; }
 #printAllMenu .pa-i { display: flex; align-items: center; gap: 11px; width: 100%; min-height: 44px; padding: 6px 14px; background: none; border: 0;
   color: inherit; font: inherit; font-family: 'Geologica', sans-serif; font-size: .8rem; text-align: left; cursor: pointer; }
 #printAllMenu .pa-box { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px;
@@ -9930,8 +9911,6 @@ body.ui-blank #printAllMenu { background: var(--bl-sheet); border-color: var(--b
   box-shadow: 0 14px 34px rgba(var(--br-12в-rgb),.18); }
 body.ui-blank.dark #printAllMenu { box-shadow: 0 14px 34px rgba(0,0,0,.55); }
 body.ui-blank #printAllMenu .pa-h { color: var(--bl-ink3); opacity: 1; }
-body.ui-blank #printToolbar #printAllMenu .pa-all { border: 0 !important; background: none !important; color: var(--bl-acc) !important;
-  text-decoration-color: var(--bl-rule2); }
 body.ui-blank #printToolbar #printAllMenu .pa-i { border: 0 !important; border-radius: 0 !important; background: none !important; color: var(--bl-ink) !important; }
 @media (hover: hover) { body.ui-blank #printToolbar #printAllMenu .pa-i:not(.pa-off):hover { background: var(--bl-zebra) !important; } }
 body.ui-blank #printAllMenu .pa-box { border-color: var(--bl-rule2); opacity: 1; }
@@ -10160,21 +10139,9 @@ body.dark { --пр-акц: var(--bl-acc); --пр-тёпл: #e8a964; }
 .пр-пункт-в { margin-top: 6px; padding: 4px 8px; border-radius: 6px; background: rgba(224, 163, 58, .1); color: var(--пр-тёпл); font-size: .74rem; line-height: 1.5; }
 .пр-пункт-в .пр-кн { margin-left: 12px; }
 .пр-низ { margin: 10px 0 0; color: var(--bl-ink2); font-size: .72rem; line-height: 1.5; }
-.ко-панель .пр-кн, .пр-полоса .пр-кн { position: relative; border: 0; background: none; padding: 0; font: inherit; font-size: .76rem; color: var(--bl-ink2); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--bl-rule2); }
-.ко-панель .пр-кн::before, .пр-полоса .пр-кн::before { content: ''; position: absolute; inset: -12px -8px; }
-.ко-панель .пр-кн::before { inset: -15px -8px; }
-.ко-панель .пр-кн.пр-назад, .пр-полоса .пр-кн.пр-назад { color: var(--пр-акц); }
-/* Правка суммы ордера — тем же языком, что правка текста договора: внизу
-   панели, во всю её ширину, на листе. */
-.ко-правка, .ко-панель .ко-статус { margin: 0 -16px -12px; border-top: 1px solid var(--bl-rule); background: var(--bl-sheet); }
-.ко-панель .ко-статус { border-bottom: 0; line-height: 1.45; }
-.ко-правка .пр-баннер { background: none; }
-.ко-сумма-ряд { display: grid; grid-template-columns: minmax(0, 1fr) 150px 64px; align-items: center; gap: 10px; padding: 8px 16px; border-top: 1px solid var(--bl-rule); }
-.ко-сумма-ряд .ко-н { font-weight: 600; }
-.ко-сумма-ряд .ко-срок { display: block; margin-top: 1px; font-weight: 400; color: var(--bl-ink2); font-size: .74rem; }
-.ко-панель .ко-сум { width: 100%; box-sizing: border-box; text-align: right; font-variant-numeric: tabular-nums; }
-p.ко-сумма-ряд { display: block; margin: 0; }
-.ко-править { height: 36px; }
+.пр-полоса .пр-кн { position: relative; border: 0; background: none; padding: 0; font: inherit; font-size: .76rem; color: var(--bl-ink2); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--bl-rule2); }
+.пр-полоса .пр-кн::before { content: ''; position: absolute; inset: -12px -8px; }
+.пр-полоса .пр-кн.пр-назад { color: var(--пр-акц); }
 
 /* Крестик — тот же, что в остальных окнах «Бланка». */
 body.ui-blank #printToolbar .ovl-x {
@@ -26439,27 +26406,7 @@ function документСогласие() { return typeof previewEntity !== 'u
 // кредит 62.02, финальный платёж договора на отделку — 62.01; главный
 // бухгалтер — подписант договоров, кассир — менеджер из реквизитов; «В том
 // числе НДС 5 %» — как в цене договора, с копейками от суммы ордера.
-let _ордер = { договор: 1, номер: '', выдан: false, дата: '', днём: '', номера: {}, отмечены: {}, суммы: {}, список: false };
-// Сумма платежа в ордере правится (Константин, 19.10.2026: «В приходника
-// сделай, чтобы можно было менять сумму. Такой же режим правок сделай, как в
-// договоре. Сумму может менять только Редактор, Администратор и Специалист»).
-// Клиент вносит часть платежа или больше него — в ордер идёт внесённое, а
-// график платежей не меняется. Правка живёт у платежа своего договора:
-// суммы[договор][№ платежа] = { сумма, кто, роль, когда }; пустое поле
-// возвращает сумму по графику. Подпись договора правку не закрывает: ордера
-// выписывают и после неё.
-let _правкаОрдера = false;
-function можноПравитьОрдер() {
-  return РОЛИ_ПРАВКИ_ДОГОВОРА.includes(window._sbProfile?.role) && договорДоступен();
-}
-function правкаСуммыОрдера(дог, no) {
-  const п = ((_ордер.суммы || {})[дог] || {})[no];
-  return п && Number(п.сумма) > 0 ? п : null;
-}
-function суммаПлатежаОрдера(р, дог) {
-  const п = правкаСуммыОрдера(дог == null ? _ордер.договор : дог, р.no);
-  return п ? Number(п.сумма) : (Number(р.amount) || 0);
-}
+let _ордер = { договор: 1, номер: '', выдан: false, дата: '', днём: '', номера: {}, отмечены: {}, список: false };
 // Номер принадлежит дню (Константин, 18.10.2026: «Конечно надо сохранять,
 // чтобы не повторился. Причем следующий ордер этому клиенту должен быть с
 // другим номером (и не по порядку), когда в другой день»). Расчёт помнит,
@@ -26540,7 +26487,7 @@ let _ордерРукойТаймер = 0;
 function ордерДляСохранения() {
   return { договор: _ордер.договор, номер: String(_ордер.номер || ''), выдан: !!_ордер.выдан, дата: String(_ордер.дата || ''),
     днём: String(_ордер.днём || ''), номера: Object.assign({}, _ордер.номера || {}),
-    отмечены: JSON.parse(JSON.stringify(_ордер.отмечены || {})), суммы: JSON.parse(JSON.stringify(_ордер.суммы || {})) };
+    отмечены: JSON.parse(JSON.stringify(_ордер.отмечены || {})) };
 }
 function ордерИзСохранённого(с) {
   const о = с && typeof с === 'object' ? с : {};
@@ -26553,20 +26500,9 @@ function ордерИзСохранённого(с) {
     if (/^\d{4}-\d{2}-\d{2}$/.test(д)) номера[д] = String(о.номера[д] || '');
   });
   const дата = /^\d{4}-\d{2}-\d{2}$/.test(о.дата || '') ? о.дата : '';
-  const суммы = {};
-  if (о.суммы && typeof о.суммы === 'object') Object.keys(о.суммы).forEach(д => {
-    const пл = о.суммы[д];
-    if (!пл || typeof пл !== 'object' || (д !== '1' && д !== '2')) return;
-    Object.keys(пл).forEach(н => {
-      const з = пл[н], с = Math.round(Number(з && з.сумма));
-      if (!(с > 0) || !(Number(н) > 0)) return;
-      (суммы[д] = суммы[д] || {})[н] = { сумма: с, кто: String(з.кто || ''), роль: String(з.роль || ''), когда: String(з.когда || '') };
-    });
-  });
   // Расчёт, сохранённый до учёта дней: номер — того дня, что стоит в ордере.
   _ордер = { договор: о.договор === 2 ? 2 : 1, номер: String(о.номер || ''), выдан: !!о.выдан,
-    дата, днём: /^\d{4}-\d{2}-\d{2}$/.test(о.днём || '') ? о.днём : дата, номера, отмечены: отм, суммы, список: false };
-  _правкаОрдера = false;
+    дата, днём: /^\d{4}-\d{2}-\d{2}$/.test(о.днём || '') ? о.днём : дата, номера, отмечены: отм, список: false };
 }
 function ордерИзменён() { try { пометитьПресетГрязным(); } catch (e) {} }
 const МЕСЯЦЫ_РОД = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
@@ -26617,7 +26553,7 @@ function buildCashHtml(vars, ордер) {
   const деньги = н => Math.round(н).toLocaleString('ru-RU');
   const строки = vars.paymentRows || [];
   const выбр = платежиОрдера(vars);
-  const всего = выбр.reduce((с, р) => с + суммаПлатежаОрдера(р), 0);
+  const всего = выбр.reduce((с, р) => с + (Number(р.amount) || 0), 0);
   const пусто = в => !в || в === '________';
   const номерДог = пусто(vars.contractNumKar) ? '' : vars.contractNumKar;
   const датаДог = пусто(vars.contractDate) ? '' : vars.contractDate;
@@ -26625,7 +26561,7 @@ function buildCashHtml(vars, ордер) {
   let осн = '';
   if (выбр.length) {
     осн = 'Оплата по договору подряда № ' + (номерДог || '________') + ' от ' + (датаДог || '________') + ', ';
-    осн += выбр.length === 1 ? 'платёж № ' + выбр[0].no : 'платежи ' + перечень(выбр.map(р => '№ ' + р.no + ' (' + деньги(суммаПлатежаОрдера(р)) + ' руб.)'));
+    осн += выбр.length === 1 ? 'платёж № ' + выбр[0].no : 'платежи ' + перечень(выбр.map(р => '№ ' + р.no + ' (' + деньги(р.amount) + ' руб.)'));
   }
   // НДС 5 % внутри суммы — с копейками.
   const ндсКоп = Math.round(всего * 5 / 105 * 100);
@@ -26788,17 +26724,6 @@ function панельОрдера(хозяин) {
     хозяин.insertBefore(п, полоса ? полоса.nextSibling : хозяин.firstChild);
     п.addEventListener('click', e => {
       const д = e.target.closest('[data-ko-dog]'), пл = e.target.closest('[data-ko-p]'), кн = e.target.closest('.ко-кнопка');
-      const а = e.target.closest('[data-ko-a]');
-      if (а) {
-        const что = а.getAttribute('data-ko-a');
-        if (что === 'править') { _правкаОрдера = можноПравитьОрдер(); _ордер.список = false; }
-        else if (что === 'готово') _правкаОрдера = false;
-        else if (что === 'вернуть') вернутьСуммуОрдера(Number(а.getAttribute('data-n')));
-        refreshContractPreview();
-        if (что === 'править') { const в = п.querySelector('.ко-сум'); if (в) в.focus(); }
-        else if (что === 'готово') { const к = п.querySelector('.ко-править'); if (к) к.focus(); }
-        return;
-      }
       if (д) { _ордер.договор = Number(д.getAttribute('data-ko-dog')); _ордер.список = false; ордерИзменён(); refreshContractPreview(); }
       else if (кн) списокОрдера(п, !_ордер.список);
       else if (пл) {
@@ -26819,34 +26744,7 @@ function панельОрдера(хозяин) {
     document.addEventListener('pointerdown', e => {
       if (_ордер.список && !e.target.closest('.ко-выбор')) списокОрдера(п, false);
     }, true);
-    // Сумма платежа: лист обновляется по ходу ввода, а в журнал правка
-    // уходит одной строкой, когда поле отпустили, — с суммой до правки.
-    п.addEventListener('focusin', e => {
-      if (!e.target.classList.contains('ко-сум')) return;
-      const н = Number(e.target.getAttribute('data-n'));
-      if (!(н in _ордерБыло)) _ордерБыло[н] = суммаПоля(н);
-    });
-    п.addEventListener('change', e => {
-      if (!e.target.classList.contains('ко-сум')) return;
-      const н = Number(e.target.getAttribute('data-n'));
-      const было = _ордерБыло[н]; delete _ордерБыло[н]; delete _ордерВвод[н];
-      const стало = суммаПоля(н);
-      if (было != null && было !== стало) журналСуммыОрдера(н, было, стало);
-    });
     п.addEventListener('input', e => {
-      if (e.target.classList.contains('ко-сум')) {
-        if (!можноПравитьОрдер()) return;
-        const н = Number(e.target.getAttribute('data-n'));
-        _ордерВвод[н] = e.target.value;   // набранное остаётся в поле, пока его не отпустили
-        const с = Math.round(Number(String(e.target.value).replace(/[^\d]/g, '')) || 0);
-        const дог = _ордер.договор, все = (_ордер.суммы = _ордер.суммы || {}), свои = (все[дог] = все[дог] || {});
-        const строка = (getContractVarsKar(дог).paymentRows || []).find(р => р.no === н);
-        if (с > 0 && !(строка && с === Math.round(Number(строка.amount) || 0))) свои[н] = Object.assign({ сумма: с, когда: new Date().toISOString() }, ктоПравил());
-        else delete свои[н];
-        ордерИзменён();
-        refreshContractPreview();
-        return;
-      }
       if (e.target.id === 'koNum') {
         _ордер.номер = e.target.value;
         // Вписанный рукой — записать, когда рука остановилась.
@@ -26863,53 +26761,15 @@ function панельОрдера(хозяин) {
     });
   }
   const печать = document.getElementById('printDocBtn');
-  if (!(typeof previewEntity !== 'undefined' && previewEntity === 'cash')) { п.hidden = true; _правкаОрдера = false; return; }
+  if (!(typeof previewEntity !== 'undefined' && previewEntity === 'cash')) { п.hidden = true; return; }
   п.hidden = false;
-  if (_правкаОрдера && !можноПравитьОрдер()) _правкаОрдера = false;
   const vars = getContractVarsKar(_ордер.договор);
   const строки = vars.paymentRows || [];
   const выбр = new Set(платежиОрдера(vars).map(р => р.no));
-  const всего = строки.filter(р => выбр.has(р.no)).reduce((с, р) => с + суммаПлатежаОрдера(р), 0);
+  const всего = строки.filter(р => выбр.has(р.no)).reduce((с, р) => с + (Number(р.amount) || 0), 0);
   const открыт = !!_ордер.список && строки.length > 0;
   const отм = строки.filter(р => выбр.has(р.no));
-  const подпись = !отм.length ? 'Выберите платёж' : отм.length === 1 ? '№ ' + отм[0].no + ' — ' + fmt(суммаПлатежаОрдера(отм[0])) : отм.map(р => '№ ' + р.no).join(', ');
-  // Пока набирается сумма, панель не пересобирается: новое поле на месте
-  // прежнего отпускало бы набор, и журнал получал строку на каждую цифру.
-  // Обновляются итог, подпись платежей и «Вернуть» у этого платежа.
-  const набор = document.activeElement;
-  if (_правкаОрдера && набор && набор.classList.contains('ко-сум') && п.contains(набор)) {
-    const итог = п.querySelector('.ко-итог b'); if (итог) итог.textContent = всего ? fmt(всего) : '—';
-    const пс = п.querySelector('#koPaySum'); if (пс) пс.textContent = подпись;
-    const нн = Number(набор.getAttribute('data-n')), ряд = набор.closest('.ко-сумма-ряд');
-    const есть = !!правкаСуммыОрдера(_ордер.договор, нн), кн = ряд && ряд.lastElementChild;
-    if (кн && есть !== (кн.tagName === 'BUTTON')) кн.outerHTML = есть ? '<button type="button" class="пр-кн пр-назад" data-ko-a="вернуть" data-n="' + нн + '">Вернуть</button>' : '<span></span>';
-    if (печать) печать.disabled = !выбр.size || документГотовится('cash');
-    return;
-  }
-  const можно = можноПравитьОрдер();
-  const перо ='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
-  const изменённые = отм.filter(р => правкаСуммыОрдера(_ордер.договор, р.no));
-  let правка = '';
-  if (_правкаОрдера) {
-    правка = '<div class="ко-правка"><div class="пр-баннер"><span><b>Правка суммы.</b> Впишите, сколько клиент вносит по платежу. Пустое поле — сумма по графику; график платежей не меняется.</span>'
-      + '<button type="button" class="пр-готово" data-ko-a="готово">Готово</button></div>'
-      + (отм.length ? отм.map(р => {
-          const пр = правкаСуммыОрдера(_ордер.договор, р.no), н_ = р.no;
-          return '<div class="ко-сумма-ряд"><label class="ко-н" for="koSum-' + р.no + '">№ ' + р.no + '<span class="ко-срок">по графику ' + fmt(р.amount) + '</span></label>'
-            + '<input id="koSum-' + р.no + '" class="ко-сум" data-n="' + р.no + '" type="text" inputmode="numeric" maxlength="12" autocomplete="off" value="' + escapeHtml(н_ in _ордерВвод ? _ордерВвод[н_] : (пр ? пр.сумма : '')) + '" placeholder="' + Math.round(Number(р.amount) || 0) + '" aria-label="Сумма платежа № ' + р.no + ' в ордере">'
-            + (пр ? '<button type="button" class="пр-кн пр-назад" data-ko-a="вернуть" data-n="' + р.no + '">Вернуть</button>' : '<span></span>') + '</div>';
-        }).join('')
-        : '<p class="пр-пусто ко-сумма-ряд">Отметьте платёж — сумма правится у отмеченных.</p>')
-      + '</div>';
-  } else if (изменённые.length) {
-    const последняя = изменённые.map(р => правкаСуммыОрдера(_ордер.договор, р.no)).sort((а, б) => String(б.когда).localeCompare(String(а.когда)))[0];
-    const когда = последняя.когда && !isNaN(new Date(последняя.когда)) ? new Date(последняя.когда).toLocaleDateString('ru-RU') : '';
-    const кто = [последняя.кто, (typeof ROLE_LABELS !== 'undefined' && ROLE_LABELS[последняя.роль] || '').toLowerCase(), когда].filter(Boolean).join(', ');
-    правка = '<div class="пр-статус ко-статус">' + перо + '<span>Сумма в ордере изменена: '
-      + изменённые.map(р => '<b>№ ' + р.no + ' — ' + fmt(суммаПлатежаОрдера(р)) + '</b> вместо ' + fmt(р.amount) + ' по графику').join('; ')
-      + (кто ? ' <span class="пр-кто">· ' + escapeHtml(кто) + '</span>' : '') + '</span></div>';
-  }
-  const кнопкаПравки = можно && !_правкаОрдера && отм.length ? '<button type="button" class="пр-править ко-править" data-ko-a="править">' + перо + 'Изменить сумму</button>' : '';
+  const подпись = !отм.length ? 'Выберите платёж' : отм.length === 1 ? '№ ' + отм[0].no + ' — ' + fmt(отм[0].amount) : отм.map(р => '№ ' + р.no).join(', ');
   const активный = document.activeElement && п.contains(document.activeElement) ? document.activeElement.id : '';
   const [н1, н2] = активный && document.activeElement.setSelectionRange ? [document.activeElement.selectionStart, document.activeElement.selectionEnd] : [null, null];
   const дог = (естьДоговор(1) && естьДоговор(2))
@@ -26927,39 +26787,15 @@ function панельОрдера(хозяин) {
           + '<span class="ко-бокс">' + ЗНАЧОК_ГАЛКА + '</span><span class="ко-н">№ ' + р.no + (р.term ? '<span class="ко-срок">' + escapeHtml(р.term) + '</span>' : '') + '</span><span class="ко-с">' + fmt(р.amount) + '</span></button>').join('')
         + '</span></span>'
       : '<span class="ко-нет">В графике платежей этого договора нет строк.</span>')
-    + '<span class="ко-итог">Итого <b>' + (всего ? fmt(всего) : '—') + '</b></span>' + кнопкаПравки + '</div>'
+    + '<span class="ко-итог">Итого <b>' + (всего ? fmt(всего) : '—') + '</b></span></div>'
     // Напоминание пробить кассовый чек над листом снято (Константин,
     // 18.10.2026, снимком: «Это сообщение убери»); о чеке говорит справка.
-    + (выбр.size ? '' : '<div class="ко-подск">Выберите хотя бы один платёж — без него ордер не печатается.</div>')
-    + правка;
+    + (выбр.size ? '' : '<div class="ко-подск">Выберите хотя бы один платёж — без него ордер не печатается.</div>');
   if (печать) печать.disabled = !выбр.size || документГотовится('cash');
   if (активный) {
     const э = п.querySelector('#' + активный);
     if (э) { э.focus(); try { if (н1 != null) э.setSelectionRange(н1, н2); } catch (e) {} }
   }
-}
-
-const _ордерБыло = {}, _ордерВвод = {};
-function суммаПоля(н) {
-  const р = (getContractVarsKar(_ордер.договор).paymentRows || []).find(х => х.no === н);
-  return р ? суммаПлатежаОрдера(р) : 0;
-}
-function вернутьСуммуОрдера(н) {
-  const свои = (_ордер.суммы || {})[_ордер.договор];
-  if (!свои || !свои[н]) return;
-  const было = суммаПоля(н);
-  delete свои[н];
-  ордерИзменён();
-  журналСуммыОрдера(н, было, суммаПоля(н));
-}
-// Журнал: какой договор, платёж, было и стало.
-function журналСуммыОрдера(н, было, стало) {
-  try {
-    logEvent('cash_amount_edited', logDetails(selectedProject ? selectedProject[0] : null, [
-      ['Ордер', '', имяДоговораОкна(_ордер.договор) + (_ордер.номер ? ', № ' + _ордер.номер : '')],
-      ['Платёж № ' + н, fmt(было), fmt(стало)],
-    ]));
-  } catch (e) {}
 }
 
 function buildRulesHtml(vars) {
@@ -27706,10 +27542,7 @@ function отрисоватьКомплект() {
   const д = документыКомплекта();
   const выбрано = д.filter(х => х.можно && !_комплектСнято.has(х.к)).length;
   const галка = ГАЛКА_КОМПЛЕКТА;
-  const можно = д.filter(х => х.можно).length;
-  м.innerHTML = '<div class="pa-top"><div class="pa-h">Документы по порядку</div>'
-    + (можно > 1 ? '<button type="button" class="pa-all" onclick="отметитьВсеВКомплекте()">'
-      + (выбрано === можно ? 'Снять все' : 'Выбрать все') + '</button>' : '') + '</div>'
+  м.innerHTML = '<div class="pa-h">Документы по порядку</div>'
     + д.map(х => {
       const да = х.можно && !_комплектСнято.has(х.к);
       return '<button type="button" class="pa-i' + (х.можно ? '' : ' pa-off') + '" role="menuitemcheckbox" aria-checked="' + да + '"'
@@ -27731,38 +27564,17 @@ function отметитьВКомплекте(к) {
   const м = document.getElementById('printAllMenu');
   const б = м && м.querySelector('.pa-i[onclick*="\'' + к + '\'"]');
   if (!б) { отрисоватьКомплект(); return; }
-  обновитьКомплектНаМесте();
-  б.focus();
-}
-// «Выбрать все / Снять все»: все отмечены — снимает все, иначе отмечает все
-// доступные. Закрытые документы не трогаются. Список тоже правится на месте.
-function отметитьВсеВКомплекте() {
-  const доступные = документыКомплекта().filter(х => х.можно);
-  const всеОтмечены = доступные.every(х => !_комплектСнято.has(х.к));
-  доступные.forEach(х => { if (всеОтмечены) _комплектСнято.add(х.к); else _комплектСнято.delete(х.к); });
-  обновитьКомплектНаМесте();
-}
-function обновитьКомплектНаМесте() {
-  const м = document.getElementById('printAllMenu');
-  if (!м) return;
-  const д = документыКомплекта();
-  д.forEach(х => {
-    const б = м.querySelector('.pa-i[onclick*="\'' + х.к + '\'"]');
-    if (!б) return;
-    const да = х.можно && !_комплектСнято.has(х.к);
-    б.setAttribute('aria-checked', String(да));
-    б.querySelector('.pa-box').innerHTML = да ? ГАЛКА_КОМПЛЕКТА : '';
-  });
-  const можно = д.filter(х => х.можно).length;
-  const выбрано = д.filter(х => х.можно && !_комплектСнято.has(х.к)).length;
+  const да = !_комплектСнято.has(к);
+  б.setAttribute('aria-checked', String(да));
+  б.querySelector('.pa-box').innerHTML = да ? ГАЛКА_КОМПЛЕКТА : '';
+  const выбрано = документыКомплекта().filter(х => х.можно && !_комплектСнято.has(х.к)).length;
   const пуск = м.querySelector('.pa-go');
   if (пуск) {
     пуск.disabled = !выбрано;
     const т = [...пуск.childNodes].find(у => у.nodeType === 3);
     if (т) т.textContent = 'Печать' + (выбрано ? ' · ' + выбрано : '');
   }
-  const все = м.querySelector('.pa-all');
-  if (все) все.textContent = выбрано === можно ? 'Снять все' : 'Выбрать все';
+  б.focus();
 }
 function переключитьКомплект() {
   const м = document.getElementById('printAllMenu');
@@ -34515,7 +34327,6 @@ const AL_ВИДЫ = {
   contract_exported:     'Договор выгружен в Word',
   contract_term_changed: 'Срок работ по договору изменён',
   contract_text_edited: 'Текст договора изменён',
-  cash_amount_edited: 'Сумма в приходном ордере изменена',
   // Согласование расчёта (Константин, 17.10.2026).
   approval_sent:         'Расчёт отправлен на согласование',
   approval_returned:     'Расчёт возвращён с правками',
@@ -36357,7 +36168,7 @@ function makeCardPreset(p) {
 
     const publishBtn = `<div style="display:flex;gap:4px;">
       ${isPublished
-        ? `<button class="pcard-retract"${кнопкаОтозватьЗакрыта(shortCode||p.sharedId||'')} onclick="event.stopPropagation();retractPreset('${shortCode||p.sharedId||''}')">
+        ? `<button class="pcard-retract" onclick="event.stopPropagation();retractPreset('${shortCode||p.sharedId||''}')">
              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Отозвать
            </button>`
         : `<div class="pcard-publish-wrap"><button class="pcard-publish" onclick="event.stopPropagation();openPublishMenu('${p.id}',this)">
@@ -36485,7 +36296,7 @@ function makeCard(p) {
 
   const publishBtn = `<div style="display:flex;gap:4px;">
     ${isPublished
-      ? `<button class="pcard-retract"${кнопкаОтозватьЗакрыта(shortCode||p.sharedId||'')} onclick="event.stopPropagation();retractPreset('${shortCode||p.sharedId||''}')">
+      ? `<button class="pcard-retract" onclick="event.stopPropagation();retractPreset('${shortCode||p.sharedId||''}')">
            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Отозвать
          </button>`
       : `<div class="pcard-publish-wrap"><button class="pcard-publish" onclick="event.stopPropagation();openPublishMenu('${p.id}',this)">
@@ -36783,7 +36594,6 @@ function renderPresetList() {
   // Опубликовали, отозвали, очередь ушла в базу — значок на кнопке «Пресеты»
   // и значок пресета в углу тоже.
   try { отрисоватьЗначокПресета(); } catch (e) {}
-  try { обновитьСогласованияСписка(); } catch (e) {}
   const list = document.getElementById('presetList');
   if (!list) return;
   const presets = loadAllPresets();
@@ -37835,42 +37645,6 @@ async function publishPreset(presetId, visibility) {
   }
 }
 
-// Пресет, отправленный на согласование, не отзывается — ни пока его
-// согласуют, ни после согласования и подписи договора (Константин,
-// 19.10.2026: «Когда общий пресет отправляют на согласование, то кнопку
-// „Отозвать“ делай бледной, чтобы случайно не отозвали. Такой пресет отозвать
-// больше нельзя»). Строку согласования по своим опубликованным кодам список
-// читает сам, одним запросом, и перерисовывается, когда узнал новое.
-const _кодыССогласованием = new Set();
-let _согласованияСписка = { коды: '', когда: 0, грузится: false };
-const ОТОЗВАТЬ_НЕЛЬЗЯ = 'Пресет отправлен на согласование — отозвать его из общих больше нельзя';
-function отозватьНельзя(код) {
-  if (!код) return false;
-  const к = String(код), с = _согласование;
-  return _кодыССогласованием.has(к) || !!(с && с.код === к && с.строка);
-}
-function кнопкаОтозватьЗакрыта(код) {
-  return отозватьНельзя(код) ? ' aria-disabled="true" title="' + ОТОЗВАТЬ_НЕЛЬЗЯ + '"' : '';
-}
-async function обновитьСогласованияСписка() {
-  if (!_sb || !_sbUser) return;
-  const коды = new Set();
-  Object.values(loadAllPresets()).forEach(p => { if (p.publishedAs && (p.shortCode || p.sharedId)) коды.add(String(p.shortCode || p.sharedId)); });
-  (_sharedPresets || []).forEach(sp => { if (sp.is_public && sp.author_id === _sbUser.id && sp.short_code) коды.add(String(sp.short_code)); });
-  const ключ = [...коды].sort().join(',');
-  const с = _согласованияСписка;
-  if (!ключ || с.грузится || (с.коды === ключ && Date.now() - с.когда < 60000)) return;
-  _согласованияСписка = { коды: ключ, когда: Date.now(), грузится: true };
-  try {
-    const { data, error } = await _sb.from('preset_approvals').select('code').in('code', [...коды]);
-    if (error) throw error;
-    const было = [..._кодыССогласованием].sort().join(',');
-    (data || []).forEach(р => _кодыССогласованием.add(String(р.code)));
-    if ([..._кодыССогласованием].sort().join(',') !== было) { renderPresetList(); renderSharedList(); }
-  } catch (e) {}
-  _согласованияСписка.грузится = false;
-}
-
 // ── Retract (unpublish) preset — makes private, keeps code ──
 // «Отозвать» сначала спрашивает (Константин, 29.09.2026): снятый пресет
 // пропадает из «Общих» и у коллег, у которых он открыт. Ссылка клиенту от
@@ -37878,7 +37652,6 @@ async function обновитьСогласованияСписка() {
 // открываться. Текст — тот же, что в карточке пресета (макет preset-card-v6).
 function retractPreset(shortCode) {
   if (!_sb || !_sbUser || !shortCode) return;
-  if (отозватьНельзя(shortCode)) { showToast(ОТОЗВАТЬ_НЕЛЬЗЯ); return; }
   showConfirmDialog('Отозвать публикацию?',
     'Пресет пропадёт из «Общих» — и у коллег, у которых он сейчас открыт. '
     + 'В «Моих» он останется, код сохранится — опубликовать снова можно в любой момент.',
@@ -38506,8 +38279,6 @@ let _значокРежим = '';          // что значок показыв
 let _значокНадпись = null;      // временная надпись после замка: { текст, до }
 const ЗНАЧОК_ГЛОБУС = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>';
 const ЗНАЧОК_ДИСК = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>';
-const ЗНАЧОК_БОЛЬШЕ = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5"/></svg>';
-const ЗНАЧОК_МЕНЬШЕ = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10h-6V4M4 14h6v6M14 10l6.5-6.5M10 14l-6.5 6.5"/></svg>';
 const ЗНАЧОК_КРЕСТ = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const ЗНАЧОК_СПИСОК = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>';
 // Замок значка — тот же рисунок, что на карточках пресетов (значокЗамка): у
@@ -38954,30 +38725,6 @@ function авторКратко(sp) {
   const ч = полное.split(/\s+/);
   return ч.length < 2 ? полное : ч[0] + ' ' + ч[1].charAt(0) + '.';
 }
-// Мини-окно с вкладками увеличивается кнопкой у крестика (Константин,
-// 19.10.2026: «Добавь кнопку „Увеличить/уменьшить“ на мини-окно, чтобы
-// менялось. На телефоне по размеру экрана вот до этой области. А на компьютере
-// сам прикинь, чтобы читалось нормально»). На телефоне большое окно — во всю
-// ширину, от панели кнопок до полоски итога; на компьютере — 600 px в ширину и
-// до 760 в высоту. Выбор помнится в этом браузере.
-let _пкБольшое = false;
-try { _пкБольшое = localStorage.getItem('banya_pc_big') === '1'; } catch (e) {}
-function переключитьРазмерКарточки() {
-  _пкБольшое = !_пкБольшое;
-  try { localStorage.setItem('banya_pc_big', _пкБольшое ? '1' : '0'); } catch (e) {}
-  if (_пкВкладка === 'm') _чатВниз = true;
-  заполнитьКарточкуЗначка();
-  const б = document.querySelector('#presetChipCard .pc-big'); if (б) б.focus();
-}
-// Верх большого окна — под прилипшей панелью кнопок: она лежит выше окна и
-// закрыла бы его шапку.
-function местоБольшогоОкна() {
-  const п = document.getElementById('headerBtns');
-  const верх = п && п.classList.contains('sticky') ? Math.round(п.getBoundingClientRect().bottom) + 8 : 12;
-  document.body.style.setProperty('--pc-big-top', верх + 'px');
-}
-window.addEventListener('scroll', () => { if (_пкБольшое && document.body.classList.contains('pc-card-open')) местоБольшогоОкна(); }, { passive: true });
-window.addEventListener('resize', () => { if (_пкБольшое) местоБольшогоОкна(); });
 function переключитьКарточкуЗначка() {
   const { к } = элементыЗначка();
   if (к.classList.contains('show')) { закрытьКарточкуЗначка(); return; }
@@ -39901,7 +39648,7 @@ function сравнитьОпцию(сл) {
   const во = сл.at ? когдаСогласования(сл.at) : '';
   const сн = опцияСейчас(сл.k);
   if (!сн) return { в: 'del', т: 'Опцию удалили из расчёта. В чате — какой она была' + (во ? ' ' + во : '') + '.' };
-  if (!сн.c) return { в: 'off', т: 'Опцию сняли с расчёта — галочки нет. В чате — какой она была' + (во ? ' ' + во : '') + '.' };
+  if (!сн.c) return { в: 'del', т: 'Опцию сняли с расчёта — галочки нет. В чате — какой она была' + (во ? ' ' + во : '') + '.' };
   const что = [];
   // Подарок обнуляет цену сам — о цене говорится, только когда подарок тот же.
   if (!сн.inc && !сл.inc && (сн.g || 0) === (сл.g || 0) && (сн.p || 0) !== (сл.p || 0)) что.push('цена: ' + fmt(сл.p || 0) + ' → ' + fmt(сн.p || 0));
@@ -39916,19 +39663,13 @@ function опцииЧатаHtml(с, опции) {
   const мид = escapeHtml(String(с.id));
   return опции.map((сл, i) => {
     const ст = сравнитьОпцию(сл), ключ = String(с.id) + ':' + i;
-    // Значок — галочка опции, как в строке расчёта: отмечена — залитая, снята —
-    // пустая (Константин, 19.10.2026: «Когда опция снята — показывай не
-    // корзину, а не закрытую галочку; а когда отмечена, закрытую галочку (как в
-    // калькуляторе)»). Изменившаяся отмеченная — с точкой; корзина осталась
-    // только у опции, которой в расчёте больше нет.
-    const значок = ст.в === 'del' ? ЗНАЧОК_ОП_НЕТ
-      : '<span class="opt-check"></span>' + (ст.в === 'ch' ? '<i class="pc-choc-dot"></i>' : '');
+    const значок = ст.в === 'del' ? ЗНАЧОК_ОП_НЕТ : ст.в === 'ch' ? ЗНАЧОК_ОП_ИНАЧЕ : ЗНАЧОК_ОП_ТА_ЖЕ;
     return '<div class="pc-choc' + (ст.в === 'same' ? '' : ' pc-choc-' + ст.в) + '" data-act="ch-opt-go" data-mid="' + мид + '" data-i="' + i + '">'
       + '<span class="pc-choc-b"><span class="pc-choc-s">' + escapeHtml(имяРазделаОпции(сл)) + '</span>'
       + '<span class="pc-choc-n">' + escapeHtml(сл.n || '') + '</span>'
       + '<span class="pc-choc-p"><span>' + escapeHtml(ценаСлепка(сл)) + '</span>'
       + '<button type="button" class="pc-choc-go" data-act="ch-opt-go" data-mid="' + мид + '" data-i="' + i + '">' + ЗНАЧОК_К_ОПЦИИ + 'к опции</button></span></span>'
-      + '<button type="button" class="pc-choc-st pc-choc-st-' + ст.в + (ст.в === 'same' || ст.в === 'ch' ? ' on' : '') + '" data-act="ch-opt-st" data-mid="' + мид + '" data-i="' + i + '" aria-label="' + escapeHtml(ст.т) + '" aria-expanded="' + (_чатПодсказкаОпции === ключ) + '">'
+      + '<button type="button" class="pc-choc-st pc-choc-st-' + ст.в + '" data-act="ch-opt-st" data-mid="' + мид + '" data-i="' + i + '" aria-label="' + escapeHtml(ст.т) + '" aria-expanded="' + (_чатПодсказкаОпции === ключ) + '">'
       + значок + '</button>'
       + (_чатПодсказкаОпции === ключ ? '<span class="pc-choc-tip" role="status">' + escapeHtml(ст.т) + '</span>' : '') + '</div>';
   }).join('');
@@ -40038,17 +39779,9 @@ function лентаЧата(о) {
     // chat-tap-guard-v2); «выполнено» остаётся словом.
     const метки = сделано ? '<span class="pc-cht pc-cht-ok">выполнено</span>' : '';
     const отл = отложеннаяОтметкаЧата(с.id);
-    // «Отменить» стоит у той кнопки, которую нажали: у «В проверку» или у
-    // «Выполнено» (Константин, 19.10.2026: «„Выполнено“ когда тоже нажимаешь,
-    // чтобы также как „В правки“ висела немного отменить кнопка»). У своего
-    // сообщения строка прижата вправо — «Отменить» встаёт слева от кнопки, у
-    // чужого — справа: нажатая кнопка не уезжает из-под пальца.
     const отмена = отл ? '<button type="button" class="pc-chundo" data-act="ch-flag-undo" data-mid="' + ид + '"'
       + ' style="animation-delay:-' + Math.min(ЧАТ_ОТМЕНА_МС, Date.now() - отл.когда) + 'ms"'
-      + ' aria-label="' + (отл.что === 'done'
-        ? (отл.новое === 'done' ? 'Отменить отметку «выполнено»' : 'Отменить снятие отметки «выполнено»')
-        : (отл.новое ? 'Отменить отправку в проверку' : 'Отменить снятие с проверки')) + '">Отменить</button>' : '';
-    const уФлага = отл && отл.что !== 'done' ? отмена : '', уГалки = отл && отл.что === 'done' ? отмена : '';
+      + ' aria-label="' + (отл.новое ? 'Отменить отметку «в правках»' : 'Отменить снятие из правок') + '">Отменить</button>' : '';
     h += '<div class="pc-chm' + (мой ? ' me' : '') + (сделано ? ' done' : '') + '" id="pcChm-' + ид + '" data-mid="' + ид + '">'
       + '<div class="pc-chb"><div class="pc-chw"><b>' + escapeHtml(ктоВЧате(с)) + '</b>'
       + (датаЕсть ? ' · ' + д.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '')
@@ -40059,12 +39792,10 @@ function лентаЧата(о) {
       + вложенияЧатаHtml(с, неподписаны) + '</div>'
       + (с.__сбой ? строкаСбояЧата(ид) : с.__шлётся ? '' : '<div class="pc-chact">'
       + '<button type="button" data-act="ch-reply" data-mid="' + ид + '">' + ЗНАЧОК_ОТВЕТ + '<span class="pc-chtx">Ответить</span></button>'
-      + (мой ? уФлага : '')
-      + '<button type="button" class="pc-chflag" data-act="ch-flag" data-mid="' + ид + '" aria-pressed="' + вПравках + '" title="' + (вПравках ? 'Убрать из проверки' : 'Отправить в проверку') + '">' + ЗНАЧОК_В_ПРАВКИ + 'В проверку</button>'
-      + (мой ? '' : уФлага)
-      + (мой ? уГалки : '')
+      + (мой ? отмена : '')
+      + '<button type="button" class="pc-chflag" data-act="ch-flag" data-mid="' + ид + '" aria-pressed="' + вПравках + '" title="' + (вПравках ? 'Убрать из правок' : 'Отразить в правках') + '">' + ЗНАЧОК_В_ПРАВКИ + 'В правки</button>'
+      + (мой ? '' : отмена)
       + '<button type="button" class="pc-chdone" data-act="ch-done" data-mid="' + ид + '" aria-pressed="' + сделано + '">' + ЗНАЧОК_ГАЛКА + '<span class="pc-chtx">Выполнено</span></button>'
-      + (мой ? '' : уГалки)
       + (можноИзменитьВЧате(с) ? '<button type="button" class="pc-chedit" data-act="ch-edit" data-mid="' + ид + '" aria-label="Изменить" title="Изменить — первые 5 минут, пока нет ответа"'
         + (_чатИзменение && String(_чатИзменение.id) === String(с.id) ? ' aria-pressed="true"' : '') + '>' + ЗНАЧОК_КАРАНДАШ + '</button>' : '')
       + '</div>') + '</div>';
@@ -40840,22 +40571,15 @@ function наложитьОтложенныеОтметки(код, список
     if (о && о.код === код) поставитьОтметкуЧата(с, о.новое);
   });
 }
-// «Выполнено» ждёт отмены так же (что === 'done'). Нажатие на ту же кнопку в
-// эти секунды — отмена; на другую — ждущая отметка уходит сразу, и новая
-// ждёт своих трёх секунд.
-async function отразитьВПравкахСОтменой(ид, что) {
-  что = что === 'done' ? 'done' : 'flag';
+function отразитьВПравкахСОтменой(ид) {
   const к = String(ид);
-  if (_флагиЧата.has(к)) {
-    if (_флагиЧата.get(к).что === что) { отменитьОтметкуЧата(к); return; }
-    await записатьОтложеннуюОтметку(к);
-  }
+  if (_флагиЧата.has(к)) { отменитьОтметкуЧата(к); return; }
   const с = сообщениеЧата(к);
   if (!с) return;
   const было = { review_state: с.review_state || null, done_by: с.done_by || null, done_at: с.done_at || null };
-  const новое = что === 'flag' ? (было.review_state ? null : 'open') : (было.review_state === 'done' ? 'open' : 'done');
+  const новое = было.review_state ? null : 'open';
   поставитьОтметкуЧата(с, новое);
-  const о = { код: _чат.код, что, было, новое, когда: Date.now(), таймер: 0, с };
+  const о = { код: _чат.код, было, новое, когда: Date.now(), таймер: 0, с };
   о.таймер = setTimeout(() => записатьОтложеннуюОтметку(к), ЧАТ_ОТМЕНА_МС);
   _флагиЧата.set(к, о);
   заполнитьКарточкуЗначка(); обновитьСчётчикПроверки();
@@ -40867,7 +40591,7 @@ function отменитьОтметкуЧата(к) {
   _флагиЧата.delete(к);
   Object.assign(сообщениеЧата(к) || о.с, о.было);
   заполнитьКарточкуЗначка(); обновитьСчётчикПроверки();
-  const ф = document.querySelector('#presetChipCard .pc-chm[data-mid="' + к + '"] [data-act="' + (о.что === 'done' ? 'ch-done' : 'ch-flag') + '"]');
+  const ф = document.querySelector('#presetChipCard .pc-chm[data-mid="' + к + '"] [data-act="ch-flag"]');
   if (ф) ф.focus();
 }
 function записатьОтложеннуюОтметку(к) {
@@ -41226,7 +40950,6 @@ function блокПодписиHtml(а, можно) {
   return '<div class="pc-row pc-ap-sgr"><button type="button" data-act="ap-sign"' + (_согласование.шлём ? ' disabled' : '') + '>Подписан</button></div>'
     + '<div class="pc-hint">Нажмите «Подписан», когда договор подписан: в чате появятся отметка и заключение в PDF, автору — напоминание о резюме.</div>';
 }
-const НУЖНА_ПУБЛИКАЦИЯ = 'Сначала опубликуйте пресет — кнопкой «Опубликовать» на вкладке «Пресет»: на согласование отправляется только опубликованный.';
 function блокСогласованияHtml(пр) {
   const о = пресетКарточки();
   if (!о || !о.код) return '';
@@ -41248,15 +40971,10 @@ function блокСогласованияHtml(пр) {
   const кнопка = (act, текст, главная, выкл) => '<button type="button" data-act="' + act + '"' + (главная ? ' class="pc-pri"' : '') + (выкл ? ' disabled' : '') + '>' + текст + '</button>';
   const сумма = н => н != null && Number(н) > 0 ? fmt(Number(н)) : '';
   let h = '';
-  // Кнопка отправки автора: со стопом — выключена и называет стоп. Личный
-  // пресет на согласование не уходит: проверяющие его не видят (Константин,
-  // 19.10.2026: «Личный пресет на согласование отправить нельзя, тут пиши
-  // подсказку, что нужно сначала опубликовать… И кнопка бледная для отправки
-  // на согласование. Когда опубликует, то становится активной»).
+  // Кнопка отправки автора: со стопом — выключена и называет стоп.
   const отправка = (текст) => {
     let под = '';
-    if (о.вид === 'own') под = НУЖНА_ПУБЛИКАЦИЯ;
-    else if (стоп) под = 'Сначала снимите стоп: «' + стоп.т + '».';
+    if (стоп) под = 'Сначала снимите стоп: «' + стоп.т + '».';
     else if (о.здесь) под = 'Пресет пока только в этом браузере — отправить можно, когда он уйдёт в облако.';
     return '<div class="pc-row">' + кнопка('ap-send', текст, true, !!под) + '</div>' + (под ? '<div class="pc-hint pc-ap-why">' + escapeHtml(под) + '</div>' : '');
   };
@@ -41347,7 +41065,6 @@ function отрисоватьСогласование() {
 async function отправитьНаСогласование() {
   const о = пресетКарточки();
   if (!о || !о.код || _согласование.шлём || !_sb) return;
-  if (о.вид === 'own') { showToast(НУЖНА_ПУБЛИКАЦИЯ); return; }
   const стоп = проверкаПоЧекЛисту().замечания.find(з => з.стоп);
   if (стоп) { showToast('Сначала снимите стоп: «' + стоп.т + '»'); return; }
   const с = составДляСогласования();
@@ -44391,12 +44108,9 @@ function заполнитьКарточкуЗначка() {
     const панель = (в, содерж) => '<div class="pc-pane' + (_пкВкладка === в ? ' on' : '') + '" id="pcPane-' + в + '" role="tabpanel" aria-labelledby="pcTab-' + в + '">' + содерж + '</div>';
     h = (о.вид === 'pub'
         ? '<button class="pc-more" type="button" data-act="more" aria-label="Ещё действия" aria-haspopup="menu" aria-expanded="' + _пкМеню + '">' + ЗНАЧОК_ЕЩЁ + '</button>'
-          + (_пкМеню ? '<div class="pc-menu" role="menu"><button type="button" role="menuitem" data-act="unpub"'
-            + (отозватьНельзя(о.код) ? ' aria-disabled="true" title="' + ОТОЗВАТЬ_НЕЛЬЗЯ + '"' : '') + '>' + ЗНАЧОК_ГЛОБУС_НЕТ + 'Снять с публикации</button></div>' : '')
+          + (_пкМеню ? '<div class="pc-menu" role="menu"><button type="button" role="menuitem" data-act="unpub">' + ЗНАЧОК_ГЛОБУС_НЕТ + 'Снять с публикации</button></div>' : '')
         : '')
       + '<button class="pc-x" type="button" data-act="close" aria-label="Закрыть">' + ЗНАЧОК_КРЕСТ + '</button>'
-      + '<button class="pc-big" type="button" data-act="big" aria-pressed="' + _пкБольшое + '" aria-label="' + (_пкБольшое ? 'Уменьшить окно' : 'Увеличить окно') + '"'
-      + ' title="' + (_пкБольшое ? 'Уменьшить окно' : 'Увеличить окно') + '">' + (_пкБольшое ? ЗНАЧОК_МЕНЬШЕ : ЗНАЧОК_БОЛЬШЕ) + '</button>'
       // Код — сразу за названием, на любой вкладке: по снимку чата или
       // проверки пресет находится без расспросов (Константин, 18.10.2026:
       // «Код пресета всегда пиши, чтобы был виден на любом скриншоте чата»).
@@ -44412,8 +44126,7 @@ function заполнитьКарточкуЗначка() {
       + панель('l', _пкВкладка === 'l' ? панельЖурналаКарточки(о) : '')
       + панель('c', _пкВкладка === 'c' ? панельПроверкиКарточки(пр) : '')
       + панель('m', _пкВкладка === 'm' ? панельЧатаКарточки() : '');
-    к.className = 'pc-card pc-tabbed' + (о.вид === 'pub' ? ' pc-pub' : '') + (_пкБольшое ? ' pc-big' : '') + (к.classList.contains('show') ? ' show' : '');
-    if (_пкБольшое) местоБольшогоОкна();
+    к.className = 'pc-card pc-tabbed' + (о.вид === 'pub' ? ' pc-pub' : '') + (к.classList.contains('show') ? ' show' : '');
   } else if (режим === 'profile') {
     if (!_пкПрофиль) _пкПрофиль = { фам: '', имя: ((window._sbProfile && _sbProfile.first_name) || '').trim() };
     h = '<button class="pc-x" type="button" data-act="prof-later" aria-label="Закрыть">' + ЗНАЧОК_КРЕСТ + '</button>'
@@ -44494,7 +44207,6 @@ function нажатиеВКарточке(e) {
   const о = (_значокРежим === 'own' || _значокРежим === 'shared') ? пресетКарточки() : null;
   switch (act) {
     case 'close': закрытьКарточкуЗначка(); break;
-    case 'big': переключитьРазмерКарточки(); break;
     case 'later': закрытьКарточкуЗначка(); снятьНапоминаниеСохранить(); break;
     case 'prof-later': _профильПозже = true; закрытьКарточкуЗначка(); break;
     case 'prof-save': сохранитьПрофильИзМиниОкна(); break;
@@ -44537,7 +44249,6 @@ function нажатиеВКарточке(e) {
       { const п = к.querySelector(_пкМеню ? '[data-act="unpub"]' : '[data-act="more"]'); if (п) п.focus(); }
       break;
     case 'unpub':
-      if (о && отозватьНельзя(о.код)) { _пкМеню = false; заполнитьКарточкуЗначка(); showToast(ОТОЗВАТЬ_НЕЛЬЗЯ); break; }
       _пкМеню = false; _пкПодтв = true; _пкВкладка = 'p'; заполнитьКарточкуЗначка();
       { const н = к.querySelector('[data-act="unpub-no"]'); if (н) н.focus(); }
       break;
@@ -44651,16 +44362,7 @@ function нажатиеВКарточке(e) {
       break;
     }
     case 'ch-flag-undo': отменитьОтметкуЧата(String(кн.getAttribute('data-mid'))); break;
-    case 'ch-done': {
-      // Галочка правки во вкладке «Проверка» отмечает сразу — там ею
-      // закрывают правки перед отправкой; ждёт отмены только «Выполнено» в
-      // ленте чата.
-      if (кн.classList.contains('pc-pr-box')) { отметитьВЧате(кн.getAttribute('data-mid'), 'done'); break; }
-      const наХоду = _чатКасаниеНаХоду && e.detail > 0;
-      _чатКасаниеНаХоду = false;
-      if (!наХоду) отразитьВПравкахСОтменой(кн.getAttribute('data-mid'), 'done');
-      break;
-    }
+    case 'ch-done': отметитьВЧате(кн.getAttribute('data-mid'), 'done'); break;
     // Правка в «Проверке» — к своему сообщению в чате.
     case 'ch-hide': переключитьПравкиЧата(); заполнитьКарточкуЗначка(); { const г = к.querySelector('[data-act="ch-hide"]'); if (г) г.focus(); } break;
     case 'ch-fold': свернутьПравкиЧата(); заполнитьКарточкуЗначка(); { const г = к.querySelector('[data-act="ch-fold"]'); if (г) г.focus(); } break;
@@ -44941,13 +44643,11 @@ function карточкаОбщего(sp, поКоду) {
     </div>
     <div class="shared-pcard-actions">
       <button class="btn-shared-use" onclick="${поКоду ? 'openSharedPresetByCode' : 'openSharedPreset'}('${sc}')">Открыть</button>
-      ${/* Скачать на общей карточке нет вовсе (Константин, 19.10.2026: «С общих
-         пресетов кнопку „Скачать“ вообще убери, чтобы не плодили дубли»).
-         Замок — сразу за «Открыть»; прежде он стоял после скачивания, тем же
-         порядком, что в «Моих» (Константин, 27.09.2026: «поменяй местами Замок и
-         Скачать»). У неопубликованного
+      ${кнопкаСкачатьПресет('btn-shared-act', !!sp.is_public, "downloadSharedPreset('" + sc + "')", 'Скачать JSON')}
+      ${/* Замок после скачивания — тем же порядком, что в «Моих» (Константин,
+         27.09.2026: «поменяй местами Замок и Скачать»). У неопубликованного
          замка нет: закрывать нечего, правки в него и так не идут. */ публ ? кнопкаЗамкаКарточки(sp, isMine) : ''}
-      ${isMine && публ ? `<button class="btn-retract"${кнопкаОтозватьЗакрыта(sc)} onclick="retractPreset('${sc}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Отозвать</button>` : ''}
+      ${isMine && публ ? `<button class="btn-retract" onclick="retractPreset('${sc}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Отозвать</button>` : ''}
 
 
       ${/* Корзины на чужой карточке нет ни у кого, и у администратора тоже:
@@ -44971,7 +44671,6 @@ function карточкаОбщего(sp, поКоду) {
 function renderSharedList() {
   const list = document.getElementById('sharedPresetList');
   if (!list) return;
-  try { обновитьСогласованияСписка(); } catch (e) {}
   const rawQuery = (document.getElementById('sharedSearchInput')?.value || '').trim();
   const query = rawQuery.toLowerCase();
   const codeQuery = rawQuery.replace(/\s/g, '');
@@ -45110,6 +44809,7 @@ function renderGlobalSearch() {
           </div>
           <div class="shared-pcard-actions">
             <button class="btn-shared-use" onclick="openSharedPreset('${sc}')">Открыть</button>
+            ${кнопкаСкачатьПресет('btn-shared-act', !!sp.is_public, "downloadSharedPreset('" + sc + "')", 'Скачать')}
           </div>
           <div class="pcard-code-row">
             <span class="pcard-code-label">Код</span>
@@ -45177,6 +44877,7 @@ function renderGlobalSearch() {
           </div>
           <div class="shared-pcard-actions">
             <button class="btn-shared-use" onclick="openSharedPreset('${sp.id}')">Открыть</button>
+            ${кнопкаСкачатьПресет('btn-shared-act', !!sp.is_public, "downloadSharedPreset('" + sp.id + "')", 'Скачать')}
           </div>
           ${sp.short_code ? `<div class="pcard-code-row">
             <span class="pcard-code-label">Код</span>
@@ -52085,25 +51786,6 @@ body:has(.custom-select-wrap.open) .pchip{opacity:0!important;pointer-events:non
 .pc-card.show{opacity:1;transform:none;pointer-events:auto;transition:opacity .18s cubic-bezier(.2,.8,.2,1),transform .24s cubic-bezier(.2,.8,.2,1)}
 .pc-card .pc-x{position:absolute;right:8px;top:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:none;color:var(--pc-ink3);cursor:pointer}
 .pc-card .pc-x::before{content:'';position:absolute;inset:-7px}
-.pc-card .pc-big{position:absolute;right:40px;top:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:none;color:var(--pc-ink3);cursor:pointer}
-.pc-card .pc-big::before{content:'';position:absolute;inset:-7px -3px}
-.pc-card.pc-pub .pc-big{right:72px}
-.pc-card.pc-tabbed .pc-nm{padding-right:60px}
-/* Большое окно: шапка и вкладки — сверху, панель вкладки забирает всю высоту. */
-.pc-card.pc-big{display:flex;flex-direction:column;top:max(var(--pc-big-top, 12px), calc(env(safe-area-inset-top) + 12px));
-  --pc-bot:calc(16px + env(safe-area-inset-bottom))}
-body.total-strip-on .pc-card.pc-big{--pc-bot:calc(var(--strip-h, 68px) + 10px)}
-.pc-card.pc-big .pc-pane.on{flex:1 1 auto;min-height:0;max-height:none}
-.pc-card.pc-big #pcPane-m.on{height:auto}
-@media (max-width:899px){.pc-card.pc-big{left:14px;right:14px;width:auto;max-width:none}}
-@media (min-width:900px){.pc-card.pc-big{width:540px;max-width:calc(100vw - 48px);top:max(var(--pc-big-top, 12px), calc(100dvh - var(--pc-bot) - 760px))}
-  /* Ширина — 540 px (Константин 19.10.2026: «на компьютере сделай уже на
-     10 %», было 600). Вкладки — рядом слева направо, а не врассыпную по
-     ширине окна; содержимое вкладки — на
-     восьмую крупнее: окно шире, и мелкий кегль маленького окна в нём
-     читается хуже. */
-  .pc-card.pc-big .pc-tabs{justify-content:flex-start;gap:26px}
-  .pc-card.pc-big .pc-pane.on{zoom:1.12}}
 .pc-card .pc-k{font-size:.54rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--pc-ink3)}
 .pc-card .pc-nm{margin-top:4px;padding-right:26px;font-family:'Unbounded',sans-serif;font-weight:700;font-size:.8rem;line-height:1.35;letter-spacing:-.01em;color:var(--pc-ink);white-space:normal}
 .pc-card .pc-nm-code{display:inline-block;margin-left:8px;font-family:'Geologica',sans-serif;font-size:.68rem;font-weight:600;letter-spacing:.02em;color:var(--pc-ink2);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -52281,8 +51963,7 @@ body.dark,body.ui-blank.dark{--pc-down:#e6a27c}
    редкое и карточке не мешает (Константин, 28.09.2026: «этот вариант давай»). */
 .pc-card .pc-more{position:absolute;right:40px;top:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:none;color:var(--pc-ink3);cursor:pointer}
 .pc-card .pc-more::before{content:'';position:absolute;inset:-7px -3px}
-.pc-card .pc-menu button[aria-disabled="true"]{opacity:.45;cursor:default}
-.pc-card.pc-pub .pc-nm{padding-right:92px}
+.pc-card.pc-pub .pc-nm{padding-right:60px}
 .pc-card .pc-menu{position:absolute;right:12px;top:40px;z-index:5;min-width:210px;padding:4px;background:var(--pc-bg);border:1px solid var(--pc-line);border-radius:10px;box-shadow:0 14px 34px rgba(0,0,0,.18)}
 .pc-card .pc-menu button{display:flex;align-items:center;gap:8px;width:100%;height:38px;padding:0 10px;border:0;border-radius:7px;background:none;font:inherit;font-size:.74rem;font-weight:500;color:var(--pc-warm-ink);cursor:pointer;text-align:left}
 /* Подтверждение снятия — тёплое, как предупреждения, а не красное: это не
@@ -52348,7 +52029,7 @@ button.pc-q{display:flex;align-items:center;gap:10px;width:100%;border-top:0;bor
 .pc-card .pc-ck-sub .pc-ck-tx{font-size:.7rem}
 @media (prefers-reduced-motion:reduce){.pc-card .pc-ck-chev svg{transition:none}}
 .pc-card .pc-ck-f{margin-top:10px;font-size:.64rem;line-height:1.45;color:var(--pc-ink3)}
-@media (hover:hover){.pc-card .pc-big:hover{color:var(--pc-ink);background:var(--pc-tint)}.pc-card .pc-menu button:hover,.pc-card .pc-more:hover,.pc-card .pc-ck button:hover{background:var(--pc-tint)}.pc-card .pc-tab:hover{color:var(--pc-ink)}}
+@media (hover:hover){.pc-card .pc-menu button:hover,.pc-card .pc-more:hover,.pc-card .pc-ck button:hover{background:var(--pc-tint)}.pc-card .pc-tab:hover{color:var(--pc-ink)}}
 /* Правки из чата во вкладке «Проверка» — над автоматическими пунктами,
    галочкой «Выполнено» (вариант Б макета approval-flow-v1). Поле нажатия
    галочки — 44 px невидимым полем, сама она рисуется в 18. */
@@ -52500,10 +52181,6 @@ body.dark,body.ui-blank.dark{--pc-bub:rgba(255,255,255,.07)}
 .pc-card .pc-chact .pc-chflag{padding:0 6px;margin:0 -6px;border-radius:6px}
 .pc-card .pc-chm:not(.me) .pc-chact.pc-chtight .pc-chdone .pc-chtx,
 .pc-card .pc-chm.me .pc-chact.pc-chtight [data-act="ch-reply"] .pc-chtx{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-/* Кнопка, у которой спрятана подпись, остаётся под палец: значок посреди
-   24 px, поле нажатия — 38 px в ширину. */
-.pc-card .pc-chm:not(.me) .pc-chact.pc-chtight .pc-chdone,
-.pc-card .pc-chm.me .pc-chact.pc-chtight [data-act="ch-reply"]{min-width:24px;justify-content:center}
 .pc-card .pc-chact .pc-chflag[aria-pressed="true"]{background:var(--pc-warm-tint);color:var(--pc-warm-ink)}
 .pc-card .pc-chact .pc-chdone[aria-pressed="true"]{color:var(--pc-acc);font-weight:600}
 /* «Отменить» у значка «Отразить в правках»: 3 секунды и гаснет. Отсчёт
@@ -52609,13 +52286,10 @@ body.dark,body.ui-blank.dark{--pc-bub:rgba(255,255,255,.07)}
 .pc-card .pc-choc-go::before{content:'';position:absolute;inset:-15px -6px}
 .pc-card .pc-choc.pc-choc-ch{background:var(--pc-warm-tint)}
 .pc-card .pc-choc.pc-choc-del{background:color-mix(in srgb, var(--pc-del) 9%, var(--pc-bg))}
-.pc-card .pc-choc.pc-choc-del .pc-choc-n,
-.pc-card .pc-choc.pc-choc-off .pc-choc-n{color:var(--pc-ink2)}
+.pc-card .pc-choc.pc-choc-del .pc-choc-n{color:var(--pc-ink2)}
 .pc-card .pc-choc-st{position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:50%;background:none;color:var(--pc-acc);cursor:pointer}
 .pc-card .pc-choc-st::before{content:'';position:absolute;inset:-8px -6px}
-.pc-card .pc-choc-st-ch{color:var(--pc-warm-ink)}
-.pc-card .pc-choc-st .opt-check{margin:0}
-.pc-card .pc-choc-dot{position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:var(--pc-warm);box-shadow:0 0 0 2px var(--pc-warm-tint)}
+.pc-card .pc-choc-st-ch{color:var(--pc-warm-ink);background:var(--pc-warm-tint)}
 .pc-card .pc-choc-st-del{color:var(--pc-del);background:var(--pc-del-tint)}
 /* Подсказка значка — строкой под карточкой: у последнего сообщения
    всплывающая ушла бы под край ленты. */

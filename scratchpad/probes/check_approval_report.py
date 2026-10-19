@@ -161,7 +161,6 @@ def начать(бр, порт, ш, в):
     if стр.locator("#pcName").count():
         стр.locator("#pcName").press("Enter")
     стр.wait_for_timeout(2600)
-    па.опубликовать_пресет(стр)
     return стр, ошибки
 
 

@@ -46,10 +46,6 @@ mockups/approval-flow-v1.html: «Вот тут отлично, делай как
   • вёрстка на 390 и 1440, днём и ночью: блок внутри карточки, поля нажатия
     кнопок не меньше 44 px, кнопки не касаются плашки и друг друга.
 
-  • личный пресет на согласование не уходит: кнопка бледная, подсказка —
-    опубликовать, вызов функции отправки говорит словами и базу не трогает;
-    после публикации кнопка оживает (19.10.2026).
-
     python3 check_preset_approval.py
 """
 import os, pathlib, re, sys
@@ -193,13 +189,7 @@ def роль(стр, р):
     стр.wait_for_timeout(200)
 
 
-def опубликовать_пресет(стр):
-    стр.evaluate("""() => { const все = loadAllPresets(), p = все[activePresetId]; if (!p) return;
-      p.publishedAs = 'user'; saveAllPresets(все); заполнитьКарточкуЗначка(); }""")
-    стр.wait_for_timeout(200)
-
-
-def начать(бр, порт, ш, в, ночь, опубликовать=True):
+def начать(бр, порт, ш, в, ночь):
     стр = бр.new_page(viewport={"width": ш, "height": в})
     ошибки = []
     стр.on("pageerror", lambda e: ошибки.append(str(e)))
@@ -217,10 +207,6 @@ def начать(бр, порт, ш, в, ночь, опубликовать=True
     if стр.locator("#pcName").count():
         стр.locator("#pcName").press("Enter")
     стр.wait_for_timeout(2600)
-    # С 19.10.2026 на согласование уходит только опубликованный пресет —
-    # расчёт пробы публикуется сразу после сохранения.
-    if опубликовать:
-        опубликовать_пресет(стр)
     return стр, ошибки
 
 
@@ -236,28 +222,7 @@ def нажать(стр, act):
 
 def прогон(бр, порт, ш, в, ночь, полный):
     н = f"[{ш}{' ночь' if ночь else ''}]"
-    стр, ошибки = начать(бр, порт, ш, в, ночь, опубликовать=False)
-    # Личный пресет: кнопка отправки бледная, подсказка — опубликовать
-    # (Константин, 19.10.2026: «Личный пресет на согласование отправить нельзя…
-    # Когда опубликует, то становится активной»).
-    открытьПроверку(стр)
-    лч = стр.evaluate("""() => { const к = document.querySelector('#presetChipCard .pc-ap-blk [data-act="ap-send"]');
-      const п = document.querySelector('#presetChipCard .pc-ap-blk .pc-ap-why');
-      return { есть: !!к, выкл: к ? к.disabled : null, подсказка: п ? п.textContent : '', прозр: к ? +getComputedStyle(к).opacity : 1 }; }""")
-    if not лч["есть"] or not лч["выкл"] or "опубликуйте" not in лч["подсказка"] or лч["прозр"] > .7:
-        плохо(f"{н} личный пресет: кнопка отправки {лч}")
-    стр.evaluate("() => { window.__ВЫЗ_ДО = (window.__ВЫЗОВЫ || []).length; отправитьНаСогласование(); }"); стр.wait_for_timeout(300)
-    if стр.evaluate("() => (window.__ВЫЗОВЫ || []).length !== window.__ВЫЗ_ДО") or not any("опубликуйте" in т for т in стр.evaluate("() => window.__тосты.slice(-2)")):
-        плохо(f"{н} личный пресет ушёл на согласование или отказ без слов")
-    опубликовать_пресет(стр)
-    лч = стр.evaluate("""() => { const к = document.querySelector('#presetChipCard .pc-ap-blk [data-act="ap-send"]');
-      const п = document.querySelector('#presetChipCard .pc-ap-blk .pc-ap-why');
-      return { выкл: к ? к.disabled : null, подсказка: п ? п.textContent : '' }; }""")
-    # Стоп в учебном расчёте до ДАННЫХ может быть — тогда кнопку держит он, а
-    # не публикация; важно, что подсказка о публикации ушла.
-    if "опубликуйте" in лч["подсказка"] or (лч["выкл"] and not лч["подсказка"]):
-        плохо(f"{н} после публикации кнопку отправки всё ещё держит публикация: {лч}")
-    стр.locator("#presetChipCard .pc-x").click(); стр.wait_for_timeout(300)
+    стр, ошибки = начать(бр, порт, ш, в, ночь)
     шрифт = стр.evaluate("""() => { const и = document.createElement('span'); и.style.cssText = 'position:absolute;visibility:hidden;font-size:40px;white-space:nowrap'; и.textContent = 'Согласование расчёта';
       document.body.appendChild(и); const шир = ш => { и.style.fontFamily = ш; return и.getBoundingClientRect().width; };
       const д = Math.abs(шир("'Geologica',monospace") - шир('monospace')) > .5; и.remove(); return д; }""")

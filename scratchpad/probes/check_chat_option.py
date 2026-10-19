@@ -4,7 +4,7 @@
 
 Константин 18.10.2026, макет mockups/option-to-chat-v1.html: «Да, как в
 макете. Все как тут предложил делай»: опция ложится над полем ввода, как
-файл; снятая галочка — пустая галочка (с 19.10.2026, до этого — как удалённая); изменение — цена, название,
+файл; снятая галочка — то же, что удалена; изменение — цена, название,
 количество, подарок; до 10 в сообщении; значок у опции, что уже над полем,
 залит.
 
@@ -85,13 +85,7 @@ def плохо(т):
 КАРТОЧКИ = """() => [...document.querySelectorAll('#presetChipCard .pc-choc')].map(к => ({
   имя: (к.querySelector('.pc-choc-n') || {}).textContent || '', раздел: (к.querySelector('.pc-choc-s') || {}).textContent || '',
   цена: ((к.querySelector('.pc-choc-p > span') || {}).textContent) || '',
-  вид: к.classList.contains('pc-choc-del') ? 'del' : к.classList.contains('pc-choc-off') ? 'off' : к.classList.contains('pc-choc-ch') ? 'ch' : 'same',
-  // Значок — галочка опции, как в строке расчёта (19.10.2026): отмечена —
-  // залитая, снята — пустая, изменилась — залитая с точкой; корзина — у удалённой.
-  значок: (() => { const б = к.querySelector('.pc-choc-st'), г = б && б.querySelector('.opt-check');
-    if (!г) return б && б.querySelector('svg') ? 'корзина' : '';
-    const фон = getComputedStyle(г).backgroundColor, залита = б.classList.contains('on') && фон !== 'rgba(0, 0, 0, 0)' && getComputedStyle(г, '::after').display !== 'none';
-    return (залита ? 'залита' : 'пуста') + (б.querySelector('.pc-choc-dot') ? '+точка' : ''); })(),
+  вид: к.classList.contains('pc-choc-del') ? 'del' : к.classList.contains('pc-choc-ch') ? 'ch' : 'same',
   подсказка: (к.querySelector('.pc-choc-tip') || {}).textContent || '', метка: (к.querySelector('.pc-choc-st') || {}).getAttribute('aria-label') || '' }))"""
 
 ВЁРСТКА = """() => { const к = document.getElementById('presetChipCard'), r = к.getBoundingClientRect(), cs = getComputedStyle(к);
@@ -203,7 +197,7 @@ def прогон(бр, порт, ш, в, ночь, полный):
       return !!(о && т && о.getBoundingClientRect().bottom <= т.getBoundingClientRect().top + .5); }""")
     if not выше:
         плохо(f"{н} карточки опций не над текстом сообщения")
-    if [х["имя"] for х in к] != [ид["платИмя"], ид["базИмя"], "Обработка торцов воском"] or any(х["вид"] != "same" or х["значок"] != "залита" for х in к):
+    if [х["имя"] for х in к] != [ид["платИмя"], ид["базИмя"], "Обработка торцов воском"] or any(х["вид"] != "same" for х in к):
         плохо(f"{н} карточки после отправки: {к}")
     if len(база) != 3 or not all(х.get("opt") and х.get("k") and х.get("n") and х.get("s") and х.get("at") for х in база) \
             or база[2].get("p") != 6500 or not база[1].get("inc"):
@@ -219,7 +213,7 @@ def прогон(бр, порт, ш, в, ночь, полный):
     # ── что стало с опцией ──
     стр.evaluate("(ид) => { toggleGift(ид, { stopPropagation() {} }); calc(); заполнитьКарточкуЗначка(); }", ид["плат"]); стр.wait_for_timeout(400)
     к = стр.evaluate(КАРТОЧКИ)
-    if not к or к[0]["вид"] != "ch" or к[0]["метка"] != "Сейчас в подарок." or к[0]["значок"] != "залита+точка":
+    if not к or к[0]["вид"] != "ch" or к[0]["метка"] != "Сейчас в подарок." :
         плохо(f"{н} подарок не отмечен «изменилась»: {к[:1]}")
     стр.locator("#presetChipCard .pc-choc .pc-choc-st").first.click(); стр.wait_for_timeout(300)
     к = стр.evaluate(КАРТОЧКИ)
@@ -230,8 +224,8 @@ def прогон(бр, порт, ш, в, ночь, полный):
     стр.screenshot(path=str(СНИМКИ / f"chatopt-tip-{ш}{'-n' if ночь else ''}.png"))
     стр.evaluate("(ид) => { toggleGift(ид, { stopPropagation() {} }); toggleOpt(ид); calc(); заполнитьКарточкуЗначка(); }", ид["плат"]); стр.wait_for_timeout(400)
     к = стр.evaluate(КАРТОЧКИ)
-    if not к or к[0]["вид"] != "off" or "сняли с расчёта" not in к[0]["метка"] or к[0]["значок"] != "пуста":
-        плохо(f"{н} снятая галочка — не пустая галочка: {к[:1]}")
+    if not к or к[0]["вид"] != "del" or "сняли с расчёта" not in к[0]["метка"]:
+        плохо(f"{н} снятая галочка не «удалена»: {к[:1]}")
     # Нажатие на карточку снятой — к строке и слова.
     стр.locator("#presetChipCard .pc-choc .pc-choc-go").first.click(); стр.wait_for_timeout(900)
     о = стр.evaluate("""(ид) => { const р = document.getElementById('lbl_' + ид), б = р && р.getBoundingClientRect();
@@ -246,7 +240,7 @@ def прогон(бр, порт, ш, в, ночь, полный):
     if not стр.evaluate("() => document.getElementById('presetChipCard').classList.contains('show')"):
         плохо(f"{н} мини-окно не открылось после перехода к строке")
     к = стр.evaluate(КАРТОЧКИ)
-    if [х["вид"] for х in к] != ["same", "same", "del"] or "удалили" not in к[2]["метка"] or к[2]["значок"] != "корзина":
+    if [х["вид"] for х in к] != ["same", "same", "del"] or "удалили" not in к[2]["метка"]:
         плохо(f"{н} вернули как было и своя удалена: {к}")
     стр.locator("#presetChipCard .pc-choc").nth(2).click(); стр.wait_for_timeout(500)
     о = стр.evaluate("() => ({ окно: document.getElementById('presetChipCard').classList.contains('show'), тосты: window.__тосты.slice(-4) })")

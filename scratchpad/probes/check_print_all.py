@@ -20,9 +20,6 @@
     комплекта совпадает со страницей своего документа, кроме номера страницы
     в верхнем поле (его в комплекте нет — счётчик у задания один); версия
     договора в поле остаётся; лист реквизитов договора — с полями документа;
-  • «Выбрать все / Снять все» в заголовке списка: надпись по состоянию,
-    список не закрывается, закрытые документы не трогаются; в строке
-    заголовка, не вплотную, тише строк, поле нажатия не меньше 38 px;
   • вёрстка на 390 и 1440: «Печать / PDF» и «Печатать всё» в одном ряду,
     на 1440 весь ряд кнопок — одной строкой; список в экране, строки списка
     и кнопка печати не ниже 44 px по полю нажатия.
@@ -160,38 +157,6 @@ def прогон(бр, порт, ш, полный):
     стр.evaluate("() => { закрытьКомплект(); }"); стр.locator("#printAllBtn").click(); стр.wait_for_timeout(200)
     if стр.evaluate(СПИСОК)[-1]["да"]:
         плохо(f"{н} снятая галочка не запомнилась")
-    # «Выбрать все / Снять все» в заголовке списка — одним нажатием вместо восьми
-    # (Константин, 19.10.2026: «добавь кнопку снять/выбрать все — чтобы
-    # менялась. Долго по одной нажимать»). Надпись меняется, список не
-    # закрывается, кнопка печати считает заново.
-    def все():
-        return стр.evaluate("""() => { const б = document.querySelector('#printAllMenu .pa-all');
-          return б ? б.textContent.trim() : null; }""")
-    if все() != "Выбрать все":
-        плохо(f"{н} одна галочка снята, а переключатель «{все()}», ждём «Выбрать все»")
-    for ждём_да, ждём_кн, ждём_надпись in ((True, "Печать · 8", "Снять все"), (False, "Печать", "Выбрать все"), (True, "Печать · 8", "Снять все")):
-        стр.locator("#printAllMenu .pa-all").click(); стр.wait_for_timeout(200)
-        с_ = стр.evaluate(СПИСОК)
-        кн_ = стр.evaluate("() => document.querySelector('#printAllMenu .pa-go').textContent.trim()")
-        if not стр.evaluate(открыт):
-            плохо(f"{н} список закрылся после «{ждём_надпись if not ждём_да else 'Выбрать все'}»"); break
-        if any(х["да"] != ждём_да for х in с_) or кн_ != ждём_кн or все() != ждём_надпись:
-            плохо(f"{н} переключатель всех: галочки {[х['да'] for х in с_]}, кнопка «{кн_}», надпись «{все()}»")
-    # Вид: переключатель в строке заголовка, справа, не прилипает к заголовку и
-    # к первой строке; нарисован тише строк, а поле нажатия — не меньше 38 px.
-    for т in стр.evaluate("""() => { const н = [], м = document.getElementById('printAllMenu');
-        const б = м.querySelector('.pa-all'), h = м.querySelector('.pa-h'), i = м.querySelector('.pa-i');
-        const rb = б.getBoundingClientRect(), rh = h.getBoundingClientRect(), ri = i.getBoundingClientRect(), rm = м.getBoundingClientRect();
-        if (rb.left - rh.right < 8) н.push('переключатель вплотную к заголовку: ' + Math.round(rb.left - rh.right));
-        if (rm.right - rb.right < 10 || rm.right - rb.right > 26) н.push('переключатель от правого края списка: ' + Math.round(rm.right - rb.right));
-        if (ri.top - rb.bottom < 4) н.push('переключатель вплотную к первой строке: ' + Math.round(ri.top - rb.bottom));
-        if (Math.abs((rb.top + rb.bottom) / 2 - (rh.top + rh.bottom) / 2) > 4) н.push('переключатель не в строке заголовка');
-        if (h.getClientRects().length !== 1 || rh.height > parseFloat(getComputedStyle(h).lineHeight || 0) + 14) н.push('заголовок списка перенёсся на две строки: ' + Math.round(rh.height));
-        const п = getComputedStyle(б, '::before'), поле = rb.height - parseFloat(п.top) - parseFloat(п.bottom);
-        if (поле < 37.5) н.push('поле нажатия переключателя ' + Math.round(поле));
-        if (parseFloat(getComputedStyle(б).fontSize) >= parseFloat(getComputedStyle(i).fontSize)) н.push('переключатель не тише строк');
-        return н; }"""):
-        плохо(f"{н} {т}")
     стр.evaluate("() => { документыКомплекта().forEach(х => _комплектСнято.add(х.к)); отрисоватьКомплект(); }")
     if not стр.evaluate("() => document.querySelector('#printAllMenu .pa-go').disabled"):
         плохо(f"{н} без единой галочки печать не выключена")
@@ -267,12 +232,6 @@ def менеджер(бр, порт):
         плохо(f"[менеджер] список до согласования: {с}")
     if стр.evaluate("() => document.querySelector('#printAllMenu .pa-go').textContent.trim()") != "Печать · 3":
         плохо("[менеджер] на кнопке печати не три документа")
-    # Переключатель всех не трогает закрытые документы.
-    стр.locator("#printAllMenu .pa-all").click(); стр.wait_for_timeout(150)
-    стр.locator("#printAllMenu .pa-all").click(); стр.wait_for_timeout(150)
-    с = стр.evaluate(СПИСОК)
-    if [х["т"] for х in с if х["да"]] != ["Спецификация · Основной договор", "Спецификация · Договор на отделку", "Вид и план"]:
-        плохо(f"[менеджер] «Снять все» и «Выбрать все» задели закрытые документы: {с}")
     к.close()
 
 
