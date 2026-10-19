@@ -38962,19 +38962,88 @@ function авторКратко(sp) {
 // до 760 в высоту. Выбор помнится в этом браузере.
 let _пкБольшое = false;
 try { _пкБольшое = localStorage.getItem('banya_pc_big') === '1'; } catch (e) {}
+// На компьютере большое окно тянется за верхний и левый край — оно стоит в
+// правом нижнем углу и растёт вверх и влево (Константин, 19.10.2026: «На
+// десктопе сделай возможность тянуть вверх/вниз. Менять размер развернутого
+// мини-окна. И запоминай это состояние. Размер для всех пресетов»). Размер —
+// один на все пресеты, в этом браузере. Кнопка у крестика ходит по кругу:
+// маленькое → большое своего размера → стандартное большое (кнопка горит
+// цветом темы) → маленькое. Маленькое — всегда одного размера.
+const ПК_СТАНДАРТ = { w: 540, h: 760 };
+let _пкРазмер = null;
+try { const р = JSON.parse(localStorage.getItem('banya_pc_big_size') || 'null'); if (р && р.w > 0 && р.h > 0) _пкРазмер = { w: Math.round(р.w), h: Math.round(р.h) }; } catch (e) {}
+function пкНаКомпьютере() { return window.matchMedia && matchMedia('(min-width: 900px)').matches; }
+function пкСвойРазмер() { return !!_пкРазмер && пкНаКомпьютере(); }
+function применитьРазмерОкна() {
+  const т = document.body.style;
+  if (_пкРазмер) { т.setProperty('--pc-big-w', _пкРазмер.w + 'px'); т.setProperty('--pc-big-h', _пкРазмер.h + 'px'); }
+  else { т.removeProperty('--pc-big-w'); т.removeProperty('--pc-big-h'); }
+}
+применитьРазмерОкна();
 function переключитьРазмерКарточки() {
-  _пкБольшое = !_пкБольшое;
-  try { localStorage.setItem('banya_pc_big', _пкБольшое ? '1' : '0'); } catch (e) {}
+  if (_пкБольшое && пкСвойРазмер()) {
+    // Своё большое → стандартное большое; окно остаётся большим.
+    _пкРазмер = null;
+    try { localStorage.removeItem('banya_pc_big_size'); } catch (e) {}
+    применитьРазмерОкна();
+  } else {
+    _пкБольшое = !_пкБольшое;
+    try { localStorage.setItem('banya_pc_big', _пкБольшое ? '1' : '0'); } catch (e) {}
+  }
   if (_пкВкладка === 'm') _чатВниз = true;
   заполнитьКарточкуЗначка();
   const б = document.querySelector('#presetChipCard .pc-big'); if (б) б.focus();
 }
+// Тянут за край: ширина не уже 380 и не шире экрана без полей, высота не
+// ниже 360; верх упирается в панель кнопок сам — его держит max() в стиле.
+function начатьТягуОкна(e, край) {
+  const к = document.getElementById('presetChipCard');
+  if (!к || !_пкБольшое || !пкНаКомпьютере()) return;
+  e.preventDefault();
+  const р = к.getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY;
+  const низ = р.bottom, верхМин = parseFloat(getComputedStyle(document.body).getPropertyValue('--pc-big-top')) || 12;
+  const размер = (ex, ey) => ({
+    // Окно прижато не к краю экрана, а к колонке страницы: правый край стоит
+    // в 240 px от края на 1440. Предел ширины — до 24 px от левого края экрана.
+    w: /л/.test(край) ? Math.max(380, Math.min(Math.round(р.right) - 24, Math.round(р.width + (x0 - ex)))) : Math.round(р.width),
+    h: /в/.test(край) ? Math.max(360, Math.min(Math.round(низ - верхМин), Math.round(р.height + (y0 - ey)))) : Math.round(р.height) });
+  // Указатель захвачен ручкой: отпускание за краем окна браузера всё равно
+  // заканчивает растяжку. Без захвата отпускание снаружи терялось, растяжка
+  // не кончалась, и следующая ложилась поверх неё.
+  if (typeof _пкКонецТяги === 'function') _пкКонецТяги();
+  const ручка = e.target;
+  try { ручка.setPointerCapture(e.pointerId); } catch (e1) {}
+  document.body.classList.add('pc-тяга');
+  const ход = ev => { _пкРазмер = размер(ev.clientX, ev.clientY); применитьРазмерОкна(); };
+  const конец = () => {
+    if (_пкКонецТяги !== конец) return;
+    _пкКонецТяги = null;
+    ручка.removeEventListener('pointermove', ход); ручка.removeEventListener('pointerup', конец);
+    ручка.removeEventListener('pointercancel', конец); ручка.removeEventListener('lostpointercapture', конец);
+    document.body.classList.remove('pc-тяга');
+    if (_пкРазмер && Math.abs(_пкРазмер.w - ПК_СТАНДАРТ.w) < 4 && Math.abs(_пкРазмер.h - Math.min(ПК_СТАНДАРТ.h, Math.round(низ - верхМин))) < 4) _пкРазмер = null;
+    try { _пкРазмер ? localStorage.setItem('banya_pc_big_size', JSON.stringify(_пкРазмер)) : localStorage.removeItem('banya_pc_big_size'); } catch (e2) {}
+    применитьРазмерОкна();
+    заполнитьКарточкуЗначка();
+  };
+  _пкКонецТяги = конец;
+  ручка.addEventListener('pointermove', ход); ручка.addEventListener('pointerup', конец);
+  ручка.addEventListener('pointercancel', конец); ручка.addEventListener('lostpointercapture', конец);
+}
+let _пкКонецТяги = null;
+document.addEventListener('pointerdown', e => {
+  const т = e.target.closest && e.target.closest('#presetChipCard [data-pc-rs]');
+  if (т) начатьТягуОкна(e, т.getAttribute('data-pc-rs'));
+});
 // Верх большого окна — под прилипшей панелью кнопок: она лежит выше окна и
 // закрыла бы его шапку.
 function местоБольшогоОкна() {
   const п = document.getElementById('headerBtns');
   const верх = п && п.classList.contains('sticky') ? Math.round(п.getBoundingClientRect().bottom) + 8 : 12;
   document.body.style.setProperty('--pc-big-top', верх + 'px');
+  // Своя ширина не выходит за левый край экрана, и когда экран стал уже.
+  const к = document.getElementById('presetChipCard');
+  if (к && к.classList.contains('pc-big')) document.body.style.setProperty('--pc-big-wmax', Math.max(380, Math.round(к.getBoundingClientRect().right) - 24) + 'px');
 }
 window.addEventListener('scroll', () => { if (_пкБольшое && document.body.classList.contains('pc-card-open')) местоБольшогоОкна(); }, { passive: true });
 window.addEventListener('resize', () => { if (_пкБольшое) местоБольшогоОкна(); });
@@ -44395,8 +44464,16 @@ function заполнитьКарточкуЗначка() {
             + (отозватьНельзя(о.код) ? ' aria-disabled="true" title="' + ОТОЗВАТЬ_НЕЛЬЗЯ + '"' : '') + '>' + ЗНАЧОК_ГЛОБУС_НЕТ + 'Снять с публикации</button></div>' : '')
         : '')
       + '<button class="pc-x" type="button" data-act="close" aria-label="Закрыть">' + ЗНАЧОК_КРЕСТ + '</button>'
-      + '<button class="pc-big" type="button" data-act="big" aria-pressed="' + _пкБольшое + '" aria-label="' + (_пкБольшое ? 'Уменьшить окно' : 'Увеличить окно') + '"'
-      + ' title="' + (_пкБольшое ? 'Уменьшить окно' : 'Увеличить окно') + '">' + (_пкБольшое ? ЗНАЧОК_МЕНЬШЕ : ЗНАЧОК_БОЛЬШЕ) + '</button>'
+      + (() => {
+          // Своё большое: кнопка возвращает стандартный размер; стандартное
+          // большое: кнопка горит цветом темы и уменьшает окно.
+          const своё = _пкБольшое && пкСвойРазмер();
+          const п = !_пкБольшое ? 'Увеличить окно' : своё ? 'Стандартный размер окна' : 'Уменьшить окно';
+          return '<button class="pc-big' + (_пкБольшое && !своё ? ' pc-big-std' : '') + '" type="button" data-act="big" aria-pressed="' + _пкБольшое + '" aria-label="' + п + '" title="' + п + '">'
+            + (_пкБольшое && !своё ? ЗНАЧОК_МЕНЬШЕ : ЗНАЧОК_БОЛЬШЕ) + '</button>'
+            + (_пкБольшое ? '<span class="pc-rs pc-rs-t" data-pc-rs="в" aria-hidden="true"></span><span class="pc-rs pc-rs-l" data-pc-rs="л" aria-hidden="true"></span>'
+              + '<span class="pc-rs pc-rs-tl" data-pc-rs="вл" aria-hidden="true" title="Потяните, чтобы поменять размер окна"></span>' : '');
+        })()
       // Код — сразу за названием, на любой вкладке: по снимку чата или
       // проверки пресет находится без расспросов (Константин, 18.10.2026:
       // «Код пресета всегда пиши, чтобы был виден на любом скриншоте чата»).
@@ -52088,6 +52165,8 @@ body:has(.custom-select-wrap.open) .pchip{opacity:0!important;pointer-events:non
 .pc-card .pc-big{position:absolute;right:40px;top:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:none;color:var(--pc-ink3);cursor:pointer}
 .pc-card .pc-big::before{content:'';position:absolute;inset:-7px -3px}
 .pc-card.pc-pub .pc-big{right:72px}
+.pc-card .pc-big.pc-big-std{color:var(--pc-acc)}
+.pc-card .pc-rs{display:none}
 .pc-card.pc-tabbed .pc-nm{padding-right:60px}
 /* Большое окно: шапка и вкладки — сверху, панель вкладки забирает всю высоту. */
 .pc-card.pc-big{display:flex;flex-direction:column;top:max(var(--pc-big-top, 12px), calc(env(safe-area-inset-top) + 12px));
@@ -52096,7 +52175,18 @@ body.total-strip-on .pc-card.pc-big{--pc-bot:calc(var(--strip-h, 68px) + 10px)}
 .pc-card.pc-big .pc-pane.on{flex:1 1 auto;min-height:0;max-height:none}
 .pc-card.pc-big #pcPane-m.on{height:auto}
 @media (max-width:899px){.pc-card.pc-big{left:14px;right:14px;width:auto;max-width:none}}
-@media (min-width:900px){.pc-card.pc-big{width:540px;max-width:calc(100vw - 48px);top:max(var(--pc-big-top, 12px), calc(100dvh - var(--pc-bot) - 760px))}
+@media (min-width:900px){.pc-card.pc-big{width:var(--pc-big-w, 540px);max-width:var(--pc-big-wmax, calc(100vw - 48px));top:max(var(--pc-big-top, 12px), calc(100dvh - var(--pc-bot) - var(--pc-big-h, 760px)))}
+  /* Края для растяжки: верхний и левый, угол — с меткой. Своего вида у
+     краёв нет — меняется курсор; в углу четыре точки (черта уголком
+     читается рамкой слева, а её в калькуляторе нет нигде). */
+  .pc-card.pc-big .pc-rs{display:block;position:absolute;z-index:3;touch-action:none}
+  .pc-card.pc-big .pc-rs-t{top:-4px;left:22px;right:80px;height:10px;cursor:ns-resize}
+  .pc-card.pc-big .pc-rs-l{left:-4px;top:22px;bottom:22px;width:10px;cursor:ew-resize}
+  .pc-card.pc-big .pc-rs-tl{top:-4px;left:-4px;width:24px;height:24px;cursor:nwse-resize}
+  .pc-card.pc-big .pc-rs-tl::after{content:'';position:absolute;left:9px;top:9px;width:8px;height:8px;color:var(--pc-ink3);background:radial-gradient(circle,currentColor 1.1px,transparent 1.5px) 0 0/4px 4px;opacity:.8}
+  @media (hover:hover){.pc-card.pc-big .pc-rs-tl:hover::after{opacity:1;color:var(--pc-ink)}}
+  body.pc-тяга{cursor:nwse-resize;user-select:none}
+  body.pc-тяга .pc-card.pc-big{transition:none}
   /* Ширина — 540 px (Константин 19.10.2026: «на компьютере сделай уже на
      10 %», было 600). Вкладки — рядом слева направо, а не врассыпную по
      ширине окна; содержимое вкладки — на

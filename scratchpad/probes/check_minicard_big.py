@@ -19,7 +19,14 @@
   • во всех пяти вкладках большого окна нет прокрутки вбок, вкладки стоят
     рядом слева направо: зазор не больше 30 px, первая — у левого края окна,
     за последней — свободное место, а не растяжка по ширине;
-  • «Уменьшить» возвращает прежний размер, выбор помнится после перезагрузки.
+  • «Уменьшить» возвращает прежний размер, выбор помнится после перезагрузки;
+  • на компьютере большое окно тянется за угол и края (Константин 19.10.2026:
+    «тянуть вверх/вниз… запоминай… размер для всех пресетов»): угол меняет
+    ширину и высоту, верхний край — высоту; окно не закрывается, не выходит
+    за экран и под панель кнопок; размер записан один на все пресеты (в
+    хранилище браузера, не в пресете) и читается оттуда заново; кнопка у крестика по кругу: своё
+    большое → стандартное (кнопка цвета темы) → маленькое → стандартное
+    большое; на телефоне краёв для растяжки нет.
 
     python3 check_minicard_big.py
 """
@@ -64,7 +71,7 @@ def прогон(бр, порт, ш, в):
     if not код:
         плохо(f"{н} пресету не выдан код"); стр.close(); return
     стр.evaluate(ч.ДАННЫЕ_ЧАТА, код)
-    стр.evaluate("() => { try { localStorage.removeItem('banya_pc_big'); } catch (e) {} _пкБольшое = false; }")
+    стр.evaluate("() => { try { localStorage.removeItem('banya_pc_big'); localStorage.removeItem('banya_pc_big_size'); } catch (e) {} _пкБольшое = false; if (typeof применитьРазмерОкна === 'function') { _пкРазмер = null; применитьРазмерОкна(); } }")
     # Панель кнопок прилипает, когда страница прокручена.
     стр.evaluate("() => window.scrollTo(0, 900)"); стр.wait_for_timeout(500)
     ч.открыть(стр); стр.wait_for_timeout(300)
@@ -128,12 +135,93 @@ def прогон(бр, порт, ш, в):
     стр.screenshot(path=str(СНИМКИ / f"minicard-small-{ш}.png"))
     # Выбор помнится.
     стр.locator("#presetChipCard .pc-big").click(); стр.wait_for_timeout(300)
+    if ш >= 900:
+        try:
+            растяжка(стр, н)
+        except Exception as e:
+            плохо(f"{н} растяжка оборвалась: {str(e).splitlines()[0][:160]}")
+    elif стр.evaluate("() => [...document.querySelectorAll('#presetChipCard .pc-rs')].some(э => getComputedStyle(э).display !== 'none')"):
+        плохо(f"{н} на телефоне видны края для растяжки окна")
     if стр.evaluate("() => { try { return localStorage.getItem('banya_pc_big'); } catch (e) { return null; } }") != "1":
         плохо(f"{н} выбор большого окна не записан")
     стр.evaluate("() => { try { localStorage.removeItem('banya_pc_big'); } catch (e) {} }")
     if [е for е in ошибки if "supabase.co" not in е]:
         плохо(f"{н} ошибки страницы: {ошибки[:3]}")
     стр.close()
+
+
+КНОПКА = """() => { const б = document.querySelector('#presetChipCard .pc-big'); const к = document.getElementById('presetChipCard');
+  const р = к.getBoundingClientRect(); const ак = getComputedStyle(к).getPropertyValue('--pc-acc').trim();
+  const ц = document.createElement('i'); ц.style.color = ак; document.body.appendChild(ц); const цвет = getComputedStyle(ц).color; ц.remove();
+  let хр = null; try { хр = localStorage.getItem('banya_pc_big_size'); } catch (e) {}
+  return { большое: к.classList.contains('pc-big'), открыто: к.classList.contains('show'), подпись: б.getAttribute('aria-label'), горит: getComputedStyle(б).color === цвет,
+    ш: Math.round(р.width), в: Math.round(р.height), верх: Math.round(р.top), лево: Math.round(р.left), W: innerWidth, хр,
+    панель: (() => { const п = document.getElementById('headerBtns'); return п && п.classList.contains('sticky') ? Math.round(п.getBoundingClientRect().bottom) : 0; })() }; }"""
+
+
+def тянуть(стр, сел, dx, dy):
+    б = стр.locator("#presetChipCard " + сел).bounding_box()
+    x, y = б["x"] + б["width"] / 2, б["y"] + б["height"] / 2
+    стр.mouse.move(x, y); стр.mouse.down()
+    for и in range(1, 9):
+        стр.mouse.move(x + dx * и / 8, y + dy * и / 8)
+    стр.mouse.up(); стр.wait_for_timeout(400)
+
+
+def растяжка(стр, н):
+    к = стр.evaluate(КНОПКА)
+    if not к["большое"] or not к["горит"] or к["подпись"] != "Уменьшить окно":
+        плохо(f"{н} стандартное большое окно: кнопка не цвета темы или подпись «{к['подпись']}»: {к}")
+    ш0, в0 = к["ш"], к["в"]
+    тянуть(стр, ".pc-rs-tl", -120, -60)
+    к = стр.evaluate(КНОПКА)
+    if not к["открыто"] or not к["большое"]:
+        плохо(f"{н} растяжка закрыла или уменьшила окно: {к}")
+    if abs(к["ш"] - (ш0 + 120)) > 3 or abs(к["в"] - (в0 + 60)) > 3:
+        плохо(f"{н} угол: ждали {ш0 + 120}×{в0 + 60}, вышло {к['ш']}×{к['в']}")
+    if к["горит"] or к["подпись"] != "Стандартный размер окна" or not к["хр"]:
+        плохо(f"{н} своё большое: кнопка {к['подпись']!r}, горит {к['горит']}, записано {к['хр']}")
+    тянуть(стр, ".pc-rs-t", 0, 200)
+    к = стр.evaluate(КНОПКА)
+    if abs(к["в"] - (в0 + 60 - 200)) > 3 or abs(к["ш"] - (ш0 + 120)) > 3:
+        плохо(f"{н} верхний край: ждали высоту {в0 - 140} при ширине {ш0 + 120}, вышло {к['ш']}×{к['в']}")
+    стр.mouse.move(5, 5)
+    стр.screenshot(path=str(СНИМКИ / "minicard-resized-1440.png"))
+    # Тянут далеко за экран: окно упирается в края и в панель кнопок.
+    тянуть(стр, ".pc-rs-tl", -3000, -3000)
+    к = стр.evaluate(КНОПКА)
+    if к["лево"] < 24 - 1 or к["верх"] < max(12, к["панель"] + 4) - 1:
+        плохо(f"{н} окно вытянули за экран или под панель кнопок: лево {к['лево']}, верх {к['верх']}, панель {к['панель']}")
+    тянуть(стр, ".pc-rs-tl", 0, 0)
+    тянуть(стр, ".pc-rs-tl", 1800, 1800)
+    к = стр.evaluate(КНОПКА)
+    if к["ш"] < 379 or к["в"] < 359:
+        плохо(f"{н} окно сжали меньше 380×360: {к['ш']}×{к['в']}")
+    тянуть(стр, ".pc-rs-t", 0, -150)
+    свой = стр.evaluate(КНОПКА)
+    # Размер общий и переживает перезагрузку.
+    # Как при новой загрузке страницы: состояние в памяти сброшено и читается
+    # из хранилища браузера тем же разбором, что при загрузке.
+    стр.evaluate("""() => { _пкРазмер = null; применитьРазмерОкна();
+      try { const р = JSON.parse(localStorage.getItem('banya_pc_big_size') || 'null'); if (р && р.w > 0 && р.h > 0) _пкРазмер = { w: Math.round(р.w), h: Math.round(р.h) }; } catch (e) {}
+      _пкБольшое = localStorage.getItem('banya_pc_big') === '1'; применитьРазмерОкна(); заполнитьКарточкуЗначка(); }""")
+    стр.wait_for_timeout(500)
+    к = стр.evaluate(КНОПКА)
+    if not к["большое"] or abs(к["ш"] - свой["ш"]) > 2 or abs(к["в"] - свой["в"]) > 2:
+        плохо(f"{н} после перезагрузки окно {к['ш']}×{к['в']}, ждали своё {свой['ш']}×{свой['в']}")
+    # Кнопка: своё → стандартное → маленькое → стандартное большое.
+    стр.locator("#presetChipCard .pc-big").click(); стр.wait_for_timeout(400)
+    к = стр.evaluate(КНОПКА)
+    if not к["большое"] or abs(к["ш"] - ш0) > 2 or abs(к["в"] - в0) > 2 or not к["горит"] or к["хр"]:
+        плохо(f"{н} кнопка не вернула стандартный размер {ш0}×{в0}: {к}")
+    стр.locator("#presetChipCard .pc-big").click(); стр.wait_for_timeout(400)
+    к = стр.evaluate(КНОПКА)
+    if к["большое"]:
+        плохо(f"{н} из стандартного большого кнопка не уменьшила окно")
+    стр.locator("#presetChipCard .pc-big").click(); стр.wait_for_timeout(400)
+    к = стр.evaluate(КНОПКА)
+    if not к["большое"] or abs(к["ш"] - ш0) > 2 or not к["горит"]:
+        плохо(f"{н} после сброса окно открывается не стандартным: {к}")
 
 
 def главная():
