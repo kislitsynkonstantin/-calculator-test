@@ -79,6 +79,37 @@ def сервер():
     return с, с.server_address[1]
 
 
+_В_ТОНЕ = {}
+
+
+def в_тоне(бр, порт, html, тон="bmsk"):
+    """Справка сама по себе — в тоне калькулятора, а не в бирюзе.
+
+    Без калькулятора у оболочки нет палитры, и она красится запасными
+    бирюзовыми цветами — а такой справки менеджер не видит никогда.
+    Константин 19.10.2026, снимком бирюзовой справки: «Скриншоты для статьи
+    делай в теме Зелёный-графит. Бирюзу для тестов не используй». Палитру,
+    признак тона и логотипы тона кладёт сам калькулятор — той же функцией
+    сПалитрой, какой он открывает справку, поэтому подмена не расходится с ним.
+    """
+    ключ = (hash(html), тон)
+    if ключ in _В_ТОНЕ:
+        return _В_ТОНЕ[ключ]
+    стр = бр.new_page(viewport={"width": 1200, "height": 800})
+    стр.route("**/fonts.googleapis.com/**", lambda r: r.fulfill(status=200, content_type="text/css", body=ШРИФТЫ))
+    стр.route("**/fonts.gstatic.com/**", lambda r: r.abort())
+    стр.add_init_script(ЗАГЛУШКА); стр.add_init_script(ЦЕНЫ)
+    стр.goto(f"http://127.0.0.1:{порт}/index.html", wait_until="load")
+    стр.wait_for_timeout(1500)
+    вышло = стр.evaluate("""async ([h, т]) => { appSettings.tone = т;
+      await подготовитьКартинкиТона(т); return сПалитрой(h); }""", [html, тон])
+    стр.close()
+    if f'data-tone="{тон}"' not in вышло:
+        raise SystemExit(f"справка не получила тон {тон}: калькулятор не положил палитру")
+    _В_ТОНЕ[ключ] = вышло
+    return вышло
+
+
 def ряды(админ=False):
     return [{"doc": ч["doc"], "part": ч["part"], "ord": ч["ord"], "staff_only": ч["staff_only"], "html": ч["html"]}
             for ч in справка.части("manual") if админ or not ч["staff_only"]]
@@ -242,7 +273,7 @@ def в_бою(бр, порт, ш):
         ошибки = []
         стр.on("pageerror", lambda e: ошибки.append(str(e)))
         адрес = f"http://127.0.0.1:{порт}/__manual-probe.html?contour=prod"
-        html = справка.достать("manual").replace("<html", f'<html data-start="{старт}"', 1)
+        html = в_тоне(бр, порт, справка.достать("manual").replace("<html", f'<html data-start="{старт}"', 1))
         стр.route(адрес, (lambda h: lambda r: r.fulfill(status=200, content_type="text/html; charset=utf-8", body=h))(html))
         стр.goto(адрес, wait_until="load")
         стр.wait_for_timeout(500)

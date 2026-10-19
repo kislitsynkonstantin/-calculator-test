@@ -214,7 +214,7 @@ def прогон(бр, порт, ш):
 def в_бою(бр, порт):
     стр = бр.new_page(viewport={"width": 1440, "height": 900})
     адрес = f"http://127.0.0.1:{порт}/__manual-probe.html?contour=prod"
-    html = д.справка.достать("manual").replace("<html", '<html data-start="home"', 1)
+    html = д.в_тоне(бр, порт, д.справка.достать("manual").replace("<html", '<html data-start="home"', 1))
     стр.route(адрес, lambda r: r.fulfill(status=200, content_type="text/html; charset=utf-8", body=html))
     стр.goto(адрес, wait_until="load"); стр.wait_for_timeout(600)
     р = стр.evaluate("""() => ({ разделы: [...document.querySelectorAll('.sb-nav > .sb-group')].map(г => г.textContent.trim()),

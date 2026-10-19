@@ -7,10 +7,14 @@
 списка, поставь тёмные в цвет темы».
 
 Справка открывается так, как её открывает калькулятор, — кадром srcdoc внутри
-страницы с адресом теста; статья о выпуске — сама по себе. Днём и ночью мерится
+страницы с адресом теста, и в тоне калькулятора «Зелёный-графит» (палитру кладёт
+сам калькулятор, функцией сПалитрой); статья о выпуске — так же, в тоне. Запасная
+бирюза оболочки менеджеру не видна никогда: Константин 19.10.2026 — «Бирюзу для
+тестов не используй». Как только проба стала смотреть в тоне, вскрылось, что
+точка цвета --g в «Зелёном-графите» светлая и даёт с белым 2,7 : 1. Днём и ночью мерится
 точка списка в главе («Пресеты»), в логе развития и в плашке предупреждения:
-  • точка в главе и в логе — цвета темы (оттенок бирюзы), не текста и не
-    серая; днём — тёмная бирюза (светлота не больше 30 %), ночью — светлее,
+  • точка в главе и в логе — цвета тона (оттенок акцента тона, ±25°), не
+    текста и не серая; днём — тёмная (светлота не больше 40 %), ночью — светлее,
     иначе тёмное на тёмном не видно; контраст с фоном не меньше 3 : 1;
   • в плашке предупреждения точка — цвета её черты: плашка тёплая;
   • в статьях о выпусках то же для точки в тексте статьи.
@@ -25,6 +29,8 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 import справка  # noqa: E402
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import check_manual_home as д  # noqa: E402
 from playwright.sync_api import sync_playwright  # noqa: E402
 
 НАХОДКИ, ОТЧЁТ = [], []
@@ -53,6 +59,7 @@ def хром():
   for (const [имя, выбор] of Object.entries(выборы)) {
     const л = document.querySelector(выбор);
     р[имя] = л ? { точка: к(getComputedStyle(л, '::marker').color).c, текст: к(getComputedStyle(л).color).c, фон: фон(л),
+                   акцент: цвет('var(--br-28, var(--g, var(--mn-acc)))', л),
                    черта: л.closest('.warn') ? цвет('var(--warn-border)', л) : null } : null;
   }
   return р;
@@ -80,8 +87,9 @@ def оценить(где, ночь, з):
         return
     h, l, s = hls(з["точка"])
     к = контраст(з["точка"], з["фон"])
-    тема = 170 <= h <= 200 and s >= 0.25 and з["точка"] != з["текст"]
-    тон = l >= 0.4 if ночь else l <= 0.30
+    ha = hls(з["акцент"])[0]
+    тема = min(abs(h - ha), 360 - abs(h - ha)) <= 25 and s >= 0.25 and з["точка"] != з["текст"]
+    тон = l >= 0.4 if ночь else l <= 0.40
     факт(тема and тон and к >= 3,
          f"{где}: точка {з['точка']} — оттенок {h:.0f}°, светлота {l:.2f}, контраст {к:.2f} с фоном {з['фон']}; текст {з['текст']}")
 
@@ -94,14 +102,16 @@ def родитель(html):
 
 ВЫБОРЫ = {"глава": "#ch-presets ul li", "лог": "#ch-tasks .tsk ul li", "плашка": "#ch-tasks .warn ul li"}
 
+сервер, порт = д.сервер()
 with sync_playwright() as p:
     б = p.chromium.launch(executable_path=хром())
+    справка_в_тоне = д.в_тоне(б, порт, справка.достать())
     адрес = "https://test.calculator.baniamsk.ru/"
     for ночь in (False, True):
         стр = б.new_page(viewport={"width": 1280, "height": 900})
         ошибки = []
         стр.on("pageerror", lambda e: ошибки.append(str(e)))
-        стр.route(адрес, lambda r: r.fulfill(status=200, content_type="text/html; charset=utf-8", body=родитель(справка.достать())))
+        стр.route(адрес, lambda r: r.fulfill(status=200, content_type="text/html; charset=utf-8", body=родитель(справка_в_тоне)))
         стр.route("**/fonts.googleapis.com/**", lambda r: r.abort())
         стр.goto(адрес, wait_until="load")
         стр.wait_for_function("() => { const f = document.getElementById('f'); return f && f.contentWindow && typeof f.contentWindow.doSearch === 'function'; }")
@@ -121,7 +131,7 @@ with sync_playwright() as p:
             стр = б.new_page(viewport={"width": 1280, "height": 900}, color_scheme="dark" if ночь else "light")
             стр.route("**/fonts.googleapis.com/**", lambda r: r.abort())
             стр.route("**/*.png", lambda r: r.abort())
-            стр.set_content(ч["html"], wait_until="domcontentloaded")
+            стр.set_content(д.в_тоне(б, порт, ч["html"]), wait_until="domcontentloaded")
             з = стр.evaluate(ЗАМЕР, {"статья": ".main ul li"})
             if з["статья"] is None:
                 стр.close()
@@ -129,6 +139,7 @@ with sync_playwright() as p:
             оценить(f"статья {ч['part']}, {'ночь' if ночь else 'день'}", ночь, з["статья"])
             стр.close()
     б.close()
+сервер.shutdown()
 
 for т in ОТЧЁТ:
     print("    ок  " + т)
@@ -137,4 +148,4 @@ if НАХОДКИ:
     for т in НАХОДКИ:
         print("  ✗ " + т)
     raise SystemExit(1)
-print("Чисто: точки списков в справке и статьях о выпусках — тёмная бирюза днём, светлая ночью; в плашке предупреждения — цвета черты.")
+print("Чисто: точки списков в справке и статьях о выпусках — тёмный оттенок тона днём, светлый ночью, в тоне калькулятора; в плашке предупреждения — цвета черты.")

@@ -194,9 +194,13 @@ def снимки(м):
         return
     куда = pathlib.Path(__file__).parent
     временный = pathlib.Path(tempfile.mkdtemp()) / "справка.html"
-    временный.write_text(м, encoding="utf-8")
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+    import check_manual_home as д
+    с, порт = д.сервер()
     with sync_playwright() as pw:
         бр = pw.chromium.launch(executable_path=ХРОМ, args=["--no-sandbox"])
+        # Снимок — в тоне калькулятора, а не в запасной бирюзе оболочки.
+        временный.write_text(д.в_тоне(бр, порт, м), encoding="utf-8")
         стр = бр.new_page(viewport={"width": 390, "height": 900})
         стр.goto(временный.as_uri(), wait_until="load")
         стр.wait_for_timeout(600)
@@ -214,6 +218,7 @@ def снимки(м):
             стр.wait_for_timeout(400)
             стр.screenshot(path=str(куда / f"справка-{глава}.png"))
         бр.close()
+    с.shutdown()
 
 
 def главная():

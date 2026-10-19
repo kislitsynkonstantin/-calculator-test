@@ -35,6 +35,8 @@ from playwright.sync_api import sync_playwright
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 import справка  # noqa: E402
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import check_manual_home as д  # noqa: E402
 
 КОРЕНЬ = pathlib.Path(os.environ.get("BM_ROOT") or pathlib.Path(__file__).resolve().parent.parent.parent)
 ЗДЕСЬ = pathlib.Path(__file__).parent
@@ -165,13 +167,15 @@ def через_калькулятор(бр, порт, ш):
 def без_признака(бр, порт, ш):
     """Оболочка сама по себе — так её сегодня открывает боевой калькулятор."""
     н = f"[без признака {ш}]"
+    # Палитру тона кладёт калькулятор в своей вкладке — до того, как открыта
+    # эта: внутри обработчика запроса новая вкладка ждала бы саму себя.
+    html = д.в_тоне(бр, порт, справка.достать("manual"))
     стр = бр.new_page(viewport={"width": ш, "height": 900})
     ошибки = []
     стр.on("pageerror", lambda e: ошибки.append(str(e)))
     # Со своего адреса, а не about:blank: там справке закрыт localStorage.
     адрес = f"http://127.0.0.1:{порт}/__manual-probe.html"
-    стр.route(адрес, lambda r: r.fulfill(status=200, content_type="text/html; charset=utf-8",
-                                         body=справка.достать("manual")))
+    стр.route(адрес, lambda r: r.fulfill(status=200, content_type="text/html; charset=utf-8", body=html))
     стр.goto(адрес, wait_until="load")
     стр.wait_for_timeout(400)
     р = стр.evaluate(СОСТОЯНИЕ)
