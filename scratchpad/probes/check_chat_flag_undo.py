@@ -50,6 +50,7 @@ def плохо(т):
   if (!м_) return null;
   const ф = м_.querySelector('[data-act="ch-flag"]'), о = м_.querySelector('[data-act="ch-flag-undo"]');
   return { нажат: ф.getAttribute('aria-pressed'), флаг: ф.getBoundingClientRect().left, отмена: !!о,
+    подпись: ф.innerText.trim(), ширина: ф.getBoundingClientRect().width, залит: getComputedStyle(ф.querySelector('svg path:last-child')).fill !== 'none',
     отменаСлева: о ? о.getBoundingClientRect().right <= ф.getBoundingClientRect().left : null,
     метка: (м_.querySelector('.pc-cht') || {}).textContent || '', фон: getComputedStyle(м_.querySelector('.pc-chb')).backgroundColor,
     отметки: window.__ОТМЕТКИ.filter(х => х.p_id === ид).map(х => х.p_state),
@@ -80,7 +81,8 @@ def плохо(т):
     if (r2.left < л.left - .5 || r2.right > л.right + .5) н.push('кнопка «' + к2.textContent.trim() + '» за краем ленты'); });
   // Флажок «В правки» — с подписью, а не голым значком.
   const фк = м_.querySelector('[data-act="ch-flag"]');
-  if (фк.innerText.trim() !== 'В проверку' || ф.width < 50) н.push('флажок без подписи «В проверку» или узкий: ' + JSON.stringify([фк.innerText, Math.round(ф.width)]));
+  const надо = фк.getAttribute('aria-pressed') === 'true' ? 'Проверка' : 'В правки';
+  if (фк.innerText.trim() !== надо || ф.width < 50) н.push('флажок без подписи «' + надо + '» или узкий: ' + JSON.stringify([фк.innerText, Math.round(ф.width)]));
   return н; }"""
 
 
@@ -110,6 +112,11 @@ def прогон(бр, порт, ш, в, полный):
         плохо(f"{н} у чужого сообщения «Отменить» слева от значка")
     if abs(с["флаг"] - до["флаг"]) > .5:
         плохо(f"{н} значок чужого сообщения сдвинулся, когда встало «Отменить»: {до['флаг']} → {с['флаг']}")
+    # До нажатия «В правки», после — «Проверка», ширина та же, флажок не залит
+    # (Константин, 19.10.2026: «до нажатия „В правки“. После нажатия назови
+    # „Проверка“ и когда выполнено, флажок закрашивай»).
+    if до["подпись"] != "В правки" or с["подпись"] != "Проверка" or abs(до["ширина"] - с["ширина"]) > .5 or до["залит"] or с["залит"]:
+        плохо(f"{н} подпись флажка: до «{до['подпись']}» {до['ширина']:.1f} px, после «{с['подпись']}» {с['ширина']:.1f} px, залит {до['залит']}/{с['залит']}")
     for т in стр.evaluate(ВИД, ЧУЖОЕ):
         плохо(f"{н} {т}")
     ч.вёрстка(стр, н, "«Отменить» у чужого сообщения")
@@ -174,6 +181,9 @@ def прогон(бр, порт, ш, в, полный):
     стр.wait_for_timeout(3200)
     if стр.evaluate(СОСТ, ТРЕТЬЕ)["отметки"] != ["open", "done"]:
         плохо(f"{н} после «Выполнено» отметки: {стр.evaluate(СОСТ, ТРЕТЬЕ)['отметки']}")
+    с = стр.evaluate(СОСТ, ТРЕТЬЕ)
+    if not с["залит"] or с["подпись"] != "Проверка":
+        плохо(f"{н} выполненная правка: флажок не залит или подпись не «Проверка»: {с['подпись']}, залит {с['залит']}")
     # ── касание, остановившее ленту ──
     стр.evaluate("() => { const л = document.getElementById('pcChatList'); л.style.maxHeight = '160px'; заполнитьКарточкуЗначка(); }")
     стр.wait_for_timeout(300)

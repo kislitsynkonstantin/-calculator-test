@@ -120,7 +120,12 @@ def меню_ожидаемое():
     дальше: дом ? дом.querySelectorAll('.next-ch').length : 0,
     колонок: new Set(лево).size,
     вылез: видимые.filter(э => { const б = э.getBoundingClientRect(); return б.width && (б.right > w + .5 || б.left < -.5); }).map(э => э.className || э.tagName).slice(0, 4),
-    обрез: видимые.filter(э => /hm-/.test(э.className) || э.tagName === 'B' || э.tagName === 'SMALL').filter(э => э.scrollWidth > э.clientWidth + 1).map(э => э.className || э.tagName).slice(0, 4),
+    // Обрезано — только там, где элемент свой край режет (overflow не visible):
+    // невидимое поле нажатия кнопки, вынесенное на 3 px за её край, ширину
+    // прокрутки увеличивает, но ничего не скрывает.
+    обрез: видимые.filter(э => /hm-/.test(э.className) || э.tagName === 'B' || э.tagName === 'SMALL')
+      .filter(э => э.scrollWidth > э.clientWidth + 1 && (getComputedStyle(э).overflowX !== 'visible' || getComputedStyle(э).textOverflow === 'ellipsis'))
+      .map(э => э.className || э.tagName).slice(0, 4),
     вширь: д.documentElement.scrollWidth - д.documentElement.clientWidth,
     высота: главы.length ? Math.min(...главы.map(г => Math.round(г.getBoundingClientRect().height))) : 0,
     // «Журнал обновлений» в меню с горящей точкой — в одну строку, как соседние пункты.
