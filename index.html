@@ -3755,6 +3755,8 @@ body.dark .canvas-img-item .img-resize:hover { background: rgba(var(--br-10-rgb)
 body.dark .btn-shared-act.btn-shared-lock.wait, body.dark .btn-shared-act.btn-shared-lock:not(:disabled):active { background: rgba(var(--br-85-rgb),0.16) !important; border-color: rgba(var(--br-85-rgb),0.45) !important; color: rgba(var(--br-85-rgb),1) !important; }
 .btn-retract { padding: 5px 9px; border-radius: 7px; border: 1px solid #f5d9a0; background: #fff3e0; color: #b06000; font-size: 0.65rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: background 0.15s; }
 .btn-retract:hover { background: #ffe8b0; }
+/* Отправленный на согласование — «Отозвать» бледная, нажатие объясняет словами. */
+.btn-retract[aria-disabled="true"], .pcard-retract[aria-disabled="true"] { opacity: .38 !important; cursor: default !important; }
 .publish-dropdown-preset { position: absolute; bottom: calc(100% + 4px); right: 0; background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 4px 16px rgba(var(--br-28-rgb),0.12); min-width: 190px; overflow: hidden; z-index: 200; display: none; }
 .pub-preset-opt { padding: 10px 13px; font-size: 0.71rem; cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text); transition: background 0.12s; }
 .pub-preset-opt:hover { background: var(--green-bg); }
@@ -36208,7 +36210,7 @@ function makeCardPreset(p) {
 
     const publishBtn = `<div style="display:flex;gap:4px;">
       ${isPublished
-        ? `<button class="pcard-retract" onclick="event.stopPropagation();retractPreset('${shortCode||p.sharedId||''}')">
+        ? `<button class="pcard-retract"${кнопкаОтозватьЗакрыта(shortCode||p.sharedId||'')} onclick="event.stopPropagation();retractPreset('${shortCode||p.sharedId||''}')">
              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Отозвать
            </button>`
         : `<div class="pcard-publish-wrap"><button class="pcard-publish" onclick="event.stopPropagation();openPublishMenu('${p.id}',this)">
@@ -36336,7 +36338,7 @@ function makeCard(p) {
 
   const publishBtn = `<div style="display:flex;gap:4px;">
     ${isPublished
-      ? `<button class="pcard-retract" onclick="event.stopPropagation();retractPreset('${shortCode||p.sharedId||''}')">
+      ? `<button class="pcard-retract"${кнопкаОтозватьЗакрыта(shortCode||p.sharedId||'')} onclick="event.stopPropagation();retractPreset('${shortCode||p.sharedId||''}')">
            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Отозвать
          </button>`
       : `<div class="pcard-publish-wrap"><button class="pcard-publish" onclick="event.stopPropagation();openPublishMenu('${p.id}',this)">
@@ -36634,6 +36636,7 @@ function renderPresetList() {
   // Опубликовали, отозвали, очередь ушла в базу — значок на кнопке «Пресеты»
   // и значок пресета в углу тоже.
   try { отрисоватьЗначокПресета(); } catch (e) {}
+  try { обновитьСогласованияСписка(); } catch (e) {}
   const list = document.getElementById('presetList');
   if (!list) return;
   const presets = loadAllPresets();
@@ -37685,6 +37688,42 @@ async function publishPreset(presetId, visibility) {
   }
 }
 
+// Пресет, отправленный на согласование, не отзывается — ни пока его
+// согласуют, ни после согласования и подписи договора (Константин,
+// 19.10.2026: «Когда общий пресет отправляют на согласование, то кнопку
+// „Отозвать“ делай бледной, чтобы случайно не отозвали. Такой пресет отозвать
+// больше нельзя»). Строку согласования по своим опубликованным кодам список
+// читает сам, одним запросом, и перерисовывается, когда узнал новое.
+const _кодыССогласованием = new Set();
+let _согласованияСписка = { коды: '', когда: 0, грузится: false };
+const ОТОЗВАТЬ_НЕЛЬЗЯ = 'Пресет отправлен на согласование — отозвать его из общих больше нельзя';
+function отозватьНельзя(код) {
+  if (!код) return false;
+  const к = String(код), с = _согласование;
+  return _кодыССогласованием.has(к) || !!(с && с.код === к && с.строка);
+}
+function кнопкаОтозватьЗакрыта(код) {
+  return отозватьНельзя(код) ? ' aria-disabled="true" title="' + ОТОЗВАТЬ_НЕЛЬЗЯ + '"' : '';
+}
+async function обновитьСогласованияСписка() {
+  if (!_sb || !_sbUser) return;
+  const коды = new Set();
+  Object.values(loadAllPresets()).forEach(p => { if (p.publishedAs && (p.shortCode || p.sharedId)) коды.add(String(p.shortCode || p.sharedId)); });
+  (_sharedPresets || []).forEach(sp => { if (sp.is_public && sp.author_id === _sbUser.id && sp.short_code) коды.add(String(sp.short_code)); });
+  const ключ = [...коды].sort().join(',');
+  const с = _согласованияСписка;
+  if (!ключ || с.грузится || (с.коды === ключ && Date.now() - с.когда < 60000)) return;
+  _согласованияСписка = { коды: ключ, когда: Date.now(), грузится: true };
+  try {
+    const { data, error } = await _sb.from('preset_approvals').select('code').in('code', [...коды]);
+    if (error) throw error;
+    const было = [..._кодыССогласованием].sort().join(',');
+    (data || []).forEach(р => _кодыССогласованием.add(String(р.code)));
+    if ([..._кодыССогласованием].sort().join(',') !== было) { renderPresetList(); renderSharedList(); }
+  } catch (e) {}
+  _согласованияСписка.грузится = false;
+}
+
 // ── Retract (unpublish) preset — makes private, keeps code ──
 // «Отозвать» сначала спрашивает (Константин, 29.09.2026): снятый пресет
 // пропадает из «Общих» и у коллег, у которых он открыт. Ссылка клиенту от
@@ -37692,6 +37731,7 @@ async function publishPreset(presetId, visibility) {
 // открываться. Текст — тот же, что в карточке пресета (макет preset-card-v6).
 function retractPreset(shortCode) {
   if (!_sb || !_sbUser || !shortCode) return;
+  if (отозватьНельзя(shortCode)) { showToast(ОТОЗВАТЬ_НЕЛЬЗЯ); return; }
   showConfirmDialog('Отозвать публикацию?',
     'Пресет пропадёт из «Общих» — и у коллег, у которых он сейчас открыт. '
     + 'В «Моих» он останется, код сохранится — опубликовать снова можно в любой момент.',
@@ -44197,7 +44237,8 @@ function заполнитьКарточкуЗначка() {
     const панель = (в, содерж) => '<div class="pc-pane' + (_пкВкладка === в ? ' on' : '') + '" id="pcPane-' + в + '" role="tabpanel" aria-labelledby="pcTab-' + в + '">' + содерж + '</div>';
     h = (о.вид === 'pub'
         ? '<button class="pc-more" type="button" data-act="more" aria-label="Ещё действия" aria-haspopup="menu" aria-expanded="' + _пкМеню + '">' + ЗНАЧОК_ЕЩЁ + '</button>'
-          + (_пкМеню ? '<div class="pc-menu" role="menu"><button type="button" role="menuitem" data-act="unpub">' + ЗНАЧОК_ГЛОБУС_НЕТ + 'Снять с публикации</button></div>' : '')
+          + (_пкМеню ? '<div class="pc-menu" role="menu"><button type="button" role="menuitem" data-act="unpub"'
+            + (отозватьНельзя(о.код) ? ' aria-disabled="true" title="' + ОТОЗВАТЬ_НЕЛЬЗЯ + '"' : '') + '>' + ЗНАЧОК_ГЛОБУС_НЕТ + 'Снять с публикации</button></div>' : '')
         : '')
       + '<button class="pc-x" type="button" data-act="close" aria-label="Закрыть">' + ЗНАЧОК_КРЕСТ + '</button>'
       + '<button class="pc-big" type="button" data-act="big" aria-pressed="' + _пкБольшое + '" aria-label="' + (_пкБольшое ? 'Уменьшить окно' : 'Увеличить окно') + '"'
@@ -44342,6 +44383,7 @@ function нажатиеВКарточке(e) {
       { const п = к.querySelector(_пкМеню ? '[data-act="unpub"]' : '[data-act="more"]'); if (п) п.focus(); }
       break;
     case 'unpub':
+      if (о && отозватьНельзя(о.код)) { _пкМеню = false; заполнитьКарточкуЗначка(); showToast(ОТОЗВАТЬ_НЕЛЬЗЯ); break; }
       _пкМеню = false; _пкПодтв = true; _пкВкладка = 'p'; заполнитьКарточкуЗначка();
       { const н = к.querySelector('[data-act="unpub-no"]'); if (н) н.focus(); }
       break;
@@ -44745,11 +44787,13 @@ function карточкаОбщего(sp, поКоду) {
     </div>
     <div class="shared-pcard-actions">
       <button class="btn-shared-use" onclick="${поКоду ? 'openSharedPresetByCode' : 'openSharedPreset'}('${sc}')">Открыть</button>
-      ${кнопкаСкачатьПресет('btn-shared-act', !!sp.is_public, "downloadSharedPreset('" + sc + "')", 'Скачать JSON')}
-      ${/* Замок после скачивания — тем же порядком, что в «Моих» (Константин,
-         27.09.2026: «поменяй местами Замок и Скачать»). У неопубликованного
+      ${/* Скачать на общей карточке нет вовсе (Константин, 19.10.2026: «С общих
+         пресетов кнопку „Скачать“ вообще убери, чтобы не плодили дубли»).
+         Замок — сразу за «Открыть»; прежде он стоял после скачивания, тем же
+         порядком, что в «Моих» (Константин, 27.09.2026: «поменяй местами Замок и
+         Скачать»). У неопубликованного
          замка нет: закрывать нечего, правки в него и так не идут. */ публ ? кнопкаЗамкаКарточки(sp, isMine) : ''}
-      ${isMine && публ ? `<button class="btn-retract" onclick="retractPreset('${sc}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Отозвать</button>` : ''}
+      ${isMine && публ ? `<button class="btn-retract"${кнопкаОтозватьЗакрыта(sc)} onclick="retractPreset('${sc}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Отозвать</button>` : ''}
 
 
       ${/* Корзины на чужой карточке нет ни у кого, и у администратора тоже:
@@ -44773,6 +44817,7 @@ function карточкаОбщего(sp, поКоду) {
 function renderSharedList() {
   const list = document.getElementById('sharedPresetList');
   if (!list) return;
+  try { обновитьСогласованияСписка(); } catch (e) {}
   const rawQuery = (document.getElementById('sharedSearchInput')?.value || '').trim();
   const query = rawQuery.toLowerCase();
   const codeQuery = rawQuery.replace(/\s/g, '');
@@ -44911,7 +44956,6 @@ function renderGlobalSearch() {
           </div>
           <div class="shared-pcard-actions">
             <button class="btn-shared-use" onclick="openSharedPreset('${sc}')">Открыть</button>
-            ${кнопкаСкачатьПресет('btn-shared-act', !!sp.is_public, "downloadSharedPreset('" + sc + "')", 'Скачать')}
           </div>
           <div class="pcard-code-row">
             <span class="pcard-code-label">Код</span>
@@ -44979,7 +45023,6 @@ function renderGlobalSearch() {
           </div>
           <div class="shared-pcard-actions">
             <button class="btn-shared-use" onclick="openSharedPreset('${sp.id}')">Открыть</button>
-            ${кнопкаСкачатьПресет('btn-shared-act', !!sp.is_public, "downloadSharedPreset('" + sp.id + "')", 'Скачать')}
           </div>
           ${sp.short_code ? `<div class="pcard-code-row">
             <span class="pcard-code-label">Код</span>
@@ -52082,6 +52125,7 @@ body.dark,body.ui-blank.dark{--pc-down:#e6a27c}
    редкое и карточке не мешает (Константин, 28.09.2026: «этот вариант давай»). */
 .pc-card .pc-more{position:absolute;right:40px;top:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:none;color:var(--pc-ink3);cursor:pointer}
 .pc-card .pc-more::before{content:'';position:absolute;inset:-7px -3px}
+.pc-card .pc-menu button[aria-disabled="true"]{opacity:.45;cursor:default}
 .pc-card.pc-pub .pc-nm{padding-right:92px}
 .pc-card .pc-menu{position:absolute;right:12px;top:40px;z-index:5;min-width:210px;padding:4px;background:var(--pc-bg);border:1px solid var(--pc-line);border-radius:10px;box-shadow:0 14px 34px rgba(0,0,0,.18)}
 .pc-card .pc-menu button{display:flex;align-items:center;gap:8px;width:100%;height:38px;padding:0 10px;border:0;border-radius:7px;background:none;font:inherit;font-size:.74rem;font-weight:500;color:var(--pc-warm-ink);cursor:pointer;text-align:left}

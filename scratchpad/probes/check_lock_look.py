@@ -81,7 +81,11 @@ def сервер():
 ОСМОТР = """() => {
   const кар = document.querySelector('#sharedPresetList .shared-pcard[data-scode="111111"]');
   const замок = кар && кар.querySelector('.btn-shared-lock');
-  const скач = кар && [...кар.querySelectorAll('.btn-shared-act')].find(к => /Скачать/.test(к.getAttribute('aria-label') || к.getAttribute('title') || ''));
+  // Образец обычной значковой кнопки: скачивания на общей карточке с
+  // 19.10.2026 нет, поэтому рядом ставится временная кнопка того же класса.
+  const скач = кар && (() => { const б = document.createElement('button'); б.className = 'btn-shared-act'; б.setAttribute('data-образец', '1');
+    б.innerHTML = '<svg width="12" height="12"></svg>'; кар.querySelector('.shared-pcard-actions').insertBefore(б, замок); return б; })();
+  const лишнее = кар && кар.querySelector('[onclick*="downloadSharedPreset"]');
   const вид = e => { const c = getComputedStyle(e); return c.backgroundColor + ' | ' + c.borderTopColor; };
   const все = кар ? [...кар.querySelectorAll('.shared-pcard-actions > *')] : [];
   const мойЗамок = document.querySelector('#presetList .pcard .btn-shared-lock');
@@ -93,7 +97,8 @@ def сервер():
     title: замок && замок.getAttribute('title'), aria: замок && замок.getAttribute('aria-label'),
     titleМои: мойЗамок && мойЗамок.getAttribute('title'), ariaМои: мойЗамок && мойЗамок.getAttribute('aria-label'),
     видЗамка: замок && вид(замок), видСкач: скач && вид(скач),
-    порядок: [все.indexOf(скач), все.indexOf(замок)], плашка: вМедиа };
+    порядок: [все.indexOf(скач), все.indexOf(замок)], плашка: вМедиа, скачать: !!лишнее,
+    _: (скач && скач.remove(), 0) };
 }"""
 
 
@@ -130,8 +135,8 @@ def главная():
                         плохо(f"{н} замок в пробе не закрыт — проверять нечего")
                     elif р["видЗамка"] != р["видСкач"]:
                         плохо(f"{н} закрытый замок выделен: {р['видЗамка']} против скачивания {р['видСкач']}")
-                    if not (0 <= р["порядок"][0] < р["порядок"][1]):
-                        плохо(f"{н} скачивание не раньше замка: {р['порядок']}")
+                    if р["скачать"]:
+                        плохо(f"{н} на общей карточке есть «Скачать»")
                     стр.screenshot(path=str(СНИМКИ / f"lock-look-{ui}-{ш}.png"))
                     # снятие замка — сообщение называет состояние
                     стр.evaluate("async () => { window.__RPC.set_preset_lock = () => true; await togglePresetLock('111111'); }")
@@ -150,9 +155,9 @@ def главная():
                     стр.evaluate("() => { _замокВПути.set('111111', false); перерисоватьЗамок('111111'); }")
                     стр.wait_for_timeout(200)
                     вп = стр.evaluate("""() => { const к = document.querySelector('#sharedPresetList .shared-pcard[data-scode="111111"]');
-                      const з = к.querySelector('.btn-shared-lock'); const с = [...к.querySelectorAll('.btn-shared-act')].find(x => /Скачать/.test(x.getAttribute('aria-label') || x.getAttribute('title') || ''));
+                      const з = к.querySelector('.btn-shared-lock'); const с = document.createElement('button'); с.className = 'btn-shared-act'; к.querySelector('.shared-pcard-actions').appendChild(с);
                       const в = e => { const c = getComputedStyle(e); return c.backgroundColor + ' | ' + c.borderTopColor; };
-                      return { ждёт: з.classList.contains('wait'), замок: в(з), скач: в(с) }; }""")
+                      const р = { ждёт: з.classList.contains('wait'), замок: в(з), скач: в(с) }; с.remove(); return р; }""")
                     if not вп["ждёт"] or вп["замок"] == вп["скач"]:
                         плохо(f"{н} пока нажатие в пути, замок не выделен: {вп}")
                     for о in [о for о in ошибки if "supabase.co" not in о][:3]:
