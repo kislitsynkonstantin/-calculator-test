@@ -41658,8 +41658,13 @@ function htmlЗаключения(д) {
   const тон = (_картинкиТонов && _картинкиТонов.bmsk && _картинкиТонов.bmsk.dark) || _LOGO_DARK;
   const стр = (к, з) => '<div class="zk-b zk-def"><span>' + э(к) + '</span><b>' + з + '</b></div>';
   let номер = 0;
-  const раздел = (имя, счёт) => '<div class="zk-b zk-h" data-keep="1"><span class="zk-n">' + String(++номер).padStart(2, '0') + '</span>'
-    + '<span class="zk-t">' + э(имя) + '</span>' + (счёт ? '<span class="zk-c">' + счёт + '</span>' : '') + '</div>';
+  const раздел = (имя, счёт) => '<div class="zk-b zk-h" data-keep="1"><span class="zk-t"><span class="zk-n">' + (++номер) + '.</span> ' + э(имя) + '</span>'
+    + (счёт ? '<span class="zk-c">' + счёт + '</span>' : '') + '</div>';
+  // Строки списков — по номерам внутри раздела, без значков (Константин,
+  // 19.10.2026, снимком раздела «Пропущенные пункты проверки»: «эти убогие
+  // смайлы убери… Просто по номерам там лучше ставь»). Что со строкой —
+  // говорит подпись под ней: «вопрос», «выполнено», «убрана из проверки».
+  const пункт = (и, тело) => '<div class="zk-b zk-li"><span class="zk-i">' + (и + 1) + '.</span><div>' + тело + '</div></div>';
   const пусто = т => '<div class="zk-b zk-empty">' + э(т) + '</div>';
   let h = '<div class="zk-b zk-head"><img class="zk-logo" src="' + тон + '" alt="Баня МСК">'
     + '<div class="zk-meta">' + э(д.согласован) + '</div></div>'
@@ -41674,8 +41679,8 @@ function htmlЗаключения(д) {
   h += раздел('Согласование');
   h += стр('Отправил', э(д.отправил || '—')) + стр('Цена', э(д.цена || '—')) + стр('Чек-лист', э(д.чеклист || '—'));
   h += раздел('Пропущенные пункты проверки', д.пропуски.length);
-  h += д.пропуски.length ? д.пропуски.map(п => '<div class="zk-b zk-li">' + (п.вопрос ? '<span class="zk-ic ask">?</span>' : '<span class="zk-ic warn">!</span>') + '<div><div>' + э(п.т) + '</div>'
-      + (п.раздел || п.вопрос ? '<div class="zk-sub">' + э([п.вопрос ? 'вопрос' : '', п.раздел].filter(Boolean).join(' · ')) + '</div>' : '') + '</div></div>').join('')
+  h += д.пропуски.length ? д.пропуски.map((п, и) => пункт(и, '<div>' + э(п.т) + '</div>'
+      + (п.раздел || п.вопрос ? '<div class="zk-sub">' + э([п.вопрос ? 'вопрос' : '', п.раздел].filter(Boolean).join(' · ')) + '</div>' : ''))).join('')
     : пусто('Пропусков нет: все пункты проверки учтены.');
   h += раздел('Правки договора', д.правкиДог.length);
   h += д.правкиДог.length ? д.правкиДог.map(п => '<div class="zk-b zk-pr"><div class="zk-pr-h"><b>' + э(п.договор) + ', п. ' + э(п.н) + '</b> — '
@@ -41685,13 +41690,13 @@ function htmlЗаключения(д) {
     : пусто('Текст договоров типовой.');
   if (д.чат.length) {
     h += раздел('Правки из чата', д.чат.filter(с => с.готово).length + ' из ' + д.чат.length);
-    h += д.чат.map(с => '<div class="zk-b zk-li">' + (с.готово ? '<span class="zk-ic ok">✓</span>' : '<span class="zk-ic open"></span>') + '<div><div>' + э(с.т) + '</div>'
-      + '<div class="zk-sub">' + э(с.кто) + (с.готово ? ' · выполнено' : ' · открыта') + '</div></div></div>').join('');
+    h += д.чат.map((с, и) => пункт(и, '<div>' + э(с.т) + '</div>'
+      + '<div class="zk-sub">' + э(с.кто) + (с.готово ? ' · выполнено' : ' · открыта') + '</div>')).join('');
   }
   h += раздел('Пропущенные правки', д.журнал ? д.пропущено.length : '');
   h += !д.журнал ? пусто('Журнал пресета не загрузился — пропущенные правки не проверены.')
-    : д.пропущено.length ? д.пропущено.map(п => '<div class="zk-b zk-li">' + (/убрана/.test(п.что) ? '<span class="zk-ic off">×</span>' : '<span class="zk-ic warn">!</span>') + '<div><div>' + э(п.т) + '</div>'
-      + '<div class="zk-sub">' + э([п.что, п.кто].filter(Boolean).join(' · ')) + '</div></div></div>').join('')
+    : д.пропущено.length ? д.пропущено.map((п, и) => пункт(и, '<div>' + э(п.т) + '</div>'
+      + '<div class="zk-sub">' + э([п.что, п.кто].filter(Boolean).join(' · ')) + '</div>')).join('')
     : пусто('Пропущенных правок нет: каждая правка из чата отражена в расчёте.');
   h += раздел('Ручные позиции и цены', д.ручные.length ? деньги(д.ручные.reduce((с, р) => с + (Number(р.ц) || 0), 0)) : '');
   h += д.ручные.length ? д.ручные.map(р => '<div class="zk-b zk-man"><div><div>' + э(р.т) + '</div>'
@@ -41722,19 +41727,16 @@ function htmlЗаключения(д) {
     + '.zk-title{padding:4px 0 6px}.zk-eye{font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--small)}'
     + 'h1{margin:6px 0 0;font-family:Unbounded,Geologica,sans-serif;font-weight:700;font-size:20px;line-height:1.25}'
     + '.zk-h{display:flex;align-items:baseline;gap:10px;margin-top:22px;padding-bottom:6px;border-bottom:2px solid var(--acc)}'
-    + '.zk-n{font-family:Unbounded,sans-serif;font-weight:700;font-size:22px;line-height:.9;color:var(--pale)}'
+    // Номер раздела — мелкий, в строке заголовка (Константин, 19.10.2026:
+    // «Большие цифры пусть только в калькуляторе будут»).
+    + '.zk-n{color:var(--small)}'
     + '.zk-t{font-family:Unbounded,sans-serif;font-weight:600;font-size:13px}.zk-c{margin-left:auto;font-size:11px;font-weight:600;color:var(--small)}'
     + '.zk-def{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:7px 0;border-bottom:1px solid var(--rule)}'
     + '.zk-def span{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);white-space:nowrap}'
     + '.zk-def b{font-weight:500;text-align:right}.zk-def i,.zk-pay i{font-style:normal;color:var(--small);font-size:11px}'
-    + '.zk-li{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--rule)}'
+    + '.zk-li{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--rule)}'
+    + '.zk-i{flex:none;width:18px;text-align:right;font-weight:600;color:var(--small)}'
     + '.zk-sub{font-size:10px;color:var(--ink3);margin-top:1px}'
-    // Метки строк — кружки со знаком, а не голые фигуры (Константин,
-    // 18.10.2026, снимком раздела «Пропущенные правки»: «такие убогие метки
-    // ромбики»): знак говорит, что со строкой, цвет — насколько это важно.
-    + '.zk-ic{flex:none;display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;margin-top:1px;border-radius:50%;font-size:9.5px;font-weight:700;line-height:1;color:#fff}'
-    + '.zk-ic.ok{background:var(--acc)}.zk-ic.warn{background:#c58a1c}.zk-ic.ask{background:var(--small)}.zk-ic.off{background:var(--ink3)}'
-    + '.zk-ic.open{background:#fff;border:1.5px solid var(--acc);color:var(--small)}'
     + '.zk-man{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--rule)}'
     + '.zk-man b{font-weight:500;white-space:nowrap}'
     + '.zk-empty{padding:8px 0;color:var(--ink3);border-bottom:1px solid var(--rule)}'
@@ -42447,8 +42449,8 @@ function htmlТЗ(д) {
     + '<span class="tz-n">' + н + '</span>' + (р.п ? '<span class="tz-p">' + э(р.п) + '</span>' : '') + '<span class="tz-v' + (р.п ? '' : ' tz-w') + '"><span class="tz-val">' + нр(р.з) + '</span>'
     + (р.вид === 'своя' ? '<span class="tz-own">своя позиция</span>' : '') + '</span></div>';
   let номер = 0;
-  const раздел = (имя, договор) => '<div class="zk-b zk-h" data-keep="1"><span class="zk-n">' + String(++номер).padStart(2, '0') + '</span>'
-    + '<span class="zk-t">' + э(имя) + '</span>' + (договор ? '<span class="zk-c">' + э(договор) + '</span>' : '') + '</div>';
+  const раздел = (имя, договор) => '<div class="zk-b zk-h" data-keep="1"><span class="zk-t"><span class="zk-n">' + (++номер) + '.</span> ' + э(имя) + '</span>'
+    + (договор ? '<span class="zk-c">' + э(договор) + '</span>' : '') + '</div>';
   let h = '<div class="zk-b zk-head"><img class="zk-logo" src="' + тон + '" alt="Баня МСК">'
     + '<div class="zk-meta">' + э(new Date().toLocaleDateString('ru-RU')) + '</div></div>'
     + '<div class="zk-b zk-title"><div class="zk-eye">Приложение к договору подряда · код ' + э(кодКрасиво(д.код)) + '</div><h1>Техническое задание на строительство</h1></div>';
@@ -42492,7 +42494,7 @@ function htmlТЗ(д) {
     + '.zk-def{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--rule)}'
     + '.zk-def span{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}.zk-def b{font-weight:500}'
     + '.zk-h{display:flex;align-items:baseline;gap:10px;margin-top:20px;padding-bottom:6px;border-bottom:2px solid var(--acc)}'
-    + '.zk-n{font-family:Unbounded,sans-serif;font-weight:700;font-size:20px;line-height:.9;color:var(--pale)}'
+    + '.zk-n{color:var(--small)}'
     + '.zk-t{font-family:Unbounded,sans-serif;font-weight:600;font-size:12.5px}.zk-c{margin-left:auto;font-size:10.5px;font-weight:600;color:var(--small)}'
     + '.tz-r{display:grid;grid-template-columns:52px 34% 1fr;padding:5px 0;border-bottom:1px solid var(--rule);align-items:baseline}'
     + '.tz-n{color:var(--ink3);font-size:10px}.tz-p{color:var(--ink2);padding-right:12px}.tz-v{font-weight:400}.tz-w{grid-column:2/-1}'
@@ -42566,7 +42568,9 @@ async function тзDocx(д) {
   const таблица = ряды => new Д.Table({ width: ш(ШИР), columnWidths: [К1, К2, К3], layout: Д.TableLayoutType.FIXED, borders: безРамок(), rows: ряды });
   const заголовок = (н, имя, договор) => new Д.Paragraph({ keepNext: true, spacing: { before: 360, after: 120 }, border: { bottom: линия(Ц.acc, 12) },
     tabStops: [{ type: Д.TabStopType.RIGHT, position: ШИР }], children: [
-      т(String(н).padStart(2, '0') + '  ', { font: З, size: 30, color: Ц.pale, bold: true }), т(имя, { font: З, size: 23, bold: true }),
+      // Номер раздела — мелкий, в строке заголовка, как в PDF (Константин,
+      // 19.10.2026: «Большие цифры пусть только в калькуляторе будут»).
+      т(н + '. ', { font: З, size: 23, color: Ц.small, bold: true }), т(имя, { font: З, size: 23, bold: true }),
       ...(договор ? [т('\t' + договор, { size: 17, color: Ц.small, bold: true })] : [])] });
   const дети = [];
   let лого = null;

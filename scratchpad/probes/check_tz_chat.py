@@ -27,7 +27,7 @@
 
     python3 check_tz_chat.py
 """
-import base64, os, pathlib, sys
+import base64, os, pathlib, re, sys
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import check_preset_chip as м
 import check_preset_approval as па
@@ -110,6 +110,11 @@ def прогон(бр, порт, ш, в, полный):
             плохо(f"{н} подраздел помещения не выделен заливкой")
         if "Техническое задание на строительство" not in д["текст"]:
             плохо(f"{н} в ТЗ нет заголовка")
+        # Номер раздела в PDF — мелкий, в строке заголовка: «1. Фундамент»
+        # (Константин, 19.10.2026: «Большие цифры пусть только в калькуляторе
+        # будут»).
+        if not re.search(r'<span class="zk-n">1\.</span> ', д["html"]) or re.search(r"\.zk-n\{[^}]*font-size", д["html"]):
+            плохо(f"{н} номер раздела в ТЗ не мелкий в строке заголовка")
         # Внутри пунктов жирного нет (Константин, 18.10.2026: «В ТЗ зачем ты
         # столько жирным сделал. Внутри пунктов жирным ничего не надо делать»).
         жир = стр.evaluate("""async (h) => { const ф = document.createElement('iframe'); ф.style.cssText = 'position:fixed;left:-9999px;width:800px;height:600px';
@@ -164,7 +169,7 @@ def прогон(бр, порт, ш, в, полный):
     if полный and not стр.evaluate("() => typeof тзDocx === 'function'"):
         плохо(f"{н} в калькуляторе нет сборки ТЗ в Word")
     elif полный:
-        import io, re, subprocess, tempfile, zipfile
+        import io, subprocess, tempfile, zipfile
         б64 = стр.evaluate("""async () => { const б = await тзDocx(данныеТЗ(null)); const м = new Uint8Array(await б.arrayBuffer()); let s = '';
           for (let i = 0; i < м.length; i += 8192) s += String.fromCharCode.apply(null, м.subarray(i, i + 8192)); return btoa(s); }""")
         байты = base64.b64decode(б64)
@@ -182,6 +187,9 @@ def прогон(бр, порт, ш, в, полный):
             плохо(f"{н} в Word ТЗ внутри пунктов жирное: {sorted(жирные & значения)[:5]}")
         if 'w:tblLayout w:type="fixed"' not in xml:
             плохо(f"{н} таблицы Word ТЗ без жёстких ширин — в Google Документах колонки разъедутся")
+        # Номер раздела мелкий, как в PDF: «1. Фундамент», без бледного «01».
+        if 'w:color w:val="c3dca8"' in xml or "1. Фундамент" not in текст:
+            плохо(f"{н} номер раздела в Word ТЗ не мелкий в строке заголовка")
         папка = pathlib.Path(tempfile.mkdtemp(prefix="tzdocx-"))
         (папка / "tz.docx").write_bytes(байты)
         subprocess.run(["soffice", "--headless", "--convert-to", "pdf", "--outdir", str(папка), str(папка / "tz.docx")], capture_output=True, timeout=180)
