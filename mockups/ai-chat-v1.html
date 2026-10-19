@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Помощник в чате пресета</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Geologica:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Макет: помощник (ИИ) в чате пресета. Учебные данные, учебный проект.
+   Тон «Зелёный-графит», как калькулятор по умолчанию. */
+:root{
+  --page:#f3f5f1;--sheet:#fff;--ink:#1d211a;--ink2:#5c6457;--ink3:#7d8578;
+  --rule:#e2e6de;--rule2:#ccd3c6;--acc:#6daa34;--acc-ink:#4f7d26;--tint:#eef5e5;--tint2:#f6f9f2;
+  --ai:#2f3a2a;--ai-tint:#f1f3ef;--warm:#9a6412;--warm-tint:#fbf3e4;--shadow:0 12px 34px rgba(29,33,26,.14);
+}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Geologica',system-ui,sans-serif;background:var(--page);color:var(--ink);line-height:1.5;-webkit-text-size-adjust:100%}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 64px}
+.eyebrow{font-size:.66rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--acc-ink)}
+h1{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.5rem;line-height:1.2;margin:6px 0 10px}
+.lead{color:var(--ink2);max-width:740px;font-size:.92rem}
+.lead + .lead{margin-top:8px}
+
+/* Сценарии над окном */
+.scen{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.scen button{position:relative;height:34px;padding:0 14px;border-radius:17px;border:1px solid var(--rule2);background:var(--sheet);font:inherit;font-size:.8rem;color:var(--ink);cursor:pointer}
+.scen button::before{content:'';position:absolute;inset:-5px -3px}
+.scen button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:500}
+
+.stage{display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:28px;margin-top:16px;align-items:start}
+@media (max-width:900px){.stage{grid-template-columns:minmax(0,1fr)}}
+
+/* ── Мини-окно ── */
+.win{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;height:800px;max-height:calc(100dvh - 32px);overflow:hidden}
+.w-head{padding:14px 16px 0}
+.w-k{font-size:.6rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.w-nm{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.9rem;margin-top:2px}
+.w-nm small{font-family:'Geologica',sans-serif;font-weight:500;font-size:.7rem;color:var(--ink2);margin-left:6px}
+.tabs{display:flex;gap:26px;margin-top:10px;border-bottom:1px solid var(--rule)}
+.tab{height:34px;display:flex;align-items:center;gap:6px;font-size:.76rem;font-weight:500;color:var(--ink2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.on{color:var(--ink);font-weight:600;border-bottom-color:var(--acc)}
+@media (max-width:600px){.tabs{gap:14px}.tab{font-size:.72rem}}
+.feed{flex:1 1 auto;overflow-y:auto;padding:12px 16px 8px;display:flex;flex-direction:column;gap:12px}
+.feed[hidden]{display:none}
+.day{align-self:center;font-size:.6rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin:4px 0}
+.msg{max-width:88%;background:#eef1ec;border-radius:14px;padding:8px 12px 9px}
+.msg.me{align-self:flex-end;background:var(--tint)}
+.msg .who{font-size:.68rem;font-weight:600;color:var(--ink2)}
+.msg .who span{font-weight:400;color:var(--ink3)}
+.msg p{font-size:.84rem;margin-top:2px}
+.msg p + p{margin-top:6px}
+.mention{color:var(--acc-ink);font-weight:600}
+
+/* Ответ помощника: своя карточка с рамкой по кругу, знак помощника у имени. */
+.ai{max-width:94%;background:var(--sheet);border:1px solid var(--rule2);border-radius:14px;padding:10px 12px 10px}
+.ai-h{display:flex;align-items:center;gap:7px;font-size:.7rem;font-weight:600;color:var(--ai)}
+.ai-h .mark{width:20px;height:20px;border-radius:6px;background:var(--ai);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.ai-h span{font-weight:400;color:var(--ink3)}
+.ai p{font-size:.84rem;margin-top:6px}
+.ai ul{margin:6px 0 0;padding-left:18px;font-size:.82rem}
+.ai ul li + li{margin-top:3px}
+.ai-f{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:9px;padding-top:7px;border-top:1px solid var(--rule);font-size:.68rem;color:var(--ink3)}
+.ai-f b{font-weight:600;color:var(--ink2)}
+
+/* Черновик ответа клиенту */
+.draft{margin-top:8px;background:var(--ai-tint);border-radius:10px;padding:9px 11px}
+.draft-k{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.draft p{font-size:.82rem;margin-top:4px;color:var(--ink)}
+.link{position:relative;border:0;background:none;font:inherit;font-size:.72rem;font-weight:600;color:var(--acc-ink);cursor:pointer;padding:0;text-transform:none;letter-spacing:0;display:inline-flex;align-items:center;gap:4px}
+.link::before{content:'';position:absolute;inset:-12px -8px}
+
+/* Предложенные правки */
+.cmd{margin-top:8px;border:1px solid var(--rule);border-radius:10px;padding:2px 10px 8px}
+.cmd-row{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid var(--rule);font-size:.8rem;cursor:pointer}
+.cmd-row:last-of-type{border-bottom:0}
+.ck{width:18px;height:18px;border-radius:4px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.cmd-row.off .ck{background:none;box-shadow:inset 0 0 0 1.5px var(--rule2);color:transparent}
+.sum{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--acc-ink)}
+.sub{display:block;color:var(--ink3);font-size:.72rem}
+.cmd-f{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+.btn{position:relative;height:32px;padding:0 14px;border-radius:8px;border:1px solid var(--rule2);background:var(--sheet);color:var(--ink);font:inherit;font-size:.78rem;font-weight:500;cursor:pointer}
+.btn::before{content:'';position:absolute;inset:-6px -3px}
+.btn.go{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+.btn[disabled]{opacity:.45;cursor:default}
+.done{font-size:.74rem;color:var(--acc-ink);font-weight:600;display:inline-flex;align-items:center;gap:5px}
+
+/* Пункты проверки */
+.chk{margin-top:8px}
+.chk-r{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:8px;align-items:start;padding:7px 0;border-top:1px solid var(--rule);font-size:.8rem}
+.chk-r .st{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.chk-r .st.w{background:var(--warm-tint);color:var(--warm)}
+.chk-r .st.q{background:var(--ai-tint);color:var(--ai)}
+.chk-r .st.ok{background:var(--tint);color:var(--acc-ink)}
+.chk-r .why{display:block;color:var(--ink3);font-size:.72rem}
+.score{display:flex;gap:14px;flex-wrap:wrap;font-size:.74rem;color:var(--ink2);margin-top:6px}
+.score b{font-variant-numeric:tabular-nums;color:var(--ink)}
+
+/* Вложение и планировка */
+.att{display:flex;gap:10px;align-items:center;margin-top:6px}
+.att svg{display:block;border-radius:8px;background:#fbf8ef;border:1px solid var(--rule)}
+.att span{font-size:.72rem;color:var(--ink3)}
+.plan{margin-top:8px;border:1px solid var(--rule);border-radius:10px;padding:8px;background:var(--sheet)}
+.plan svg{display:block;width:100%;height:auto}
+.areas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px}
+.areas div{background:var(--tint2);border-radius:8px;padding:6px 8px;font-size:.7rem;color:var(--ink3)}
+.areas b{display:block;font-size:.86rem;color:var(--ink);font-variant-numeric:tabular-nums}
+
+.sys{align-self:center;max-width:94%;font-size:.74rem;color:var(--ink2);background:var(--tint2);border:1px solid var(--rule);border-radius:10px;padding:6px 10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+.sys b{color:var(--ink);font-weight:600}
+.sys .undo{position:relative;border:0;background:none;font:inherit;font-size:.74rem;color:var(--acc-ink);font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:0}
+.sys .undo::before{content:'';position:absolute;inset:-14px -8px}
+.sys[hidden]{display:none}
+.typing{align-self:flex-start;font-size:.74rem;color:var(--ink3);display:flex;align-items:center;gap:6px}
+.typing i{width:5px;height:5px;border-radius:50%;background:var(--ink3);animation:tp 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes tp{0%,100%{opacity:.25}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.typing i{animation:none}}
+
+/* Низ окна */
+.bottom{border-top:1px solid var(--rule);padding:10px 16px 14px;background:var(--sheet)}
+.sugg{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.sugg::-webkit-scrollbar{display:none}
+.sugg button{position:relative;flex:none;height:30px;padding:0 11px;border-radius:15px;border:1px solid var(--rule2);background:var(--tint2);font:inherit;font-size:.74rem;color:var(--ink);cursor:pointer;white-space:nowrap}
+.sugg button::before{content:'';position:absolute;inset:-7px -2px}
+.row{display:flex;align-items:center;gap:8px;border:1px solid var(--rule2);border-radius:22px;padding:4px 4px 4px 6px;background:var(--sheet)}
+.row:focus-within{border-color:var(--acc)}
+.ic{position:relative;width:34px;height:34px;border:0;background:none;border-radius:50%;color:var(--ink2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.ic::before{content:'';position:absolute;inset:-5px}
+.ic.send{background:var(--acc);color:#fff}
+input.txt{flex:1;min-width:0;border:0;outline:0;font:inherit;font-size:16px;color:var(--ink);background:none;height:34px}
+input.txt::placeholder{color:var(--ink3)}
+
+/* ── Расчёт рядом ── */
+.calc{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;padding:18px 20px}
+.calc h2{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.9rem}
+.c-tot{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.7rem;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.c-sub{font-size:.76rem;color:var(--ink2)}
+.c-list{margin-top:12px;border-top:2px solid var(--acc)}
+.c-r{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--rule);font-size:.8rem}
+.c-r span:last-child{font-variant-numeric:tabular-nums;white-space:nowrap}
+.c-r.off{color:var(--ink3)}
+.c-r.off span:first-child{text-decoration:line-through}
+.c-r.new{background:var(--tint)}
+.c-note{font-size:.74rem;color:var(--ink3);margin-top:10px}
+.flash{animation:fl 1.6s ease-out}
+@keyframes fl{0%{background:#e3f0d2}100%{background:transparent}}
+
+/* ── Разделы ниже ── */
+.sec{margin-top:48px}
+.sec h2{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:6px}
+.sec > p{color:var(--ink2);font-size:.88rem;max-width:760px}
+.steps{list-style:none;padding:0;margin-top:14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 28px;counter-reset:s}
+@media (max-width:760px){.steps{grid-template-columns:minmax(0,1fr)}}
+.steps li{counter-increment:s;display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;font-size:.84rem;padding:10px 0;border-top:1px solid var(--rule2)}
+.steps li::before{content:counter(s);width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font-size:.72rem;font-weight:600;display:flex;align-items:center;justify-content:center}
+.steps b{font-weight:600}
+.steps span{display:block;color:var(--ink2);font-size:.8rem;margin-top:2px}
+
+.tbl-wrap{overflow-x:auto;margin-top:14px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.82rem}
+th{background:var(--tint);color:var(--acc-ink);font-family:'Unbounded',sans-serif;font-weight:600;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;text-align:left;padding:9px 12px}
+th:first-child{border-top-left-radius:10px}th:last-child{border-top-right-radius:10px}
+td{padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+td:first-child{font-weight:600;color:var(--acc-ink)}
+td.n{white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right}
+th.n{text-align:right}
+td small{display:block;color:var(--ink3);font-weight:400;font-size:.72rem}
+
+.est{margin-top:18px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,1.3fr);gap:12px;align-items:end;background:var(--sheet);border:1px solid var(--rule);border-radius:14px;padding:14px 16px}
+@media (max-width:860px){.est{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.est label{font-size:.7rem;color:var(--ink3);display:block}
+.est input{width:100%;height:40px;margin-top:4px;border:0;border-bottom:1px solid var(--rule2);font:inherit;font-size:16px;font-variant-numeric:tabular-nums;color:var(--ink);background:none;outline:0}
+.est input:focus{border-bottom-color:var(--acc)}
+.est-out{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.3rem;font-variant-numeric:tabular-nums}
+.est-out small{display:block;font-family:'Geologica',sans-serif;font-weight:400;font-size:.72rem;color:var(--ink3)}
+@media (max-width:860px){.est-out{grid-column:1 / -1}}
+
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin-top:14px}
+@media (max-width:760px){.two{grid-template-columns:minmax(0,1fr)}}
+.box{background:var(--sheet);border:1px solid var(--rule);border-radius:14px;padding:14px 16px}
+.box h3{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.8rem;margin-bottom:6px}
+.box ul{padding-left:18px;font-size:.82rem;color:var(--ink)}
+.box li + li{margin-top:5px}
+.warnbox{background:var(--warm-tint);border-color:#ecd9b4}
+.warnbox h3{color:var(--warm)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Макет · учебные данные</div>
+  <h1>Помощник в чате пресета</h1>
+  <p class="lead">Помощник — участник чата пресета, как коллега. Его зовут через «@Помощник» тем же списком упоминаний, что и людей. Он видит расчёт, опции и цены, базу знаний и правила компании; отвечает в ленте для всех участников. Сам в расчёте ничего не меняет — предлагает, а применяет человек.</p>
+  <p class="lead">Ниже четыре сценария. Переключайте их кнопками над окном; в сценарии «Правки в расчёт» отметки и «Применить» работают и меняют расчёт справа.</p>
+
+  <div class="scen" role="group" aria-label="Сценарий">
+    <button type="button" data-s="advice" aria-pressed="true">Совет: что ответить клиенту</button>
+    <button type="button" data-s="edits" aria-pressed="false">Правки в расчёт</button>
+    <button type="button" data-s="check" aria-pressed="false">Проверка по скилу</button>
+    <button type="button" data-s="plan" aria-pressed="false">Планировка с бумажки</button>
+  </div>
+
+  <div class="stage">
+    <div class="win" aria-label="Мини-окно, вкладка «Чат»">
+      <div class="w-head">
+        <div class="w-k">Мой пресет · код 482 916</div>
+        <div class="w-nm">Учебная баня 6×4 <small>каркас · 150 мм</small></div>
+        <div class="tabs"><div class="tab">Пресет</div><div class="tab">Журнал</div><div class="tab">Проверка</div><div class="tab on">Чат</div></div>
+      </div>
+
+      <!-- 1. Совет клиенту -->
+      <div class="feed" data-feed="advice">
+        <div class="day">Сегодня</div>
+        <div class="msg me"><div class="who">Ольга Проверкина <span>14:02</span></div>
+          <p><span class="mention">@Помощник</span> клиент пишет, что у других такая же баня 6×4 на 300 тысяч дешевле. Что ему ответить, чтобы не спорить о цене?</p></div>
+        <div class="ai">
+          <div class="ai-h"><span class="mark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg></span>Помощник <span>14:02</span></div>
+          <p>Сравнивать стоит не цену, а то, что в неё входит. В этом расчёте три вещи, которые в дешёвых предложениях обычно идут отдельно:</p>
+          <ul>
+            <li>утепление 150 мм — у «эконом»-бань чаще 100 мм;</li>
+            <li>доставка и сборка уже в цене, отдельной строкой их нет;</li>
+            <li>печь с выносной топкой и дымоход под ключ.</li>
+          </ul>
+          <p>Предложите клиенту прислать чужую смету — сверим по строкам и покажем разницу.</p>
+          <div class="draft">
+            <div class="draft-k">Черновик ответа клиенту <button type="button" class="link" data-copy><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Скопировать</button></div>
+            <p>Иван, спасибо, что поделились. Чтобы сравнение было честным, пришлите, пожалуйста, смету той компании — я сверю её с нашей по строкам. В нашей цене уже есть утепление 150 мм, доставка, сборка и печь с дымоходом под ключ; часто разница в цене — именно эти позиции.</p>
+          </div>
+          <div class="ai-f"><span>Опора: <b>урок «Сравнение с конкурентами»</b>, <b>расчёт пресета</b></span><span>≈ 3 ₽</span></div>
+        </div>
+        <div class="msg me"><div class="who">Ольга Проверкина <span>14:05</span></div><p>Спасибо, отправила.</p></div>
+      </div>
+
+      <!-- 2. Правки в расчёт -->
+      <div class="feed" data-feed="edits" hidden>
+        <div class="day">Сегодня</div>
+        <div class="msg me"><div class="who">Ольга Проверкина <span>15:10</span></div>
+          <p><span class="mention">@Помощник</span> клиент хочет уложиться в 2,4 млн. Что убрать, чтобы не потерять в качестве?</p></div>
+        <div class="ai">
+          <div class="ai-h"><span class="mark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg></span>Помощник <span>15:10</span></div>
+          <p>Сейчас расчёт 2 586 000 ₽, нужно снять 186 000 ₽. Предлагаю то, что не трогает конструкцию и тепло:</p>
+          <div class="cmd" id="prop">
+            <div class="cmd-row" data-id="glass" data-sum="96000"><span class="ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12.5 10 17 19 7"/></svg></span><span>Панорамное окно в комнате отдыха → обычное 1200×1200<span class="sub">Вид и свет остаются, окно меньше</span></span><span class="sum">−96 000 ₽</span></div>
+            <div class="cmd-row" data-id="paint" data-sum="58000"><span class="ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12.5 10 17 19 7"/></svg></span><span>Покраска фасада — убрать<span class="sub">Можно сделать следующим летом; в договоре — отдельной строкой</span></span><span class="sum">−58 000 ₽</span></div>
+            <div class="cmd-row" data-id="lamp" data-sum="34000"><span class="ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12.5 10 17 19 7"/></svg></span><span>Подсветка полков → без подсветки<span class="sub">Электрика под неё остаётся, добавить можно позже</span></span><span class="sum">−34 000 ₽</span></div>
+            <div class="cmd-f"><button type="button" class="btn go" id="apply">Применить отмеченное · −188 000 ₽</button><button type="button" class="btn" id="skip">Не надо</button></div>
+          </div>
+          <div class="ai-f"><span>Утепление, печь и кровлю не предлагаю: это то, что клиент заметит через год.</span><span>≈ 4 ₽</span></div>
+        </div>
+        <div class="sys" id="applied" hidden><span>Помощник предложил, <b>Ольга</b> применила: <b id="appliedSum">−188 000 ₽</b></span><button type="button" class="undo" id="undo">Отменить</button></div>
+      </div>
+
+      <!-- 3. Проверка по скилу -->
+      <div class="feed" data-feed="check" hidden>
+        <div class="day">Сегодня</div>
+        <div class="msg me"><div class="who">Ольга Проверкина <span>16:20</span></div>
+          <p><span class="mention">@Помощник</span> проверь расчёт перед согласованием.</p></div>
+        <div class="ai">
+          <div class="ai-h"><span class="mark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg></span>Помощник <span>16:21</span></div>
+          <p>Проверил по скилу «Спецификация» версии 4.11 — те пункты, которых нет во вкладке «Проверка»: смысл, сочетания, планировка.</p>
+          <div class="score"><span>в порядке <b>34</b></span><span>замечания <b>3</b></span><span>вопрос <b>1</b></span></div>
+          <div class="chk">
+            <div class="chk-r"><span class="st w"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M12 5v9M12 19h.01"/></svg></span><span>Печь на 18 м³, а парная по плану 2,0×2,1×2,3 — около 10 м³<span class="why">Печь будет перегревать парную; по скилу — печь до 12 м³</span></span><button type="button" class="link">Подобрать</button></div>
+            <div class="chk-r"><span class="st w"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M12 5v9M12 19h.01"/></svg></span><span>Терраса 12 м² есть, покраски террасной доски нет<span class="why">Либо добавить покраску, либо оставить примечание «Покраска террасы не входит в расчёт»</span></span><button type="button" class="link">Добавить</button></div>
+            <div class="chk-r"><span class="st w"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M12 5v9M12 19h.01"/></svg></span><span>В своей позиции «Дверь в парную, стекло» нет размера<span class="why">Без размера цех не примет заказ</span></span><button type="button" class="link">Открыть</button></div>
+            <div class="chk-r"><span class="st q"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.7M12 17.5v.5"/></svg></span><span>Участок с уклоном по ТЗ — сваи 2,5 м хватит?<span class="why">Решает инженер по фундаменту; в расчёте выезд инженера отмечен</span></span><span></span></div>
+          </div>
+          <div class="ai-f"><span>Скил: <b>«Спецификация» v4.11</b>, загружен 15.10.2026</span><span>≈ 12 ₽</span></div>
+        </div>
+      </div>
+
+      <!-- 4. Планировка с бумажки -->
+      <div class="feed" data-feed="plan" hidden>
+        <div class="day">Сегодня</div>
+        <div class="msg me"><div class="who">Ольга Проверкина <span>17:40</span></div>
+          <p><span class="mention">@Помощник</span> клиент нарисовал от руки, сделай планировку и подбери проект.</p>
+          <div class="att"><svg width="88" height="66" viewBox="0 0 88 66" aria-label="Фото наброска от руки"><path d="M10 12 L70 10 L72 52 L11 54 Z" fill="none" stroke="#3d4a8a" stroke-width="1.4"/><path d="M30 11 L31 53 M31 30 L71 29 M52 30 L52 52" stroke="#3d4a8a" stroke-width="1.2" fill="none"/><path d="M72 12 L84 12 L84 52 L72 52" fill="none" stroke="#3d4a8a" stroke-width="1" stroke-dasharray="3 2"/><text x="14" y="34" font-size="6" fill="#3d4a8a">отдых</text><text x="36" y="22" font-size="6" fill="#3d4a8a">комн</text><text x="34" y="44" font-size="6" fill="#3d4a8a">парн</text><text x="55" y="44" font-size="6" fill="#3d4a8a">мойк</text><text x="20" y="62" font-size="6" fill="#3d4a8a">6 м</text></svg><span>набросок.jpg · 1,2 МБ</span></div></div>
+        <div class="ai">
+          <div class="ai-h"><span class="mark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg></span>Помощник <span>17:41</span></div>
+          <p>Перерисовал набросок в масштабе. Размер есть только у длины — 6 м; ширину взял 4 м по пропорции рисунка, её нужно уточнить у клиента.</p>
+          <div class="plan">
+            <svg viewBox="0 0 340 200" role="img" aria-label="Планировка: комната отдыха, комната, парная, мойка, терраса">
+              <g font-family="Geologica, sans-serif" font-size="11" fill="#1d211a">
+                <rect x="20" y="20" width="240" height="160" fill="#fff" stroke="#1d211a" stroke-width="3"/>
+                <rect x="260" y="20" width="60" height="160" fill="#f6f9f2" stroke="#7d8578" stroke-width="1.2" stroke-dasharray="5 3"/>
+                <line x1="100" y1="20" x2="100" y2="180" stroke="#1d211a" stroke-width="2"/>
+                <line x1="100" y1="96" x2="260" y2="96" stroke="#1d211a" stroke-width="2"/>
+                <line x1="180" y1="96" x2="180" y2="180" stroke="#1d211a" stroke-width="2"/>
+                <text x="60" y="92" text-anchor="middle" font-weight="600">Отдых</text><text x="60" y="106" text-anchor="middle" fill="#5c6457" font-size="10">8,0 м²</text><text x="60" y="118" text-anchor="middle" fill="#7d8578" font-size="9">2,0×4,0</text>
+                <text x="180" y="54" text-anchor="middle" font-weight="600">Комната</text><text x="180" y="68" text-anchor="middle" fill="#5c6457" font-size="10">7,6 м² · 4,0×1,9</text>
+                <text x="140" y="132" text-anchor="middle" font-weight="600">Парная</text><text x="140" y="146" text-anchor="middle" fill="#5c6457" font-size="10">4,2 м²</text><text x="140" y="158" text-anchor="middle" fill="#7d8578" font-size="9">2,0×2,1</text>
+                <text x="220" y="132" text-anchor="middle" font-weight="600">Мойка</text><text x="220" y="146" text-anchor="middle" fill="#5c6457" font-size="10">4,2 м²</text><text x="220" y="158" text-anchor="middle" fill="#7d8578" font-size="9">2,0×2,1</text>
+                <text x="290" y="96" text-anchor="middle" font-weight="600" font-size="10">Терраса</text><text x="290" y="110" text-anchor="middle" fill="#5c6457" font-size="9">1,5×4,0</text>
+                <text x="140" y="196" text-anchor="middle" fill="#5c6457" font-size="10">6,0 м</text>
+                <text x="11" y="100" text-anchor="middle" fill="#9a6412" font-size="10" transform="rotate(-90 11 100)">4,0 м — уточнить</text>
+              </g>
+            </svg>
+          </div>
+          <div class="areas"><div>Тёплый контур<b>24,0 м²</b></div><div>Терраса<b>6,0 м²</b></div><div>Парная<b>≈ 9,7 м³</b></div></div>
+          <p>Ближе всего из каталога — учебный проект 6×4 с террасой 6 м²: совпадает тёплый контур, у него парная и мойка поменяны местами.</p>
+          <div class="cmd-f"><button type="button" class="btn">В «Визуализацию и планировку»</button><button type="button" class="btn">Показать проект</button></div>
+          <div class="ai-f"><span>Схема для разговора с клиентом, не рабочий чертёж</span><span>≈ 15 ₽</span></div>
+        </div>
+      </div>
+
+      <div class="bottom">
+        <div class="sugg" aria-label="Быстрые вопросы помощнику">
+          <button type="button">Проверь расчёт</button><button type="button">Как уложиться в бюджет</button><button type="button">Что ответить клиенту</button><button type="button">Объясни разницу 100 и 150 мм</button>
+        </div>
+        <div class="row">
+          <button type="button" class="ic" aria-label="Прикрепить файл"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21 11-8.6 8.6a5 5 0 0 1-7-7L14 4a3.4 3.4 0 0 1 4.8 4.8l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4L15.5 7.3"/></svg></button>
+          <input class="txt" type="text" placeholder="Сообщение или @Помощник" aria-label="Сообщение">
+          <button type="button" class="ic send" aria-label="Отправить"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="calc" aria-live="polite">
+      <h2>Расчёт пресета</h2>
+      <div class="c-tot" id="tot">2 586 000 ₽</div>
+      <div class="c-sub">Учебная баня 6×4 · каркас 150 мм · терраса 12 м²</div>
+      <div class="c-list">
+        <div class="c-r"><span>Базовая комплектация</span><span>1 890 000 ₽</span></div>
+        <div class="c-r"><span>Фундамент, сваи 2,5 м</span><span>148 000 ₽</span></div>
+        <div class="c-r"><span>Печь с выносной топкой и дымоход</span><span>212 000 ₽</span></div>
+        <div class="c-r" data-c="glass"><span>Панорамное окно в комнате отдыха</span><span>96 000 ₽</span></div>
+        <div class="c-r" data-c="paint"><span>Покраска фасада</span><span>58 000 ₽</span></div>
+        <div class="c-r" data-c="lamp"><span>Подсветка полков</span><span>34 000 ₽</span></div>
+        <div class="c-r"><span>Терраса, доска лиственница</span><span>148 000 ₽</span></div>
+        <div class="c-r new" data-c="glass-new" hidden><span>Окно 1200×1200 в комнате отдыха</span><span>0 ₽</span></div>
+      </div>
+      <p class="c-note">Применённые правки помощника попадают в журнал пресета так же, как правки человека: с именем того, кто нажал «Применить».</p>
+    </div>
+  </div>
+
+  <section class="sec">
+    <h2>Что нужно, чтобы подключить</h2>
+    <p>Шаги по порядку. Ключ к ИИ хранится только на сервере базы, страница калькулятора его не видит.</p>
+    <ol class="steps">
+      <li><div><b>Аккаунт и ключ API у Anthropic</b><span>Кабинет platform.claude.com, ключ, оплата картой, лимит расходов в месяц. Аккаунт оформляется на компанию в стране, где сервис доступен.</span></div></li>
+      <li><div><b>Серверная функция в Supabase</b><span>Ключ кладётся в секреты проекта. Функция проверяет, кто спрашивает, собирает расчёт, отправляет ИИ и пишет ответ в чат пресета.</span></div></li>
+      <li><div><b>Знания помощника</b><span>Скил спецификации, база знаний, правила эксплуатации, шаблон договора — из тех же таблиц, что справка и уроки. Ничего вручную копировать не нужно.</span></div></li>
+      <li><div><b>«@Помощник» в чате</b><span>Тот же список упоминаний, ответ в ленте, карточка правок с «Применить» и «Отменить», строка в журнале пресета.</span></div></li>
+      <li><div><b>Учёт и лимиты</b><span>Таблица расходов: кто, когда, сколько токенов и рублей. Лимит на человека в день и общий в месяц; вы видите расход в «Аналитике».</span></div></li>
+      <li><div><b>Что не уходит наружу</b><span>Паспорт, телефон и адрес клиента функция вырезает до отправки: помощнику для работы нужен расчёт, а не личные данные.</span></div></li>
+    </ol>
+  </section>
+
+  <section class="sec">
+    <h2>Сколько стоит</h2>
+    <p>Цены Anthropic за миллион токенов (октябрь 2026): Sonnet 5.5 — $2 на вход и $10 на выход, Opus 5.5 — $4 и $20, Haiku 5.5 — $0,10 и $0,50. Повторяющаяся часть запроса (инструкция, скил, база знаний) кешируется и стоит в 20 раз дешевле. Рубли — при 95 ₽ за доллар.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Запрос</th><th>Модель</th><th class="n">Читает</th><th class="n">Пишет</th><th class="n">За запрос</th></tr></thead>
+      <tbody>
+        <tr><td>Вопрос, совет, черновик клиенту</td><td>Sonnet 5.5</td><td class="n">≈ 32 тыс. токенов<small>20 тыс. из кеша</small></td><td class="n">≈ 800</td><td class="n">≈ 3 ₽</td></tr>
+        <tr><td>Правки в расчёт</td><td>Sonnet 5.5</td><td class="n">≈ 34 тыс.<small>20 тыс. из кеша</small></td><td class="n">≈ 1 500</td><td class="n">≈ 4 ₽</td></tr>
+        <tr><td>Проверка по скилу</td><td>Opus 5.5</td><td class="n">≈ 45 тыс.<small>30 тыс. из кеша</small></td><td class="n">≈ 3 000</td><td class="n">≈ 12 ₽</td></tr>
+        <tr><td>Планировка с фото наброска</td><td>Opus 5.5</td><td class="n">≈ 10 тыс.<small>с картинкой</small></td><td class="n">≈ 6 000</td><td class="n">≈ 15 ₽</td></tr>
+      </tbody>
+    </table></div>
+    <div class="est" id="est">
+      <div><label for="e-m">Менеджеров</label><input id="e-m" type="number" min="1" max="200" value="10" inputmode="numeric"></div>
+      <div><label for="e-q">Вопросов в день на человека</label><input id="e-q" type="number" min="0" max="200" value="15" inputmode="numeric"></div>
+      <div><label for="e-c">Проверок в месяц</label><input id="e-c" type="number" min="0" max="5000" value="400" inputmode="numeric"></div>
+      <div><label for="e-p">Планировок в месяц</label><input id="e-p" type="number" min="0" max="2000" value="60" inputmode="numeric"></div>
+      <div class="est-out" id="e-out">≈ 18 000 ₽<small>в месяц, 22 рабочих дня</small></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Скил и его версии</h2>
+    <div class="two">
+      <div class="box"><h3>Как загружается новая версия</h3>
+        <ul>
+          <li>Скил хранится в базе отдельным документом с номером версии — как главы справки.</li>
+          <li>Новую версию присылаете в чат; я выкладываю её тем же путём, что справку, со сверкой.</li>
+          <li>Помощник берёт текущую версию при каждой проверке и пишет её номер под ответом.</li>
+          <li>Прежняя версия хранится: если новая проверяет хуже, возврат — одной записью.</li>
+        </ul></div>
+      <div class="box warnbox"><h3>Чего помощник не делает</h3>
+        <ul>
+          <li>Не меняет расчёт сам — только предлагает, нажимает человек.</li>
+          <li>Не заменяет вкладку «Проверка»: та считает по правилам и не ошибается, помощник ловит смысл.</li>
+          <li>Не делает рабочих чертежей: схема для разговора с клиентом, размеры сверяются.</li>
+          <li>Может ошибиться в цифре — ответ опирается на расчёт, но читает его человек.</li>
+        </ul></div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var кнопки = document.querySelectorAll('.scen button');
+  кнопки.forEach(function (к) {
+    к.addEventListener('click', function () {
+      кнопки.forEach(function (о) { о.setAttribute('aria-pressed', о === к ? 'true' : 'false'); });
+      document.querySelectorAll('.feed').forEach(function (л) { л.hidden = л.getAttribute('data-feed') !== к.getAttribute('data-s'); });
+    });
+  });
+
+  // Правки в расчёт: отметки, «Применить», «Отменить».
+  var БАЗА = 2586000, применено = [];
+  function руб(ч) { return ч.toLocaleString('ru-RU').replace(/,/g, ' ') + ' ₽'; }
+  function отмечено() { return [].slice.call(document.querySelectorAll('#prop .cmd-row:not(.off)')); }
+  function обновитьКнопку() {
+    var с = отмечено().reduce(function (a, р) { return a + +р.getAttribute('data-sum'); }, 0);
+    var б = document.getElementById('apply');
+    б.textContent = с ? 'Применить отмеченное · −' + руб(с) : 'Применить отмеченное';
+    б.disabled = !с;
+  }
+  document.querySelectorAll('#prop .cmd-row').forEach(function (р) {
+    р.addEventListener('click', function () { if (применено.length) return; р.classList.toggle('off'); обновитьКнопку(); });
+  });
+  function показать() {
+    var с = применено.reduce(function (a, id) { return a + +document.querySelector('#prop [data-id="' + id + '"]').getAttribute('data-sum'); }, 0);
+    document.getElementById('tot').textContent = руб(БАЗА - с);
+    document.querySelectorAll('.c-r[data-c]').forEach(function (р) {
+      var id = р.getAttribute('data-c');
+      if (id === 'glass-new') { р.hidden = применено.indexOf('glass') < 0; return; }
+      р.classList.toggle('off', применено.indexOf(id) >= 0);
+    });
+    var tot = document.getElementById('tot'); tot.classList.remove('flash'); void tot.offsetWidth; tot.classList.add('flash');
+    document.getElementById('applied').hidden = !применено.length;
+    document.getElementById('appliedSum').textContent = '−' + руб(с);
+    document.querySelector('#prop .cmd-f').innerHTML = применено.length
+      ? '<span class="done"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12.5 10 17 19 7"/></svg>Применено</span>'
+      : '<button type="button" class="btn go" id="apply"></button><button type="button" class="btn" id="skip">Не надо</button>';
+    if (!применено.length) { привязать(); обновитьКнопку(); }
+  }
+  function привязать() {
+    document.getElementById('apply').addEventListener('click', function () {
+      применено = отмечено().map(function (р) { return р.getAttribute('data-id'); });
+      if (применено.length) показать();
+    });
+    document.getElementById('skip').addEventListener('click', function () {
+      document.querySelector('#prop .cmd-f').innerHTML = '<span class="done" style="color:var(--ink3)">Отклонено</span>';
+    });
+  }
+  привязать(); обновитьКнопку();
+  document.getElementById('undo').addEventListener('click', function () { применено = []; показать(); });
+
+  document.querySelectorAll('[data-copy]').forEach(function (к) {
+    к.addEventListener('click', function () {
+      var т = к.closest('.draft').querySelector('p').textContent;
+      try { navigator.clipboard.writeText(т); } catch (e) {}
+      var было = к.innerHTML; к.textContent = 'Скопировано';
+      setTimeout(function () { к.innerHTML = было; }, 1600);
+    });
+  });
+
+  // Оценка расхода в месяц.
+  var ЦЕНА = { вопрос: 3.5, проверка: 12, план: 15 };
+  function оценить() {
+    var ч = function (id) { return Math.max(0, +document.getElementById(id).value || 0); };
+    var р = ч('e-m') * ч('e-q') * 22 * ЦЕНА.вопрос + ч('e-c') * ЦЕНА.проверка + ч('e-p') * ЦЕНА.план;
+    р = Math.round(р / 500) * 500;
+    document.getElementById('e-out').innerHTML = '≈ ' + руб(р) + '<small>в месяц, 22 рабочих дня · ≈ $' + Math.round(р / 95) + '</small>';
+  }
+  document.querySelectorAll('#est input').forEach(function (и) { и.addEventListener('input', оценить); });
+  оценить();
+})();
+</script>
+</body>
+</html>
