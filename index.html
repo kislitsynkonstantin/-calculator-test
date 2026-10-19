@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html lang="ru">
+<!-- Тон по умолчанию — «Зелёный-графит» — тоже в разметке: кадр, нарисованный
+     раньше скрипта темы, иначе шёл бирюзой. Бирюзу, если она выбрана, скрипт
+     снимает (19.10.2026). -->
+<html lang="ru" data-tone="bmsk">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -10331,7 +10334,12 @@ body.ui-blank .pdfp-ok { background: var(--bl-fill); }
 }
 </style>
 </head>
-<body>
+<!-- «Бланк» — в самой разметке, а не только скриптом ниже: на iPhone
+     страница секунду показывалась снятым «Модерном» (Константин, 19.10.2026,
+     снимками теста и боевого) — класс ставил только скрипт, и всё, что Safari
+     рисовал до него или без него, выходило без темы. Класс в теге есть с
+     первого кадра, скрипту остаётся ночь и тон. -->
+<body class="ui-blank">
 <script>
 /* Тему ставим до отрисовки страницы, а не в loadSettings().
    loadSettings() живёт в общем скрипте в конце документа: браузер успевает
@@ -10376,6 +10384,8 @@ body.ui-blank .pdfp-ok { background: var(--bl-fill); }
   if (tone && tone !== 'teal' && window.ТОНЫ_ПАЛИТРЫ &&
       (ТОНЫ_ПАЛИТРЫ.сдвиг || {})[tone] !== undefined) {
     document.documentElement.dataset.tone = tone;
+  } else {
+    delete document.documentElement.dataset.tone;
   }
   var m = document.getElementById('themeColorMeta');
   if (m) m.setAttribute('content', getComputedStyle(document.body).backgroundColor);
