@@ -52569,6 +52569,12 @@ body.dark,body.ui-blank.dark{--pc-bub:rgba(255,255,255,.07)}
 .ch-view-n{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.84rem;font-weight:500}
 .ch-view-c{flex:none;margin:0 6px;font-size:.74rem;color:rgba(255,255,255,.62);font-variant-numeric:tabular-nums}
 .ch-view-b,.ch-view-arr{flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:50%;background:none;color:rgba(255,255,255,.86);cursor:pointer}
+/* «Поделиться», «Скачать» и крестик — кружками на светлой подложке, с
+   просветом между ними (Константин, 19.10.2026, снимком такого просмотра:
+   «сделай как тут»): голые значки на тёмном поле терялись. Стрелки листания
+   остаются без подложки — они при счёте «16 из 17», а не кнопки действия. */
+.ch-view-b{background:rgba(255,255,255,.13);color:#fff}
+.ch-view-b + .ch-view-b{margin-left:6px}
 .ch-view-b[aria-disabled="true"]{opacity:.35;pointer-events:none}
 .ch-view-b:focus-visible,.ch-view-arr:focus-visible{outline:2px solid #fff;outline-offset:-2px}
 .ch-view-body{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:8px 12px calc(16px + env(safe-area-inset-bottom))}
@@ -52586,7 +52592,7 @@ body.dark,body.ui-blank.dark{--pc-bub:rgba(255,255,255,.07)}
   .ch-view-arr.prev{left:12px}
   .ch-view-arr.next{right:12px}
 }
-@media (hover:hover){.ch-view-b:hover,.ch-view-arr:hover{background:rgba(255,255,255,.14);color:#fff}}
+@media (hover:hover){.ch-view-b:hover,.ch-view-arr:hover{background:rgba(255,255,255,.14);color:#fff}.ch-view-b:hover{background:rgba(255,255,255,.22)}}
 @media (prefers-reduced-motion:reduce){.pc-card .pc-spin{animation-duration:2.4s}}
 .pc-card .pc-chact{display:flex;align-items:center;gap:14px;margin-top:2px;padding:0 6px}
 .pc-card .pc-chact button{position:relative;display:inline-flex;align-items:center;gap:4px;height:24px;padding:0;border:0;background:none;color:var(--pc-ink3);font:inherit;font-size:.62rem;font-weight:500;white-space:nowrap;cursor:pointer}

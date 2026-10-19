@@ -90,6 +90,13 @@ def это_pdf(адрес):
     накрыли: [...в.querySelectorAll('.ch-view-arr')].some(а => { const р = а.getBoundingClientRect();
       return [...в.querySelectorAll('.ch-view-page')].some(л => { const q = л.getBoundingClientRect(); return р.left < q.right && р.right > q.left && р.top < q.bottom && р.bottom > q.top; }); }), мелкие: кнопки.filter(([ш, в_]) => ш < 43.5 || в_ < 43.5).length,
     окно: document.getElementById('presetChipCard').classList.contains('show'), прокрутка: getComputedStyle(document.documentElement).overflow,
+    // «Поделиться», «Скачать» и крестик — кружками на подложке и с просветом
+    // 4–12 px (Константин, 19.10.2026, снимком другого просмотра: «сделай как тут»).
+    кружки: (() => { const д = [...в.querySelectorAll('.ch-view-b')], н = [];
+      д.forEach((б, и) => { const ф = getComputedStyle(б).backgroundColor; if (ф === 'rgba(0, 0, 0, 0)' || ф === 'transparent') н.push((б.getAttribute('data-v')) + ' без подложки');
+        if (getComputedStyle(б).borderRadius !== '50%') н.push(б.getAttribute('data-v') + ' не круглая');
+        if (и) { const з = б.getBoundingClientRect().left - д[и - 1].getBoundingClientRect().right; if (з < 4 || з > 12) н.push('просвет ' + Math.round(з) + ' px перед ' + б.getAttribute('data-v')); } });
+      return н; })(),
     фокус: document.activeElement && (document.activeElement.getAttribute('data-v') || document.activeElement.tagName) }; }"""
 
 РИСУНОК = """() => { const х = document.querySelector('.ch-view-page canvas'); if (!х || !х.width) return 0;
@@ -140,6 +147,8 @@ def прогон(бр, порт, ш, в, ночь):
     if not п or п["имя"] != "Участок.png" or п["счёт"] != "1 из 4" or not п["снимок"] or not п["вКадре"] or "download=" not in п["скачать"] \
             or п["скачатьИмя"] != "Участок.png" or not п["окно"] or п["прокрутка"] != "hidden" or п["фокус"] != "x" or п["мелкие"]:
         плохо(f"{н} просмотр снимка: {п}")
+    if п and п["кружки"]:
+        плохо(f"{н} кнопки просмотра: {', '.join(п['кружки'])}")
     if п:
         стр.mouse.move(5, 5)
         стр.screenshot(path=str(СНИМКИ / f"view-img-{ш}{'-n' if ночь else ''}.png"))
