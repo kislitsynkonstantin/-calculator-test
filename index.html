@@ -10157,9 +10157,21 @@ body.dark { --пр-акц: var(--bl-acc); --пр-тёпл: #e8a964; }
 .пр-пункт-в { margin-top: 6px; padding: 4px 8px; border-radius: 6px; background: rgba(224, 163, 58, .1); color: var(--пр-тёпл); font-size: .74rem; line-height: 1.5; }
 .пр-пункт-в .пр-кн { margin-left: 12px; }
 .пр-низ { margin: 10px 0 0; color: var(--bl-ink2); font-size: .72rem; line-height: 1.5; }
-.пр-полоса .пр-кн { position: relative; border: 0; background: none; padding: 0; font: inherit; font-size: .76rem; color: var(--bl-ink2); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--bl-rule2); }
-.пр-полоса .пр-кн::before { content: ''; position: absolute; inset: -12px -8px; }
-.пр-полоса .пр-кн.пр-назад { color: var(--пр-акц); }
+.ко-панель .пр-кн, .пр-полоса .пр-кн { position: relative; border: 0; background: none; padding: 0; font: inherit; font-size: .76rem; color: var(--bl-ink2); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--bl-rule2); }
+.ко-панель .пр-кн::before, .пр-полоса .пр-кн::before { content: ''; position: absolute; inset: -12px -8px; }
+.ко-панель .пр-кн::before { inset: -15px -8px; }
+.ко-панель .пр-кн.пр-назад, .пр-полоса .пр-кн.пр-назад { color: var(--пр-акц); }
+/* Правка суммы ордера — тем же языком, что правка текста договора: внизу
+   панели, во всю её ширину, на листе. */
+.ко-правка, .ко-панель .ко-статус { margin: 0 -16px -12px; border-top: 1px solid var(--bl-rule); background: var(--bl-sheet); }
+.ко-панель .ко-статус { border-bottom: 0; line-height: 1.45; }
+.ко-правка .пр-баннер { background: none; }
+.ко-сумма-ряд { display: grid; grid-template-columns: minmax(0, 1fr) 150px 64px; align-items: center; gap: 10px; padding: 8px 16px; border-top: 1px solid var(--bl-rule); }
+.ко-сумма-ряд .ко-н { font-weight: 600; }
+.ко-сумма-ряд .ко-срок { display: block; margin-top: 1px; font-weight: 400; color: var(--bl-ink2); font-size: .74rem; }
+.ко-панель .ко-сум { width: 100%; box-sizing: border-box; text-align: right; font-variant-numeric: tabular-nums; }
+p.ко-сумма-ряд { display: block; margin: 0; }
+.ко-править { height: 36px; }
 
 /* Крестик — тот же, что в остальных окнах «Бланка». */
 body.ui-blank #printToolbar .ovl-x {
@@ -26424,7 +26436,27 @@ function документСогласие() { return typeof previewEntity !== 'u
 // кредит 62.02, финальный платёж договора на отделку — 62.01; главный
 // бухгалтер — подписант договоров, кассир — менеджер из реквизитов; «В том
 // числе НДС 5 %» — как в цене договора, с копейками от суммы ордера.
-let _ордер = { договор: 1, номер: '', выдан: false, дата: '', днём: '', номера: {}, отмечены: {}, список: false };
+let _ордер = { договор: 1, номер: '', выдан: false, дата: '', днём: '', номера: {}, отмечены: {}, суммы: {}, список: false };
+// Сумма платежа в ордере правится (Константин, 19.10.2026: «В приходника
+// сделай, чтобы можно было менять сумму. Такой же режим правок сделай, как в
+// договоре. Сумму может менять только Редактор, Администратор и Специалист»).
+// Клиент вносит часть платежа или больше него — в ордер идёт внесённое, а
+// график платежей не меняется. Правка живёт у платежа своего договора:
+// суммы[договор][№ платежа] = { сумма, кто, роль, когда }; пустое поле
+// возвращает сумму по графику. Подпись договора правку не закрывает: ордера
+// выписывают и после неё.
+let _правкаОрдера = false;
+function можноПравитьОрдер() {
+  return РОЛИ_ПРАВКИ_ДОГОВОРА.includes(window._sbProfile?.role) && договорДоступен();
+}
+function правкаСуммыОрдера(дог, no) {
+  const п = ((_ордер.суммы || {})[дог] || {})[no];
+  return п && Number(п.сумма) > 0 ? п : null;
+}
+function суммаПлатежаОрдера(р, дог) {
+  const п = правкаСуммыОрдера(дог == null ? _ордер.договор : дог, р.no);
+  return п ? Number(п.сумма) : (Number(р.amount) || 0);
+}
 // Номер принадлежит дню (Константин, 18.10.2026: «Конечно надо сохранять,
 // чтобы не повторился. Причем следующий ордер этому клиенту должен быть с
 // другим номером (и не по порядку), когда в другой день»). Расчёт помнит,
@@ -26505,7 +26537,7 @@ let _ордерРукойТаймер = 0;
 function ордерДляСохранения() {
   return { договор: _ордер.договор, номер: String(_ордер.номер || ''), выдан: !!_ордер.выдан, дата: String(_ордер.дата || ''),
     днём: String(_ордер.днём || ''), номера: Object.assign({}, _ордер.номера || {}),
-    отмечены: JSON.parse(JSON.stringify(_ордер.отмечены || {})) };
+    отмечены: JSON.parse(JSON.stringify(_ордер.отмечены || {})), суммы: JSON.parse(JSON.stringify(_ордер.суммы || {})) };
 }
 function ордерИзСохранённого(с) {
   const о = с && typeof с === 'object' ? с : {};
@@ -26518,9 +26550,20 @@ function ордерИзСохранённого(с) {
     if (/^\d{4}-\d{2}-\d{2}$/.test(д)) номера[д] = String(о.номера[д] || '');
   });
   const дата = /^\d{4}-\d{2}-\d{2}$/.test(о.дата || '') ? о.дата : '';
+  const суммы = {};
+  if (о.суммы && typeof о.суммы === 'object') Object.keys(о.суммы).forEach(д => {
+    const пл = о.суммы[д];
+    if (!пл || typeof пл !== 'object' || (д !== '1' && д !== '2')) return;
+    Object.keys(пл).forEach(н => {
+      const з = пл[н], с = Math.round(Number(з && з.сумма));
+      if (!(с > 0) || !(Number(н) > 0)) return;
+      (суммы[д] = суммы[д] || {})[н] = { сумма: с, кто: String(з.кто || ''), роль: String(з.роль || ''), когда: String(з.когда || '') };
+    });
+  });
   // Расчёт, сохранённый до учёта дней: номер — того дня, что стоит в ордере.
   _ордер = { договор: о.договор === 2 ? 2 : 1, номер: String(о.номер || ''), выдан: !!о.выдан,
-    дата, днём: /^\d{4}-\d{2}-\d{2}$/.test(о.днём || '') ? о.днём : дата, номера, отмечены: отм, список: false };
+    дата, днём: /^\d{4}-\d{2}-\d{2}$/.test(о.днём || '') ? о.днём : дата, номера, отмечены: отм, суммы, список: false };
+  _правкаОрдера = false;
 }
 function ордерИзменён() { try { пометитьПресетГрязным(); } catch (e) {} }
 const МЕСЯЦЫ_РОД = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
@@ -26571,7 +26614,7 @@ function buildCashHtml(vars, ордер) {
   const деньги = н => Math.round(н).toLocaleString('ru-RU');
   const строки = vars.paymentRows || [];
   const выбр = платежиОрдера(vars);
-  const всего = выбр.reduce((с, р) => с + (Number(р.amount) || 0), 0);
+  const всего = выбр.reduce((с, р) => с + суммаПлатежаОрдера(р), 0);
   const пусто = в => !в || в === '________';
   const номерДог = пусто(vars.contractNumKar) ? '' : vars.contractNumKar;
   const датаДог = пусто(vars.contractDate) ? '' : vars.contractDate;
@@ -26579,7 +26622,7 @@ function buildCashHtml(vars, ордер) {
   let осн = '';
   if (выбр.length) {
     осн = 'Оплата по договору подряда № ' + (номерДог || '________') + ' от ' + (датаДог || '________') + ', ';
-    осн += выбр.length === 1 ? 'платёж № ' + выбр[0].no : 'платежи ' + перечень(выбр.map(р => '№ ' + р.no + ' (' + деньги(р.amount) + ' руб.)'));
+    осн += выбр.length === 1 ? 'платёж № ' + выбр[0].no : 'платежи ' + перечень(выбр.map(р => '№ ' + р.no + ' (' + деньги(суммаПлатежаОрдера(р)) + ' руб.)'));
   }
   // НДС 5 % внутри суммы — с копейками.
   const ндсКоп = Math.round(всего * 5 / 105 * 100);
@@ -26742,6 +26785,17 @@ function панельОрдера(хозяин) {
     хозяин.insertBefore(п, полоса ? полоса.nextSibling : хозяин.firstChild);
     п.addEventListener('click', e => {
       const д = e.target.closest('[data-ko-dog]'), пл = e.target.closest('[data-ko-p]'), кн = e.target.closest('.ко-кнопка');
+      const а = e.target.closest('[data-ko-a]');
+      if (а) {
+        const что = а.getAttribute('data-ko-a');
+        if (что === 'править') { _правкаОрдера = можноПравитьОрдер(); _ордер.список = false; }
+        else if (что === 'готово') _правкаОрдера = false;
+        else if (что === 'вернуть') вернутьСуммуОрдера(Number(а.getAttribute('data-n')));
+        refreshContractPreview();
+        if (что === 'править') { const в = п.querySelector('.ко-сум'); if (в) в.focus(); }
+        else if (что === 'готово') { const к = п.querySelector('.ко-править'); if (к) к.focus(); }
+        return;
+      }
       if (д) { _ордер.договор = Number(д.getAttribute('data-ko-dog')); _ордер.список = false; ордерИзменён(); refreshContractPreview(); }
       else if (кн) списокОрдера(п, !_ордер.список);
       else if (пл) {
@@ -26762,7 +26816,34 @@ function панельОрдера(хозяин) {
     document.addEventListener('pointerdown', e => {
       if (_ордер.список && !e.target.closest('.ко-выбор')) списокОрдера(п, false);
     }, true);
+    // Сумма платежа: лист обновляется по ходу ввода, а в журнал правка
+    // уходит одной строкой, когда поле отпустили, — с суммой до правки.
+    п.addEventListener('focusin', e => {
+      if (!e.target.classList.contains('ко-сум')) return;
+      const н = Number(e.target.getAttribute('data-n'));
+      if (!(н in _ордерБыло)) _ордерБыло[н] = суммаПоля(н);
+    });
+    п.addEventListener('change', e => {
+      if (!e.target.classList.contains('ко-сум')) return;
+      const н = Number(e.target.getAttribute('data-n'));
+      const было = _ордерБыло[н]; delete _ордерБыло[н]; delete _ордерВвод[н];
+      const стало = суммаПоля(н);
+      if (было != null && было !== стало) журналСуммыОрдера(н, было, стало);
+    });
     п.addEventListener('input', e => {
+      if (e.target.classList.contains('ко-сум')) {
+        if (!можноПравитьОрдер()) return;
+        const н = Number(e.target.getAttribute('data-n'));
+        _ордерВвод[н] = e.target.value;   // набранное остаётся в поле, пока его не отпустили
+        const с = Math.round(Number(String(e.target.value).replace(/[^\d]/g, '')) || 0);
+        const дог = _ордер.договор, все = (_ордер.суммы = _ордер.суммы || {}), свои = (все[дог] = все[дог] || {});
+        const строка = (getContractVarsKar(дог).paymentRows || []).find(р => р.no === н);
+        if (с > 0 && !(строка && с === Math.round(Number(строка.amount) || 0))) свои[н] = Object.assign({ сумма: с, когда: new Date().toISOString() }, ктоПравил());
+        else delete свои[н];
+        ордерИзменён();
+        refreshContractPreview();
+        return;
+      }
       if (e.target.id === 'koNum') {
         _ордер.номер = e.target.value;
         // Вписанный рукой — записать, когда рука остановилась.
@@ -26779,15 +26860,53 @@ function панельОрдера(хозяин) {
     });
   }
   const печать = document.getElementById('printDocBtn');
-  if (!(typeof previewEntity !== 'undefined' && previewEntity === 'cash')) { п.hidden = true; return; }
+  if (!(typeof previewEntity !== 'undefined' && previewEntity === 'cash')) { п.hidden = true; _правкаОрдера = false; return; }
   п.hidden = false;
+  if (_правкаОрдера && !можноПравитьОрдер()) _правкаОрдера = false;
   const vars = getContractVarsKar(_ордер.договор);
   const строки = vars.paymentRows || [];
   const выбр = new Set(платежиОрдера(vars).map(р => р.no));
-  const всего = строки.filter(р => выбр.has(р.no)).reduce((с, р) => с + (Number(р.amount) || 0), 0);
+  const всего = строки.filter(р => выбр.has(р.no)).reduce((с, р) => с + суммаПлатежаОрдера(р), 0);
   const открыт = !!_ордер.список && строки.length > 0;
   const отм = строки.filter(р => выбр.has(р.no));
-  const подпись = !отм.length ? 'Выберите платёж' : отм.length === 1 ? '№ ' + отм[0].no + ' — ' + fmt(отм[0].amount) : отм.map(р => '№ ' + р.no).join(', ');
+  const подпись = !отм.length ? 'Выберите платёж' : отм.length === 1 ? '№ ' + отм[0].no + ' — ' + fmt(суммаПлатежаОрдера(отм[0])) : отм.map(р => '№ ' + р.no).join(', ');
+  // Пока набирается сумма, панель не пересобирается: новое поле на месте
+  // прежнего отпускало бы набор, и журнал получал строку на каждую цифру.
+  // Обновляются итог, подпись платежей и «Вернуть» у этого платежа.
+  const набор = document.activeElement;
+  if (_правкаОрдера && набор && набор.classList.contains('ко-сум') && п.contains(набор)) {
+    const итог = п.querySelector('.ко-итог b'); if (итог) итог.textContent = всего ? fmt(всего) : '—';
+    const пс = п.querySelector('#koPaySum'); if (пс) пс.textContent = подпись;
+    const нн = Number(набор.getAttribute('data-n')), ряд = набор.closest('.ко-сумма-ряд');
+    const есть = !!правкаСуммыОрдера(_ордер.договор, нн), кн = ряд && ряд.lastElementChild;
+    if (кн && есть !== (кн.tagName === 'BUTTON')) кн.outerHTML = есть ? '<button type="button" class="пр-кн пр-назад" data-ko-a="вернуть" data-n="' + нн + '">Вернуть</button>' : '<span></span>';
+    if (печать) печать.disabled = !выбр.size || документГотовится('cash');
+    return;
+  }
+  const можно = можноПравитьОрдер();
+  const перо ='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+  const изменённые = отм.filter(р => правкаСуммыОрдера(_ордер.договор, р.no));
+  let правка = '';
+  if (_правкаОрдера) {
+    правка = '<div class="ко-правка"><div class="пр-баннер"><span><b>Правка суммы.</b> Впишите, сколько клиент вносит по платежу. Пустое поле — сумма по графику; график платежей не меняется.</span>'
+      + '<button type="button" class="пр-готово" data-ko-a="готово">Готово</button></div>'
+      + (отм.length ? отм.map(р => {
+          const пр = правкаСуммыОрдера(_ордер.договор, р.no), н_ = р.no;
+          return '<div class="ко-сумма-ряд"><label class="ко-н" for="koSum-' + р.no + '">№ ' + р.no + '<span class="ко-срок">по графику ' + fmt(р.amount) + '</span></label>'
+            + '<input id="koSum-' + р.no + '" class="ко-сум" data-n="' + р.no + '" type="text" inputmode="numeric" maxlength="12" autocomplete="off" value="' + escapeHtml(н_ in _ордерВвод ? _ордерВвод[н_] : (пр ? пр.сумма : '')) + '" placeholder="' + Math.round(Number(р.amount) || 0) + '" aria-label="Сумма платежа № ' + р.no + ' в ордере">'
+            + (пр ? '<button type="button" class="пр-кн пр-назад" data-ko-a="вернуть" data-n="' + р.no + '">Вернуть</button>' : '<span></span>') + '</div>';
+        }).join('')
+        : '<p class="пр-пусто ко-сумма-ряд">Отметьте платёж — сумма правится у отмеченных.</p>')
+      + '</div>';
+  } else if (изменённые.length) {
+    const последняя = изменённые.map(р => правкаСуммыОрдера(_ордер.договор, р.no)).sort((а, б) => String(б.когда).localeCompare(String(а.когда)))[0];
+    const когда = последняя.когда && !isNaN(new Date(последняя.когда)) ? new Date(последняя.когда).toLocaleDateString('ru-RU') : '';
+    const кто = [последняя.кто, (typeof ROLE_LABELS !== 'undefined' && ROLE_LABELS[последняя.роль] || '').toLowerCase(), когда].filter(Boolean).join(', ');
+    правка = '<div class="пр-статус ко-статус">' + перо + '<span>Сумма в ордере изменена: '
+      + изменённые.map(р => '<b>№ ' + р.no + ' — ' + fmt(суммаПлатежаОрдера(р)) + '</b> вместо ' + fmt(р.amount) + ' по графику').join('; ')
+      + (кто ? ' <span class="пр-кто">· ' + escapeHtml(кто) + '</span>' : '') + '</span></div>';
+  }
+  const кнопкаПравки = можно && !_правкаОрдера && отм.length ? '<button type="button" class="пр-править ко-править" data-ko-a="править">' + перо + 'Изменить сумму</button>' : '';
   const активный = document.activeElement && п.contains(document.activeElement) ? document.activeElement.id : '';
   const [н1, н2] = активный && document.activeElement.setSelectionRange ? [document.activeElement.selectionStart, document.activeElement.selectionEnd] : [null, null];
   const дог = (естьДоговор(1) && естьДоговор(2))
@@ -26805,15 +26924,39 @@ function панельОрдера(хозяин) {
           + '<span class="ко-бокс">' + ЗНАЧОК_ГАЛКА + '</span><span class="ко-н">№ ' + р.no + (р.term ? '<span class="ко-срок">' + escapeHtml(р.term) + '</span>' : '') + '</span><span class="ко-с">' + fmt(р.amount) + '</span></button>').join('')
         + '</span></span>'
       : '<span class="ко-нет">В графике платежей этого договора нет строк.</span>')
-    + '<span class="ко-итог">Итого <b>' + (всего ? fmt(всего) : '—') + '</b></span></div>'
+    + '<span class="ко-итог">Итого <b>' + (всего ? fmt(всего) : '—') + '</b></span>' + кнопкаПравки + '</div>'
     // Напоминание пробить кассовый чек над листом снято (Константин,
     // 18.10.2026, снимком: «Это сообщение убери»); о чеке говорит справка.
-    + (выбр.size ? '' : '<div class="ко-подск">Выберите хотя бы один платёж — без него ордер не печатается.</div>');
+    + (выбр.size ? '' : '<div class="ко-подск">Выберите хотя бы один платёж — без него ордер не печатается.</div>')
+    + правка;
   if (печать) печать.disabled = !выбр.size || документГотовится('cash');
   if (активный) {
     const э = п.querySelector('#' + активный);
     if (э) { э.focus(); try { if (н1 != null) э.setSelectionRange(н1, н2); } catch (e) {} }
   }
+}
+
+const _ордерБыло = {}, _ордерВвод = {};
+function суммаПоля(н) {
+  const р = (getContractVarsKar(_ордер.договор).paymentRows || []).find(х => х.no === н);
+  return р ? суммаПлатежаОрдера(р) : 0;
+}
+function вернутьСуммуОрдера(н) {
+  const свои = (_ордер.суммы || {})[_ордер.договор];
+  if (!свои || !свои[н]) return;
+  const было = суммаПоля(н);
+  delete свои[н];
+  ордерИзменён();
+  журналСуммыОрдера(н, было, суммаПоля(н));
+}
+// Журнал: какой договор, платёж, было и стало.
+function журналСуммыОрдера(н, было, стало) {
+  try {
+    logEvent('cash_amount_edited', logDetails(selectedProject ? selectedProject[0] : null, [
+      ['Ордер', '', имяДоговораОкна(_ордер.договор) + (_ордер.номер ? ', № ' + _ордер.номер : '')],
+      ['Платёж № ' + н, fmt(было), fmt(стало)],
+    ]));
+  } catch (e) {}
 }
 
 function buildRulesHtml(vars) {
@@ -34369,6 +34512,7 @@ const AL_ВИДЫ = {
   contract_exported:     'Договор выгружен в Word',
   contract_term_changed: 'Срок работ по договору изменён',
   contract_text_edited: 'Текст договора изменён',
+  cash_amount_edited: 'Сумма в приходном ордере изменена',
   // Согласование расчёта (Константин, 17.10.2026).
   approval_sent:         'Расчёт отправлен на согласование',
   approval_returned:     'Расчёт возвращён с правками',
