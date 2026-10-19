@@ -9890,9 +9890,19 @@ body:not(.ui-blank) #printStyleDropMenu button.active {
 /* «Печатать всё»: список документов с флажками и кнопка печати внизу. Флажок —
    квадрат с галочкой, как в списках разделов; закрытый документ приглушён и
    говорит, когда откроется. */
-#printAllMenu { position: absolute; left: 0; top: calc(100% + 6px); z-index: 9999; min-width: 270px; padding: 6px 0 0;
+#printAllMenu { position: absolute; left: 0; top: calc(100% + 6px); z-index: 9999; min-width: 270px; width: max-content; max-width: calc(100vw - 24px); padding: 6px 0 0;
   background: var(--green-dark); border: 1px solid rgba(255,255,255,.2); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.4); color: #fff; }
 #printAllMenu .pa-h { padding: 6px 14px 4px; font-size: .62rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
+/* Заголовок с переключателем «Выбрать все / Снять все» справа: надпись того же
+   веса, что заголовок, а нажатие расширено невидимым полем (Константин,
+   19.10.2026: «добавь кнопку снять/выбрать все — чтобы менялась. Долго по одной
+   нажимать»). */
+#printAllMenu .pa-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-right: 14px; }
+#printAllMenu .pa-top .pa-h { white-space: nowrap; opacity: 1; color: rgba(255,255,255,.7); }
+#printAllMenu .pa-all { position: relative; flex: none; padding: 0; background: none; border: 0; color: inherit; cursor: pointer;
+  font-family: 'Geologica', sans-serif; font-size: .74rem; font-weight: 500; text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-color: rgba(255,255,255,.4); }
+#printAllMenu .pa-all::before { content: ''; position: absolute; inset: -12px -10px; }
 #printAllMenu .pa-i { display: flex; align-items: center; gap: 11px; width: 100%; min-height: 44px; padding: 6px 14px; background: none; border: 0;
   color: inherit; font: inherit; font-family: 'Geologica', sans-serif; font-size: .8rem; text-align: left; cursor: pointer; }
 #printAllMenu .pa-box { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px;
@@ -9911,6 +9921,8 @@ body.ui-blank #printAllMenu { background: var(--bl-sheet); border-color: var(--b
   box-shadow: 0 14px 34px rgba(var(--br-12в-rgb),.18); }
 body.ui-blank.dark #printAllMenu { box-shadow: 0 14px 34px rgba(0,0,0,.55); }
 body.ui-blank #printAllMenu .pa-h { color: var(--bl-ink3); opacity: 1; }
+body.ui-blank #printToolbar #printAllMenu .pa-all { border: 0 !important; background: none !important; color: var(--bl-acc) !important;
+  text-decoration-color: var(--bl-rule2); }
 body.ui-blank #printToolbar #printAllMenu .pa-i { border: 0 !important; border-radius: 0 !important; background: none !important; color: var(--bl-ink) !important; }
 @media (hover: hover) { body.ui-blank #printToolbar #printAllMenu .pa-i:not(.pa-off):hover { background: var(--bl-zebra) !important; } }
 body.ui-blank #printAllMenu .pa-box { border-color: var(--bl-rule2); opacity: 1; }
@@ -27542,7 +27554,10 @@ function отрисоватьКомплект() {
   const д = документыКомплекта();
   const выбрано = д.filter(х => х.можно && !_комплектСнято.has(х.к)).length;
   const галка = ГАЛКА_КОМПЛЕКТА;
-  м.innerHTML = '<div class="pa-h">Документы по порядку</div>'
+  const можно = д.filter(х => х.можно).length;
+  м.innerHTML = '<div class="pa-top"><div class="pa-h">Документы по порядку</div>'
+    + (можно > 1 ? '<button type="button" class="pa-all" onclick="отметитьВсеВКомплекте()">'
+      + (выбрано === можно ? 'Снять все' : 'Выбрать все') + '</button>' : '') + '</div>'
     + д.map(х => {
       const да = х.можно && !_комплектСнято.has(х.к);
       return '<button type="button" class="pa-i' + (х.можно ? '' : ' pa-off') + '" role="menuitemcheckbox" aria-checked="' + да + '"'
@@ -27564,17 +27579,38 @@ function отметитьВКомплекте(к) {
   const м = document.getElementById('printAllMenu');
   const б = м && м.querySelector('.pa-i[onclick*="\'' + к + '\'"]');
   if (!б) { отрисоватьКомплект(); return; }
-  const да = !_комплектСнято.has(к);
-  б.setAttribute('aria-checked', String(да));
-  б.querySelector('.pa-box').innerHTML = да ? ГАЛКА_КОМПЛЕКТА : '';
-  const выбрано = документыКомплекта().filter(х => х.можно && !_комплектСнято.has(х.к)).length;
+  обновитьКомплектНаМесте();
+  б.focus();
+}
+// «Выбрать все / Снять все»: все отмечены — снимает все, иначе отмечает все
+// доступные. Закрытые документы не трогаются. Список тоже правится на месте.
+function отметитьВсеВКомплекте() {
+  const доступные = документыКомплекта().filter(х => х.можно);
+  const всеОтмечены = доступные.every(х => !_комплектСнято.has(х.к));
+  доступные.forEach(х => { if (всеОтмечены) _комплектСнято.add(х.к); else _комплектСнято.delete(х.к); });
+  обновитьКомплектНаМесте();
+}
+function обновитьКомплектНаМесте() {
+  const м = document.getElementById('printAllMenu');
+  if (!м) return;
+  const д = документыКомплекта();
+  д.forEach(х => {
+    const б = м.querySelector('.pa-i[onclick*="\'' + х.к + '\'"]');
+    if (!б) return;
+    const да = х.можно && !_комплектСнято.has(х.к);
+    б.setAttribute('aria-checked', String(да));
+    б.querySelector('.pa-box').innerHTML = да ? ГАЛКА_КОМПЛЕКТА : '';
+  });
+  const можно = д.filter(х => х.можно).length;
+  const выбрано = д.filter(х => х.можно && !_комплектСнято.has(х.к)).length;
   const пуск = м.querySelector('.pa-go');
   if (пуск) {
     пуск.disabled = !выбрано;
     const т = [...пуск.childNodes].find(у => у.nodeType === 3);
     if (т) т.textContent = 'Печать' + (выбрано ? ' · ' + выбрано : '');
   }
-  б.focus();
+  const все = м.querySelector('.pa-all');
+  if (все) все.textContent = выбрано === можно ? 'Снять все' : 'Выбрать все';
 }
 function переключитьКомплект() {
   const м = document.getElementById('printAllMenu');
