@@ -88,9 +88,11 @@ def ряды(админ=False):
 def меню_ожидаемое():
     оболочка = (pathlib.Path("/home/user/vscode-workspace/docs/справка") / "manual--shell.html").read_text(encoding="utf-8")
     нав = оболочка[оболочка.index('<nav class="sb-nav">'):оболочка.index('</nav>')]
-    после = нав[нав.index('<div class="sb-group">'):]
+    после = нав[нав.index('<div class="sb-group"'):]
     разделы = []
-    for м in re.finditer(r'<div class="sb-group">([^<]+)</div>|go\(\'([a-z-]+)\'\)', после):
+    # Разделы стали сворачиваемыми (19.10.2026): заголовок — <div class="sb-group" …><span>Имя</span>.
+    # Раздел только для теста («Статьи») в бою вырезается, но проба смотрит тест — он в счёте.
+    for м in re.finditer(r'<div class="sb-group"[^>]*><span>([^<]+)</span>|go\(\'([a-z-]+)\'\)', после):
         if м.group(1):
             разделы.append([м.group(1).strip(), []])
         elif м.group(2):
@@ -109,7 +111,7 @@ def меню_ожидаемое():
   const лево = секции.map(с => Math.round(с.getBoundingClientRect().left));
   const точка = д.getElementById('homeDot');
   return {
-    глава: гл ? гл.id : null, глав: д.querySelectorAll('.ch.on').length, пункт: пункт ? пункт.textContent.trim() : null,
+    глава: гл ? гл.id : null, глав: д.querySelectorAll('.ch.on').length, пункт: пункт ? [...пункт.childNodes].filter(у => у.nodeType === 3).map(у => у.textContent).join('').trim() : null,
     меню: !!д.querySelector('.sb.mob-open'), естьДом: !!дом, пунктДом: [...д.querySelectorAll('.sb-a')].some(а => (а.getAttribute('onclick') || '') === "go('home')"),
     разделы: секции.map(с => [с.querySelector('.hm-nm').textContent.trim(), [...с.querySelectorAll('.hm-ch')].map(г => г.getAttribute('data-go'))]),
     безЗначка: главы.filter(г => !г.querySelector('svg')).length, безОчём: главы.filter(г => !(г.querySelector('small') || {}).textContent).length,
@@ -195,7 +197,8 @@ def через_калькулятор(бр, порт, ш, ночь, админ=F
         if ш <= 720:
             кадр.locator("body").evaluate("() => toggleMobMenu()")
             стр.wait_for_timeout(300)
-        кадр.locator(".sb-a[onclick=\"go('home')\"]").click()
+        # Справа в строке «Главная» — «Свернуть / Развернуть» (19.10.2026): нажимаем на само слово.
+        кадр.locator(".sb-a[onclick=\"go('home')\"]").click(position={"x": 44, "y": 17})
         стр.wait_for_timeout(300)
         п = кадр.locator("body").evaluate("() => (" + СОСТОЯНИЕ + ")()")
         факт(п["глава"] == "ch-home" and not п["меню"], f"{н} «Главная» в меню вернула оглавление: {п['глава']}, меню {п['меню']}")

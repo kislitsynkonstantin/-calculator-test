@@ -91,8 +91,9 @@ def сервер():
     }
     const cs = кн ? getComputedStyle(кн) : null;
     return [к.dataset.scode, { есть: !!кн, выкл: кн ? кн.disabled : null, закрыт: кн ? кн.classList.contains('on') : null,
-      послеСкачивания: !!(пред && /downloadSharedPreset/.test(пред.getAttribute('onclick') || '')),
-      скачиваниеЗаОткрыть: !!(пред && пред.previousElementSibling && пред.previousElementSibling.classList.contains('btn-shared-use')),
+      // С 19.10.2026 скачивания на общей карточке нет — замок сразу за «Открыть».
+      заОткрыть: !!(пред && пред.classList.contains('btn-shared-use')),
+      скачивания: !!к.querySelector('[onclick*="downloadSharedPreset"]'),
       значок: кн ? кн.querySelector('svg').innerHTML : '',
       вид: cs ? cs.borderTopColor + '|' + cs.backgroundColor + '|' + cs.color : '',
       замокУИмени: !!к.querySelector('.shared-pcard-name svg'), поле, зазор: Math.round(зазор) }];
@@ -140,8 +141,8 @@ def главная():
                         до, после = р["до"], р["после"]
                         for код, х in до.items():
                             if not х["есть"]: плохо(н + f" {код}: нет кнопки замка"); continue
-                            if not х["послеСкачивания"]: плохо(н + f" {код}: замок не сразу за скачиванием")
-                            if not х["скачиваниеЗаОткрыть"]: плохо(н + f" {код}: скачивание не сразу за «Открыть»")
+                            if not х["заОткрыть"]: плохо(н + f" {код}: замок не сразу за «Открыть»")
+                            if х["скачивания"]: плохо(н + f" {код}: на общей карточке есть «Скачать»")
                             if х["замокУИмени"]: плохо(н + f" {код}: значок замка остался перед названием")
                             if х["зазор"] < 4: плохо(н + f" {код}: замок вплотную к соседу ({х['зазор']} px)")
                         for код, закрыт in (("111111", True), ("222222", False), ("333333", True), ("444444", False)):
