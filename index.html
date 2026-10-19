@@ -46304,15 +46304,23 @@ function withTimeout(promise, ms, label) {
   return Promise.race([promise, timeout]);
 }
 
+// Под строкой «автор | проект | дата | код» — ссылка на пресет: нажатие
+// открывает калькулятор сразу с ним (Константин, 19.10.2026: «по копированию к
+// этому сообщению добавляй ссылку на пресет, чтобы по нажатию сразу мог человек
+// его загрузить»). Адрес — домен калькулятора и шесть цифр: 404.html переводит
+// его в ?code=, и калькулятор открывает пресет; на тесте ссылка ведёт на тест.
+function ссылкаНаПресет(код) {
+  return /^\d{6}$/.test(String(код || '')) ? location.origin + '/' + код : '';
+}
 function buildMyPresetCopyText(presetId, shortCode) {
   const presets = loadAllPresets();
   const p = presets[presetId];
-  if (!p) return shortCode || '';
+  if (!p) return [shortCode, ссылкаНаПресет(shortCode)].filter(Boolean).join('\n');
   const author = _sbProfile?.full_name || _sbProfile?.email || '';
   const project = (p.state?.project?.name || p.state?.project?.[0] || p.name || '');
   const date = new Date(p.savedAt || Date.now()).toLocaleString('ru-RU', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
   const code = shortCode ? ('Код: ' + shortCode.slice(0,3) + ' ' + shortCode.slice(3)) : '';
-  return [author, project, date, code].filter(Boolean).join(' | ');
+  return [[author, project, date, code].filter(Boolean).join(' | '), ссылкаНаПресет(shortCode)].filter(Boolean).join('\n');
 }
 
 // Второй довод нужен карточке, найденной по коду: такой пресет не лежит в
@@ -46320,11 +46328,11 @@ function buildMyPresetCopyText(presetId, shortCode) {
 // цифрам вместо строки «автор | проект | дата | код».
 function buildSharedPresetCopyText(shortCode, готовый) {
   const sp = готовый || _sharedPresets.find(p => p.short_code === shortCode);
-  if (!sp) return shortCode || '';
+  if (!sp) return [shortCode, ссылкаНаПресет(shortCode)].filter(Boolean).join('\n');
   const project = (sp.state?.project?.name || sp.state?.project?.[0] || sp.name || '');
   const date = new Date(sp.created_at).toLocaleString('ru-RU', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
   const code = 'Код: ' + shortCode.slice(0,3) + ' ' + shortCode.slice(3);
-  return [sp.author_name, project, date, code].filter(Boolean).join(' | ');
+  return [[sp.author_name, project, date, code].filter(Boolean).join(' | '), ссылкаНаПресет(shortCode)].filter(Boolean).join('\n');
 }
 
 // ── CANVAS IMAGE STORAGE ─────────────────────────────────────────
