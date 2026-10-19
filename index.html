@@ -52096,8 +52096,10 @@ body.total-strip-on .pc-card.pc-big{--pc-bot:calc(var(--strip-h, 68px) + 10px)}
 .pc-card.pc-big .pc-pane.on{flex:1 1 auto;min-height:0;max-height:none}
 .pc-card.pc-big #pcPane-m.on{height:auto}
 @media (max-width:899px){.pc-card.pc-big{left:14px;right:14px;width:auto;max-width:none}}
-@media (min-width:900px){.pc-card.pc-big{width:600px;max-width:calc(100vw - 48px);top:max(var(--pc-big-top, 12px), calc(100dvh - var(--pc-bot) - 760px))}
-  /* Вкладки — рядом, а не врассыпную по 600 px; содержимое вкладки — на
+@media (min-width:900px){.pc-card.pc-big{width:540px;max-width:calc(100vw - 48px);top:max(var(--pc-big-top, 12px), calc(100dvh - var(--pc-bot) - 760px))}
+  /* Ширина — 540 px (Константин 19.10.2026: «на компьютере сделай уже на
+     10 %», было 600). Вкладки — рядом слева направо, а не врассыпную по
+     ширине окна; содержимое вкладки — на
      восьмую крупнее: окно шире, и мелкий кегль маленького окна в нём
      читается хуже. */
   .pc-card.pc-big .pc-tabs{justify-content:flex-start;gap:26px}
