@@ -1640,7 +1640,8 @@ body.ui-light .opt-check {
   background: #fff;
   border-radius: 5px;
 }
-body.ui-light .opt-item.active .opt-check {
+body.ui-light .opt-item.active .opt-check,
+body.ui-light .pc-choc-st.on .opt-check {
   background: var(--br-28);
   border-color: var(--br-28);
 }
@@ -2351,7 +2352,8 @@ body.dark .roof-field.is-err .roof-hint { color: #f08a80; }
   transition: all 0.15s;
   margin-top: 1px;
 }
-.opt-item.active .opt-check {
+.opt-item.active .opt-check,
+.pc-choc-st.on .opt-check {
   border-color: var(--green-dark);
   background: var(--green-dark);
 }
@@ -2363,7 +2365,8 @@ body.dark .roof-field.is-err .roof-hint { color: #f08a80; }
   border-top: none; border-left: none;
   transform: rotate(42deg) translate(-1px,-1px);
 }
-.opt-item.active .opt-check::after { display: block; }
+.opt-item.active .opt-check::after,
+.pc-choc-st.on .opt-check::after { display: block; }
 .opt-info { flex: 1; padding-right: 28px; }
 .opt-name {
   font-size: 0.82rem;
@@ -6312,7 +6315,8 @@ body.ui-blank .opt-check {
   background: none;
   border-radius: 4px;
 }
-body.ui-blank .opt-item.active .opt-check {
+body.ui-blank .opt-item.active .opt-check,
+body.ui-blank .pc-choc-st.on .opt-check {
   background: var(--bl-fill);
   box-shadow: none;
 }
@@ -39684,7 +39688,7 @@ function сравнитьОпцию(сл) {
   const во = сл.at ? когдаСогласования(сл.at) : '';
   const сн = опцияСейчас(сл.k);
   if (!сн) return { в: 'del', т: 'Опцию удалили из расчёта. В чате — какой она была' + (во ? ' ' + во : '') + '.' };
-  if (!сн.c) return { в: 'del', т: 'Опцию сняли с расчёта — галочки нет. В чате — какой она была' + (во ? ' ' + во : '') + '.' };
+  if (!сн.c) return { в: 'off', т: 'Опцию сняли с расчёта — галочки нет. В чате — какой она была' + (во ? ' ' + во : '') + '.' };
   const что = [];
   // Подарок обнуляет цену сам — о цене говорится, только когда подарок тот же.
   if (!сн.inc && !сл.inc && (сн.g || 0) === (сл.g || 0) && (сн.p || 0) !== (сл.p || 0)) что.push('цена: ' + fmt(сл.p || 0) + ' → ' + fmt(сн.p || 0));
@@ -39699,13 +39703,19 @@ function опцииЧатаHtml(с, опции) {
   const мид = escapeHtml(String(с.id));
   return опции.map((сл, i) => {
     const ст = сравнитьОпцию(сл), ключ = String(с.id) + ':' + i;
-    const значок = ст.в === 'del' ? ЗНАЧОК_ОП_НЕТ : ст.в === 'ch' ? ЗНАЧОК_ОП_ИНАЧЕ : ЗНАЧОК_ОП_ТА_ЖЕ;
+    // Значок — галочка опции, как в строке расчёта: отмечена — залитая, снята —
+    // пустая (Константин, 19.10.2026: «Когда опция снята — показывай не
+    // корзину, а не закрытую галочку; а когда отмечена, закрытую галочку (как в
+    // калькуляторе)»). Изменившаяся отмеченная — с точкой; корзина осталась
+    // только у опции, которой в расчёте больше нет.
+    const значок = ст.в === 'del' ? ЗНАЧОК_ОП_НЕТ
+      : '<span class="opt-check"></span>' + (ст.в === 'ch' ? '<i class="pc-choc-dot"></i>' : '');
     return '<div class="pc-choc' + (ст.в === 'same' ? '' : ' pc-choc-' + ст.в) + '" data-act="ch-opt-go" data-mid="' + мид + '" data-i="' + i + '">'
       + '<span class="pc-choc-b"><span class="pc-choc-s">' + escapeHtml(имяРазделаОпции(сл)) + '</span>'
       + '<span class="pc-choc-n">' + escapeHtml(сл.n || '') + '</span>'
       + '<span class="pc-choc-p"><span>' + escapeHtml(ценаСлепка(сл)) + '</span>'
       + '<button type="button" class="pc-choc-go" data-act="ch-opt-go" data-mid="' + мид + '" data-i="' + i + '">' + ЗНАЧОК_К_ОПЦИИ + 'к опции</button></span></span>'
-      + '<button type="button" class="pc-choc-st pc-choc-st-' + ст.в + '" data-act="ch-opt-st" data-mid="' + мид + '" data-i="' + i + '" aria-label="' + escapeHtml(ст.т) + '" aria-expanded="' + (_чатПодсказкаОпции === ключ) + '">'
+      + '<button type="button" class="pc-choc-st pc-choc-st-' + ст.в + (ст.в === 'same' || ст.в === 'ch' ? ' on' : '') + '" data-act="ch-opt-st" data-mid="' + мид + '" data-i="' + i + '" aria-label="' + escapeHtml(ст.т) + '" aria-expanded="' + (_чатПодсказкаОпции === ключ) + '">'
       + значок + '</button>'
       + (_чатПодсказкаОпции === ключ ? '<span class="pc-choc-tip" role="status">' + escapeHtml(ст.т) + '</span>' : '') + '</div>';
   }).join('');
@@ -39815,9 +39825,17 @@ function лентаЧата(о) {
     // chat-tap-guard-v2); «выполнено» остаётся словом.
     const метки = сделано ? '<span class="pc-cht pc-cht-ok">выполнено</span>' : '';
     const отл = отложеннаяОтметкаЧата(с.id);
+    // «Отменить» стоит у той кнопки, которую нажали: у «В проверку» или у
+    // «Выполнено» (Константин, 19.10.2026: «„Выполнено“ когда тоже нажимаешь,
+    // чтобы также как „В правки“ висела немного отменить кнопка»). У своего
+    // сообщения строка прижата вправо — «Отменить» встаёт слева от кнопки, у
+    // чужого — справа: нажатая кнопка не уезжает из-под пальца.
     const отмена = отл ? '<button type="button" class="pc-chundo" data-act="ch-flag-undo" data-mid="' + ид + '"'
       + ' style="animation-delay:-' + Math.min(ЧАТ_ОТМЕНА_МС, Date.now() - отл.когда) + 'ms"'
-      + ' aria-label="' + (отл.новое ? 'Отменить отметку «в правках»' : 'Отменить снятие из правок') + '">Отменить</button>' : '';
+      + ' aria-label="' + (отл.что === 'done'
+        ? (отл.новое === 'done' ? 'Отменить отметку «выполнено»' : 'Отменить снятие отметки «выполнено»')
+        : (отл.новое ? 'Отменить отправку в проверку' : 'Отменить снятие с проверки')) + '">Отменить</button>' : '';
+    const уФлага = отл && отл.что !== 'done' ? отмена : '', уГалки = отл && отл.что === 'done' ? отмена : '';
     h += '<div class="pc-chm' + (мой ? ' me' : '') + (сделано ? ' done' : '') + '" id="pcChm-' + ид + '" data-mid="' + ид + '">'
       + '<div class="pc-chb"><div class="pc-chw"><b>' + escapeHtml(ктоВЧате(с)) + '</b>'
       + (датаЕсть ? ' · ' + д.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '')
@@ -39828,10 +39846,12 @@ function лентаЧата(о) {
       + вложенияЧатаHtml(с, неподписаны) + '</div>'
       + (с.__сбой ? строкаСбояЧата(ид) : с.__шлётся ? '' : '<div class="pc-chact">'
       + '<button type="button" data-act="ch-reply" data-mid="' + ид + '">' + ЗНАЧОК_ОТВЕТ + '<span class="pc-chtx">Ответить</span></button>'
-      + (мой ? отмена : '')
-      + '<button type="button" class="pc-chflag" data-act="ch-flag" data-mid="' + ид + '" aria-pressed="' + вПравках + '" title="' + (вПравках ? 'Убрать из правок' : 'Отразить в правках') + '">' + ЗНАЧОК_В_ПРАВКИ + 'В правки</button>'
-      + (мой ? '' : отмена)
+      + (мой ? уФлага : '')
+      + '<button type="button" class="pc-chflag" data-act="ch-flag" data-mid="' + ид + '" aria-pressed="' + вПравках + '" title="' + (вПравках ? 'Убрать из проверки' : 'Отправить в проверку') + '">' + ЗНАЧОК_В_ПРАВКИ + 'В проверку</button>'
+      + (мой ? '' : уФлага)
+      + (мой ? уГалки : '')
       + '<button type="button" class="pc-chdone" data-act="ch-done" data-mid="' + ид + '" aria-pressed="' + сделано + '">' + ЗНАЧОК_ГАЛКА + '<span class="pc-chtx">Выполнено</span></button>'
+      + (мой ? '' : уГалки)
       + (можноИзменитьВЧате(с) ? '<button type="button" class="pc-chedit" data-act="ch-edit" data-mid="' + ид + '" aria-label="Изменить" title="Изменить — первые 5 минут, пока нет ответа"'
         + (_чатИзменение && String(_чатИзменение.id) === String(с.id) ? ' aria-pressed="true"' : '') + '>' + ЗНАЧОК_КАРАНДАШ + '</button>' : '')
       + '</div>') + '</div>';
@@ -40607,15 +40627,22 @@ function наложитьОтложенныеОтметки(код, список
     if (о && о.код === код) поставитьОтметкуЧата(с, о.новое);
   });
 }
-function отразитьВПравкахСОтменой(ид) {
+// «Выполнено» ждёт отмены так же (что === 'done'). Нажатие на ту же кнопку в
+// эти секунды — отмена; на другую — ждущая отметка уходит сразу, и новая
+// ждёт своих трёх секунд.
+async function отразитьВПравкахСОтменой(ид, что) {
+  что = что === 'done' ? 'done' : 'flag';
   const к = String(ид);
-  if (_флагиЧата.has(к)) { отменитьОтметкуЧата(к); return; }
+  if (_флагиЧата.has(к)) {
+    if (_флагиЧата.get(к).что === что) { отменитьОтметкуЧата(к); return; }
+    await записатьОтложеннуюОтметку(к);
+  }
   const с = сообщениеЧата(к);
   if (!с) return;
   const было = { review_state: с.review_state || null, done_by: с.done_by || null, done_at: с.done_at || null };
-  const новое = было.review_state ? null : 'open';
+  const новое = что === 'flag' ? (было.review_state ? null : 'open') : (было.review_state === 'done' ? 'open' : 'done');
   поставитьОтметкуЧата(с, новое);
-  const о = { код: _чат.код, было, новое, когда: Date.now(), таймер: 0, с };
+  const о = { код: _чат.код, что, было, новое, когда: Date.now(), таймер: 0, с };
   о.таймер = setTimeout(() => записатьОтложеннуюОтметку(к), ЧАТ_ОТМЕНА_МС);
   _флагиЧата.set(к, о);
   заполнитьКарточкуЗначка(); обновитьСчётчикПроверки();
@@ -40627,7 +40654,7 @@ function отменитьОтметкуЧата(к) {
   _флагиЧата.delete(к);
   Object.assign(сообщениеЧата(к) || о.с, о.было);
   заполнитьКарточкуЗначка(); обновитьСчётчикПроверки();
-  const ф = document.querySelector('#presetChipCard .pc-chm[data-mid="' + к + '"] [data-act="ch-flag"]');
+  const ф = document.querySelector('#presetChipCard .pc-chm[data-mid="' + к + '"] [data-act="' + (о.что === 'done' ? 'ch-done' : 'ch-flag') + '"]');
   if (ф) ф.focus();
 }
 function записатьОтложеннуюОтметку(к) {
@@ -44398,7 +44425,12 @@ function нажатиеВКарточке(e) {
       break;
     }
     case 'ch-flag-undo': отменитьОтметкуЧата(String(кн.getAttribute('data-mid'))); break;
-    case 'ch-done': отметитьВЧате(кн.getAttribute('data-mid'), 'done'); break;
+    case 'ch-done': {
+      const наХоду = _чатКасаниеНаХоду && e.detail > 0;
+      _чатКасаниеНаХоду = false;
+      if (!наХоду) отразитьВПравкахСОтменой(кн.getAttribute('data-mid'), 'done');
+      break;
+    }
     // Правка в «Проверке» — к своему сообщению в чате.
     case 'ch-hide': переключитьПравкиЧата(); заполнитьКарточкуЗначка(); { const г = к.querySelector('[data-act="ch-hide"]'); if (г) г.focus(); } break;
     case 'ch-fold': свернутьПравкиЧата(); заполнитьКарточкуЗначка(); { const г = к.querySelector('[data-act="ch-fold"]'); if (г) г.focus(); } break;
@@ -52217,6 +52249,10 @@ body.dark,body.ui-blank.dark{--pc-bub:rgba(255,255,255,.07)}
 .pc-card .pc-chact .pc-chflag{padding:0 6px;margin:0 -6px;border-radius:6px}
 .pc-card .pc-chm:not(.me) .pc-chact.pc-chtight .pc-chdone .pc-chtx,
 .pc-card .pc-chm.me .pc-chact.pc-chtight [data-act="ch-reply"] .pc-chtx{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+/* Кнопка, у которой спрятана подпись, остаётся под палец: значок посреди
+   24 px, поле нажатия — 38 px в ширину. */
+.pc-card .pc-chm:not(.me) .pc-chact.pc-chtight .pc-chdone,
+.pc-card .pc-chm.me .pc-chact.pc-chtight [data-act="ch-reply"]{min-width:24px;justify-content:center}
 .pc-card .pc-chact .pc-chflag[aria-pressed="true"]{background:var(--pc-warm-tint);color:var(--pc-warm-ink)}
 .pc-card .pc-chact .pc-chdone[aria-pressed="true"]{color:var(--pc-acc);font-weight:600}
 /* «Отменить» у значка «Отразить в правках»: 3 секунды и гаснет. Отсчёт
@@ -52322,10 +52358,13 @@ body.dark,body.ui-blank.dark{--pc-bub:rgba(255,255,255,.07)}
 .pc-card .pc-choc-go::before{content:'';position:absolute;inset:-15px -6px}
 .pc-card .pc-choc.pc-choc-ch{background:var(--pc-warm-tint)}
 .pc-card .pc-choc.pc-choc-del{background:color-mix(in srgb, var(--pc-del) 9%, var(--pc-bg))}
-.pc-card .pc-choc.pc-choc-del .pc-choc-n{color:var(--pc-ink2)}
+.pc-card .pc-choc.pc-choc-del .pc-choc-n,
+.pc-card .pc-choc.pc-choc-off .pc-choc-n{color:var(--pc-ink2)}
 .pc-card .pc-choc-st{position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:50%;background:none;color:var(--pc-acc);cursor:pointer}
 .pc-card .pc-choc-st::before{content:'';position:absolute;inset:-8px -6px}
-.pc-card .pc-choc-st-ch{color:var(--pc-warm-ink);background:var(--pc-warm-tint)}
+.pc-card .pc-choc-st-ch{color:var(--pc-warm-ink)}
+.pc-card .pc-choc-st .opt-check{margin:0}
+.pc-card .pc-choc-dot{position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:var(--pc-warm);box-shadow:0 0 0 2px var(--pc-warm-tint)}
 .pc-card .pc-choc-st-del{color:var(--pc-del);background:var(--pc-del-tint)}
 /* Подсказка значка — строкой под карточкой: у последнего сообщения
    всплывающая ушла бы под край ленты. */
