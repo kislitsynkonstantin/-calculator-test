@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Команды в чате</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Geologica:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Макет: команды в чате пресета. Учебные данные. Тон «Зелёный-графит». */
+:root{
+  --page:#f3f5f1;--sheet:#fff;--ink:#1d211a;--ink2:#5c6457;--ink3:#8b9386;
+  --rule:#e2e6de;--rule2:#ccd3c6;--acc:#6daa34;--acc-ink:#4f7d26;--tint:#eef5e5;--tint2:#f6f9f2;
+  --warm:#9a6412;--warm-tint:#fbf3e4;--red:#a8382a;--shadow:0 12px 34px rgba(29,33,26,.14);
+}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Geologica',system-ui,sans-serif;background:var(--page);color:var(--ink);line-height:1.5;-webkit-text-size-adjust:100%}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 64px}
+.eyebrow{font-size:.66rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--acc-ink)}
+h1{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.5rem;line-height:1.2;margin:6px 0 10px}
+.lead{color:var(--ink2);max-width:720px;font-size:.92rem}
+.lead + .lead{margin-top:8px}
+.stage{display:grid;grid-template-columns:minmax(0,540px) minmax(0,1fr);gap:28px;margin-top:26px;align-items:start}
+@media (max-width:900px){.stage{grid-template-columns:minmax(0,1fr)}}
+
+/* ── Мини-окно ── */
+.win{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;height:760px;max-height:calc(100dvh - 32px);overflow:hidden}
+.w-head{padding:14px 16px 0}
+.w-k{font-size:.6rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.w-nm{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.9rem;margin-top:2px}
+.w-nm small{font-family:'Geologica',sans-serif;font-weight:500;font-size:.7rem;color:var(--ink2);margin-left:6px}
+.tabs{display:flex;gap:26px;margin-top:10px;border-bottom:1px solid var(--rule)}
+.tab{height:34px;display:flex;align-items:center;gap:6px;font-size:.76rem;font-weight:500;color:var(--ink2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.on{color:var(--ink);font-weight:600;border-bottom-color:var(--acc)}
+@media (max-width:600px){.tabs{gap:12px}.tab{font-size:.72rem}}
+.cnt{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--warm-tint);color:var(--warm);font-size:.62rem;font-weight:600}
+.feed{flex:1 1 auto;overflow-y:auto;padding:12px 16px 8px;display:flex;flex-direction:column;gap:12px}
+.day{align-self:center;font-size:.6rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin:4px 0}
+.msg{max-width:88%;background:#eef1ec;border-radius:14px;padding:8px 12px 9px}
+.msg.me{align-self:flex-end;background:var(--tint)}
+.msg .who{font-size:.68rem;font-weight:600;color:var(--ink2)}
+.msg .who span{font-weight:400;color:var(--ink3)}
+.msg p{font-size:.84rem;margin-top:2px}
+.acts{display:flex;gap:16px;font-size:.7rem;color:var(--ink3);margin:-6px 0 0 6px}
+.acts span{display:inline-flex;align-items:center;gap:4px}
+
+/* Команда в сообщении: что распознано и что сделает. Не полоса сбоку —
+   отдельная карточка с рамкой по кругу. */
+.cmd{max-width:88%;border:1px solid var(--rule2);border-radius:12px;background:var(--sheet);padding:10px 12px;margin-top:-4px}
+.msg.me + .cmd{align-self:flex-end}
+.cmd-h{display:flex;align-items:center;gap:6px;font-size:.62rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--acc-ink)}
+.cmd-row{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:8px;align-items:start;padding:7px 0;border-bottom:1px solid var(--rule);font-size:.8rem}
+.cmd-row:last-of-type{border-bottom:0}
+.cmd-row .ck{width:16px;height:16px;border-radius:4px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.cmd-row .ck.off{background:none;box-shadow:inset 0 0 0 1.5px var(--rule2)}
+.cmd-row .sum{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cmd-row .sum.minus{color:var(--acc-ink)}
+.cmd-row .sub{display:block;color:var(--ink3);font-size:.72rem}
+.cmd-f{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+.btn{position:relative;height:32px;padding:0 14px;border-radius:8px;border:1px solid var(--rule2);background:var(--sheet);color:var(--ink);font:inherit;font-size:.78rem;font-weight:500;cursor:pointer}
+.btn::before{content:'';position:absolute;inset:-6px -3px}
+.btn.go{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+.btn[disabled]{opacity:.45;cursor:default}
+.cmd-note{font-size:.72rem;color:var(--warm);background:var(--warm-tint);border-radius:7px;padding:5px 8px;margin-top:8px}
+.done{font-size:.74rem;color:var(--acc-ink);font-weight:600;display:inline-flex;align-items:center;gap:5px}
+.pick{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.pick button{position:relative;text-align:left;border:1px solid var(--rule2);background:var(--sheet);border-radius:9px;padding:7px 10px;font:inherit;font-size:.78rem;cursor:pointer;display:flex;justify-content:space-between;gap:10px}
+.pick button b{font-weight:600;white-space:nowrap}
+
+/* Строка о выполненной команде — в ленте, для всех участников чата. */
+.sys{align-self:center;max-width:94%;font-size:.74rem;color:var(--ink2);background:var(--tint2);border:1px solid var(--rule);border-radius:10px;padding:6px 10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+.sys b{color:var(--ink);font-weight:600}
+.sys .undo{position:relative;border:0;background:none;font:inherit;font-size:.74rem;color:var(--acc-ink);font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:0}
+.sys .undo::before{content:'';position:absolute;inset:-14px -8px}
+
+/* ── Низ окна: блок «Команды», подсказка, поле ── */
+.bottom{border-top:1px solid var(--rule);padding:10px 16px 14px;background:var(--sheet)}
+.panel{border:1px solid var(--rule);border-radius:12px;background:var(--tint2);padding:10px 12px;margin-bottom:10px;max-height:300px;overflow-y:auto}
+.panel[hidden]{display:none}
+.p-h{display:flex;justify-content:space-between;align-items:center;font-family:'Unbounded',sans-serif;font-weight:600;font-size:.74rem}
+.p-h span{font-family:'Geologica',sans-serif;font-weight:400;font-size:.7rem;color:var(--ink3)}
+.grp{margin-top:10px}
+.grp-n{font-size:.6rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{position:relative;height:30px;padding:0 11px;border-radius:15px;border:1px solid var(--rule2);background:var(--sheet);font:inherit;font-size:.76rem;color:var(--ink);cursor:pointer;white-space:nowrap}
+.chip::before{content:'';position:absolute;inset:-7px -2px}
+.chip i{font-style:normal;color:var(--acc-ink);font-weight:600}
+.hint{display:flex;align-items:center;gap:10px;font-size:.76rem;border-radius:10px;padding:7px 10px;margin-bottom:8px;background:var(--tint)}
+.hint[hidden]{display:none}
+.hint.no{background:var(--warm-tint);color:var(--warm)}
+.hint .t{flex:1;min-width:0}
+.hint .t b{font-weight:600}
+.row{display:flex;align-items:center;gap:8px;border:1px solid var(--rule2);border-radius:22px;padding:4px 4px 4px 6px;background:var(--sheet)}
+.row:focus-within{border-color:var(--acc)}
+.ic{position:relative;width:34px;height:34px;border:0;background:none;border-radius:50%;color:var(--ink2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.ic::before{content:'';position:absolute;inset:-5px}
+.ic.on{background:var(--tint);color:var(--acc-ink)}
+.ic.send{background:var(--acc);color:#fff}
+input.txt{flex:1;min-width:0;border:0;outline:0;font:inherit;font-size:16px;color:var(--ink);background:none;height:34px}
+input.txt::placeholder{color:var(--ink3)}
+
+/* ── Расчёт рядом: что меняют команды ── */
+.calc{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;padding:18px 20px}
+.calc h2{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.9rem}
+.c-tot{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.7rem;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.c-sub{font-size:.76rem;color:var(--ink2)}
+.c-list{margin-top:12px;border-top:2px solid var(--acc)}
+.c-r{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--rule);font-size:.8rem}
+.c-r span:last-child{font-variant-numeric:tabular-nums;white-space:nowrap}
+.c-r.off{color:var(--ink3)}
+.c-r.off span:first-child{text-decoration:line-through}
+.c-r.new{background:var(--tint)}
+.c-r.disc span:last-child{color:var(--acc-ink);font-weight:600}
+.flash{animation:fl 1.6s ease-out}
+@keyframes fl{0%{background:#e3f0d2}100%{background:transparent}}
+
+/* ── Предложение ── */
+.prop{margin-top:40px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+@media (max-width:900px){.prop{grid-template-columns:minmax(0,1fr)}}
+/* На телефоне словарь — строками: фраза, под ней что делает. */
+@media (max-width:600px){table.vocab,table.vocab tbody,table.vocab tr,table.vocab td{display:block}table.vocab tr:first-child{display:none}table.vocab td:first-child{white-space:normal;border-bottom:0;padding-bottom:0}}
+.prop section{background:var(--sheet);border:1px solid var(--rule);border-radius:14px;padding:18px 20px}
+.prop h3{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.86rem;margin-bottom:8px}
+.prop h3 .n{color:var(--acc-ink);margin-right:6px}
+.prop p,.prop li{font-size:.84rem;color:var(--ink2)}
+.prop p + p{margin-top:8px}
+.prop ul{padding-left:18px;margin-top:6px}
+.prop li + li{margin-top:4px}
+.prop b{color:var(--ink);font-weight:600}
+table.vocab{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:6px}
+table.vocab th{text-align:left;font-family:'Unbounded',sans-serif;font-weight:600;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--acc-ink);background:var(--tint);padding:8px 10px}
+table.vocab th:first-child{border-top-left-radius:10px}table.vocab th:last-child{border-top-right-radius:10px}
+table.vocab td{padding:7px 10px;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--ink2)}
+table.vocab td:first-child{color:var(--ink);font-weight:500;white-space:nowrap}
+.wide{grid-column:1 / -1}
+.qs li{color:var(--ink)}
+.qs li span{color:var(--ink2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Макет · учебные данные · 19.10.2026</div>
+  <h1>Команды в чате пресета</h1>
+  <p class="lead">Короткие фразы в чате, которые меняют расчёт: «скидка 3,5 %», «сними раздел парная», «добавь бытовку и туалет». Попробуйте сами: нажмите на значок команд у поля или наберите фразу — под полем видно, что калькулятор понял и на сколько изменится сумма. Расчёт справа меняется по-настоящему.</p>
+  <p class="lead">Сообщение Ольги ниже — пример команды от проверяющего: она не меняет чужой расчёт сама, а приходит владельцу карточкой «Применить».</p>
+
+  <div class="stage">
+    <div class="win" id="win">
+      <div class="w-head">
+        <div class="w-k">Мой пресет</div>
+        <div class="w-nm">Проба дом 8×8 · 19.10.26<small>код 710 389</small></div>
+        <div class="tabs"><div class="tab">Пресет</div><div class="tab">Сводка</div><div class="tab">Журнал</div><div class="tab">Проверка <span class="cnt">3</span></div><div class="tab on">Чат</div></div>
+      </div>
+      <div class="feed" id="feed">
+        <div class="day">Сегодня</div>
+        <div class="msg"><div class="who">Ольга П. <span>· 17:05</span></div><p>Поставь скидку 3,5 % и сними раздел парная — парную клиент делает сам.</p></div>
+        <div class="acts"><span>Ответить</span><span>В проверку</span><span>Выполнено</span></div>
+        <div class="cmd" id="cmdOlga">
+          <div class="cmd-h"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>Команды в сообщении · 2</div>
+          <div class="cmd-row"><span class="ck" data-i="0"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12.5l5 5L20 6.5"/></svg></span><span>Скидка 3,5 %<span class="sub" id="olgaSub0">−112 000 ₽ от суммы расчёта</span></span><span class="sum minus" id="olgaSum0">−112 000 ₽</span></div>
+          <div class="cmd-row"><span class="ck" data-i="1"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12.5l5 5L20 6.5"/></svg></span><span>Снять раздел «9. Парное отделение»<span class="sub">4 позиции уйдут из расчёта</span></span><span class="sum minus">−186 000 ₽</span></div>
+          <div class="cmd-note">Расчёт согласован. После применения договоры закроются до повторного согласования.</div>
+          <div class="cmd-f" id="olgaF"><button class="btn go" id="olgaGo">Применить отмеченное</button><button class="btn" id="olgaNo">Не применять</button></div>
+        </div>
+      </div>
+      <div class="bottom">
+        <div class="panel" id="panel" hidden>
+          <div class="p-h">Команды<span>нажмите — фраза встанет в поле</span></div>
+          <div class="grp"><div class="grp-n">Скидки и цена</div><div class="chips">
+            <button class="chip" data-t="скидка 3,5 %">скидка <i>3,5 %</i></button>
+            <button class="chip" data-t="скидка 50 000">скидка <i>50 000 ₽</i></button>
+            <button class="chip" data-t="сними скидку">сними скидку</button>
+            <button class="chip" data-t="за наличные">за наличные</button>
+            <button class="chip" data-t="сними скидку за наличные">сними скидку за наличные</button>
+          </div></div>
+          <div class="grp"><div class="grp-n">Разделы</div><div class="chips">
+            <button class="chip" data-t="сними раздел парная">сними раздел <i>парная</i></button>
+            <button class="chip" data-t="верни раздел парная">верни раздел <i>парная</i></button>
+          </div></div>
+          <div class="grp"><div class="grp-n">Опции</div><div class="chips">
+            <button class="chip" data-t="добавь бытовку и туалет">добавь <i>бытовку и туалет</i></button>
+            <button class="chip" data-t="убери водосток">убери <i>водосток</i></button>
+          </div></div>
+          <div class="grp"><div class="grp-n">Договор</div><div class="chips">
+            <button class="chip" data-t="срок 60 дней">срок <i>60 дней</i></button>
+          </div></div>
+        </div>
+        <div class="hint" id="hint" hidden><span class="t" id="hintT"></span><button class="btn go" id="hintGo">Выполнить</button></div>
+        <div class="row">
+          <button class="ic" id="cmdBtn" title="Команды" aria-label="Команды" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></button>
+          <input class="txt" id="txt" placeholder="Сообщение или команда" autocomplete="off">
+          <button class="ic send" id="send" aria-label="Отправить"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="calc" id="calc">
+      <h2>Расчёт · Проба дом 8×8</h2>
+      <div class="c-tot" id="tot"></div>
+      <div class="c-sub" id="totSub"></div>
+      <div class="c-list" id="list"></div>
+    </div>
+  </div>
+
+  <div class="prop">
+    <section>
+      <h3><span class="n">1.</span>Как это работает</h3>
+      <p>Фраза распознаётся по словарю, без искусственного интеллекта: «скидка», «сними», «добавь», «верни», «срок» и названия разделов и опций из каталога. Это предсказуемо, мгновенно и одинаково у всех; чего нет в словаре — остаётся обычным сообщением.</p>
+      <p>Под полем видно, что понято и на сколько изменится сумма. Сразу ничего не меняется: команда выполняется кнопкой «Выполнить» или клавишей Enter.</p>
+    </section>
+    <section>
+      <h3><span class="n">2.</span>Кто меняет расчёт</h3>
+      <p>Выполняет команду тот, кто может править расчёт: владелец пресета. Команда проверяющего в своём сообщении расчёт не трогает — она приходит владельцу карточкой «Применить», и он отмечает, что применить.</p>
+      <p>Применённая карточка сама ставит сообщению «Выполнено». После подписи договора команды выключены, как и правка расчёта.</p>
+    </section>
+    <section>
+      <h3><span class="n">3.</span>След и отмена</h3>
+      <ul>
+        <li>Выполненная команда — строка в ленте чата, её видят все участники, и строка в журнале действий.</li>
+        <li>У строки «Отменить» — возвращает расчёт как было, пока после команды ничего не меняли.</li>
+        <li>Если расчёт согласован, карточка заранее говорит, что договоры закроются до повторного согласования.</li>
+      </ul>
+    </section>
+    <section>
+      <h3><span class="n">4.</span>Когда понято не до конца</h3>
+      <ul>
+        <li>Подходят несколько опций — карточка предлагает выбрать нужную (наберите «добавь туалет»).</li>
+        <li>Не нашлось ничего — так и сказано, сообщение уходит обычным текстом.</li>
+        <li>Число без знака: «скидка 3,5» — проценты, «скидка 50 000» — рубли.</li>
+      </ul>
+    </section>
+    <section class="wide">
+      <h3><span class="n">5.</span>Словарь первой версии</h3>
+      <table class="vocab">
+        <tr><th>Фраза</th><th>Что делает</th></tr>
+        <tr><td>скидка 3,5 % · скидка 50 000</td><td>ставит скидку в процентах или рублях</td></tr>
+        <tr><td>сними скидку</td><td>убирает скидку</td></tr>
+        <tr><td>за наличные · сними скидку за наличные</td><td>ставит и снимает галочку «за наличные»</td></tr>
+        <tr><td>спец. цена 3 050 000</td><td>ставит спец. цену</td></tr>
+        <tr><td>сними раздел парная · верни раздел парная</td><td>снимает все позиции раздела и возвращает их; название раздела можно короче — «парная», «кровля», «фундамент»</td></tr>
+        <tr><td>добавь бытовку и туалет · убери водосток</td><td>отмечает и снимает опции по названию; несколько — через «и» или запятую</td></tr>
+        <tr><td>срок 60 дней · срок отделки 45</td><td>срок работ основного договора или договора на отделку</td></tr>
+        <tr><td>примечание к кровле: по желанию заказчика</td><td>добавляет примечание к разделу</td></tr>
+      </table>
+    </section>
+  </div>
+</div>
+
+<script>
+// Учебная модель расчёта: разделы, опции, скидка. Всё — выдуманные суммы.
+const S = {
+  разделы: [
+    { к: 'found', н: '1. Фундамент и цоколь', с: 412000, вкл: true, слова: ['фундамент', 'цоколь'] },
+    { к: 'frame', н: '2. Каркас', с: 1736160, вкл: true, слова: ['каркас'] },
+    { к: 'roof', н: '6. Кровля', с: 228000, вкл: true, слова: ['кровля', 'крыша'] },
+    { к: 'int', н: '8. Внутренняя отделка', с: 343440, вкл: true, слова: ['отделка', 'внутренняя'] },
+    { к: 'steam', н: '9. Парное отделение', с: 186000, вкл: true, слова: ['парная', 'парное', 'парилка'] },
+    { к: 'extra', н: '11. Доп. опции и логистика', с: 294400, вкл: true, слова: ['доп', 'логистика'] },
+  ],
+  опции: [
+    { н: 'Аренда бытовки с доставкой и установкой на время строительства', с: 48000, вкл: false, слова: ['бытовк'] },
+    { н: 'Аренда биотуалета на время строительства', с: 14000, вкл: false, слова: ['туалет', 'биотуалет'] },
+    { н: 'Санузел: унитаз с инсталляцией', с: 62000, вкл: false, слова: ['туалет', 'унитаз', 'санузел'] },
+    { н: 'Водосточная система (ПВХ)', с: 38000, вкл: true, слова: ['водосток', 'водосточн'] },
+  ],
+  скидка: { вид: '', з: 0 }, нал: false, срок: 90, согласован: true,
+};
+const Б = 3200000 - S.разделы.reduce((с, р) => с + р.с, 0) - 38000;   // база — чтобы итог начинался с 3 200 000
+// Неразрывные пробелы: сумма не рвётся на строки посередине числа.
+const fmt = н => Math.round(н).toLocaleString('ru-RU').replace(/[\s\u202f]/g, '\u00a0') + '\u00a0₽';
+function сумма(c = S) {
+  const р = c.разделы.filter(х => х.вкл).reduce((а, х) => а + х.с, 0) + c.опции.filter(х => х.вкл).reduce((а, х) => а + х.с, 0) + Б;
+  const ск = c.скидка.вид === '%' ? Math.round(р * c.скидка.з / 100 / 1000) * 1000 : c.скидка.вид === '₽' ? c.скидка.з : 0;
+  const нал = c.нал ? 96000 : 0;
+  return { до: р, ск, нал, итог: р - ск - нал };
+}
+const клон = () => JSON.parse(JSON.stringify(S));
+let новые = new Set();
+function отрисовать(вспышка) {
+  const с = сумма();
+  document.getElementById('tot').textContent = fmt(с.итог);
+  document.getElementById('totSub').textContent = 'Срок основного договора — ' + S.срок + ' рабочих дней';
+  let h = '';
+  S.разделы.forEach(р => { h += '<div class="c-r' + (р.вкл ? '' : ' off') + (новые.has(р.н) ? ' flash' : '') + '"><span>' + р.н + '</span><span>' + (р.вкл ? fmt(р.с) : 'снят') + '</span></div>'; });
+  S.опции.filter(о => о.вкл).forEach(о => { h += '<div class="c-r new' + (новые.has(о.н) ? ' flash' : '') + '"><span>' + о.н + '</span><span>' + fmt(о.с) + '</span></div>'; });
+  if (с.ск) h += '<div class="c-r disc' + (новые.has('ск') ? ' flash' : '') + '"><span>Скидка' + (S.скидка.вид === '%' ? ' ' + String(S.скидка.з).replace('.', ',') + ' %' : '') + '</span><span>−' + fmt(с.ск) + '</span></div>';
+  if (с.нал) h += '<div class="c-r disc' + (новые.has('нал') ? ' flash' : '') + '"><span>За наличные</span><span>−' + fmt(с.нал) + '</span></div>';
+  document.getElementById('list').innerHTML = h;
+  новые = new Set();
+}
+
+// ── Разбор фразы по словарю ──
+const ч = т => Number(String(т).replace(/\s/g, '').replace(',', '.'));
+function разобрать(т) {
+  const x = т.trim().toLowerCase().replace(/ё/g, 'е');
+  if (!x) return null;
+  let м;
+  if ((м = x.match(/^(?:поставь\s+|сделай\s+)?скидк[ау]\s+([\d\s]+(?:[.,]\d+)?)\s*(%|процент\w*|₽|руб\w*|р\.?)?$/))) {
+    const з = ч(м[1]); const проц = м[2] ? /%|проц/.test(м[2]) : з < 100;
+    return [{ т: 'скидка', з, вид: проц ? '%' : '₽' }];
+  }
+  if (/^(?:сними|убери)\s+скидку\s+за\s+наличн/.test(x)) return [{ т: 'нал', вкл: false }];
+  if (/^(?:поставь\s+|отметь\s+)?(?:скидку\s+)?за\s+наличн/.test(x)) return [{ т: 'нал', вкл: true }];
+  if (/^(?:сними|убери)\s+скидку$/.test(x)) return [{ т: 'скидка', з: 0, вид: '' }];
+  if ((м = x.match(/^срок\s+(\d+)/))) return [{ т: 'срок', з: Number(м[1]) }];
+  if ((м = x.match(/^(сними|убери|верни)\s+раздел\s+(.+)$/))) {
+    const р = S.разделы.find(р => р.слова.some(с => м[2].includes(с)));
+    return [р ? { т: 'раздел', р, вкл: м[1] === 'верни' } : { т: 'нет', что: 'раздел «' + м[2] + '»' }];
+  }
+  if ((м = x.match(/^(добавь|отметь|убери|сними)\s+(.+)$/))) {
+    const вкл = /добавь|отметь/.test(м[1]);
+    return м[2].split(/\s*(?:,|\sи\s)\s*/).filter(Boolean).map(слово => {
+      const н = S.опции.filter(о => о.слова.some(с => слово.includes(с) || с.startsWith(слово.slice(0, 5))));
+      return н.length === 1 ? { т: 'опция', о: н[0], вкл } : н.length ? { т: 'выбор', варианты: н, вкл, слово } : { т: 'нет', что: 'опция «' + слово + '»' };
+    });
+  }
+  return null;
+}
+function описать(к) {
+  const до = сумма().итог, c = клон(); применить(к, c, true); const после = сумма(c).итог;
+  const р = после - до, хв = р ? ' <b>' + (р < 0 ? '−' : '+') + fmt(Math.abs(р)) + '</b>, итог ' + fmt(после) : '';
+  return к.map(х => х.т === 'скидка' ? (х.вид === '%' ? 'Скидка ' + String(х.з).replace('.', ',') + ' %' : х.вид ? 'Скидка ' + fmt(х.з) : 'Снять скидку')
+    : х.т === 'нал' ? (х.вкл ? 'Отметить «за наличные»' : 'Снять «за наличные»')
+    : х.т === 'срок' ? 'Срок основного договора — ' + х.з + ' рабочих дней'
+    : х.т === 'раздел' ? (х.вкл ? 'Вернуть' : 'Снять') + ' раздел «' + х.р.н + '»'
+    : х.т === 'опция' ? (х.вкл ? 'Добавить' : 'Убрать') + ' «' + х.о.н.split(' на время')[0] + '»'
+    : х.т === 'выбор' ? '«' + х.слово + '» — ' + х.варианты.length + ' подходящих, выбор в карточке'
+    : 'Не нашёл: ' + х.что).join('; ') + хв;
+}
+function применить(к, c, проба) {
+  к.forEach(х => {
+    if (х.т === 'скидка') { c.скидка = { вид: х.вид, з: х.з }; if (!проба) новые.add('ск'); }
+    if (х.т === 'нал') { c.нал = х.вкл; if (!проба) новые.add('нал'); }
+    if (х.т === 'срок') c.срок = х.з;
+    if (х.т === 'раздел') { const р = c.разделы.find(р => р.к === х.р.к); р.вкл = х.вкл; if (!проба) новые.add(р.н); }
+    if (х.т === 'опция') { const о = c.опции.find(о => о.н === х.о.н); о.вкл = х.вкл; if (!проба) новые.add(о.н); }
+  });
+}
+
+// ── Лента ──
+const лента = document.getElementById('feed');
+const время = () => new Date().toTimeString().slice(0, 5);
+function вЛенту(html) { лента.insertAdjacentHTML('beforeend', html); лента.scrollTop = лента.scrollHeight; }
+function выполнить(к, кто) {
+  const было = клон(), до = сумма().итог;
+  if (S.согласован) S.согласован = false;
+  применить(к, S); отрисовать();
+  const ид = 'u' + Date.now();
+  вЛенту('<div class="sys" id="' + ид + '"><span>' + кто + ' · команда: <b>' + к.map(х => х.т === 'выбор' || х.т === 'нет' ? '' : описатьКратко(х)).filter(Boolean).join(', ') + '</b> · итог ' + fmt(до) + ' → ' + fmt(сумма().итог) + '</span><button class="undo">Отменить</button></div>');
+  document.querySelector('#' + ид + ' .undo').onclick = e => { Object.assign(S, было); отрисовать(); e.target.parentElement.innerHTML = '<span>Команда отменена — расчёт как был, итог ' + fmt(сумма().итог) + '</span>'; };
+}
+function описатьКратко(х) {
+  return х.т === 'скидка' ? (х.вид === '%' ? 'скидка ' + String(х.з).replace('.', ',') + ' %' : х.вид ? 'скидка ' + fmt(х.з) : 'скидка снята')
+    : х.т === 'нал' ? (х.вкл ? '«за наличные» отмечено' : '«за наличные» снято')
+    : х.т === 'срок' ? 'срок ' + х.з + ' дней'
+    : х.т === 'раздел' ? 'раздел «' + х.р.н.replace(/^\d+\.\s*/, '') + '» ' + (х.вкл ? 'возвращён' : 'снят')
+    : х.т === 'опция' ? '«' + х.о.н.split(' с доставкой')[0].split(' на время')[0] + '» ' + (х.вкл ? 'добавлена' : 'убрана') : '';
+}
+
+// ── Поле и подсказка ──
+const поле = document.getElementById('txt'), подск = document.getElementById('hint'), подскТ = document.getElementById('hintT'), кнВып = document.getElementById('hintGo');
+let текущая = null;
+function обновитьПодсказку() {
+  const к = разобрать(поле.value); текущая = к;
+  if (!к) { подск.hidden = true; return; }
+  const пусто = к.every(х => х.т === 'нет');
+  подск.hidden = false; подск.classList.toggle('no', пусто);
+  подскТ.innerHTML = (пусто ? '' : '<b>Команда:</b> ') + описать(к) + (пусто ? ' — уйдёт обычным сообщением' : '');
+  кнВып.hidden = пусто;
+}
+поле.addEventListener('input', обновитьПодсказку);
+function отправить() {
+  const т = поле.value.trim(); if (!т) return;
+  const к = разобрать(т);
+  вЛенту('<div class="msg me"><div class="who">Вы <span>· ' + время() + '</span></div><p>' + т.replace(/</g, '&lt;') + '</p></div>');
+  if (к && к.some(х => х.т === 'выбор')) {
+    // Однозначное выполняется сразу, а неоднозначное ждёт выбора в карточке.
+    const ясно = к.filter(х => х.т !== 'выбор' && х.т !== 'нет');
+    if (ясно.length) выполнить(ясно, 'Вы');
+    const в = к.find(х => х.т === 'выбор'), ид = 'p' + Date.now();
+    вЛенту('<div class="cmd" id="' + ид + '"><div class="cmd-h">Какую опцию ' + (в.вкл ? 'добавить' : 'убрать') + '?</div><div class="pick">' + в.варианты.map((о, и) => '<button data-i="' + и + '"><span>' + о.н + '</span><b>' + fmt(о.с) + '</b></button>').join('') + '</div></div>');
+    document.querySelectorAll('#' + ид + ' .pick button').forEach(б => б.onclick = () => {
+      const о = в.варианты[Number(б.dataset.i)];
+      document.getElementById(ид).innerHTML = '<span class="done">Выбрано: ' + о.н + '</span>';
+      выполнить([{ т: 'опция', о, вкл: в.вкл }], 'Вы');
+    });
+  } else if (к && !к.every(х => х.т === 'нет')) выполнить(к, 'Вы');
+  поле.value = ''; обновитьПодсказку();
+}
+document.getElementById('send').onclick = отправить;
+кнВып.onclick = отправить;
+поле.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); отправить(); } });
+
+// ── Блок «Команды» ──
+const кн = document.getElementById('cmdBtn'), панель = document.getElementById('panel');
+кн.onclick = () => { панель.hidden = !панель.hidden; кн.classList.toggle('on', !панель.hidden); кн.setAttribute('aria-expanded', String(!панель.hidden)); };
+панель.addEventListener('click', e => { const ч_ = e.target.closest('.chip'); if (!ч_) return; поле.value = ч_.dataset.t; панель.hidden = true; кн.classList.remove('on'); поле.focus(); обновитьПодсказку(); });
+
+// ── Карточка команды от Ольги ──
+const отм = [true, true];
+document.querySelectorAll('#cmdOlga .ck').forEach(к => к.onclick = () => { const и = Number(к.dataset.i); отм[и] = !отм[и]; к.classList.toggle('off', !отм[и]); document.getElementById('olgaGo').disabled = !отм.some(Boolean); });
+document.getElementById('olgaGo').onclick = () => {
+  const к = []; if (отм[0]) к.push({ т: 'скидка', з: 3.5, вид: '%' }); if (отм[1]) к.push({ т: 'раздел', р: S.разделы.find(р => р.к === 'steam'), вкл: false });
+  document.getElementById('olgaF').innerHTML = '<span class="done"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12.5l5 5L20 6.5"/></svg>Применено · сообщение отмечено «Выполнено»</span>';
+  document.querySelector('#cmdOlga .cmd-note') && document.querySelector('#cmdOlga .cmd-note').remove();
+  выполнить(к, 'Вы по сообщению Ольги П.');
+};
+document.getElementById('olgaNo').onclick = () => { document.getElementById('olgaF').innerHTML = '<span class="done" style="color:var(--ink2)">Не применено — ответьте Ольге в чате, почему</span>'; };
+отрисовать();
+</script>
+</body>
+</html>
