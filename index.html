@@ -34542,6 +34542,7 @@ const AL_ВИДЫ = {
   review_removed:        'Правка из чата убрана из проверки',
   review_done:           'Правка из чата выполнена',
   review_reopened:       'Правка из чата снова открыта',
+  chat_deleted:          'Сообщение в чате удалено',
   // Комплектации — их правят администратор и редактор, и по базе строки видны
   // только им: менеджер в своём журнале видит лишь свои действия.
   kit_created:           'Комплектация заведена',
@@ -39535,6 +39536,8 @@ const ЗНАЧОК_ОТПРАВИТЬ = '<svg width="15" height="15" viewBox="0 
 // заливке, а другая длина слова сдвигала бы кнопку из-под пальца.
 const ЗНАЧОК_В_ПРАВКИ = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h11l-2 4.5 2 4.5H5"/></svg>';
 const ЗНАЧОК_ГАЛКА = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"/></svg>';
+const ЗНАЧОК_КОРЗИНА_ЧАТ = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
+const ЗНАЧОК_КОПИЯ_ЧАТ = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
 const ЗНАЧОК_ОТВЕТ = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 17l-5-5 5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>';
 const ЗНАЧОК_ФАЙЛ = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>';
 const ЗНАЧОК_КАРАНДАШ = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
@@ -39559,11 +39562,24 @@ function чатТекущий() {
 }
 function сообщениеЧата(ид) { return (чатТекущий() || []).find(с => String(с.id) === String(ид)) || null; }
 function времяЧата(с) { const т = Date.parse(с && с.created_at); return isNaN(т) ? 0 : т; }
-function правкиЧата() { return (чатТекущий() || []).filter(с => (с.kind || 'msg') === 'msg' && (с.review_state === 'open' || с.review_state === 'done')); }
+function правкиЧата() { return (чатТекущий() || []).filter(с => (с.kind || 'msg') === 'msg' && !с.deleted_at && !удаляетсяВЧате(с.id) && (с.review_state === 'open' || с.review_state === 'done')); }
 function естьОтветыЧата(с) { return (чатТекущий() || []).some(х => х.reply_to && String(х.reply_to) === String(с.id)); }
 function можноИзменитьВЧате(с) {
-  return !!(с && _sbUser && с.author_id === _sbUser.id && (с.kind || 'msg') === 'msg' && !с.__шлётся && !с.__сбой
+  return !!(с && _sbUser && с.author_id === _sbUser.id && (с.kind || 'msg') === 'msg' && !с.__шлётся && !с.__сбой && !с.deleted_at
     && Date.now() - времяЧата(с) < ЧАТ_ПРАВКА_МС && !естьОтветыЧата(с));
+}
+// Удаление сообщения (Константин, 19.10.2026: «Пока я только могу удалять
+// всегда. А все остальные могут редактировать и удалять первые 5 минут после
+// отправки»). Администратор — любое и когда угодно; остальные — своё, в
+// первые 5 минут и пока договор не подписан; заключение о согласовании —
+// только администратор. То же правило держит база (preset_chat_delete).
+function чатАдмин() { return !!(window._sbProfile && _sbProfile.role === 'admin'); }
+function заключениеВЧате(с) { return /^Заключение о согласовании:/.test(String((с && с.body) || '')); }
+function можноУдалитьВЧате(с) {
+  if (!с || !_sbUser || (с.kind || 'msg') !== 'msg' || с.__шлётся || с.__сбой || с.deleted_at) return false;
+  if (чатАдмин()) return true;
+  return с.author_id === _sbUser.id && Date.now() - времяЧата(с) < ЧАТ_ПРАВКА_МС
+    && !(typeof договорПодписан === 'function' && договорПодписан()) && !заключениеВЧате(с);
 }
 // Кнопка «Изменить» пропадает сама, когда пять минут вышли: лента
 // перерисовывается к ближайшему такому сроку.
@@ -39577,7 +39593,7 @@ function запланироватьСрокПравки() {
 function открытыхПравокЧата() { return правкиЧата().filter(с => с.review_state === 'open').length; }
 function непрочитаноВЧате() {
   const свой = (_sbUser || {}).id;
-  return (чатТекущий() || []).filter(с => с.author_id !== свой && времяЧата(с) > _чат.прочитано).length;
+  return (чатТекущий() || []).filter(с => с.author_id !== свой && !с.deleted_at && времяЧата(с) > _чат.прочитано).length;
 }
 function ктоВЧате(с) { return с.author_id === (_sbUser || {}).id ? 'Вы' : имяКратко(с.author_name || 'Сотрудник'); }
 // Первая строка сообщения — для «Ответить» и для пункта в «Проверке». Нет
@@ -39602,6 +39618,7 @@ function названиеСобытияЖурнала(с) {
 }
 function перваяСтрокаЧата(с, длина) {
   длина = длина || 90;
+  if (с && с.deleted_at) return 'Сообщение удалено';
   const т = String((с && с.body) || '').split('\n').map(х => х.trim()).find(Boolean);
   if (т) return т.length > длина ? т.slice(0, длина - 1) + '…' : т;
   const в = ((с && с.attachments) || [])[0];
@@ -40080,6 +40097,14 @@ function лентаЧата(о) {
     const метка = датаЕсть ? деньЖурналаПресета(д) : '';
     if (метка && метка !== день) { h += '<div class="pc-chday">' + escapeHtml(метка) + '</div>'; день = метка; }
     const мой = с.author_id === свой;
+    // Удалённое — строкой «Сообщение удалено» на его месте, чтобы ответы на
+    // него не потеряли смысла; ждущее отмены и строки-события о нём не видны.
+    if (удаляетсяВЧате(с.id) || (с.ref && удаляетсяВЧате(с.ref)) || (с.deleted_at && с.kind === 'event')) return;
+    if (с.deleted_at) {
+      h += '<div class="pc-chm pc-chdel' + (мой ? ' me' : '') + '" id="pcChm-' + escapeHtml(String(с.id)) + '" data-mid="' + escapeHtml(String(с.id)) + '">'
+        + '<div class="pc-chdel-b">' + ЗНАЧОК_КОРЗИНА_ЧАТ + 'Сообщение удалено</div></div>';
+      return;
+    }
     // Строка-событие: правку отметили выполненной или открыли снова. Её
     // кладёт база вместе с отметкой; нажатие ведёт к самой правке.
     // Строка о согласовании: её кладёт база, когда решение принято (Константин
@@ -40153,7 +40178,7 @@ function лентаЧата(о) {
       + (мой ? '' : уГалки)
       + (можноИзменитьВЧате(с) ? '<button type="button" class="pc-chedit" data-act="ch-edit" data-mid="' + ид + '" aria-label="Изменить" title="Изменить — первые 5 минут, пока нет ответа"'
         + (_чатИзменение && String(_чатИзменение.id) === String(с.id) ? ' aria-pressed="true"' : '') + '>' + ЗНАЧОК_КАРАНДАШ + '</button>' : '')
-      + '</div>') + '</div>';
+      + '</div>') + менюСообщенияЧата(с) + '</div>';
   });
   if (ч.ещё) h = '<button type="button" class="pc-chold" data-act="ch-older"' + (ч.раньшеГрузится ? ' disabled' : '') + '>'
     + (ч.раньшеГрузится ? 'Загружаются ранние…' : 'Показать ранние сообщения') + '</button>' + h;
@@ -40231,7 +40256,7 @@ function надПолемЧата() {
   const ред = _чатИзменение && сообщениеЧата(_чатИзменение.id);
   if (ред) return '<div class="pc-chr pc-chr-ed"><span><b>Изменение</b>' + escapeHtml(перваяСтрокаЧата(ред)) + '</span>'
     + '<button type="button" data-act="ch-edit-x" aria-label="Не изменять">' + ЗНАЧОК_КРЕСТ + '</button></div>';
-  let h = всплывающаяВВизуализацию();
+  let h = строкаУдаленияЧата() + всплывающаяВВизуализацию();
   if (ч.ответ) h += '<div class="pc-chr"><span><b>Ответ: ' + escapeHtml(ч.ответ.кто) + '</b>' + escapeHtml(ч.ответ.строка) + '</span>'
     + '<button type="button" data-act="ch-reply-x" aria-label="Не отвечать">' + ЗНАЧОК_КРЕСТ + '</button></div>';
   if ((ч.опции || []).length) h += '<div class="pc-chop">' + ч.опции.map((сл, i) => '<div class="pc-chopi"><span>'
@@ -40964,7 +40989,92 @@ function записатьОтложеннуюОтметку(к) {
   заполнитьКарточкуЗначка();
   return записатьОтметкуЧата(к, о.было, о.новое, о.с);
 }
-function записатьОтложенныеОтметки() { [..._флагиЧата.keys()].forEach(записатьОтложеннуюОтметку); }
+function записатьОтложенныеОтметки() { [..._флагиЧата.keys()].forEach(записатьОтложеннуюОтметку); if (_удаленияЧата) [..._удаленияЧата.keys()].forEach(записатьУдалениеЧата); }
+
+// Удаление сообщения — с «Отменить» на 3 секунды (Константин, 19.10.2026,
+// снимком Telegram: «Сообщение удалено вот такое сделай уведомление на 3
+// секунды»). Сообщение пропадает из ленты сразу, а в базу удаление уходит,
+// когда секунды вышли; ушла вкладка в фон — сразу. Новое удаление в эти
+// секунды отправляет ждущее, а не копит их.
+var _удаленияЧата = new Map();     // ид → { код, с, когда, таймер }; var — к нему обращаются и до этой строки
+var _чатМеню = null;              // ид сообщения с открытой полоской «Копировать / Удалить»
+function удаляетсяВЧате(ид) { return !!(_удаленияЧата && _удаленияЧата.has(String(ид))); }
+function менюСообщенияЧата(с) {
+  if (!_чатМеню || String(_чатМеню) !== String(с.id)) return '';
+  const ид = escapeHtml(String(с.id));
+  const копия = String(с.body || '').trim() ? '<button type="button" data-act="ch-copy" data-mid="' + ид + '">' + ЗНАЧОК_КОПИЯ_ЧАТ + 'Копировать</button>' : '';
+  const удалить = можноУдалитьВЧате(с) ? '<button type="button" class="pc-chmenu-del" data-act="ch-del" data-mid="' + ид + '">' + ЗНАЧОК_КОРЗИНА_ЧАТ + 'Удалить</button>' : '';
+  return копия || удалить ? '<div class="pc-chmenu" role="menu">' + копия + удалить + '</div>' : '';
+}
+function открытьМенюЧата(ид) {
+  const с = сообщениеЧата(ид);
+  if (!с || с.deleted_at || (с.kind || 'msg') !== 'msg' || с.__шлётся) return false;
+  if (!String(с.body || '').trim() && !можноУдалитьВЧате(с)) return false;
+  _чатМеню = String(ид);
+  отрисоватьЧат();
+  return true;
+}
+function закрытьМенюЧата() { if (_чатМеню) { _чатМеню = null; отрисоватьЧат(); } }
+function удалитьВЧатеСОтменой(ид) {
+  const к = String(ид), с = сообщениеЧата(к);
+  _чатМеню = null;
+  if (!можноУдалитьВЧате(с)) { showToast('Удалить можно только своё сообщение в первые 5 минут'); отрисоватьЧат(); return; }
+  записатьОтложенныеОтметки();
+  const о = { код: String(_чат.код), с, когда: Date.now() };
+  о.таймер = setTimeout(() => записатьУдалениеЧата(к), ЧАТ_ОТМЕНА_МС);
+  _удаленияЧата.set(к, о);
+  if (_чатИзменение && String(_чатИзменение.id) === к) _чатИзменение = null;
+  if (_чатЧерновик && _чатЧерновик.ответ && String(_чатЧерновик.ответ.id) === к) _чатЧерновик.ответ = null;
+  заполнитьКарточкуЗначка(); обновитьСчётчикПроверки();
+}
+function отменитьУдалениеЧата(к) {
+  const о = _удаленияЧата.get(String(к));
+  if (!о) return;
+  clearTimeout(о.таймер);
+  _удаленияЧата.delete(String(к));
+  заполнитьКарточкуЗначка(); обновитьСчётчикПроверки();
+}
+async function записатьУдалениеЧата(к) {
+  к = String(к);
+  const о = _удаленияЧата.get(к);
+  if (!о || о.шлём) return;
+  clearTimeout(о.таймер);
+  о.шлём = true;
+  // Что было в сообщении — до запроса: ответ базы затрёт текст и вложения.
+  const строка = перваяСтрокаЧата(о.с, 160), текст = текстПравкиЧата(о.с);
+  const пути = (о.с.attachments || []).map(в => в && в.path).filter(Boolean);
+  try {
+    const { data, error } = await _sb.rpc('preset_chat_delete', { p_id: к });
+    if (error) throw error;
+    // Файлы — из хранилища насовсем. Правило хранилища пускает к файлу, только
+    // когда на него больше не ссылается ни одно сообщение, — то есть после
+    // ответа базы. Не стёрлось — сообщение всё равно удалено, файл без ссылок
+    // никому не виден.
+    if (пути.length) {
+      try { const { error: о2 } = await _sb.storage.from(ЧАТ_КОРЗИНА).remove(пути); if (о2) console.warn('[чат] файлы не стёрты', о2); }
+      catch (e2) { console.warn('[чат] файлы не стёрты', e2); }
+    }
+    const с = сообщениеЧата(к);
+    if (с) Object.assign(с, data && data.id ? data : { body: '', attachments: [], review_state: null, deleted_at: new Date().toISOString() });
+    logEvent('chat_deleted', logDetails(строка, [['Сообщение', '', текст]]));
+    _удаленияЧата.delete(к);
+    загрузитьЧат(true, true);
+  } catch (e) {
+    _удаленияЧата.delete(к);
+    showToast('Сообщение не удалено: ' + ((e && e.message) || 'нет связи'));
+  }
+  заполнитьКарточкуЗначка(); обновитьСчётчикПроверки();
+}
+function строкаУдаленияЧата() {
+  const о = пресетКарточки();
+  const ждут = [..._удаленияЧата.entries()].filter(([, у]) => о && у.код === String(о.код) && !у.шлём);
+  if (!ждут.length) return '';
+  const [ид, у] = ждут[ждут.length - 1];
+  return '<div class="pc-chdelst" role="status"><span class="pc-chdelst-t">'
+    + '<svg class="pc-chdelst-r" viewBox="0 0 20 20" aria-hidden="true" style="animation-delay:-' + Math.min(ЧАТ_ОТМЕНА_МС, Date.now() - у.когда) + 'ms">'
+    + '<circle cx="10" cy="10" r="8" pathLength="100"/></svg>Сообщение удалено</span>'
+    + '<button type="button" data-act="ch-del-undo" data-mid="' + escapeHtml(ид) + '">Отменить</button></div>';
+}
 document.addEventListener('visibilitychange', () => { if (document.hidden) записатьОтложенныеОтметки(); });
 window.addEventListener('pagehide', записатьОтложенныеОтметки);
 // Касание, которым останавливают едущую ленту, — не нажатие: палец ловит
@@ -42737,6 +42847,59 @@ document.addEventListener('pointermove', function (e) {
 }, true);
 // Долгое нажатие на телефоне открывает меню выделения текста — на этих строках оно лишнее.
 document.addEventListener('contextmenu', function (e) { if (строкаПодписи(e.target)) e.preventDefault(); }, true);
+// Долгое нажатие на пузырь сообщения (на компьютере — правая кнопка мыши)
+// открывает под ним полоску «Копировать / Удалить» (Константин, 19.10.2026:
+// «В чате по долгому нажатию на сообщение сделай возможность его удалять»).
+// Системное меню текста на пузыре этим заменено, поэтому в полоске есть
+// «Копировать».
+let _чатДолгое = null, _чатГлушитьКлик = false;
+function пузырьЧата(э) { return э && э.closest && э.closest('#presetChipCard .pc-chm:not(.pc-chdel) .pc-chb'); }
+document.addEventListener('pointerdown', function (e) {
+  _чатГлушитьКлик = false;
+  if (e.pointerType === 'mouse') return;
+  const п = пузырьЧата(e.target), м = п && п.closest('.pc-chm'), ид = м && м.getAttribute('data-mid');
+  if (!ид) return;
+  const x = e.clientX, y = e.clientY;
+  clearTimeout(_чатДолгое && _чатДолгое.т);
+  _чатДолгое = { x, y, т: setTimeout(function () {
+    _чатДолгое = null;
+    if (String(_чатМеню) === String(ид)) return;
+    if (открытьМенюЧата(ид)) { _чатГлушитьКлик = true; try { navigator.vibrate && navigator.vibrate(15); } catch (er) {} }
+  }, ДОЛГОЕ_НАЖАТИЕ_МС) };
+}, true);
+// Прокрутку пальцем браузер сам обрывает событием pointercancel; событие
+// scroll сюда не годится — лента прокручивается и сама, когда перерисовывается
+// и возвращает своё место, а палец при этом стоит.
+['pointerup', 'pointercancel'].forEach(тип => document.addEventListener(тип, function () {
+  if (_чатДолгое) { clearTimeout(_чатДолгое.т); _чатДолгое = null; }
+}, true));
+document.addEventListener('pointermove', function (e) {
+  if (_чатДолгое && Math.hypot(e.clientX - _чатДолгое.x, e.clientY - _чатДолгое.y) > 8) { clearTimeout(_чатДолгое.т); _чатДолгое = null; }
+}, true);
+document.addEventListener('contextmenu', function (e) {
+  const п = пузырьЧата(e.target), м = п && п.closest('.pc-chm');
+  if (!м) return;
+  e.preventDefault();
+  // Долгое касание в Chrome приходит и этим событием, раньше таймера; палец,
+  // отпущенный следом, иначе закрыл бы полоску как нажатие мимо. У мыши
+  // правая кнопка нажатия следом не даёт — глушить нечего.
+  const ид = м.getAttribute('data-mid'), касание = !!_чатДолгое;
+  if (String(_чатМеню) !== String(ид) && открытьМенюЧата(ид) && касание) _чатГлушитьКлик = true;
+}, true);
+// Палец, отпущенный после долгого нажатия, — не нажатие. Полоска, вставшая
+// под пузырём, сдвигает ленту, и палец отпускается уже над другой кнопкой —
+// например над «В правки»; глушится ровно одно нажатие, куда бы оно ни пришлось.
+document.addEventListener('click', function (e) {
+  if (!_чатГлушитьКлик) return;
+  _чатГлушитьКлик = false;
+  e.preventDefault(); e.stopPropagation();
+}, true);
+// Escape при открытой полоске закрывает только её, а не мини-окно целиком.
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape' || !_чатМеню) return;
+  e.stopImmediatePropagation(); e.preventDefault();
+  закрытьМенюЧата();
+}, true);
 function кнопкаОтменыПодписи(где, ид) {
   const о = _отменаПодписи;
   if (!о || о.где !== где || String(о.ид) !== String(ид) || о.код !== String(_согласование.код) || !договорПодписан()) return '';
@@ -43090,7 +43253,7 @@ const СВ_СЛИЯНИЕ = 3 * 60 * 1000;
 const СВ_НЕ_ПРАВКИ = ['preset_saved', 'preset_opened', 'print', 'share_created', 'share_revoked',
   'client_link_created', 'client_link_updated', 'client_link_revoked', 'project_changed', 'checklist_done',
   'contract_printed', 'contract_exported', 'approval_sent', 'approval_returned', 'approval_approved',
-  'approval_part', 'approval_signed', 'approval_unsigned', 'review_added', 'review_removed', 'review_done', 'review_reopened'];
+  'approval_part', 'approval_signed', 'approval_unsigned', 'review_added', 'review_removed', 'review_done', 'review_reopened', 'chat_deleted'];
 function видыПравокПресета() { return видыЖурналаПресета().filter(в => СВ_НЕ_ПРАВКИ.indexOf(в) === -1); }
 async function загрузитьСводкуПресета(заново, заранее) {
   const о = пресетКарточки();
@@ -44588,6 +44751,7 @@ function нажатиеВКарточке(e) {
   const act = кн && к.contains(кн) ? кн.getAttribute('data-act') : '';
   // Нажатие мимо меню закрывает меню.
   if (_пкМеню && act !== 'more' && act !== 'unpub') { _пкМеню = false; заполнитьКарточкуЗначка(); if (!act) return; }
+  if (_чатМеню && act !== 'ch-copy' && act !== 'ch-del') { закрытьМенюЧата(); if (!act) return; }
   if (!act || кн.disabled) return;
   const о = (_значокРежим === 'own' || _значокРежим === 'shared') ? пресетКарточки() : null;
   switch (act) {
@@ -44736,6 +44900,17 @@ function нажатиеВКарточке(e) {
     }
     case 'ch-mention': вставитьУпоминание(кн.getAttribute('data-uid') || ''); break;
     case 'ch-edit': начатьИзменениеВЧате(кн.getAttribute('data-mid')); break;
+    case 'ch-del': удалитьВЧатеСОтменой(кн.getAttribute('data-mid')); break;
+    case 'ch-del-undo': отменитьУдалениеЧата(кн.getAttribute('data-mid')); break;
+    case 'ch-copy': {
+      const с = сообщениеЧата(кн.getAttribute('data-mid'));
+      _чатМеню = null; отрисоватьЧат();
+      if (!с) break;
+      const т = String(с.body || '');
+      Promise.resolve(navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(т) : Promise.reject())
+        .then(() => showToast('Текст скопирован'), () => showToast('Браузер не дал скопировать текст'));
+      break;
+    }
     case 'ch-edit-x':
       завершитьИзменениеВЧате(false);
       { const п = к.querySelector('#pcChatText'); if (п && !п.disabled) п.focus(); }
@@ -52551,6 +52726,24 @@ body.dark,body.ui-blank.dark{--pc-bub:rgba(255,255,255,.07)}
 .pc-card .pc-chm.me{align-items:flex-end}
 .pc-card .pc-chb{max-width:86%;min-width:0;padding:6px 10px 8px;border-radius:12px 12px 12px 4px;background:var(--pc-bub);color:var(--pc-ink)}
 .pc-card .pc-chm.me .pc-chb{border-radius:12px 12px 4px 12px;background:var(--pc-tint)}
+/* Удалённое сообщение — тихая строка на его месте; полоска «Копировать /
+   Удалить» под пузырём; над полем — «Сообщение удалено» с кольцом на 3 секунды. */
+.pc-card .pc-chdel-b{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:12px;border:1px dashed var(--pc-rule);color:var(--pc-ink3);font-size:.68rem;font-style:italic}
+.pc-card .pc-chmenu{display:flex;gap:2px;margin-top:6px;padding:3px;border:1px solid var(--pc-rule);border-radius:10px;background:var(--pc-bg);box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.pc-card .pc-chmenu button{position:relative;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:0;border-radius:7px;background:none;color:var(--pc-ink);font:inherit;font-size:.7rem;font-weight:500;cursor:pointer}
+.pc-card .pc-chmenu button::before{content:'';position:absolute;inset:-6px -1px}
+.pc-card .pc-chmenu .pc-chmenu-del{color:var(--pc-del)}
+@media (hover:hover){.pc-card .pc-chmenu button:hover{background:var(--pc-tint)}.pc-card .pc-chmenu .pc-chmenu-del:hover{background:var(--pc-del-tint)}}
+@media (hover:none){.pc-card .pc-chm:not(.pc-chdel) .pc-chb{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}}
+.pc-card .pc-chdelst{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;padding:4px 4px 4px 12px;border-radius:12px;background:var(--pc-ink);color:var(--pc-bg)}
+.pc-card .pc-chdelst-t{display:inline-flex;align-items:center;gap:10px;font-size:.74rem;font-weight:500}
+.pc-card .pc-chdelst-r{flex:none;width:18px;height:18px;transform:rotate(-90deg)}
+.pc-card .pc-chdelst-r circle{fill:none;stroke:currentColor;stroke-width:2.2;stroke-dasharray:100;stroke-dashoffset:0;animation:pcChDelRing 3s linear forwards}
+@keyframes pcChDelRing{to{stroke-dashoffset:100}}
+.pc-card .pc-chdelst button{position:relative;height:32px;padding:0 12px;border:0;border-radius:8px;background:none;color:var(--pc-bg);font:inherit;font-size:.74rem;font-weight:600;cursor:pointer}
+.pc-card .pc-chdelst button::before{content:'';position:absolute;inset:-6px 0}
+@media (hover:hover){.pc-card .pc-chdelst button:hover{background:color-mix(in srgb, var(--pc-bg) 16%, transparent)}}
+@media (prefers-reduced-motion:reduce){.pc-card .pc-chdelst-r circle{animation:none}}
 .pc-card .pc-chm.pc-chm-flash .pc-chb{animation:pcChFlash 2.1s ease}
 @keyframes pcChFlash{0%,55%{box-shadow:0 0 0 2px var(--pc-acc)}100%{box-shadow:0 0 0 2px transparent}}
 .pc-card .pc-chw{display:flex;flex-wrap:wrap;align-items:center;gap:0 4px;font-size:.6rem;line-height:1.6;color:var(--pc-ink3)}
