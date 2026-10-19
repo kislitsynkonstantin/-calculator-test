@@ -147,7 +147,7 @@ def прогон(бр, порт, ш):
     # значке (статья сверена с этим выпуском), дата правки — настоящая и не
     # из будущего; строка мельче текста статьи и стоит сразу под заголовком.
     версия = стр.evaluate("() => (document.getElementById('versionBadge').textContent.match(/\\d+\\.\\d+\\.\\d+/) || [''])[0]")
-    for а in т.evaluate("""() => [...document.querySelectorAll('.ch[id^="ch-art-"]')].map(к => { const м = к.querySelector('h2 + p.art-meta'),
+    for а in т.evaluate("""() => [...document.querySelectorAll('.ch[id^="ch-art-"]')].map(к => { const м = к.querySelector('h2 + p.art-meta, h2 + .art-bar > p.art-meta'),
         п = к.querySelector('p:not(.art-meta):not(.lead)');
       return { id: к.id, текст: м ? м.textContent.trim() : null,
         кегль: м ? parseFloat(getComputedStyle(м).fontSize) : 0, текстКегль: п ? parseFloat(getComputedStyle(п).fontSize) : 0 }; })"""):
@@ -165,6 +165,46 @@ def прогон(бр, порт, ш):
             плохо(f"{н} {а['id']}: дата правки не дата: {а['текст']!r}")
         if not а["кегль"] or а["кегль"] >= а["текстКегль"]:
             плохо(f"{н} {а['id']}: строка версии не мельче текста ({а['кегль']} против {а['текстКегль']})")
+    # Содержание статьи: кнопка в строке версии, панель справа с разделами,
+    # нажатие ведёт к разделу и отмечает его, Esc и уход в другую главу закрывают.
+    к2 = к.locator("#ch-art-print .art-toc-btn")
+    if not к2.count():
+        плохо(f"{н} у статьи нет кнопки «Содержание»")
+    else:
+        кн = т.evaluate("""() => { const б = document.querySelector('#ch-art-print .art-toc-btn'), м = document.querySelector('#ch-art-print .art-meta');
+          const р = б.getBoundingClientRect(), рм = м.getBoundingClientRect(), к = document.querySelector('#ch-art-print').getBoundingClientRect();
+          return { выс: Math.round(р.height), зазор: Math.round(р.top >= рм.bottom - 1 ? 99 : р.left - рм.right), внутри: р.right <= к.right + 1 && р.left >= к.left - 1,
+            ряд: б.parentElement.className }; }""")
+        if кн["выс"] < 30 or кн["ряд"] != "art-bar" or not кн["внутри"] or кн["зазор"] < 8:
+            плохо(f"{н} кнопка «Содержание»: {кн}")
+        к2.click(); стр.wait_for_timeout(500)
+        пан = т.evaluate("""() => { const п = document.getElementById('artToc'); if (!п) return null; const р = п.querySelector('.art-toc-panel').getBoundingClientRect();
+          return { открыт: п.classList.contains('open'), пр: Math.round(р.right), лев: Math.round(р.left), шир: Math.round(р.width), W: innerWidth,
+            пункты: [...п.querySelectorAll('.art-toc-a')].map(а => а.textContent.replace(/\\s+/g, '')),
+            разделы: [...document.querySelectorAll('#ch-art-print .sec')].map(с => с.textContent.replace(/\\s+/g, '')),
+            заголовок: (п.querySelector('.art-toc-h') || {}).textContent }; }""")
+        if not пан or not пан["открыт"] or пан["шир"] < 200 or пан["пр"] > пан["W"] + 1 or пан["лев"] < 0:
+            плохо(f"{н} панель содержания не открылась справа: {пан}")
+        elif пан["пункты"] != пан["разделы"] or len(пан["пункты"]) < 5 or пан["заголовок"] != "Как печатать документы":
+            плохо(f"{н} пункты содержания не совпали с разделами: {пан['пункты']} / {пан['разделы']} / {пан['заголовок']}")
+        else:
+            стр.screenshot(path=str(СНИМКИ / f"manual-art-toc-{ш}.png"))
+            к.locator("#artToc .art-toc-a").nth(4).click(); стр.wait_for_timeout(1200)
+            пос = т.evaluate("""() => { const с = document.querySelectorAll('#ch-art-print .sec')[4].getBoundingClientRect().top;
+              const он = [...document.querySelectorAll('#artToc .art-toc-a')].findIndex(а => а.classList.contains('on'));
+              return { верх: Math.round(с), он, открыт: document.getElementById('artToc').classList.contains('open') }; }""")
+            if not (0 <= пос["верх"] <= 60) or (ш > 720 and пос["он"] != 4) or (ш <= 720) == пос["открыт"]:
+                плохо(f"{н} пункт «5.» не привёл к разделу или не отмечен: {пос}")
+            if ш > 720:
+                стр.keyboard.press("Escape"); стр.wait_for_timeout(300)
+                if т.evaluate("() => document.getElementById('artToc').classList.contains('open')"):
+                    плохо(f"{н} Esc не закрыл содержание")
+            т.evaluate("() => window.scrollTo(0, 0)"); стр.wait_for_timeout(300)
+            к2.click(); стр.wait_for_timeout(400)
+            т.evaluate("() => go('overview')"); стр.wait_for_timeout(300)
+            if т.evaluate("() => document.getElementById('artToc').classList.contains('open')"):
+                плохо(f"{н} содержание осталось открытым в другой главе")
+            т.evaluate("() => go('art-print')"); стр.wait_for_timeout(500)
     стр.screenshot(path=str(СНИМКИ / f"manual-art-print-{ш}.png"))
     for о in [о for о in ош if not any(ш_ in о for ш_ in д.ШУМ)][:3]:
         плохо(f"{н} ошибка страницы: {о[:160]}")
