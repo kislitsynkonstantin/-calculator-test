@@ -40107,7 +40107,7 @@ function лентаЧата(о) {
     // chat-tap-guard-v2); «выполнено» остаётся словом.
     const метки = сделано ? '<span class="pc-cht pc-cht-ok">выполнено</span>' : '';
     const отл = отложеннаяОтметкаЧата(с.id);
-    // «Отменить» стоит у той кнопки, которую нажали: у «В проверку» или у
+    // «Отменить» стоит у той кнопки, которую нажали: у «В правки» или у
     // «Выполнено» (Константин, 19.10.2026: «„Выполнено“ когда тоже нажимаешь,
     // чтобы также как „В правки“ висела немного отменить кнопка»). У своего
     // сообщения строка прижата вправо — «Отменить» встаёт слева от кнопки, у
@@ -40129,7 +40129,14 @@ function лентаЧата(о) {
       + (с.__сбой ? строкаСбояЧата(ид) : с.__шлётся ? '' : '<div class="pc-chact">'
       + '<button type="button" data-act="ch-reply" data-mid="' + ид + '">' + ЗНАЧОК_ОТВЕТ + '<span class="pc-chtx">Ответить</span></button>'
       + (мой ? уФлага : '')
-      + '<button type="button" class="pc-chflag" data-act="ch-flag" data-mid="' + ид + '" aria-pressed="' + вПравках + '" title="' + (вПравках ? 'Убрать из проверки' : 'Отправить в проверку') + '">' + ЗНАЧОК_В_ПРАВКИ + 'В проверку</button>'
+      // До нажатия — «В правки», после — «Проверка», у выполненной правки
+      // флажок залит (Константин, 19.10.2026: «до нажатия „В правки“. После
+      // нажатия назови „Проверка“ и когда выполнено, флажок закрашивай»).
+      // Обе подписи лежат в одной клетке, видна одна: ширина кнопки от
+      // нажатия не меняется, и «Выполнено» рядом не сдвигается под пальцем.
+      + '<button type="button" class="pc-chflag" data-act="ch-flag" data-mid="' + ид + '" aria-pressed="' + вПравках + '"' + (сделано ? ' data-done="1"' : '')
+      + ' title="' + (вПравках ? 'Убрать из проверки' : 'Отправить в проверку') + '">' + ЗНАЧОК_В_ПРАВКИ
+      + '<span class="pc-chfw" data-on="' + (вПравках ? 1 : 0) + '"><span>В правки</span><span>Проверка</span></span></button>'
       + (мой ? '' : уФлага)
       + (мой ? уГалки : '')
       + '<button type="button" class="pc-chdone" data-act="ch-done" data-mid="' + ид + '" aria-pressed="' + сделано + '">' + ЗНАЧОК_ГАЛКА + '<span class="pc-chtx">Выполнено</span></button>'
@@ -52605,6 +52612,10 @@ body.dark,body.ui-blank.dark{--pc-bub:rgba(255,255,255,.07)}
 .pc-card .pc-chm:not(.me) .pc-chact.pc-chtight .pc-chdone,
 .pc-card .pc-chm.me .pc-chact.pc-chtight [data-act="ch-reply"]{min-width:24px;justify-content:center}
 .pc-card .pc-chact .pc-chflag[aria-pressed="true"]{background:var(--pc-warm-tint);color:var(--pc-warm-ink)}
+.pc-card .pc-chfw{display:inline-grid}
+.pc-card .pc-chfw > span{grid-area:1/1}
+.pc-card .pc-chfw[data-on="1"] > span:first-child,.pc-card .pc-chfw[data-on="0"] > span:last-child{visibility:hidden}
+.pc-card .pc-chact .pc-chflag[data-done] svg path:last-child{fill:currentColor}
 .pc-card .pc-chact .pc-chdone[aria-pressed="true"]{color:var(--pc-acc);font-weight:600}
 /* «Отменить» у значка «Отразить в правках»: 3 секунды и гаснет. Отсчёт
    держит задержка анимации — перерисовка ленты его не начинает заново. */
