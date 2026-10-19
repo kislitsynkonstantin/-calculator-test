@@ -22,7 +22,7 @@ from playwright.sync_api import sync_playwright
 
 НАХОДКИ = []
 
-ПЛАН = """(цены) => { const c = { id: 1, payments: [{ pct: 30, label: 'Аванс по договору' }, { pct: 0, label: 'Платёж за фундамент', foundationFixed: true },
+ПЛАН = """(цены) => { const c = { id: 1, payments: [{ pct: 30, label: 'Задаток по договору' }, { pct: 0, label: 'Платёж за фундамент', foundationFixed: true },
     { pct: 40, label: 'При заезде бригады' }, { pct: 15, label: 'По завершении каркасных работ' },
     { pct: 7, label: 'По завершении кровельных работ', roofAdjusted: true }, { pct: 0, label: 'По завершении утепления и плёнок' }] };
   const был = window.ppGetFoundationAmt, сохр = ppState[1];
