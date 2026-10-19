@@ -9886,6 +9886,9 @@ body:not(.ui-blank) #printStyleDropMenu button.active {
    (Константин, 02.10.2026). Пункт приглушён и не подсвечивается под курсором;
    строка под названием говорит, когда он откроется. */
 #previewEntityMenu .ent-name { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+/* Значок пункта не сжимается: у «Согласия на обработку данных» название
+   в две строки, и значок ужимался, сдвигая название влево от соседних. */
+#previewEntityMenu button > svg { flex-shrink: 0; }
 #previewEntityMenu .ent-lock { display: none; font-size: .66rem; line-height: 1.3; opacity: .8; white-space: nowrap; }
 #previewEntityMenu button.ent-locked { cursor: default !important; }
 #previewEntityMenu button.ent-locked .ent-lock { display: block; }
