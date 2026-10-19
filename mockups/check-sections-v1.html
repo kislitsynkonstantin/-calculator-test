@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Разделы «Проверки»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Geologica:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Макет: как отделить разделы вкладки «Проверка» мини-окна. Учебные данные,
+   тон «Зелёный-графит». Три варианта на одном содержимом. */
+:root{
+  --page:#f3f5f1;--sheet:#fff;--ink:#1d211a;--ink2:#5c6457;--ink3:#8b9386;
+  --rule:#e2e6de;--rule2:#ccd3c6;--acc:#6daa34;--acc-ink:#4f7d26;--tint:#eef5e5;--tint2:#f5f7f2;
+  --warm:#9a6412;--warm-tint:#fbf3e4;--shadow:0 12px 34px rgba(29,33,26,.14);
+}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Geologica',system-ui,sans-serif;background:var(--page);color:var(--ink);line-height:1.45;-webkit-text-size-adjust:100%}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 64px}
+.eyebrow{font-size:.66rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--acc-ink)}
+h1{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.5rem;line-height:1.2;margin:6px 0 10px}
+.lead{color:var(--ink2);max-width:760px;font-size:.92rem}
+.lead + .lead{margin-top:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:28px 22px;margin-top:26px;align-items:start}
+@media (max-width:420px){.grid{grid-template-columns:minmax(0,1fr)}}
+.v-h{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.86rem;margin-bottom:4px}
+.v-h .n{color:var(--acc-ink);margin-right:6px}
+.v-d{font-size:.78rem;color:var(--ink2);margin-bottom:12px;min-height:4.4em}
+
+/* ── Мини-окно, общее ── */
+.win{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);padding:14px 16px 16px;max-width:380px}
+.w-k{font-size:.58rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.w-nm{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.84rem;margin-top:2px;line-height:1.3}
+.w-nm small{font-family:'Geologica',sans-serif;font-weight:500;font-size:.68rem;color:var(--ink2);margin-left:4px}
+.tabs{display:flex;gap:12px;margin-top:10px;border-bottom:1px solid var(--rule)}
+.tab{height:32px;display:flex;align-items:center;gap:5px;font-size:.72rem;font-weight:500;color:var(--ink2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.on{color:var(--ink);font-weight:600;border-bottom-color:var(--acc)}
+.cnt{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 5px;border-radius:9px;background:var(--warm-tint);color:var(--warm);font-size:.6rem;font-weight:600}
+.ok{display:flex;gap:8px;background:var(--tint);border-radius:12px;padding:10px 12px;margin-top:12px;font-size:.78rem;color:var(--acc-ink)}
+.ok b{font-weight:600}
+.sign{display:block;width:100%;height:40px;margin-top:10px;border:1px solid var(--rule2);border-radius:10px;background:var(--sheet);font:inherit;font-weight:600;font-size:.82rem;color:var(--ink)}
+.small{font-size:.72rem;color:var(--ink3);margin-top:6px}
+
+/* Пункты — одинаковые во всех вариантах. */
+.it{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;padding:9px 0;border-top:1px solid var(--rule)}
+.it:first-child{border-top:0}
+.box{width:20px;height:20px;border-radius:5px;box-shadow:inset 0 0 0 1.5px var(--rule2);margin-top:1px}
+.box.on{background:var(--acc);box-shadow:none;display:flex;align-items:center;justify-content:center;color:#fff}
+.it .t{font-size:.8rem}
+.it.done .t{color:var(--ink3);text-decoration:line-through}
+.it .m{font-size:.68rem;color:var(--ink3);margin-top:1px}
+.after{margin-top:6px;background:var(--tint2);border-radius:8px;padding:7px 9px;font-size:.72rem;color:var(--ink2)}
+.ck{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--rule);font-size:.8rem}
+.ck:first-child{border-top:0}
+.ck small{display:block;color:var(--acc-ink);font-weight:600;font-size:.7rem;margin-top:2px}
+.ck.warm{border:0;background:var(--warm-tint);color:var(--warm);border-radius:10px;padding:9px 11px;margin-top:6px}
+.chev{flex:none;color:var(--ink3)}
+.hide{display:none}
+
+/* ── Вариант 0: как сейчас ── */
+.v0 .grp{display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;padding-bottom:5px;border-bottom:1px solid var(--rule);font-size:.56rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+.v0 .grp span:last-child{letter-spacing:.04em}
+.v0 .sub{font-size:.7rem;color:var(--ink3);margin-top:6px}
+
+/* ── Вариант 1: заголовок раздела, как в спецификации ── */
+.v1 .sec{display:flex;align-items:center;gap:8px;margin-top:22px;padding-bottom:7px;border-bottom:2px solid var(--acc);cursor:pointer}
+.v1 .sec h4{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.8rem;flex:1;min-width:0}
+.v1 .pill{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:10px;font-size:.66rem;font-weight:600;background:var(--warm-tint);color:var(--warm);white-space:nowrap}
+.v1 .pill.calm{background:var(--tint);color:var(--acc-ink)}
+.v1 .rb{position:relative;width:28px;height:28px;border:0;border-radius:50%;background:none;display:flex;align-items:center;justify-content:center;color:var(--ink2);cursor:pointer}
+.v1 .rb::before{content:'';position:absolute;inset:-8px -4px}
+.v1 .meta{font-size:.7rem;color:var(--ink3);margin-top:6px}
+.v1 .sec.closed .rb.fold svg{transform:rotate(-90deg)}
+
+/* ── Вариант 2: каждый раздел — своя карточка ── */
+.v2 .card{margin-top:14px;background:var(--tint2);border:1px solid var(--rule);border-radius:14px;padding:4px 12px 8px}
+.v2 .card.ok-card{background:var(--tint);border-color:#d6e8c1}
+.v2 .ch{display:flex;align-items:center;gap:8px;padding:8px 0 8px;cursor:pointer}
+.v2 .ch h4{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.76rem;flex:1;min-width:0}
+.v2 .pill{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:10px;font-size:.66rem;font-weight:600;background:var(--warm-tint);color:var(--warm);white-space:nowrap}
+.v2 .pill.calm{background:var(--sheet);color:var(--acc-ink)}
+.v2 .body{background:var(--sheet);border-radius:10px;padding:2px 10px;margin-bottom:4px}
+.v2 .meta{font-size:.68rem;color:var(--ink3);padding:0 2px 6px}
+.v2 .card.closed .body,.v2 .card.closed .meta,.v2 .card.closed .after-note{display:none}
+.v2 .card.closed .chev{transform:rotate(-90deg)}
+.v2 .after-note{font-size:.7rem;color:var(--ink3);padding:4px 2px 2px}
+
+/* ── Вариант 3: переключатель разделов ── */
+.v3 .seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:14px;padding:3px;background:var(--tint2);border:1px solid var(--rule);border-radius:12px}
+.v3 .seg button{position:relative;height:36px;border:0;border-radius:9px;background:none;font:inherit;font-size:.76rem;font-weight:500;color:var(--ink2);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
+.v3 .seg button::before{content:'';position:absolute;inset:-4px 0}
+.v3 .seg button[aria-pressed="true"]{background:var(--sheet);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(29,33,26,.12)}
+.v3 .meta{font-size:.7rem;color:var(--ink3);margin:10px 0 2px}
+
+/* ── Рекомендация ── */
+.rec{margin-top:36px;background:var(--sheet);border:1px solid var(--rule);border-radius:14px;padding:18px 20px}
+.rec h3{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.86rem;margin-bottom:8px}
+.rec p,.rec li{font-size:.86rem;color:var(--ink2)}
+.rec p + p{margin-top:8px}
+.rec ul{padding-left:18px;margin-top:6px}
+.rec li + li{margin-top:4px}
+.rec b{color:var(--ink);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Макет · учебные данные · 19.10.2026</div>
+  <h1>Разделы вкладки «Проверка»</h1>
+  <p class="lead">Сейчас «Правки из чата» и «Автоматическая проверка» подписаны тем же мелким серым капсом, что и все подписи в окне, а под ними одинаковые строки — глазу не за что зацепиться, где кончается один раздел и начинается другой. Ниже — как сейчас и три варианта на том же содержимом, шириной телефона. Стрелки и переключатель нажимаются.</p>
+  <p class="lead">Во всех вариантах у раздела вместо «9 из 11» — сколько осталось сделать: это то, ради чего вкладку открывают. Сделанное — мелкой строкой под заголовком.</p>
+
+  <div class="grid">
+    <!-- Как сейчас -->
+    <div>
+      <div class="v-h"><span class="n">0.</span>Как сейчас</div>
+      <div class="v-d">Для сравнения: заголовки разделов не отличаются от прочих подписей.</div>
+      <div class="win v0">
+        <div class="w-k">Мой пресет</div>
+        <div class="w-nm">Хай-тек баня «Виго» 7,7×8,2 · 25.09.26<small>код 321 910</small></div>
+        <div class="tabs"><div class="tab">Пресет</div><div class="tab">Сводка</div><div class="tab">Журнал</div><div class="tab on">Проверка <span class="cnt">4</span></div><div class="tab">Чат</div></div>
+        <div class="ok"><span>✓</span><span><b>Согласовано</b> сегодня в 17:57 · 7 177 455 ₽ · за всех — Константин К. Договор можно печатать.</span></div>
+        <button class="sign">Подписан</button>
+        <div class="small">Нажмите «Подписан», когда договор подписан.</div>
+        <div class="grp"><span>Правки из чата</span><span>9 из 11</span></div>
+        <div class="list-chat"></div>
+        <div class="sub">Потяните правку влево за корзину — она уйдёт из проверки.</div>
+        <div class="grp"><span>Автоматическая проверка</span><span>2</span></div>
+        <div class="list-auto"></div>
+      </div>
+    </div>
+
+    <!-- Вариант 1 -->
+    <div>
+      <div class="v-h"><span class="n">1.</span>Заголовок раздела</div>
+      <div class="v-d">Как разделы спецификации: название шрифтом заголовков, зелёная черта под ним, воздух сверху. Счёт — плашкой.</div>
+      <div class="win v1">
+        <div class="w-k">Мой пресет</div>
+        <div class="w-nm">Хай-тек баня «Виго» 7,7×8,2 · 25.09.26<small>код 321 910</small></div>
+        <div class="tabs"><div class="tab">Пресет</div><div class="tab">Сводка</div><div class="tab">Журнал</div><div class="tab on">Проверка <span class="cnt">4</span></div><div class="tab">Чат</div></div>
+        <div class="ok"><span>✓</span><span><b>Согласовано</b> сегодня в 17:57 · 7 177 455 ₽ · за всех — Константин К. Договор можно печатать.</span></div>
+        <button class="sign">Подписан</button>
+        <div class="small">Нажмите «Подписан», когда договор подписан.</div>
+        <div class="sec" data-fold><h4>Правки из чата</h4><span class="pill">2 осталось</span><button class="rb" aria-label="Скрыть выполненные"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="rb fold" aria-label="Свернуть"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></button></div>
+        <div class="meta">9 из 11 выполнено</div>
+        <div class="list-chat"></div>
+        <div class="sec" data-fold><h4>Автоматическая проверка</h4><span class="pill">2</span><button class="rb fold" aria-label="Свернуть"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></button></div>
+        <div class="meta">1 замечание по чек-листу</div>
+        <div class="list-auto"></div>
+      </div>
+    </div>
+
+    <!-- Вариант 2 -->
+    <div>
+      <div class="v-h"><span class="n">2.</span>Карточки</div>
+      <div class="v-d">Каждый раздел — своя карточка на сером, пункты на белом внутри. Свёрнутая карточка — одна строка.</div>
+      <div class="win v2">
+        <div class="w-k">Мой пресет</div>
+        <div class="w-nm">Хай-тек баня «Виго» 7,7×8,2 · 25.09.26<small>код 321 910</small></div>
+        <div class="tabs"><div class="tab">Пресет</div><div class="tab">Сводка</div><div class="tab">Журнал</div><div class="tab on">Проверка <span class="cnt">4</span></div><div class="tab">Чат</div></div>
+        <div class="card ok-card"><div class="ch"><h4>Согласование</h4><span class="pill calm">согласовано</span></div>
+          <div class="body" style="padding:10px"><div style="font-size:.78rem;color:var(--acc-ink)">Сегодня в 17:57 · 7 177 455 ₽ · за всех — Константин К. Договор можно печатать.</div><button class="sign">Подписан</button><div class="small">Нажмите «Подписан», когда договор подписан.</div></div></div>
+        <div class="card" data-card><div class="ch"><h4>Правки из чата</h4><span class="pill">2 осталось</span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></div>
+          <div class="meta">9 из 11 выполнено</div><div class="body list-chat"></div><div class="after-note">Потяните правку влево за корзину — она уйдёт из проверки.</div></div>
+        <div class="card" data-card><div class="ch"><h4>Автоматическая проверка</h4><span class="pill">2</span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></div>
+          <div class="meta">1 замечание по чек-листу</div><div class="body list-auto"></div></div>
+      </div>
+    </div>
+
+    <!-- Вариант 3 -->
+    <div>
+      <div class="v-h"><span class="n">3.</span>Переключатель</div>
+      <div class="v-d">Под согласованием — переключатель: на экране один раздел. Короче всего, но второй раздел не виден, пока его не выбрать.</div>
+      <div class="win v3">
+        <div class="w-k">Мой пресет</div>
+        <div class="w-nm">Хай-тек баня «Виго» 7,7×8,2 · 25.09.26<small>код 321 910</small></div>
+        <div class="tabs"><div class="tab">Пресет</div><div class="tab">Сводка</div><div class="tab">Журнал</div><div class="tab on">Проверка <span class="cnt">4</span></div><div class="tab">Чат</div></div>
+        <div class="ok"><span>✓</span><span><b>Согласовано</b> сегодня в 17:57 · 7 177 455 ₽ · за всех — Константин К. Договор можно печатать.</span></div>
+        <button class="sign">Подписан</button>
+        <div class="seg"><button aria-pressed="true" data-s="chat">Правки из чата <span class="cnt">2</span></button><button aria-pressed="false" data-s="auto">Проверка <span class="cnt">2</span></button></div>
+        <div data-p="chat"><div class="meta">9 из 11 выполнено</div><div class="list-chat"></div></div>
+        <div data-p="auto" class="hide"><div class="meta">1 замечание по чек-листу</div><div class="list-auto"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rec">
+    <h3>Предлагаю вариант 1</h3>
+    <p><b>Заголовок раздела</b> говорит тем же языком, что спецификация: название шрифтом заголовков и зелёная черта под ним сразу читаются как «здесь начинается новое». Окно не становится тяжелее, а оба раздела видны целиком — ничего не прячется.</p>
+    <p>Карточки (вариант 2) разделяют сильнее всего, но на телефоне съедают ширину: каждая отнимает поля по бокам у и без того узкого окна. Переключатель (вариант 3) самый короткий, но замечание автоматической проверки можно не заметить, если открыт раздел правок.</p>
+    <ul>
+      <li>Счёт у раздела — сколько <b>осталось</b>: «2 осталось» тёплой плашкой; когда всё сделано — зелёной «всё сделано».</li>
+      <li>Сделанное — мелкой строкой под заголовком: «9 из 11 выполнено».</li>
+      <li>Глаз и стрелка — по 28 px, с полем нажатия 44 px, на расстоянии друг от друга: сейчас глаз стоит вплотную к стрелке.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+// Пункты разделов — одни и те же во всех вариантах.
+const ГАЛКА = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12.5l5 5L20 6.5"/></svg>';
+const чат = '<div class="it"><span class="box"></span><div><div class="t">Тест-2 в чате</div><div class="m">Вы · 17 октября, 22:13</div><div class="after">После правки: добавлено «Каркас внутренних перегородок» и ещё 14; убрано «Материал чистового пола» и ещё 23; текст договора изменён.</div></div></div>'
+  + '<div class="it"><span class="box"></span><div><div class="t">Убрать вальмовую кровлю — у проекта двускатная</div><div class="m">Ольга П. · Сегодня, 17:15</div></div></div>'
+  + '<div class="it done"><span class="box on">' + ГАЛКА + '</span><div><div class="t">ТЗ на строительство по расчёту — файл Word для правки</div><div class="m">Вы · Вчера, 21:30</div></div></div>'
+  + '<div class="it done"><span class="box on">' + ГАЛКА + '</span><div><div class="t">Поправить водосточку</div><div class="m">Анатолий Ш. · Сегодня, 17:58</div></div></div>';
+const авто = '<div class="ck"><span>Основной договор: изменено 2 пункта — сверить с типовым<small>Договор</small></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="9 6 15 12 9 18"/></svg></div>'
+  + '<div class="ck warm"><span>Проверить габариты планировки</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="9 6 15 12 9 18"/></svg></div>';
+document.querySelectorAll('.list-chat').forEach(э => э.innerHTML = чат);
+document.querySelectorAll('.list-auto').forEach(э => э.innerHTML = авто);
+
+// Вариант 1: стрелка сворачивает раздел до следующего заголовка.
+document.querySelectorAll('.v1 .sec').forEach(з => з.querySelector('.fold').onclick = () => {
+  const закрыт = з.classList.toggle('closed');
+  for (let э = з.nextElementSibling; э && !э.classList.contains('sec'); э = э.nextElementSibling) э.classList.toggle('hide', закрыт);
+});
+// Вариант 1: глаз прячет выполненные.
+document.querySelectorAll('.v1 .sec .rb:not(.fold)').forEach(г => г.onclick = () => {
+  const вкл = г.getAttribute('aria-pressed') !== 'true'; г.setAttribute('aria-pressed', String(вкл)); г.style.color = вкл ? 'var(--acc-ink)' : '';
+  г.closest('.win').querySelectorAll('.v1 .list-chat .it.done').forEach(п => п.classList.toggle('hide', вкл));
+});
+// Вариант 2: шапка карточки сворачивает её.
+document.querySelectorAll('.v2 [data-card] .ch').forEach(ш => ш.onclick = () => ш.parentElement.classList.toggle('closed'));
+// Вариант 3: переключатель.
+document.querySelectorAll('.v3 .seg button').forEach(к => к.onclick = () => {
+  к.parentElement.querySelectorAll('button').forEach(б => б.setAttribute('aria-pressed', String(б === к)));
+  document.querySelectorAll('.v3 [data-p]').forEach(п => п.classList.toggle('hide', п.dataset.p !== к.dataset.s));
+});
+</script>
+</body>
+</html>
