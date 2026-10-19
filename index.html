@@ -38319,6 +38319,8 @@ let _значокРежим = '';          // что значок показыв
 let _значокНадпись = null;      // временная надпись после замка: { текст, до }
 const ЗНАЧОК_ГЛОБУС = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>';
 const ЗНАЧОК_ДИСК = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>';
+const ЗНАЧОК_БОЛЬШЕ = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5"/></svg>';
+const ЗНАЧОК_МЕНЬШЕ = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10h-6V4M4 14h6v6M14 10l6.5-6.5M10 14l-6.5 6.5"/></svg>';
 const ЗНАЧОК_КРЕСТ = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const ЗНАЧОК_СПИСОК = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>';
 // Замок значка — тот же рисунок, что на карточках пресетов (значокЗамка): у
@@ -38765,6 +38767,30 @@ function авторКратко(sp) {
   const ч = полное.split(/\s+/);
   return ч.length < 2 ? полное : ч[0] + ' ' + ч[1].charAt(0) + '.';
 }
+// Мини-окно с вкладками увеличивается кнопкой у крестика (Константин,
+// 19.10.2026: «Добавь кнопку „Увеличить/уменьшить“ на мини-окно, чтобы
+// менялось. На телефоне по размеру экрана вот до этой области. А на компьютере
+// сам прикинь, чтобы читалось нормально»). На телефоне большое окно — во всю
+// ширину, от панели кнопок до полоски итога; на компьютере — 600 px в ширину и
+// до 760 в высоту. Выбор помнится в этом браузере.
+let _пкБольшое = false;
+try { _пкБольшое = localStorage.getItem('banya_pc_big') === '1'; } catch (e) {}
+function переключитьРазмерКарточки() {
+  _пкБольшое = !_пкБольшое;
+  try { localStorage.setItem('banya_pc_big', _пкБольшое ? '1' : '0'); } catch (e) {}
+  if (_пкВкладка === 'm') _чатВниз = true;
+  заполнитьКарточкуЗначка();
+  const б = document.querySelector('#presetChipCard .pc-big'); if (б) б.focus();
+}
+// Верх большого окна — под прилипшей панелью кнопок: она лежит выше окна и
+// закрыла бы его шапку.
+function местоБольшогоОкна() {
+  const п = document.getElementById('headerBtns');
+  const верх = п && п.classList.contains('sticky') ? Math.round(п.getBoundingClientRect().bottom) + 8 : 12;
+  document.body.style.setProperty('--pc-big-top', верх + 'px');
+}
+window.addEventListener('scroll', () => { if (_пкБольшое && document.body.classList.contains('pc-card-open')) местоБольшогоОкна(); }, { passive: true });
+window.addEventListener('resize', () => { if (_пкБольшое) местоБольшогоОкна(); });
 function переключитьКарточкуЗначка() {
   const { к } = элементыЗначка();
   if (к.classList.contains('show')) { закрытьКарточкуЗначка(); return; }
@@ -44174,6 +44200,8 @@ function заполнитьКарточкуЗначка() {
           + (_пкМеню ? '<div class="pc-menu" role="menu"><button type="button" role="menuitem" data-act="unpub">' + ЗНАЧОК_ГЛОБУС_НЕТ + 'Снять с публикации</button></div>' : '')
         : '')
       + '<button class="pc-x" type="button" data-act="close" aria-label="Закрыть">' + ЗНАЧОК_КРЕСТ + '</button>'
+      + '<button class="pc-big" type="button" data-act="big" aria-pressed="' + _пкБольшое + '" aria-label="' + (_пкБольшое ? 'Уменьшить окно' : 'Увеличить окно') + '"'
+      + ' title="' + (_пкБольшое ? 'Уменьшить окно' : 'Увеличить окно') + '">' + (_пкБольшое ? ЗНАЧОК_МЕНЬШЕ : ЗНАЧОК_БОЛЬШЕ) + '</button>'
       // Код — сразу за названием, на любой вкладке: по снимку чата или
       // проверки пресет находится без расспросов (Константин, 18.10.2026:
       // «Код пресета всегда пиши, чтобы был виден на любом скриншоте чата»).
@@ -44189,7 +44217,8 @@ function заполнитьКарточкуЗначка() {
       + панель('l', _пкВкладка === 'l' ? панельЖурналаКарточки(о) : '')
       + панель('c', _пкВкладка === 'c' ? панельПроверкиКарточки(пр) : '')
       + панель('m', _пкВкладка === 'm' ? панельЧатаКарточки() : '');
-    к.className = 'pc-card pc-tabbed' + (о.вид === 'pub' ? ' pc-pub' : '') + (к.classList.contains('show') ? ' show' : '');
+    к.className = 'pc-card pc-tabbed' + (о.вид === 'pub' ? ' pc-pub' : '') + (_пкБольшое ? ' pc-big' : '') + (к.classList.contains('show') ? ' show' : '');
+    if (_пкБольшое) местоБольшогоОкна();
   } else if (режим === 'profile') {
     if (!_пкПрофиль) _пкПрофиль = { фам: '', имя: ((window._sbProfile && _sbProfile.first_name) || '').trim() };
     h = '<button class="pc-x" type="button" data-act="prof-later" aria-label="Закрыть">' + ЗНАЧОК_КРЕСТ + '</button>'
@@ -44270,6 +44299,7 @@ function нажатиеВКарточке(e) {
   const о = (_значокРежим === 'own' || _значокРежим === 'shared') ? пресетКарточки() : null;
   switch (act) {
     case 'close': закрытьКарточкуЗначка(); break;
+    case 'big': переключитьРазмерКарточки(); break;
     case 'later': закрытьКарточкуЗначка(); снятьНапоминаниеСохранить(); break;
     case 'prof-later': _профильПозже = true; закрытьКарточкуЗначка(); break;
     case 'prof-save': сохранитьПрофильИзМиниОкна(); break;
@@ -44426,6 +44456,10 @@ function нажатиеВКарточке(e) {
     }
     case 'ch-flag-undo': отменитьОтметкуЧата(String(кн.getAttribute('data-mid'))); break;
     case 'ch-done': {
+      // Галочка правки во вкладке «Проверка» отмечает сразу — там ею
+      // закрывают правки перед отправкой; ждёт отмены только «Выполнено» в
+      // ленте чата.
+      if (кн.classList.contains('pc-pr-box')) { отметитьВЧате(кн.getAttribute('data-mid'), 'done'); break; }
       const наХоду = _чатКасаниеНаХоду && e.detail > 0;
       _чатКасаниеНаХоду = false;
       if (!наХоду) отразитьВПравкахСОтменой(кн.getAttribute('data-mid'), 'done');
@@ -51854,6 +51888,23 @@ body:has(.custom-select-wrap.open) .pchip{opacity:0!important;pointer-events:non
 .pc-card.show{opacity:1;transform:none;pointer-events:auto;transition:opacity .18s cubic-bezier(.2,.8,.2,1),transform .24s cubic-bezier(.2,.8,.2,1)}
 .pc-card .pc-x{position:absolute;right:8px;top:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:none;color:var(--pc-ink3);cursor:pointer}
 .pc-card .pc-x::before{content:'';position:absolute;inset:-7px}
+.pc-card .pc-big{position:absolute;right:40px;top:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:none;color:var(--pc-ink3);cursor:pointer}
+.pc-card .pc-big::before{content:'';position:absolute;inset:-7px -3px}
+.pc-card.pc-pub .pc-big{right:72px}
+.pc-card.pc-tabbed .pc-nm{padding-right:60px}
+/* Большое окно: шапка и вкладки — сверху, панель вкладки забирает всю высоту. */
+.pc-card.pc-big{display:flex;flex-direction:column;top:max(var(--pc-big-top, 12px), calc(env(safe-area-inset-top) + 12px));
+  --pc-bot:calc(16px + env(safe-area-inset-bottom))}
+body.total-strip-on .pc-card.pc-big{--pc-bot:calc(var(--strip-h, 68px) + 10px)}
+.pc-card.pc-big .pc-pane.on{flex:1 1 auto;min-height:0;max-height:none}
+.pc-card.pc-big #pcPane-m.on{height:auto}
+@media (max-width:899px){.pc-card.pc-big{left:14px;right:14px;width:auto;max-width:none}}
+@media (min-width:900px){.pc-card.pc-big{width:600px;max-width:calc(100vw - 48px);top:max(var(--pc-big-top, 12px), calc(100dvh - var(--pc-bot) - 760px))}
+  /* Вкладки — рядом, а не врассыпную по 600 px; содержимое вкладки — на
+     восьмую крупнее: окно шире, и мелкий кегль маленького окна в нём
+     читается хуже. */
+  .pc-card.pc-big .pc-tabs{justify-content:flex-start;gap:26px}
+  .pc-card.pc-big .pc-pane.on{zoom:1.12}}
 .pc-card .pc-k{font-size:.54rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--pc-ink3)}
 .pc-card .pc-nm{margin-top:4px;padding-right:26px;font-family:'Unbounded',sans-serif;font-weight:700;font-size:.8rem;line-height:1.35;letter-spacing:-.01em;color:var(--pc-ink);white-space:normal}
 .pc-card .pc-nm-code{display:inline-block;margin-left:8px;font-family:'Geologica',sans-serif;font-size:.68rem;font-weight:600;letter-spacing:.02em;color:var(--pc-ink2);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -52031,7 +52082,7 @@ body.dark,body.ui-blank.dark{--pc-down:#e6a27c}
    редкое и карточке не мешает (Константин, 28.09.2026: «этот вариант давай»). */
 .pc-card .pc-more{position:absolute;right:40px;top:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:none;color:var(--pc-ink3);cursor:pointer}
 .pc-card .pc-more::before{content:'';position:absolute;inset:-7px -3px}
-.pc-card.pc-pub .pc-nm{padding-right:60px}
+.pc-card.pc-pub .pc-nm{padding-right:92px}
 .pc-card .pc-menu{position:absolute;right:12px;top:40px;z-index:5;min-width:210px;padding:4px;background:var(--pc-bg);border:1px solid var(--pc-line);border-radius:10px;box-shadow:0 14px 34px rgba(0,0,0,.18)}
 .pc-card .pc-menu button{display:flex;align-items:center;gap:8px;width:100%;height:38px;padding:0 10px;border:0;border-radius:7px;background:none;font:inherit;font-size:.74rem;font-weight:500;color:var(--pc-warm-ink);cursor:pointer;text-align:left}
 /* Подтверждение снятия — тёплое, как предупреждения, а не красное: это не
@@ -52097,7 +52148,7 @@ button.pc-q{display:flex;align-items:center;gap:10px;width:100%;border-top:0;bor
 .pc-card .pc-ck-sub .pc-ck-tx{font-size:.7rem}
 @media (prefers-reduced-motion:reduce){.pc-card .pc-ck-chev svg{transition:none}}
 .pc-card .pc-ck-f{margin-top:10px;font-size:.64rem;line-height:1.45;color:var(--pc-ink3)}
-@media (hover:hover){.pc-card .pc-menu button:hover,.pc-card .pc-more:hover,.pc-card .pc-ck button:hover{background:var(--pc-tint)}.pc-card .pc-tab:hover{color:var(--pc-ink)}}
+@media (hover:hover){.pc-card .pc-big:hover{color:var(--pc-ink);background:var(--pc-tint)}.pc-card .pc-menu button:hover,.pc-card .pc-more:hover,.pc-card .pc-ck button:hover{background:var(--pc-tint)}.pc-card .pc-tab:hover{color:var(--pc-ink)}}
 /* Правки из чата во вкладке «Проверка» — над автоматическими пунктами,
    галочкой «Выполнено» (вариант Б макета approval-flow-v1). Поле нажатия
    галочки — 44 px невидимым полем, сама она рисуется в 18. */

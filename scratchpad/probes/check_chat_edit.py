@@ -188,7 +188,7 @@ def прогон(бр, порт, ш, в, полный):
     if not было or стало:
         плохо(f"{н} «Изменить» по сроку: было {было}, через срок {стало}")
     # ── галочка правки: журнал и строка в чате ──
-    стр.locator("#presetChipCard .pc-chm[data-mid='a0000000-0000-4000-8000-000000000001'] [data-act='ch-done']").click(); стр.wait_for_timeout(700)
+    стр.locator("#presetChipCard .pc-chm[data-mid='a0000000-0000-4000-8000-000000000001'] [data-act='ch-done']").click(); стр.wait_for_timeout(3700)
     с = стр.evaluate("""(код) => { const е = (window.__ТАБЛИЦЫ.events || []).filter(х => х.event_type === 'review_done').slice(-1)[0];
       const ст = [...document.querySelectorAll('#presetChipCard .pc-chev')].map(х => х.innerText.replace(/\\s+/g, ' ').trim());
       return { журнал: е ? { код: String(е.details && е.details.presetCode), что: е.details && е.details.obj } : null, строки: ст,
@@ -215,7 +215,7 @@ def прогон(бр, порт, ш, в, полный):
     if not стр.evaluate("() => { const м_ = document.querySelector('#presetChipCard .pc-chm[data-mid=\"a0000000-0000-4000-8000-000000000001\"]'); return !!м_ && м_.classList.contains('pc-chm-flash'); }"):
         плохо(f"{н} строка-событие не привела к правке")
     # Снятие галочки.
-    стр.locator("#presetChipCard .pc-chm[data-mid='a0000000-0000-4000-8000-000000000001'] [data-act='ch-done']").click(); стр.wait_for_timeout(700)
+    стр.locator("#presetChipCard .pc-chm[data-mid='a0000000-0000-4000-8000-000000000001'] [data-act='ch-done']").click(); стр.wait_for_timeout(3700)
     с = стр.evaluate("""() => ({ журнал: (window.__ТАБЛИЦЫ.events || []).some(х => х.event_type === 'review_reopened'),
       строка: [...document.querySelectorAll('#presetChipCard .pc-chev')].some(х => /Правка снова открыта: «Вальмовую кровлю убрать\\.»/.test(х.innerText)) })""")
     if not с["журнал"] or not с["строка"]:
