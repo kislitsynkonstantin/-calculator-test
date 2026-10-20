@@ -10934,10 +10934,12 @@ function входПоказатьКто() {
        пресеты, только разложенные по состоянию после отправки на согласование
        (макет mockups/done/kanban-v2.html, одобрен Константином 20.10.2026: «всё
        супер, внедряй макет»). Число на кнопке — карточки, которые ждут
-       действия того, кто смотрит. -->
+       действия того, кто смотрит. Значок — рамка со столбцами разной высоты
+       (макет mockups/board-icon-v1.html, вариант Б, Константин 20.10.2026:
+       «Эти делай»): прежние три свисающие полоски путались со статистикой. -->
   <button class="btn-hide-global btn-icon" id="boardBtn" onclick="открытьДоску()" title="Доска пресетов" aria-label="Доска пресетов">
     <span style="position:relative;display:inline-flex;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1.2"/><rect x="10" y="4" width="5" height="11" rx="1.2"/><rect x="17" y="4" width="4" height="7" rx="1.2"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M8 7.5v7"/><path d="M12 7.5v4"/><path d="M16 7.5v9"/></svg>
       <span id="boardCnt" class="dsk-btn-cnt" hidden></span>
     </span>
   </button>
@@ -11115,7 +11117,7 @@ function входПоказатьКто() {
   <div id="boardPanel" role="dialog" aria-modal="true" aria-label="Доска пресетов">
     <div class="ovl-head">
       <div class="ovl-title">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1.2"/><rect x="10" y="4" width="5" height="11" rx="1.2"/><rect x="17" y="4" width="4" height="7" rx="1.2"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M8 7.5v7"/><path d="M12 7.5v4"/><path d="M16 7.5v9"/></svg>
         <span>Доска пресетов</span>
       </div>
       <button class="ovl-x" onclick="закрытьДоску()" title="Закрыть" aria-label="Закрыть">
@@ -38683,7 +38685,7 @@ function элементыЗначка() {
       if (e.target && e.target.id === 'pcFirst' && e.key === 'Enter') { e.preventDefault(); сохранитьПрофильИзМиниОкна(); return; }
       const т = e.target.closest ? e.target.closest('.pc-tab') : null;
       if (!т || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
-      const все = ['p', 's', 'l', 'c', 'm'];
+      const все = ['p', 'l', 'c', 'm'];
       const н = (все.indexOf(т.getAttribute('data-tab')) + (e.key === 'ArrowRight' ? 1 : все.length - 1)) % все.length;
       e.preventDefault();
       const след = к.querySelector('#pcTab-' + все[н]); if (след) след.click();
@@ -39138,7 +39140,7 @@ function переключитьКарточкуЗначка() {
   const т = з && з.querySelector('.pc-body'); if (т) т.setAttribute('aria-expanded', 'true');
   if (_значокРежим === 'own' || _значокРежим === 'shared') {
     if (_пкВкладка === 'l') загрузитьЖурналПресета();
-    if (_пкВкладка === 's') загрузитьСводкуПресета();
+    if (_пкВкладка === 'p') загрузитьСводкуПресета();
     if (_пкВкладка === 'm') _чатВниз = true;
     // Чат — с любой вкладки: правки из него стоят в «Проверке», а
     // непрочитанное — числом на вкладке «Чат».
@@ -39166,7 +39168,7 @@ function закрытьКарточкуЗначка() {
    Перерисовка идёт по состоянию, а не по событию: карточку зовут из десятка
    мест (замок, очередь, публикация, список), и если разметка не изменилась,
    она не трогается — иначе сбивались бы прокрутка журнала и фокус. */
-let _пкВкладка = 'p';      // p — пресет, s — сводка, l — журнал, c — проверка, m — чат
+let _пкВкладка = 'p';      // p — пресет со сводкой, l — журнал, c — проверка, m — чат
 let _пкМеню = false;       // открыто меню «⋯»
 let _пкПодтв = false;      // идёт подтверждение снятия с публикации
 let _пкПресет = '';        // для какого пресета нарисована карточка
@@ -39193,11 +39195,18 @@ function плашкаПодписиПресета() {
     + '<span><b>Договор подписан</b> ' + escapeHtml(строкаСогласования([когдаСогласования(а.signed_at), а.signed_name ? имяКратко(а.signed_name) : '']))
     + ' — пресет закрыт для правок</span></div>';
 }
+// Вкладки «Пресет» и «Сводка» сведены в одну (макет mockups/preset-tab-merge-v1.html,
+// вариант А, Константин 20.10.2026: «Эти делай»): сверху — где пресет и в каком
+// он состоянии, ниже — сводка, а кнопки стоят внизу окна (низПресетаКарточки)
+// и не уезжают, пока полотно листается.
 function панельПресетаКарточки(о) {
-  const h = панельПресетаБезПодписи(о), пл = плашкаПодписиПресета();
-  if (!пл) return h;
-  const конец = h.indexOf('</div>');
-  return конец === -1 ? пл + h : h.slice(0, конец + 6) + пл + h.slice(конец + 6);
+  const h = панельПресетаБезПодписи(о).верх, пл = плашкаПодписиПресета();
+  const сверху = !пл ? h : (() => { const конец = h.indexOf('</div>'); return конец === -1 ? пл + h : h.slice(0, конец + 6) + пл + h.slice(конец + 6); })();
+  return сверху + (_пкПодтв ? '' : '<div class="pc-sv-in">' + панельСводкиКарточки(о) + '</div>');
+}
+function низПресетаКарточки(о) {
+  const н = панельПресетаБезПодписи(о).низ;
+  return н ? '<div class="pc-row pc-foot">' + н + '</div>' : '';
 }
 function панельПресетаБезПодписи(о) {
   const звездаВкл = о.где === 'мои' ? !!(о.p && о.p.starred) : _sharedStars.has(о.код);
@@ -39209,13 +39218,11 @@ function панельПресетаБезПодписи(о) {
   let h = '';
   if (о.вид === 'own') {
     const дата = датаКарточки(о.p.savedAt);
-    h += '<div class="pc-meta">' + (дата ? 'Сохранён <b>' + escapeHtml(дата) + '</b>' : 'Сохранён')
-      + (о.код ? ' · код ' + кодМиниОкна(о.код) : '') + '</div>'
-      + (о.здесь ? связи
-        : '<div class="pc-st">' + значокРазмером(ЗНАЧОК_В_БАЗЕ, 14) + '<span>Сохранён в облаке — в «Общих» его нет</span></div>')
-      + '<div class="pc-row"><button type="button" class="pc-pri" data-act="publish">' + значокРазмером(ЗНАЧОК_ДЛЯ_ВСЕХ, 14) + 'Опубликовать</button>'
-      + звезда + все + '</div>';
-    return h;
+    // Где сохранён — одной строкой, а не плашкой: код стоит в шапке окна.
+    h += (о.здесь ? связи
+      : '<div class="pc-stl">' + значокРазмером(ЗНАЧОК_В_БАЗЕ, 14) + '<span>' + (дата ? 'Сохранён <b>' + escapeHtml(дата) + '</b>' : 'Сохранён')
+        + '<i aria-hidden="true">·</i>в «Общих» нет</span></div>');
+    return { верх: h, низ: '<button type="button" class="pc-pri" data-act="publish">' + значокРазмером(ЗНАЧОК_ДЛЯ_ВСЕХ, 14) + 'Опубликовать</button>' + звезда + все };
   }
   if (о.вид === 'other') {
     const поКоду = открытПоКоду(о.sp);
@@ -39225,9 +39232,8 @@ function панельПресетаБезПодписи(о) {
       : заперт ? 'Заблокирован — только просмотр' : (canEditPublic() ? 'Открыт для правки — изменения сохраняются' : 'Только просмотр');
     h += '<div class="pc-meta">Автор: <b>' + escapeHtml(о.sp.author_name || '—') + '</b><br>'
       + (дата ? 'Сохранён ' + escapeHtml(дата) + ' · ' : '') + 'код ' + кодМиниОкна(о.код, true) + '</div>'
-      + '<div class="pc-st">' + замокЗначка(заперт, 13, о.код) + '<span>' + состояние + '</span></div>'
-      + '<div class="pc-row">' + звезда + все + '</div>';
-    return h;
+      + '<div class="pc-st">' + замокЗначка(заперт, 13, о.код) + '<span>' + состояние + '</span></div>';
+    return { верх: h, низ: звезда + все };
   }
   // Свой опубликованный — в «Моих» или в «Общих».
   const вПути = _замокВПути.has(о.код);
@@ -39257,10 +39263,10 @@ function панельПресетаБезПодписи(о) {
       + '<div class="pc-seg-n">' + подсказка + '</div></div>';
   }
   if (о.здесь) h += связи;
-  h += '<div class="pc-st">' + замокЗначка(заперт, 13, о.код) + '<span>' + (заперт ? 'Под замком — меняешь только ты' : 'Открыт для правки — изменения сохраняются') + '</span></div>'
-    + '<div class="pc-row"><button type="button" class="pc-pri pc-lock-btn" data-act="lock"' + (вПути ? ' disabled' : '') + '>' + (заперт ? 'Снять замок' : 'Закрыть замок') + '</button>'
-    + звезда + все + '</div>';
-  return h;
+  h += '<div class="pc-st">' + замокЗначка(заперт, 13, о.код) + '<span>' + (заперт ? 'Под замком — меняешь только ты' : 'Открыт для правки — изменения сохраняются') + '</span></div>';
+  // Пока спрашиваем «Снять с публикации?», кнопки внизу не стоят: у вопроса свои.
+  return { верх: h, низ: _пкПодтв ? '' : '<button type="button" class="pc-pri pc-lock-btn" data-act="lock"' + (вПути ? ' disabled' : '') + '>' + (заперт ? 'Снять замок' : 'Закрыть замок') + '</button>'
+    + звезда + все };
 }
 
 /* ── Вкладка «Журнал»: все действия этого пресета ──
@@ -43378,7 +43384,7 @@ function карточкаДоски(с) {
     + '<div class="dsk-top"><div class="dsk-nm">' + escapeHtml(имя) + '</div>'
     + '<button type="button" class="dsk-menu" aria-label="Действия с карточкой" aria-haspopup="menu" data-dsk-menu="' + escapeHtml(код) + '">'
     + '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></div>'
-    + '<div class="dsk-sub">' + (под ? под + ' · ' : '') + '<span>код ' + кодКрасиво(код) + '</span></div>'
+    + '<div class="dsk-sub">' + (под ? под + ' · ' : '') + '<span class="dsk-code">' + кодКрасиво(код) + '</span></div>'
     + (сумма ? '<div class="dsk-k">' + fmt(сумма) + '</div>' : '')
     + (метки.length ? '<div class="dsk-tags">' + метки.map(([в, т]) => '<span class="dsk-tag' + (в ? ' ' + в : '') + '">' + escapeHtml(т) + '</span>').join('') + '</div>' : '')
     + '<div class="dsk-foot"><span class="dsk-av" aria-hidden="true">' + escapeHtml(доскаИнициалы(кто)) + '</span><span class="who">' + escapeHtml(кто) + '</span><span class="when">' + escapeHtml(когда) + '</span></div>'
@@ -44034,7 +44040,7 @@ function панельСводкиКарточки(о) {
 // ширины не имеет, поэтому рисунок повторяется, когда окно откроют.
 function нарисоватьГрафикСводки() {
   const к = document.getElementById('presetChipCard');
-  const бл = к && к.classList.contains('show') ? к.querySelector('#pcPane-s.on .sv-ch') : null;
+  const бл = к && к.classList.contains('show') ? к.querySelector('#pcPane-p.on .sv-ch') : null;
   if (!бл) return;
   const т = _свТочки;
   const W = Math.round(бл.clientWidth);
@@ -45158,6 +45164,8 @@ function заполнитьКарточкуЗначка() {
   } else if (режим === 'own' || режим === 'shared') {
     const о = пресетКарточки();
     if (!о) { закрытьКарточкуЗначка(); return; }
+    // «Сводки» отдельной вкладкой больше нет — она внизу «Пресета».
+    if (_пкВкладка === 's') _пкВкладка = 'p';
     // Другой пресет — карточка с первой вкладки и без начатого подтверждения.
     const ключ = (о.где === 'мои' ? 'м:' + о.id : 'о:' + о.код);
     if (ключ !== _пкПресет) { _пкПресет = ключ; _пкМеню = false; _пкПодтв = false; _пкЖурналОткрыт.clear(); }
@@ -45191,18 +45199,22 @@ function заполнитьКарточкуЗначка() {
       // Код — сразу за названием, на любой вкладке: по снимку чата или
       // проверки пресет находится без расспросов (Константин, 18.10.2026:
       // «Код пресета всегда пиши, чтобы был виден на любом скриншоте чата»).
+      // Код — в рамке, без слова «код», как номер заказа на листе выдачи
+      // (макет mockups/preset-code-box-v1.html, вариант А, 20.10.2026: «Эти
+      // делай»). Пробел перед рамкой — место переноса: рамка уходит на
+      // следующую строку целиком, без отступа слева.
       + '<div class="pc-k">' + надзаг + '</div><div class="pc-nm">' + escapeHtml(о.имя || о.код)
-      + (о.код && о.имя ? '<span class="pc-nm-code">код\u00a0' + escapeHtml(кодКрасиво(о.код)).replace(' ', '\u00a0') + '</span>' : '') + '</div>'
+      + (о.код && о.имя ? ' <span class="pc-nm-code pc-code" data-code="' + String(о.код).replace(/\D/g, '') + '" title="Двойное нажатие — скопировать код">' + escapeHtml(кодКрасиво(о.код)).replace(' ', '\u00a0') + '</span>' : '') + '</div>'
       + '<div class="pc-tabs" role="tablist">'
-      + вкладка('p', 'Пресет') + вкладка('s', 'Сводка') + вкладка('l', 'Журнал')
+      + вкладка('p', 'Пресет') + вкладка('l', 'Журнал')
       + вкладка('c', 'Проверка', н ? ' <span class="pc-cnt pc-cnt-w">' + н + '</span>' : '')
       + вкладка('m', 'Чат', непроч ? ' <span class="pc-cnt">' + непроч + '</span>' : '')
       + '</div>'
-      + панель('p', панельПресетаКарточки(о))
-      + панель('s', _пкВкладка === 's' ? панельСводкиКарточки(о) : '')
+      + панель('p', _пкВкладка === 'p' ? панельПресетаКарточки(о) : '')
       + панель('l', _пкВкладка === 'l' ? панельЖурналаКарточки(о) : '')
       + панель('c', _пкВкладка === 'c' ? панельПроверкиКарточки(пр) : '')
-      + панель('m', _пкВкладка === 'm' ? панельЧатаКарточки() : '');
+      + панель('m', _пкВкладка === 'm' ? панельЧатаКарточки() : '')
+      + (_пкВкладка === 'p' ? низПресетаКарточки(о) : '');
     к.className = 'pc-card pc-tabbed' + (о.вид === 'pub' ? ' pc-pub' : '') + (_пкБольшое ? ' pc-big' : '') + (к.classList.contains('show') ? ' show' : '');
     if (_пкБольшое) местоБольшогоОкна();
   } else if (режим === 'profile') {
@@ -45303,11 +45315,11 @@ function нажатиеВКарточке(e) {
       break;
     case 'name-yes': сохранитьИзМиниОкна(); break;
     case 'tab':
-      _пкВкладка = кн.getAttribute('data-tab') || 'p'; _пкПодтв = false;
+      _пкВкладка = кн.getAttribute('data-tab') || 'p'; if (_пкВкладка === 's') _пкВкладка = 'p'; _пкПодтв = false;
       if (_пкВкладка === 'm') _чатВниз = true;
       заполнитьКарточкуЗначка();
       if (_пкВкладка === 'l') загрузитьЖурналПресета();
-      if (_пкВкладка === 's') загрузитьСводкуПресета();
+      if (_пкВкладка === 'p') загрузитьСводкуПресета();
       if (_пкВкладка === 'm') загрузитьЧат();
       if (_пкВкладка === 'c') загрузитьСогласование();
       { const т = к.querySelector('#pcTab-' + _пкВкладка); if (т) т.focus(); }
@@ -53026,6 +53038,8 @@ body:has(.custom-select-wrap.open) .pchip{opacity:0!important;pointer-events:non
 body.total-strip-on .pc-card.pc-big{--pc-bot:calc(var(--strip-h, 68px) + 10px)}
 .pc-card.pc-big .pc-pane.on{flex:1 1 auto;min-height:0;max-height:none}
 .pc-card.pc-big #pcPane-m.on{height:auto}
+/* Вкладок четыре: в широком окне они стоят рядом, а не врассыпную по всей ширине. */
+.pc-card.pc-big .pc-tabs{justify-content:flex-start;gap:26px}
 @media (max-width:899px){.pc-card.pc-big{left:14px;right:14px;width:auto;max-width:none}}
 @media (min-width:900px){.pc-card.pc-big{width:var(--pc-big-w, 540px);max-width:var(--pc-big-wmax, calc(100vw - 48px));top:max(var(--pc-big-top, 12px), calc(100dvh - var(--pc-bot) - var(--pc-big-h, 760px)))}
   /* Края для растяжки: верхний и левый, угол — с меткой. Своего вида у
@@ -53048,7 +53062,16 @@ body.total-strip-on .pc-card.pc-big{--pc-bot:calc(var(--strip-h, 68px) + 10px)}
   .pc-card.pc-big .pc-pane.on{zoom:1.12}}
 .pc-card .pc-k{font-size:.54rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--pc-ink3)}
 .pc-card .pc-nm{margin-top:4px;padding-right:26px;font-family:'Unbounded',sans-serif;font-weight:700;font-size:.8rem;line-height:1.35;letter-spacing:-.01em;color:var(--pc-ink);white-space:normal}
-.pc-card .pc-nm-code{display:inline-block;margin-left:8px;font-family:'Geologica',sans-serif;font-size:.68rem;font-weight:600;letter-spacing:.02em;color:var(--pc-ink2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.pc-card .pc-nm-code{display:inline-block;font-family:'Geologica',sans-serif;font-size:.66rem;font-weight:600;letter-spacing:.04em;color:var(--pc-ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+/* Код пресета — в рамке, как номер заказа на листе выдачи: шапка мини-окна,
+   карточка доски, карточка в окне «Пресеты» (макет preset-code-box-v1,
+   вариант А, Константин 20.10.2026: «Эти делай»). Слова «код» нет — рамка
+   говорит сама; цвет — цвет текста, не тона. */
+.pc-card .pc-nm-code,.dsk-code{display:inline-flex;align-items:center;height:1.6em;padding:0 .42em;border:1.5px solid currentColor;border-radius:.38em;line-height:1;vertical-align:.14em}
+.dsk-code{font-family:'Geologica',sans-serif;font-size:.68rem;font-weight:600;letter-spacing:.04em;color:var(--pc-ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+.pcard-code-label{display:none}
+.pcard-code-value,body.ui-blank .pcard-code-value{display:inline-flex;align-items:center;height:1.6em;padding:0 .42em;border:1.5px solid currentColor;border-radius:.38em;line-height:1;font-family:'Geologica',sans-serif !important;font-weight:600;font-size:.74rem !important;letter-spacing:.04em !important;color:var(--pc-ink) !important;font-variant-numeric:tabular-nums}
+.pcard-code-wait .pcard-code-value,body.ui-blank .pcard-code-wait .pcard-code-value{color:var(--pc-ink3) !important}
 .pc-card .pc-meta{margin-top:8px;font-size:.72rem;line-height:1.55;color:var(--pc-ink2)}
 .pc-card .pc-meta b{color:var(--pc-ink);font-weight:600}
 .pc-card .pc-code{cursor:copy;-webkit-touch-callout:none;touch-action:manipulation}
@@ -53056,6 +53079,14 @@ body.total-strip-on .pc-card.pc-big{--pc-bot:calc(var(--strip-h, 68px) + 10px)}
 .pc-card .pc-st svg{flex:none;margin-top:2px}
 .pc-card .pc-st.pc-warm{background:var(--pc-warm-tint);color:var(--pc-warm-ink)}
 .pc-card .pc-row{display:flex;gap:6px;margin-top:12px}
+/* Кнопки вкладки «Пресет» — внизу окна, под полотном: полотно листается над ними. */
+.pc-card .pc-foot{margin:8px -16px 0;padding:10px 16px 0;border-top:1px solid var(--pc-rule);background:var(--pc-bg)}
+.pc-card.pc-big .pc-foot{flex:none}
+/* Где сохранён свой пресет — одной строкой под вкладками. */
+.pc-card .pc-stl{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:.72rem;line-height:1.45;color:var(--pc-ink2)}
+.pc-card .pc-stl svg{flex:none;color:var(--pc-ink3)}
+.pc-card .pc-stl b{color:var(--pc-ink);font-weight:600}
+.pc-card .pc-stl i{font-style:normal;margin:0 6px;color:var(--pc-ink3)}
 .pc-card .pc-row button{flex:1 1 auto;white-space:nowrap;padding:0 7px;display:flex;align-items:center;justify-content:center;gap:6px;height:36px;border:1px solid var(--pc-line);border-radius:9px;background:none;color:var(--pc-ink);font:inherit;font-size:.72rem;font-weight:600;cursor:pointer}
 .pc-card .pc-row button{position:relative}
 .pc-card .pc-row button::before{content:'';position:absolute;inset:-5px -3px}

@@ -81,7 +81,7 @@ def сервер():
   renderSharedList(); await ждать(200);
   const общие = [...document.querySelectorAll('#sharedPresetList .shared-pcard')].map(к => {
     const b = к.querySelector('.pcard-code-row .pst'), s = b && b.querySelector('svg');
-    const r = s ? s.getBoundingClientRect() : null, c = к.getBoundingClientRect(), л = к.querySelector('.pcard-code-label').getBoundingClientRect();
+    const r = s ? s.getBoundingClientRect() : null, c = к.getBoundingClientRect(), л = к.querySelector('.pcard-code-value').getBoundingClientRect();
     return { код: к.dataset.scode, метка: (к.querySelector('.shared-pcard-badge') || {}).textContent || '',
       цвет: b ? getComputedStyle(b).color : '',
       глобус: !!(s && s.querySelector('circle')), щит: !!(s && !s.querySelector('circle') && s.querySelector('path')),

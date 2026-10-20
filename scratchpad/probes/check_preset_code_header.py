@@ -39,7 +39,7 @@ def плохо(т):
   const а = свет(getComputedStyle(с).color), б = свет(фон);
   const накрыт = !(r.right <= x.left || r.left >= x.right || r.bottom <= x.top || r.top >= x.bottom);
   return { текст: с.textContent.trim(), строк: Math.round(r.height / parseFloat(getComputedStyle(с).lineHeight || r.height)) || 1,
-    выс: r.height, внутри: r.left >= кр.left && r.right <= кр.right, накрыт, контраст: (Math.max(а, б) + .05) / (Math.min(а, б) + .05) }; }"""
+    рамка: parseFloat(getComputedStyle(с).borderTopWidth) || 0, выс: r.height, внутри: r.left >= кр.left && r.right <= кр.right, накрыт, контраст: (Math.max(а, б) + .05) / (Math.min(а, б) + .05) }; }"""
 
 
 def прогон(бр, порт, ш, в, ночь):
@@ -48,10 +48,11 @@ def прогон(бр, порт, ш, в, ночь):
     код = стр.evaluate("() => { const p = loadAllPresets()[activePresetId]; return p && (p.shortCode || p.sharedId); }")
     if not код:
         плохо(f"{н} пресету не выдан код"); стр.close(); return
-    ждём = "код\u00a0" + код[:3] + "\u00a0" + код[3:]
+    # С 20.10.2026 код — в рамке и без слова «код» (макет preset-code-box-v1, вариант А).
+    ждём = код[:3] + "\u00a0" + код[3:]
     стр.evaluate("() => { window.__RPC.preset_chat_join = () => new Date().toISOString(); window.__RPC.preset_chat_read = () => null; }")
     ч.открыть(стр)
-    for вк in ("p", "s", "l", "c", "m"):
+    for вк in ("p", "l", "c", "m"):
         ч.вкладка(стр, вк)
         к_ = стр.evaluate(КОД)
         if not к_:
@@ -60,6 +61,8 @@ def прогон(бр, порт, ш, в, ночь):
             плохо(f"{н} на вкладке «{вк}» в шапке {к_['текст']!r}, ждали {ждём!r}")
         if not к_["внутри"] or к_["накрыт"]:
             плохо(f"{н} на вкладке «{вк}» код за краем мини-окна или под крестиком: {к_}")
+        if к_["рамка"] < 1:
+            плохо(f"{н} на вкладке «{вк}» код без рамки")
         if к_["контраст"] < 4.5:
             плохо(f"{н} код плохо читается: контраст {к_['контраст']:.2f}")
     ч.вкладка(стр, "m")

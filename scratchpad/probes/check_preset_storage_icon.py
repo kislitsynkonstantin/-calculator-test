@@ -86,7 +86,7 @@ def сервер():
   });
   return { ид: card.dataset.pid, лок: b.classList.contains('loc'), знак: г.width * г.height,
            облако: !!b.querySelector('svg path[d^="M17.5 19"]') && !b.querySelector('svg circle'),
-           доКрая: Math.round(r.left - c.left), кодПравее: (() => { const л = card.querySelector('.pcard-code-label'); return л ? л.getBoundingClientRect().left >= r.right : false; })(), вСтрокеКода: !!b.closest('.pcard-code-row'), доНиза: Math.round(c.bottom - r.bottom), сосед: Math.round(сосед), кто,
+           доКрая: Math.round(r.left - c.left), кодПравее: (() => { const л = card.querySelector('.pcard-code-value'); return л ? л.getBoundingClientRect().left >= r.right : false; })(), вСтрокеКода: !!b.closest('.pcard-code-row'), доНиза: Math.round(c.bottom - r.bottom), сосед: Math.round(сосед), кто,
            вне: r.right > W || r.left < 0 };
 })"""
 

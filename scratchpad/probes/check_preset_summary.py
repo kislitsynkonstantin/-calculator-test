@@ -75,7 +75,7 @@ from playwright.sync_api import sync_playwright
   _журналПресета = { код: '', события: null, ошибка: '', грузится: false, когда: 0 };
 }"""
 
-СОСТОЯНИЕ = """() => { const к = document.getElementById('presetChipCard'), п = к.querySelector('#pcPane-s');
+СОСТОЯНИЕ = """() => { const к = document.getElementById('presetChipCard'), п = к.querySelector('#pcPane-p');
   const строки = {}; if (п) п.querySelectorAll('.sv-df > div').forEach(д => { строки[(д.querySelector('.sv-kk') || {}).textContent] = (д.querySelector('.sv-vv') || {}).textContent; });
   return { вкладки: [...к.querySelectorAll('.pc-tab')].map(т => т.childNodes[0].textContent.trim()),
     выбрана: (к.querySelector('.pc-tab[aria-selected="true"]') || {}).id || '', есть: !!п, текст: п ? п.innerText.replace(/\\s+/g, ' ') : '',
@@ -88,19 +88,19 @@ from playwright.sync_api import sync_playwright
   const пр = кк.right - parseFloat(getComputedStyle(к).borderRightWidth) - 2, лв = кк.left + 2;
   const виден = э => { const r = э.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
   const имя = э => (э.className && э.className.baseVal !== undefined ? э.className.baseVal : э.className) || э.tagName;
-  к.querySelectorAll('.pc-tabs .pc-tab, #pcPane-s *').forEach(э => {
+  к.querySelectorAll('.pc-tabs .pc-tab, #pcPane-p *').forEach(э => {
     if (!виден(э) || э.closest('svg') && э.tagName !== 'svg') return;
     const r = э.getBoundingClientRect();
     if (r.right > пр + .5) н.push(имя(э) + ' «' + (э.textContent || '').trim().slice(0, 30) + '» за правым краем на ' + Math.round(r.right - пр) + ' px');
     if (r.left < лв - .5) н.push(имя(э) + ' за левым краем на ' + Math.round(лв - r.left) + ' px');
   });
-  к.querySelectorAll('#pcPane-s .sv-df > div').forEach(д => { const т = д.querySelector('.sv-dots'); if (т && т.getBoundingClientRect().width < 10) н.push('отточие у «' + д.querySelector('.sv-kk').textContent + '» схлопнулось'); });
-  к.querySelectorAll('#pcPane-s .sv-top button').forEach(б => { if (б.getBoundingClientRect().height < 44) н.push('крупная правка ниже 44 px: ' + Math.round(б.getBoundingClientRect().height)); });
-  const в = к.querySelector('#pcPane-s .sv-rd .w'); if (в && в.scrollWidth > в.clientWidth + 1 && getComputedStyle(в).textOverflow !== 'ellipsis') н.push('строка под графиком обрезана без многоточия');
-  const п = к.querySelector('#pcPane-s'); if (п && п.scrollWidth > п.clientWidth + 1) н.push('панель сводки ходит вбок: ' + (п.scrollWidth - п.clientWidth) + ' px');
+  к.querySelectorAll('#pcPane-p .sv-df > div').forEach(д => { const т = д.querySelector('.sv-dots'); if (т && т.getBoundingClientRect().width < 10) н.push('отточие у «' + д.querySelector('.sv-kk').textContent + '» схлопнулось'); });
+  к.querySelectorAll('#pcPane-p .sv-top button').forEach(б => { if (б.getBoundingClientRect().height < 44) н.push('крупная правка ниже 44 px: ' + Math.round(б.getBoundingClientRect().height)); });
+  const в = к.querySelector('#pcPane-p .sv-rd .w'); if (в && в.scrollWidth > в.clientWidth + 1 && getComputedStyle(в).textOverflow !== 'ellipsis') н.push('строка под графиком обрезана без многоточия');
+  const п = к.querySelector('#pcPane-p'); if (п && п.scrollWidth > п.clientWidth + 1) н.push('панель сводки ходит вбок: ' + (п.scrollWidth - п.clientWidth) + ' px');
   return н; }"""
 
-ЧТЕНИЕ = "() => (document.querySelector('#pcPane-s .sv-rd') || {}).innerText || ''"
+ЧТЕНИЕ = "() => (document.querySelector('#pcPane-p .sv-rd') || {}).innerText || ''"
 
 
 def прогон(бр, порт, шир, выс, ночь):
@@ -112,12 +112,27 @@ def прогон(бр, порт, шир, выс, ночь):
     стр.evaluate(ПОСЕВ, [код, [list(п) for п in ПРАВКИ], ЛИШНИХ])
     м_открыть = lambda: (стр.locator("#presetChip .pc-body").click() if not стр.evaluate("() => document.getElementById('presetChipCard').classList.contains('show')") else None)
     м_открыть(); стр.wait_for_timeout(350)
-    if not стр.locator("#pcTab-s").count():
-        НАХОДКИ.append(f"{н} вкладки «Сводка» нет"); стр.close(); return
-    стр.locator("#pcTab-s").click(); стр.wait_for_timeout(900)
+    if not стр.locator("#pcTab-p").count():
+        НАХОДКИ.append(f"{н} вкладки «Пресет» нет"); стр.close(); return
+    стр.locator("#pcTab-p").click(); стр.wait_for_timeout(900)
     с = стр.evaluate(СОСТОЯНИЕ)
-    if с["вкладки"] != ["Пресет", "Сводка", "Журнал", "Проверка", "Чат"]:
+    # С 20.10.2026 «Сводка» — внизу вкладки «Пресет» (макет preset-tab-merge-v1, вариант А).
+    if с["вкладки"] != ["Пресет", "Журнал", "Проверка", "Чат"]:
         НАХОДКИ.append(f"{н} порядок вкладок: {с['вкладки']}")
+    # Кнопки «Пресета» — внизу окна, под полотном: при прокрутке полотна до
+    # конца они на месте, видны целиком и не наезжают на него.
+    низ = стр.evaluate("""() => { const к = document.getElementById('presetChipCard'), п = к.querySelector('#pcPane-p'), ф = к.querySelector('.pc-foot');
+      if (!п || !ф) return null; const до = ф.getBoundingClientRect().top; п.scrollTop = п.scrollHeight; const пр = п.getBoundingClientRect(), фр = ф.getBoundingClientRect(), кр = к.getBoundingClientRect();
+      return { листается: п.scrollHeight > п.clientHeight + 1, сдвиг: Math.abs(фр.top - до), подПолотном: фр.top >= пр.bottom - 1, внутри: фр.bottom <= кр.bottom + .5 && фр.left >= кр.left - .5,
+        кнопки: [...ф.querySelectorAll('button')].map(б => (б.textContent || б.getAttribute('title') || '').trim()), вПолотне: !!п.querySelector('[data-act="publish"], [data-act="all"]') }; }""")
+    if not низ:
+        НАХОДКИ.append(f"{н} у вкладки «Пресет» нет кнопок внизу окна")
+    else:
+        if not низ["листается"]: НАХОДКИ.append(f"{н} полотно «Пресета» не листается — проверить, что кнопки стоят, не на чем")
+        if низ["сдвиг"] > 1 or not низ["подПолотном"] or not низ["внутри"]: НАХОДКИ.append(f"{н} кнопки внизу уехали при прокрутке: {низ}")
+        if низ["вПолотне"]: НАХОДКИ.append(f"{н} кнопки «Пресета» остались и в полотне")
+        if not any("Все пресеты" in к for к in низ["кнопки"]): НАХОДКИ.append(f"{н} внизу нет «Все пресеты»: {низ['кнопки']}")
+        стр.evaluate("() => { document.querySelector('#pcPane-p').scrollTop = 0; }")
     if "итог сейчас" not in с["текст"].lower() or с["сейчас"] not in с["текст"]:
         НАХОДКИ.append(f"{н} нет итога сейчас ({с['сейчас']}): {с['текст'][:100]}")
     правок = len(ПРАВКИ) + ЛИШНИХ
@@ -143,11 +158,11 @@ def прогон(бр, порт, шир, выс, ночь):
     if с["крупных"] != 3:
         НАХОДКИ.append(f"{н} крупных правок {с['крупных']}, ждали три")
     # Цена со скидкой под итогом — та же, что в полоске итога; без скидки строки нет.
-    ск = стр.evaluate("""async () => { const без = !!document.querySelector('#pcPane-s .sv-disc');
+    ск = стр.evaluate("""async () => { const без = !!document.querySelector('#pcPane-p .sv-disc');
       const п = document.getElementById('discountPctInput'), н = document.getElementById('cashDiscountCheck');
       п.value = '2.5'; if (н) н.checked = true; calc(); await new Promise(r => setTimeout(r, 300));
       заполнитьКарточкуЗначка(); await new Promise(r => setTimeout(r, 100));
-      const э = document.querySelector('#pcPane-s .sv-disc');
+      const э = document.querySelector('#pcPane-p .sv-disc');
       return { без, строка: э ? э.textContent.replace(/\\s+/g, ' ').trim() : '', полоска: (document.getElementById('tsDisc') || {}).textContent || '' }; }""")
     полоска = ск["полоска"].replace("\xa0", " ").strip()
     if ск["без"] or not полоска or ск["строка"] != (полоска.replace("(−", "(скидка ") + " за наличные").replace("\xa0", " "):
@@ -170,7 +185,7 @@ def прогон(бр, порт, шир, выс, ночь):
     if за["за"] > 0 or за["зазор"] < 6 or за["сжата"]:
         НАХОДКИ.append(f"{н} вкладки при 12 замечаниях: за краем на {за['за']} px, наименьший зазор {за['зазор']} px, сжаты {за['сжата']}")
     # ── график ведётся клавишами и указателем ──
-    гр = стр.locator("#pcPane-s .sv-ch")
+    гр = стр.locator("#pcPane-p .sv-ch")
     if гр.count():
         гр.focus(); стр.keyboard.press("Home"); стр.wait_for_timeout(100)
         первое = стр.evaluate(ЧТЕНИЕ)
@@ -193,7 +208,7 @@ def прогон(бр, порт, шир, выс, ночь):
         б = гр.bounding_box()
         x2 = стр.evaluate("(W) => 6 + 2 * (W - 12) / (_свТочки.length - 1)", б["width"])
         стр.mouse.click(б["x"] + x2, б["y"] + б["height"] / 2); стр.wait_for_timeout(120)
-        рд = стр.locator("#pcPane-s .sv-rd")
+        рд = стр.locator("#pcPane-p .sv-rd")
         рб = рд.bounding_box()
         стр.mouse.move(рб["x"] + рб["width"] / 2, рб["y"] + рб["height"] / 2, steps=6); стр.wait_for_timeout(150)
         до = стр.evaluate(ЧТЕНИЕ)
@@ -211,9 +226,9 @@ def прогон(бр, порт, шир, выс, ночь):
           return { выбрана: в, есть: true, видна: r.top >= рл.top - 1 && r.bottom <= рл.bottom + 1, свет: с.classList.contains('pc-lg-flash'), текст: с.innerText.slice(0, 80) }; }""", ид)
         if ж.get("выбрана") != "pcTab-l" or not ж.get("есть") or not ж.get("видна") or not ж.get("свет") or "Метка-печь" not in (ж.get("текст") or ""):
             НАХОДКИ.append(f"{н} плашка под графиком не открыла свою правку в журнале: {ж}")
-        стр.locator("#pcTab-s").click(); стр.wait_for_timeout(500)
+        стр.locator("#pcTab-p").click(); стр.wait_for_timeout(500)
     # ── крупная правка открывает себя в журнале ──
-    перв = стр.locator("#pcPane-s .sv-top button").first
+    перв = стр.locator("#pcPane-p .sv-top button").first
     if перв.count():
         ид = перв.get_attribute("data-ev")
         перв.click(); стр.wait_for_timeout(900)

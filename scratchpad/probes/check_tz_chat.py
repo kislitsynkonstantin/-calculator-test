@@ -128,7 +128,7 @@ def прогон(бр, порт, ш, в, полный):
     стр.locator("#presetChip .pc-body").click(); стр.wait_for_timeout(300)
     for р, ждём in [("manager", False), ("editor", False), ("admin", True)]:
         па.роль(стр, р)
-        стр.evaluate("() => { _пкВкладка = 's'; заполнитьКарточкуЗначка(); }"); стр.wait_for_timeout(500)
+        стр.evaluate("() => { _пкВкладка = 'p'; заполнитьКарточкуЗначка(); }"); стр.wait_for_timeout(500)
         есть = стр.locator('#presetChipCard [data-act="tz-chat"]').count() > 0
         if есть != ждём:
             плохо(f"{н} {р}: кнопка «Загрузить ТЗ в чат» {'есть' if есть else 'нет'}")

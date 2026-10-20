@@ -78,8 +78,8 @@ def прогон(бр, порт, ш, в):
         НАХОДКИ.append(f"{н} чужой пресет: правка автора не подписана «Максим Г.»: {текст[:300]}")
     if not any("Ирина В." in с and "Метка-коллега" in с for с in строки):
         НАХОДКИ.append(f"{н} чужой пресет: правка коллеги после исправления не видна или без имени: {текст[:300]}")
-    вкладка(стр, "s")
-    правок = стр.evaluate("() => { const р = [...document.querySelectorAll('#pcPane-s *')].find(э => э.children.length === 0 && /^Правок$/.test(э.textContent.trim())); if (!р) return null; const ряд = р.parentElement; return ряд.innerText.replace(/\\s+/g, ' '); }")
+    вкладка(стр, "p")
+    правок = стр.evaluate("() => { const р = [...document.querySelectorAll('#pcPane-p *')].find(э => э.children.length === 0 && /^Правок$/.test(э.textContent.trim())); if (!р) return null; const ряд = р.parentElement; return ряд.innerText.replace(/\\s+/g, ' '); }")
     # правки: автор и коллега; следы и печать — нет
     if not правок or not правок.strip().endswith("2"):
         НАХОДКИ.append(f"{н} чужой пресет: «Правок» в сводке не 2 (автор и коллега): {правок}")
