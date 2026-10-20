@@ -150,6 +150,16 @@ def прогон(бр, порт, ш, в, ночь, модерн, полный):
             плохо(f"{н} шестерёнка не в первом ряду с колокольчиком: {м}")
         if abs(м["доска"] - м["пресеты"]) > 4 or not м["ряд2"] or м["ряд2"][0] != "boardBtn":
             плохо(f"{н} кнопка доски не первая во втором ряду перед «Пресетами»: {м['ряд2']}")
+    # Метка числа — в углу кнопки, а не поверх значка (20.10.2026: «аккуратную
+    # метку с цифрой, как в макете»): в углу кнопки (не дальше 6 px за её край),
+    # значок закрыт не больше чем на 8 %, высота метки не больше 15 px.
+    стр.evaluate("() => { const ц = document.getElementById('boardCnt'); ц.hidden = false; ц.textContent = '1'; }")
+    м = стр.evaluate("""() => { const к = document.getElementById('boardBtn').getBoundingClientRect(), ц = document.getElementById('boardCnt').getBoundingClientRect(),
+        з = document.querySelector('#boardBtn svg').getBoundingClientRect();
+      const пер = Math.max(0, Math.min(ц.right, з.right) - Math.max(ц.left, з.left)) * Math.max(0, Math.min(ц.bottom, з.bottom) - Math.max(ц.top, з.top));
+      return { внутри: ц.left >= к.left - 6 && ц.right <= к.right + 6 && ц.top >= к.top - 6 && ц.bottom <= к.bottom + 6, доля: пер / (з.width * з.height), выс: ц.height }; }""")
+    if not м["внутри"] or м["доля"] > .08 or м["выс"] > 15:
+        плохо(f"{н} метка числа на кнопке доски не в углу кнопки или закрывает значок: {м}")
     стр.evaluate("() => { window._sbProfile.role = 'manager'; appSettings.boardWho = 'all'; }")
     стр.evaluate("() => загрузитьДоску(true)"); стр.wait_for_timeout(300)
     стр.evaluate("() => scrollTo(0, 0)")
