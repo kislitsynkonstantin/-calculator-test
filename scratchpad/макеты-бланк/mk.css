@@ -1,0 +1,18 @@
+/* ── Образцы калькулятора в «Бланке» ── */
+/* Мини-окно: окно — рабочая обвязка, скругление 14 px и тень */
+.win{position:relative;background:var(--bl-sheet);border:1px solid var(--bl-rule);border-radius:14px;box-shadow:var(--win-shadow);padding:14px 16px 0;max-width:340px;display:flex;flex-direction:column}
+.win.pad{padding-bottom:12px}
+.w-top{position:absolute;top:10px;right:10px;display:flex;gap:2px;color:var(--bl-ink3)}
+.w-top span{width:30px;height:30px;display:flex;align-items:center;justify-content:center}
+.w-k{font-size:.58rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--bl-ink3)}
+.w-nm{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.84rem;margin-top:2px;line-height:1.45;padding-right:64px;color:var(--bl-ink)}
+.tabs{display:flex;gap:14px;margin-top:10px;border-bottom:1px solid var(--bl-rule)}
+.tab{height:32px;display:flex;align-items:center;gap:5px;font-size:.72rem;font-weight:500;color:var(--bl-ink2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.on{color:var(--bl-ink);font-weight:600;border-bottom-color:var(--bl-acc)}
+.cnt{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 5px;border-radius:9px;background:var(--mn-warn-bg);color:var(--mn-warn-strong);font-size:.6rem;font-weight:600}
+/* Кнопки окна */
+.b{height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border-radius:8px;border:1px solid var(--bl-rule2);background:var(--bl-sheet);font:inherit;font-size:.76rem;font-weight:600;color:var(--bl-ink);white-space:nowrap}
+.b.pri{background:#6daa34;border-color:#6daa34;color:#fff;flex:1 1 0;min-width:0}
+.b.star{width:40px;padding:0;color:#d99a12;flex:none}
+.b.all{flex:none}
+.b svg{flex:none}

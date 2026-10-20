@@ -1,0 +1,90 @@
+«Пресет» и «Сводка» — одна вкладка
+<main class="bl-sheet">
+  <header class="bl-doc-head">
+    <div><img class="bl-logo bl-logo--day" src="@@LOGO_DAY@@" alt="Баня МСК"><img class="bl-logo bl-logo--night" src="@@LOGO_NIGHT@@" alt="" aria-hidden="true"></div>
+    <div class="bl-doc-head__meta">Макет · версия 2<br>20.10.2026</div>
+  </header>
+  <p class="bl-eyebrow">Макет · мини-окно пресета</p>
+  <h1 class="bl-title">«Пресет» и «Сводка» — <em>одна вкладка</em></h1>
+  <p class="bl-lead">Сейчас в мини-окне две соседние вкладки об одном пресете: «Пресет» — где он сохранён и кнопки, «Сводка» — итог, график и работа с ним. Сводим их в одну вкладку «Пресет»: вкладок становится четыре — «Пресет», «Журнал», «Проверка», «Чат».</p>
+  <p class="bl-lead">Кнопки «Опубликовать», звезда и «Все пресеты» стоят внизу окна и не уезжают: полотно листается над ними. Окна ниже можно листать — так видно, как ведут себя кнопки.</p>
+  <div class="bl-head-rule"></div>
+  <div id="sections"></div>
+  <div class="tip"><strong>Предлагаю вариант А.</strong> Сначала то, ради чего открывают пресет, — итог и как он менялся; где пресет сохранён, сказано одной строкой под вкладками, а не плашкой на полэкрана. Кнопки всегда под рукой внизу.</div>
+  <div class="tip"><strong>Как отвечать:</strong> «А» или другая буква.</div>
+  <div class="bl-foot"><span>Баня МСК · макет «Пресет и Сводка — одна вкладка» · учебные данные, пресет «Пример» выдуман</span><span>20.10.2026</span></div>
+</main>
+<script>
+
+const ЗВЕЗДА = '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
+const ГЛОБУС = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z"/></svg>';
+const СПИСОК = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1" fill="currentColor"/><circle cx="3.5" cy="12" r="1" fill="currentColor"/><circle cx="3.5" cy="18" r="1" fill="currentColor"/></svg>';
+const ОБЛАКО = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.5 19H8a5 5 0 1 1 .9-9.9A6 6 0 0 1 20 11a4 4 0 0 1-2.5 8z"/></svg>';
+const ЗАМОК = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+const ВЕРХ = '<div class="w-top"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></span></div>';
+const ШАПКА = (надзаг) => ВЕРХ + '<div class="w-k">' + надзаг + '</div><div class="w-nm">Баня «Пример» 6×8 · 12.10.26<small>код 482 615</small></div>'
+  + '<div class="tabs"><span class="tab on">Пресет</span><span class="tab">Журнал</span><span class="tab">Проверка <span class="cnt">4</span></span><span class="tab">Чат</span></div>';
+// График — ступени итога по правкам.
+const ТОЧКИ = [52,58,80,46,40,44,62,70,82,64,64,63,48,48,47,58,66,62,62,74,40,30,30,56,56];
+function график() {
+  const W = 300, H = 120, ш = W / (ТОЧКИ.length - 1);
+  let d = 'M0 ' + (H - ТОЧКИ[0]);
+  ТОЧКИ.forEach((т, и) => { if (и) d += ' H' + (и * ш).toFixed(1) + ' V' + (H - т); });
+  const сетка = [0.18, 0.4, 0.58, 0.8].map(х => '<line x1="' + х * W + '" x2="' + х * W + '" y1="0" y2="' + H + '"/>').join('');
+  return '<div class="ch"><svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' + сетка
+    + '<path d="' + d + ' V' + H + ' H0Z" class="f"/><path d="' + d + '" fill="none" class="l" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>'
+    + '<div class="days"><span>12.10</span><span>14.10</span><span>16.10</span><span>18.10</span><span>20.10</span></div></div>';
+}
+const стр = (л, з) => '<div><span class="l">' + л + '</span><span class="d"></span><span class="v">' + з + '</span></div>';
+const ИТОГ = '<div class="sv-k">Итог сейчас</div><div class="sv-now">2 486 300 ₽</div>'
+  + '<div class="sv-disc">2 418 200 ₽ (скидка 2,7 %) за наличные</div>'
+  + '<div class="sv-dl"><b>+86 400 ₽ · +4 %</b><span>с сохранения 12.10</span></div>';
+const ПОСЛЕДНЯЯ = '<span class="last"><span class="m">19.10, 21:35 · Вы · последняя правка</span><div class="w">Добавлены: Терраса из лиственницы 2,5×6</div><div class="s">2 486 300 ₽<em>+64 200 ₽</em></div></span>';
+const РАБОТА = '<div class="sh">Работа с пресетом</div><div class="df">' + стр('Правок', '38') + стр('В работе', '6 дней · 12.10–19.10') + стр('Открыт', '41 раз') + стр('Напечатан', '17 раз') + '</div>';
+const КРУПНЫЕ = '<div class="sh">Крупные правки</div><ul class="top">'
+  + '<li><span class="d">+118 000 ₽</span><span>Фундамент: винтовые сваи → плита<small>14.10, 11:02</small></span></li>'
+  + '<li><span class="d dn">−72 500 ₽</span><span>Убрана кровля из металлочерепицы<small>17.10, 16:40</small></span></li>'
+  + '<li><span class="d">+64 200 ₽</span><span>Терраса из лиственницы 2,5×6<small>19.10, 21:35</small></span></li></ul>';
+const СОСТОЯНИЕ = (публ) => '<div class="sh">Состояние</div><div class="df">' + стр('Скидка', '2,7 % · за наличные') + стр('Подарком', 'нет')
+  + стр('Публикация', публ ? 'с 15.10 · замок закрыт' : 'не опубликован') + стр('Ссылка клиенту', '3 захода · 18.10') + '</div>';
+const СВОДКА = ИТОГ + график() + ПОСЛЕДНЯЯ + РАБОТА + КРУПНЫЕ;
+const КНОПКИ = (публ) => (публ ? '<span class="b pri">' + ЗАМОК + 'Снять замок</span>' : '<span class="b pri">' + ГЛОБУС + 'Опубликовать</span>')
+  + '<span class="b star">' + ЗВЕЗДА + '</span><span class="b all">' + СПИСОК + 'Все пресеты</span>';
+const ОКНО = (надзаг, полотно, низ) => '<div class="win">' + ШАПКА(надзаг) + '<div class="pane">' + полотно + '</div>' + низ + '</div>';
+
+const ВАРИАНТЫ = [
+  { б: 'А', имя: 'Итог сверху, состояние строкой', рек: true,
+    о: 'Где сохранён — одной строкой под вкладками. Ниже — итог, график, работа с пресетом, крупные правки, состояние. Кнопки — внизу окна.',
+    окно: ОКНО('Мой пресет',
+      '<div class="st-line">' + ОБЛАКО + '<span>Сохранён <b>19.10, 21:44</b></span><span class="dot"></span><span>в «Общих» нет</span></div>'
+      + СВОДКА + СОСТОЯНИЕ(false), '<div class="foot shade">' + КНОПКИ(false) + '</div>') },
+  { б: 'Б', имя: 'Как сейчас: сначала «Пресет», ниже «Сводка»',
+    о: 'Нынешняя вкладка «Пресет» целиком сверху — дата, код, плашка про облако, — под ней сводка. Кнопки уходят вниз окна.',
+    окно: ОКНО('Мой пресет',
+      '<div class="meta">Сохранён <b>19.10.26, 21:44</b> · код <b>482 615</b></div><div class="st">' + ОБЛАКО + '<span>Сохранён в облаке — в «Общих» его нет</span></div>'
+      + '<div class="sec-split"></div>' + СВОДКА + СОСТОЯНИЕ(false), '<div class="foot shade">' + КНОПКИ(false) + '</div>') },
+  { б: 'В', имя: 'Состояние — над кнопками внизу',
+    о: 'Полотно — только сводка. Где сохранён, написано мелко над кнопками внизу и тоже не уезжает.',
+    окно: ОКНО('Мой пресет', СВОДКА + СОСТОЯНИЕ(false),
+      '<div class="foot-wrap shade"><div class="foot-st">' + ОБЛАКО + 'Сохранён 19.10, 21:44 · в «Общих» нет</div><div class="foot">' + КНОПКИ(false) + '</div></div>') },
+  { б: 'А', имя: 'Вариант А у опубликованного', доп: true,
+    о: 'У опубликованного пресета сверху остаётся выбор «Мои» / «Общие» — без него не понять, где правишь. Внизу вместо «Опубликовать» — замок.',
+    окно: ОКНО('Общий пресет · мой',
+      '<div class="st-line">' + ЗАМОК + '<span>Под замком — меняешь только ты</span></div>'
+      + '<div class="seg-k">Открыт в</div><div class="seg"><span class="on">«Мои»</span><span>«Общие»</span></div>'
+      + '<div class="seg-n">Правишь как свой расчёт; коллеги видят результат в «Общих».</div>'
+      + СВОДКА + СОСТОЯНИЕ(true), '<div class="foot shade">' + КНОПКИ(true) + '</div>') },
+];
+const ПУНКТЫ = [
+  ['Строка «Сохранён 19.10, 21:44 · в «Общих» нет» — вместо плашки на полэкрана.', 'Итог, цена со скидкой и разница с сохранения.', 'График итога и последняя правка.', 'Работа с пресетом, крупные правки, состояние.', 'Внизу окна — «Опубликовать», звезда, «Все пресеты».'],
+  ['Нынешняя вкладка «Пресет» целиком: дата, код, плашка про облако.', 'Под линейкой — вся «Сводка».', 'Внизу окна — кнопки.'],
+  ['Полотно — только «Сводка».', 'Где сохранён — мелкой строкой над кнопками внизу, тоже не уезжает.', 'Внизу окна — кнопки.'],
+  ['Сверху — замок и выбор «Мои» / «Общие»: без него не понять, где правишь.', 'Ниже — та же сводка, что у варианта А.', 'Внизу вместо «Опубликовать» — «Снять замок».'],
+];
+document.getElementById('sections').innerHTML = ВАРИАНТЫ.map((в, и) => '<section class="bl-section">'
+  + '<h2 class="bl-section__h"><span class="bl-section__no">' + в.б + '.</span>' + (в.доп ? 'Тот же вариант у опубликованного пресета' : в.имя)
+  + (в.рек ? '<span class="bl-section__tag">предлагаю</span>' : '') + '</h2>'
+  + '<p class="bl-section__note">' + в.о + '</p><div class="bl-section__body mw-row">' + в.окно
+  + '<div><p class="bl-k">Сверху вниз</p><ul>' + ПУНКТЫ[и].map(п => '<li>' + п + '</li>').join('') + '</ul></div>'
+  + '</div></section>').join('');
+</script>

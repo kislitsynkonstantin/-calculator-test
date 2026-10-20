@@ -1,0 +1,36 @@
+Код пресета в рамке
+<main class="bl-sheet">
+  <header class="bl-doc-head">
+    <div><img class="bl-logo bl-logo--day" src="@@LOGO_DAY@@" alt="Баня МСК"><img class="bl-logo bl-logo--night" src="@@LOGO_NIGHT@@" alt="" aria-hidden="true"></div>
+    <div class="bl-doc-head__meta">Макет · версия 2<br>20.10.2026</div>
+  </header>
+  <p class="bl-eyebrow">Макет · код пресета</p>
+  <h1 class="bl-title">Код пресета <em>в рамке</em></h1>
+  <p class="bl-lead">Как номер заказа на листе выдачи: код стоит в обводке и читается сразу, не сливаясь с названием и датой. Цифры те же — шесть, по три через пробел.</p>
+  <p class="bl-lead">Ниже нынешний вид и три варианта. В каждом — три места, где виден код: шапка мини-окна, карточка на доске и карточка в окне «Пресеты». Двойное нажатие по коду, как и сейчас, копирует цифры.</p>
+  <div class="bl-head-rule"></div>
+  <div id="sections"></div>
+  <div class="tip"><strong>Предлагаю вариант А.</strong> Рамка сама говорит «это номер», поэтому слово «код» уже не нужно и строка становится короче — на телефоне название реже переносится. Цвет у рамки тот же, что у названия: она не спорит с зелёными кнопками и плашками.</div>
+  <div class="tip"><strong>Как отвечать:</strong> «А» или другая буква. В заключении о согласовании и в ТЗ код остаётся строкой «код 482 615»: там рамка не нужна.</div>
+  <div class="bl-foot"><span>Баня МСК · макет «Код пресета в рамке» · учебные данные</span><span>20.10.2026</span></div>
+</main>
+<script>
+const ВАРИАНТЫ = [
+  { к: 'v0', б: '', имя: 'Сейчас', метка: 'сейчас', о: 'Серое «код 482 615» после названия.' },
+  { к: 'vA', б: 'А.', имя: 'Рамка без слова «код»', метка: 'предлагаю', о: 'Обводка цветом текста, как «0802» на листе выдачи. Слово «код» не нужно — рамка говорит сама.' },
+  { к: 'vB', б: 'Б.', имя: 'Слово «код» и рамка', о: 'Как А, но с подписью «код» перед рамкой — для того, кто видит рамку впервые.' },
+  { к: 'vC', б: 'В.', имя: 'Рамка цветом тона', о: 'Зелёная обводка с подложкой — заметнее, но спорит с зелёными кнопками и плашками рядом.' },
+];
+const КРЕСТ = '<span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></span>';
+const код = в => в.к === 'vB' ? '<span class="code">код<b>482 615</b></span>' : '<span class="code">482 615</span>';
+document.getElementById('sections').innerHTML = ВАРИАНТЫ.map(в => '<section class="bl-section ' + в.к + '">'
+  + '<h2 class="bl-section__h">' + (в.б ? '<span class="bl-section__no">' + в.б + '</span>' : '') + в.имя
+  + (в.метка ? '<span class="bl-section__tag' + (в.метка === 'сейчас' ? ' now' : '') + '">' + в.метка + '</span>' : '') + '</h2>'
+  + '<p class="bl-section__note">' + в.о + '</p><div class="bl-section__body bl-row-samples">'
+  + '<div><p class="bl-k">Мини-окно</p><div class="win pad"><div class="w-top">' + КРЕСТ + '</div>'
+  + '<div class="w-k">Мой пресет</div><div class="w-nm">Баня «Пример» 6×8 · 12.10.26 ' + код(в) + '</div>'
+  + '<div class="tabs"><span class="tab on">Пресет</span><span class="tab">Сводка</span><span class="tab">Журнал</span><span class="tab">Чат</span></div></div></div>'
+  + '<div><p class="bl-k">Карточка на доске</p><div class="dsk"><div class="dsk-n">Баня «Пример» 6×8</div><div class="dsk-s">Иванова · каркас · 150 мм ·' + код(в) + '</div></div></div>'
+  + '<div><p class="bl-k">Карточка в окне «Пресеты»</p><div class="pcard"><span class="t">Баня «Пример» 6×8</span><span class="r">' + код(в) + '</span><span class="m">Сохранён 19.10, 21:44</span></div></div>'
+  + '</div></section>').join('');
+</script>

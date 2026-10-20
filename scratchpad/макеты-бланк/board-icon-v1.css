@@ -1,0 +1,16 @@
+/* Ряд шапки калькулятора: значки 14 px без рамки */
+.bar{display:flex;align-items:center;gap:4px;flex-wrap:nowrap;padding:8px 10px;border-radius:10px;background:var(--bl-sheet);box-shadow:inset 0 0 0 1px var(--bl-rule);overflow:hidden}
+.ib{position:relative;display:inline-flex;align-items:center;justify-content:center;height:30px;min-width:30px;padding:0 7px;border-radius:7px;color:var(--bl-ink2);flex:none}
+.ib.me{color:var(--bl-ink);background:var(--bl-tint)}
+.ib .cnt{position:absolute;top:1px;right:0;min-width:14px;height:14px;padding:0 4px}
+.tb{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 8px;font-size:.78rem;font-weight:500;color:var(--bl-ink2);flex:none}
+/* Ночная полоса — постоянными цветами ночи «Зелёного-графита», чтобы её было видно и днём */
+.bar.night{background:#1d1f1c;box-shadow:inset 0 0 0 1px #353f2d}
+.bar.night .ib,.bar.night .tb{color:#a9ada6}
+.bar.night .ib.me{color:#edefea;background:#262e21}
+.big{display:flex;align-items:flex-end;gap:16px;color:var(--bl-ink);min-height:44px}
+.big .sm{color:var(--bl-ink2);display:flex;align-items:flex-end;gap:14px}
+/* Крупный значок — узкой колонкой, рядам шапки — остальное */
+@media (min-width:901px){.bl-row-samples{grid-template-columns:170px minmax(0,1fr) minmax(0,1fr)}}
+@media (min-width:701px) and (max-width:900px){.bl-row-samples{grid-template-columns:minmax(0,1fr)}.bl-row-samples > *{padding:0}.bl-row-samples > * + *{border-left:0;border-top:1px solid var(--bl-rule);padding-top:18px}}
+.bar .ib .cnt{background:#e39b2d;color:#fff}

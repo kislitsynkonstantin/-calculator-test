@@ -1,0 +1,20 @@
+/* Код: нынешний вид и три варианта рамки */
+.code{font-variant-numeric:tabular-nums;white-space:nowrap}
+.v0 .code{font-family:'Geologica',sans-serif;font-weight:500;font-size:.72em;color:var(--bl-ink2);margin-left:6px}
+.v0 .code::before{content:'код\00a0'}
+.vA .code,.vC .code{display:inline-flex;align-items:center;height:1.55em;padding:0 .42em;border-radius:.38em;font-family:'Geologica',sans-serif;font-weight:600;font-size:.74em;letter-spacing:.04em;margin-left:6px;vertical-align:.12em;line-height:1}
+.vA .code{border:1.5px solid var(--bl-ink);color:var(--bl-ink)}
+.vC .code{border:1.5px solid var(--bl-acc);background:var(--bl-tint);color:var(--bl-small)}
+.vB .code{font-family:'Geologica',sans-serif;font-weight:500;font-size:.72em;color:var(--bl-ink3);margin-left:6px;vertical-align:.12em}
+.vB .code b{display:inline-flex;align-items:center;height:1.6em;padding:0 .42em;margin-left:4px;border:1.5px solid var(--bl-ink);border-radius:.38em;font-weight:600;letter-spacing:.04em;color:var(--bl-ink);line-height:1}
+.w-nm .code{margin-left:0!important}
+/* Карточка на доске и в окне «Пресеты» — как в калькуляторе */
+.dsk{background:var(--bl-sheet);border:1px solid var(--bl-rule);border-radius:10px;padding:10px 12px;max-width:300px}
+.dsk-n{font-weight:600;font-size:.82rem;line-height:1.35}
+.dsk-s{font-size:.7rem;color:var(--bl-ink2);margin-top:4px;display:flex;align-items:center;flex-wrap:wrap;gap:2px}
+.dsk-s .code{font-size:.98em}
+.pcard{background:var(--bl-sheet);border:1px solid var(--bl-rule);border-radius:10px;padding:10px 12px;max-width:340px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center}
+.pcard .t{font-weight:600;font-size:.84rem}
+.pcard .m{font-size:.7rem;color:var(--bl-ink3);grid-column:1}
+.pcard .r{grid-column:2;grid-row:1 / span 2;font-size:.9rem}
+.pcard .r .code{margin-left:0}
