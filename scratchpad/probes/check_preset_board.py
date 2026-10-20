@@ -140,6 +140,16 @@ def прогон(бр, порт, ш, в, ночь, модерн, полный):
           const с = ш_.getBoundingClientRect().height; б.style.display = 'none'; const без = ш_.getBoundingClientRect().height; б.style.display = ''; return [с, без]; }""")
         if ряд[0] > ряд[1] + 1:
             плохо(f"{н} кнопка доски уводит ряд шапки в лишнюю строку: {ряд[1]:.0f} → {ряд[0]:.0f} px")
+        # Телефон: шестерёнка — в первом ряду с колокольчиком, доска — первой во
+        # втором, перед «Пресетами» (Константин 20.10.2026: «Поменяй местами»).
+        м = стр.evaluate("""() => { const в = id => document.getElementById(id).getBoundingClientRect();
+          const ряд2 = [...document.querySelectorAll('#headerBtns > *')].filter(э => э.offsetParent && Math.abs(э.getBoundingClientRect().top - в('presetsBtn').top) < 4)
+            .sort((а, б) => а.getBoundingClientRect().left - б.getBoundingClientRect().left).map(э => э.id);
+          return { колокол: в('bellWrap').top, шест: в('settingsBtn').top, доска: в('boardBtn').top, пресеты: в('presetsBtn').top, ряд2 }; }""")
+        if abs(м["шест"] - м["колокол"]) > 4:
+            плохо(f"{н} шестерёнка не в первом ряду с колокольчиком: {м}")
+        if abs(м["доска"] - м["пресеты"]) > 4 or not м["ряд2"] or м["ряд2"][0] != "boardBtn":
+            плохо(f"{н} кнопка доски не первая во втором ряду перед «Пресетами»: {м['ряд2']}")
     стр.evaluate("() => { window._sbProfile.role = 'manager'; appSettings.boardWho = 'all'; }")
     стр.evaluate("() => загрузитьДоску(true)"); стр.wait_for_timeout(300)
     стр.evaluate("() => scrollTo(0, 0)")
