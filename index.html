@@ -41236,6 +41236,18 @@ function послеПравкиЧата(с) {
   if (!итог.length) return { т: 'После правки расчёт не менялся', пусто: true };
   return { т: 'После правки: ' + итог.slice(0, ПП_ЧАСТЕЙ).join('; ') + (итог.length > ПП_ЧАСТЕЙ ? '; и ещё ' + (итог.length - ПП_ЧАСТЕЙ) : '') + '.', пусто: false };
 }
+// Шапка раздела вкладки «Проверка» — «Правки из чата» и «Автоматическая
+// проверка» (макет mockups/done/check-sections-v2.html, вариант А; Константин,
+// 20.10.2026: «Этот делай»). Название — шрифтом заголовков, счёт — плашкой
+// «осталось», сделанное — мелкой строкой под шапкой. Зелёная черта стоит только
+// под открытым разделом, под свёрнутым — тонкая серая линейка: две зелёные
+// черты подряд у свёрнутых читались двойной линейкой.
+function склонОсталось(н) { return н % 10 === 1 && н % 100 !== 11 ? 'осталась' : 'осталось'; }
+function шапкаРазделаПроверки(имя, плашка, тёплая, кнопки, свёрнут) {
+  return '<div class="pc-grp pc-sec' + (свёрнут ? ' pc-sec-closed' : '') + '"><span class="pc-sec-t">' + имя + '</span>'
+    + (плашка ? '<span class="pc-sec-pill' + (тёплая ? ' warm' : '') + '">' + плашка + '</span>' : '')
+    + '<span class="pc-grp-r">' + кнопки + '</span></div>';
+}
 function правкиЧатаHtml() {
   const все = правкиЧата();
   if (!все.length) return '';
@@ -41246,11 +41258,13 @@ function правкиЧатаHtml() {
   const птичка = '<button type="button" class="pc-grp-fold" data-act="ch-fold" aria-expanded="' + !_правкиЧатаСвёрнуты + '"'
     + ' aria-label="' + (_правкиЧатаСвёрнуты ? 'Развернуть правки из чата' : 'Свернуть правки из чата') + '" title="' + (_правкиЧатаСвёрнуты ? 'Развернуть' : 'Свернуть') + '">'
     + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>';
-  const шапка = '<div class="pc-grp"><span>Правки из чата</span><span class="pc-grp-r"><span>' + сделано + ' из ' + все.length + '</span>' + глаз + птичка + '</span></div>';
+  const осталось = все.length - сделано;
+  const шапка = шапкаРазделаПроверки('Правки из чата', осталось ? осталось + ' ' + склонОсталось(осталось) : 'готово', !!осталось, глаз + птичка, _правкиЧатаСвёрнуты);
   if (_правкиЧатаСвёрнуты) return шапка;
+  const итогПравок = '<div class="pc-sec-m">' + сделано + ' из ' + все.length + ' выполнено</div>';
   const видны = _правкиЧатаСкрыты ? все.filter(с => с.review_state !== 'done') : все;
-  if (!видны.length) return шапка + '<p class="pc-pr-none">Выполненные правки скрыты</p>';
-  return шапка + '<ul class="pc-pr">'
+  if (!видны.length) return шапка + итогПравок + '<p class="pc-pr-none">Выполненные правки скрыты</p>';
+  return шапка + итогПравок + '<ul class="pc-pr">'
     + видны.map(с => {
       const готово = с.review_state === 'done', ид = escapeHtml(String(с.id));
       const д = new Date(с.created_at);
@@ -44942,7 +44956,8 @@ function панельПроверкиКарточки(пр) {
   const птичка = '<button type="button" class="pc-grp-fold" data-act="ck-fold" aria-expanded="' + !_автоПроверкаСвёрнута + '"'
     + ' aria-label="' + (_автоПроверкаСвёрнута ? 'Развернуть автоматическую проверку' : 'Свернуть автоматическую проверку') + '" title="' + (_автоПроверкаСвёрнута ? 'Развернуть' : 'Свернуть') + '">'
     + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>';
-  let h = согл + правки + (сШапкой ? '<div class="pc-grp"><span>Автоматическая проверка</span><span class="pc-grp-r"><span>' + (н + акт.вопросы.length) + '</span>' + птичка + '</span></div>' : '');
+  const всегоПунктов = н + акт.вопросы.length;
+  let h = согл + правки + (сШапкой ? шапкаРазделаПроверки('Автоматическая проверка', String(всегоПунктов), !!всегоПунктов, птичка, _автоПроверкаСвёрнута) : '');
   if (сШапкой && _автоПроверкаСвёрнута) return h;
   h += '<div class="pc-ck-s">' + (н
     ? н + ' ' + склонЗамечаний(н) + ' по чек-листу' + (стоп ? ', ' + (стоп === 1 ? (н === 1 ? 'это — стоп' : 'одно — стоп') : стоп + ' — стоп') : '')
@@ -53293,6 +53308,27 @@ button.pc-q{display:flex;align-items:center;gap:10px;width:100%;border-top:0;bor
 @media (hover:hover){.pc-card .pc-grp-eye:hover,.pc-card .pc-grp-fold:hover{color:var(--pc-ink)}}
 @media (prefers-reduced-motion:reduce){.pc-card .pc-grp-fold svg{transition:none}}
 .pc-card .pc-grp + .pc-ck-s{margin-top:6px}
+/* Разделы «Правки из чата» и «Автоматическая проверка» — заголовком, как
+   разделы спецификации (вариант А макета check-sections-v2): зелёная черта —
+   только под открытым, у свёрнутого — серая линейка. Глаз и птичка рисуются
+   в 28 px через 16 px, поля нажатия — 44 по высоте и встречаются посередине
+   зазора; у птички поле уходит только влево: за краем вкладки оно дало бы ей
+   прокрутку вбок. */
+.pc-card .pc-sec{align-items:center;justify-content:flex-start;gap:8px;margin-top:20px;padding-bottom:6px;border-bottom:2px solid var(--pc-acc);
+  font-size:inherit;font-weight:inherit;letter-spacing:0;text-transform:none;color:var(--pc-ink)}
+.pc-card .pc-sec.pc-sec-closed{padding-bottom:7px;border-bottom:1px solid var(--pc-line)}
+.pc-card .pc-pane > .pc-sec:first-child{margin-top:12px}
+.pc-card .pc-sec-t{flex:1;min-width:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:.78rem;line-height:1.3;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:420px){.pc-card .pc-sec-t{font-size:.72rem}}
+.pc-card .pc-sec-pill{flex:none;display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:10px;font-size:.64rem;font-weight:600;letter-spacing:0;
+  white-space:nowrap;background:var(--pc-tint);color:var(--pc-ink2);font-variant-numeric:tabular-nums}
+.pc-card .pc-sec-pill.warm{background:var(--pc-warm-tint);color:var(--pc-warm-ink)}
+.pc-card .pc-sec .pc-grp-r{gap:16px}
+.pc-card .pc-sec .pc-grp-eye,.pc-card .pc-sec .pc-grp-fold{width:28px;height:28px;margin:-2px 0;border-radius:50%;color:var(--pc-ink2)}
+.pc-card .pc-sec .pc-grp-fold{margin-left:0}
+.pc-card .pc-sec .pc-grp-eye::before{inset:-8px}
+.pc-card .pc-sec .pc-grp-fold::before{inset:-8px 0 -8px -8px}
+.pc-card .pc-sec-m{margin-top:6px;font-size:.68rem;color:var(--pc-ink3)}
 .pc-card .pc-pr{list-style:none;padding:0;margin:0}
 .pc-card .pc-pr li{display:flex;align-items:flex-start;gap:12px;border-bottom:1px solid var(--pc-rule)}
 .pc-card .pc-pr li:last-child{border-bottom:0}

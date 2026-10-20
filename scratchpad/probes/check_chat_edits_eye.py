@@ -8,7 +8,8 @@
 выполненные правки, птичка сворачивает весь список.
 
 Проба держит, на заглушке базы и в настоящих Geologica и Unbounded:
-  • глаз и птичка — после «N из M», нарисованы мелко (не выше 18 px); поле
+  • глаз и птичка — после плашки «N осталось», нарисованы в 28 px (шапка
+    раздела — заголовком, вариант А макета check-sections-v2, 20.10.2026); поле
     нажатия глаза — 44 px, птички — не меньше 32 по ширине и 44 по высоте;
     поля не наезжают друг на друга, нажатие в зазоре между значками попадает
     в ближний; птичка не ближе края карточки, вкладка вбок не ходит;
@@ -48,14 +49,17 @@ def плохо(т):
   const кр = к.getBoundingClientRect(), cs = getComputedStyle(к), край = кр.right - parseFloat(cs.borderRightWidth) - parseFloat(cs.paddingRight);
   const поле = э => { const р = э.getBoundingClientRect(), с = getComputedStyle(э, '::before');
     return { l: р.left + parseFloat(с.left), r: р.right - parseFloat(с.right), t: р.top + parseFloat(с.top), b: р.bottom - parseFloat(с.bottom), р }; };
-  const пг = поле(глаз), пп = поле(пт), число = г.querySelector('.pc-grp-r > span').getBoundingClientRect(), пане = к.querySelector('.pc-pane.on');
+  const пг = поле(глаз), пп = поле(пт), число = г.querySelector('.pc-sec-pill').getBoundingClientRect(), пане = к.querySelector('.pc-pane.on');
   return { шапка: г.innerText.replace(/\\s+/g, ' ').trim().toLowerCase(), пунктов: к.querySelectorAll('.pc-pr li').length,
     скрыто: !!к.querySelector('.pc-pr-none'), глаз: глаз.getAttribute('aria-pressed'), развёрнут: пт.getAttribute('aria-expanded'),
     рисунок: Math.round(Math.max(пг.р.height, пп.р.height)), полеГлаза: [Math.round(пг.r - пг.l), Math.round(пг.b - пг.t)],
     полеПтички: [Math.round(пп.r - пп.l), Math.round(пп.b - пп.t)], наезд: Math.round(пг.r - пп.l), доЧисла: Math.round(пг.р.left - число.right),
     доКрая: Math.round(край - пп.r), вбок: пане ? пане.scrollWidth - пане.clientWidth : 0,
     зазор: [Math.round(пг.р.right), Math.round(пп.р.left), Math.round((пг.р.top + пг.р.bottom) / 2)],
-    счёт: +(((к.querySelector('#pcTab-c .pc-cnt') || {}).textContent) || 0) }; }"""
+    счёт: +(((к.querySelector('#pcTab-c .pc-cnt') || {}).textContent) || 0),
+    линия: [...к.querySelectorAll('.pc-sec')].map(с => parseFloat(getComputedStyle(с).borderBottomWidth)),
+    // Название раздела — в одну строку и не обрезано многоточием.
+    строка: [...к.querySelectorAll('.pc-sec-t')].map(т => т.scrollWidth <= т.clientWidth + 1 && т.getBoundingClientRect().height < parseFloat(getComputedStyle(т).fontSize) * 1.7) }; }"""
 
 
 def прогон(бр, порт, ш, в, ночь):
@@ -69,7 +73,7 @@ def прогон(бр, порт, ш, в, ночь):
     ч.открыть(стр); ч.вкладка(стр, "m"); стр.wait_for_timeout(600); ч.вкладка(стр, "c"); стр.wait_for_timeout(500)
     г = lambda: стр.evaluate(ГРУППА)
     до = г()
-    if not до or до["пунктов"] != 3 or "1 из 3" not in до["шапка"] or до["глаз"] != "false" or до["развёрнут"] != "true" or до["рисунок"] > 18 \
+    if not до or до["пунктов"] != 3 or "2 осталось" not in до["шапка"] or до["глаз"] != "false" or до["развёрнут"] != "true" or до["рисунок"] > 28 \
             or min(до["полеГлаза"]) < 43.5 or до["полеПтички"][0] < 31.5 or до["полеПтички"][1] < 43.5 or до["наезд"] > 0 \
             or до["доЧисла"] < 6 or до["доКрая"] < 0 or до["вбок"] > 0:
         плохо(f"{н} глаз и птичка в шапке: {до}")
@@ -80,14 +84,20 @@ def прогон(бр, порт, ш, в, ночь):
         стр.close(); return
     # Нажатие в зазоре: левее середины — глаз, правее — птичка.
     л, п_, y = до["зазор"]
-    стр.mouse.click(л + 9, y); стр.wait_for_timeout(300)
+    сер = (л + п_) / 2
+    стр.mouse.click(сер - 1, y); стр.wait_for_timeout(300)
     а = г()
-    if not а or а["глаз"] != "true" or а["развёрнут"] != "true" or а["пунктов"] != 2 or "1 из 3" not in а["шапка"] or а["счёт"] != до["счёт"]:
+    if not а or а["глаз"] != "true" or а["развёрнут"] != "true" or а["пунктов"] != 2 or "2 осталось" not in а["шапка"] or а["счёт"] != до["счёт"]:
         плохо(f"{н} глаз (нажатие в зазоре у глаза) — выполненные спрятаны, открытые на месте: {а}")
-    стр.mouse.click(п_ - 9, y); стр.wait_for_timeout(300)
+    стр.mouse.click(сер + 1, y); стр.wait_for_timeout(300)
     б = г()
     if not б or б["развёрнут"] != "false" or б["глаз"] != "true" or б["пунктов"] or б["скрыто"] or б["счёт"] != до["счёт"]:
         плохо(f"{н} птичка (нажатие в зазоре у птички) при глазе — список свёрнут: {б}")
+    if до and not all(до["строка"]):
+        плохо(f"{н} название раздела не в одну строку или обрезано: {до['строка']}")
+    # Вариант А: зелёная черта 2 px только под открытым разделом, под свёрнутым — 1 px.
+    if до and б and (до["линия"][:1] != [2] or б["линия"][:1] != [1]):
+        плохо(f"{н} черта под шапкой «Правки из чата»: открыт {до['линия']}, свёрнут {б['линия']} — ждали 2 и 1 px")
     стр.screenshot(path=str(СНИМКИ / f"fold-{ш}{'-n' if ночь else ''}.png"))
     стр.locator("#presetChipCard [data-act='ch-hide']").click(); стр.wait_for_timeout(300)
     б = г()
@@ -106,7 +116,7 @@ def прогон(бр, порт, ш, в, ночь):
     стр.evaluate("() => { (_чат.сообщения || []).forEach(с => { if (с.review_state) с.review_state = 'done'; }); заполнитьКарточкуЗначка(); }")
     стр.locator("#presetChipCard [data-act='ch-hide']").click(); стр.wait_for_timeout(300)
     б = г()
-    if not б or б["пунктов"] or not б["скрыто"] or "3 из 3" not in б["шапка"]:
+    if not б or б["пунктов"] or not б["скрыто"] or "готово" not in б["шапка"]:
         плохо(f"{н} все выполнены и спрятаны: {б}")
     ч.вёрстка(стр, н, "«Проверка», выполненные скрыты")
     # Птичка «Автоматической проверки» (Константин 18.10.2026: «На
@@ -122,7 +132,7 @@ def прогон(бр, порт, ш, в, ночь):
         рисунок: Math.round(р.height), поле: [Math.round(р.width - parseFloat(с.left) - parseFloat(с.right)), Math.round(р.height - parseFloat(с.top) - parseFloat(с.bottom))],
         доКрая: Math.round(край - р.right) }; }"""
     а = стр.evaluate(АВТО)
-    if not а or "автоматическая проверка" not in а["шапка"] or а["развёрнут"] != "true" or not а["итог"] or а["рисунок"] > 18 \
+    if not а or "автоматическая проверка" not in а["шапка"] or а["развёрнут"] != "true" or not а["итог"] or а["рисунок"] > 28 \
             or а["поле"][0] < 31.5 or а["поле"][1] < 43.5 or а["доКрая"] < 0:
         плохо(f"{н} птичка «Автоматической проверки»: {а}")
     if а:

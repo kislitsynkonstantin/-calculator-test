@@ -343,7 +343,7 @@ def прогон(бр, порт, ш, в, ночь, полный):
     вкладка(стр, "c")
     п = стр.evaluate("""() => { const к = document.getElementById('presetChipCard');
       return { группы: [...к.querySelectorAll('.pc-grp')].map(г => г.innerText.replace(/\\s+/g, ' ').trim()), пункты: [...к.querySelectorAll('.pc-pr li')].map(л => л.innerText.replace(/\\s+/g, ' ').trim()) }; }""")
-    if len(п["группы"]) != 2 or not re.match(r"(?i)^Правки из чата 0 из 1$", п["группы"][0]) or not re.match(r"(?i)^Автоматическая проверка \d+$", п["группы"][1]) or len(п["пункты"]) != 1 or "Вальмовую кровлю убрать" not in п["пункты"][0] or "Ольга П." not in п["пункты"][0]:
+    if len(п["группы"]) != 2 or not re.match(r"(?i)^Правки из чата 1 осталась$", п["группы"][0]) or not re.match(r"(?i)^Автоматическая проверка \d+$", п["группы"][1]) or len(п["пункты"]) != 1 or "Вальмовую кровлю убрать" not in п["пункты"][0] or "Ольга П." not in п["пункты"][0]:
         плохо(f"{н} «Проверка»: правки из чата не над автоматическими: {п}")
     вёрстка(стр, н, "«Проверка» с правкой из чата")
     стр.mouse.move(5, 5)
@@ -352,7 +352,7 @@ def прогон(бр, порт, ш, в, ночь, полный):
     п = стр.evaluate("""() => { const к = document.getElementById('presetChipCard'), б = к.querySelector('.pc-pr-box');
       return { группа: (к.querySelector('.pc-grp') || {}).innerText || '', отмечен: б && б.getAttribute('aria-checked'), зачёркнут: getComputedStyle(к.querySelector('.pc-pr-tx')).textDecorationLine,
                счёт: +(((к.querySelector('#pcTab-c .pc-cnt') || {}).textContent) || 0) }; }""")
-    if "1 из 1" not in п["группа"].lower() or п["отмечен"] != "true" or "line-through" not in п["зачёркнут"] or п["счёт"] != до["провСчёт"]:
+    if "готово" not in п["группа"].lower() or п["отмечен"] != "true" or "line-through" not in п["зачёркнут"] or п["счёт"] != до["провСчёт"]:
         плохо(f"{н} галочка правки в «Проверке»: {п} (до отметки было {до['провСчёт']})")
     стр.locator("#presetChipCard .pc-pr-t").click(); стр.wait_for_timeout(500)
     ч = стр.evaluate("""() => { const к = document.getElementById('presetChipCard'), м_ = к.querySelector('.pc-chm[data-mid="11111111-1111-4111-8111-111111111111"]');
