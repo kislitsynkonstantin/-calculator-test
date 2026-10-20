@@ -133,6 +133,8 @@ def прогон(бр, порт, ш, в, полный):
         if есть != ждём:
             плохо(f"{н} {р}: кнопка «Загрузить ТЗ в чат» {'есть' if есть else 'нет'}")
     кн = стр.locator('#presetChipCard [data-act="tz-chat"]')
+    if кн.count() and кн.inner_text().strip() != "Загрузить тех. задание в чат":
+        плохо(f"{н} надпись кнопки ТЗ: «{кн.inner_text().strip()}», ждали «Загрузить тех. задание в чат»")
     if кн.count():
         кн.scroll_into_view_if_needed()
         стр.screenshot(path=str(СНИМКИ / f"tz-button-{ш}.png"))
