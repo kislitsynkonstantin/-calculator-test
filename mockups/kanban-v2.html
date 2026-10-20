@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Доска согласованных пресетов</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Geologica:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Макет: доска согласованных пресетов. Учебные данные. Тон «Зелёный-графит». */
+:root{
+  --page:#f3f5f1;--sheet:#fff;--ink:#1d211a;--ink2:#5c6457;--ink3:#7d8578;
+  --rule:#e2e6de;--rule2:#ccd3c6;--acc:#6daa34;--acc-ink:#4f7d26;--tint:#eef5e5;--tint2:#f6f9f2;
+  --col:#eef1ec;--warm:#9a6412;--warm-tint:#fbf3e4;--lost:#8a5a4a;--lost-tint:#f6ece8;--shadow:0 12px 34px rgba(29,33,26,.14);
+}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Geologica',system-ui,sans-serif;background:var(--page);color:var(--ink);line-height:1.5;-webkit-text-size-adjust:100%}
+.wrap{max-width:1320px;margin:0 auto;padding:28px 16px 64px}
+.eyebrow{font-size:.66rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--acc-ink)}
+h1{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.5rem;line-height:1.2;margin:6px 0 10px}
+.lead{color:var(--ink2);max-width:760px;font-size:.92rem}
+.lead + .lead{margin-top:8px}
+
+/* ── Окно доски ── */
+.win{margin-top:24px;background:var(--sheet);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.w-head{display:flex;align-items:center;gap:12px 18px;flex-wrap:wrap;padding:16px 20px 14px;border-bottom:1px solid var(--rule)}
+.w-t{font-family:'Unbounded',sans-serif;font-weight:600;font-size:1rem}
+.seg{display:inline-flex;border:1px solid var(--rule2);border-radius:9px;padding:2px;gap:2px}
+.seg button{position:relative;height:30px;padding:0 12px;border:0;border-radius:7px;background:none;font:inherit;font-size:.78rem;color:var(--ink2);cursor:pointer}
+.seg button::before{content:'';position:absolute;inset:-6px -1px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:#fff;font-weight:500}
+.srch{flex:1 1 220px;max-width:340px;display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border:1px solid var(--rule2);border-radius:9px;color:var(--ink3)}
+.srch input{flex:1;min-width:0;border:0;outline:0;font:inherit;font-size:16px;background:none;color:var(--ink)}
+.srch:focus-within{border-color:var(--acc)}
+.w-tot{margin-left:auto;font-size:.76rem;color:var(--ink2);text-align:right}
+.w-tot b{display:block;font-family:'Unbounded',sans-serif;font-weight:600;font-size:.95rem;color:var(--ink);font-variant-numeric:tabular-nums}
+@media (max-width:700px){.w-tot{margin-left:0;text-align:left}}
+
+/* Вкладки столбцов — только на телефоне */
+.ptabs{display:none}
+@media (max-width:700px){
+  .ptabs{display:flex;gap:6px;overflow-x:auto;padding:10px 12px 0;scrollbar-width:none}
+  .ptabs::-webkit-scrollbar{display:none}
+  .ptabs button{position:relative;flex:none;height:34px;padding:0 12px;border-radius:17px;border:1px solid var(--rule2);background:var(--sheet);font:inherit;font-size:.76rem;color:var(--ink);cursor:pointer;display:flex;align-items:center;gap:6px}
+  .ptabs button::before{content:'';position:absolute;inset:-5px -3px}
+  .ptabs button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+  .ptabs .c{font-size:.68rem;opacity:.75}
+}
+
+.board{display:grid;grid-template-columns:repeat(3,minmax(250px,1fr));gap:14px;padding:16px;overflow-x:auto;align-items:start;min-height:560px}
+@media (max-width:700px){.board{grid-template-columns:minmax(0,1fr);padding:12px;min-height:0}.col:not(.cur){display:none}}
+.col{background:var(--col);border-radius:12px;padding:10px;min-width:0;transition:background .15s}
+.col.over{background:var(--tint)}
+.c-h{display:flex;align-items:center;gap:8px;padding:2px 4px 8px}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.c-n{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.74rem}
+.cnt{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--sheet);font-size:.68rem;font-weight:600;color:var(--ink2);display:inline-flex;align-items:center;justify-content:center}
+.c-auto{display:flex;align-items:baseline;gap:8px;font-size:.68rem;color:var(--ink3);padding:0 4px 8px}
+.c-sum{margin-left:auto;font-size:.72rem;font-weight:600;color:var(--ink2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.list{display:flex;flex-direction:column;gap:8px;min-height:60px}
+.empty{font-size:.74rem;color:var(--ink3);text-align:center;padding:18px 8px;border:1px dashed var(--rule2);border-radius:10px}
+
+/* Карточка */
+.card{position:relative;background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:10px 12px 10px;cursor:grab;touch-action:manipulation}
+.card:active{cursor:grabbing}
+.card.drag{opacity:.45}
+.card.flash{animation:fl 1.4s ease-out}
+@keyframes fl{0%{box-shadow:0 0 0 3px #cfe6b3}100%{box-shadow:0 0 0 0 transparent}}
+@media (hover:hover){.card:hover{border-color:var(--rule2)}}
+.k-top{display:flex;align-items:flex-start;gap:8px}
+.k-nm{flex:1;min-width:0;font-weight:600;font-size:.84rem;line-height:1.3}
+.k-menu{position:relative;width:28px;height:28px;margin:-4px -6px 0 0;border:0;border-radius:7px;background:none;color:var(--ink3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none}
+.k-menu::before{content:'';position:absolute;inset:-8px}
+@media (hover:hover){.k-menu:hover{background:var(--tint2);color:var(--ink)}}
+.k-sub{font-size:.72rem;color:var(--ink2);margin-top:2px}
+.k-sum{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.86rem;margin-top:8px;font-variant-numeric:tabular-nums}
+.k-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.tag{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:11px;font-size:.66rem;font-weight:500;background:var(--tint2);color:var(--ink2);white-space:nowrap}
+.tag.warm{background:var(--warm-tint);color:var(--warm)}
+.tag.ok{background:var(--tint);color:var(--acc-ink)}
+.tag.lost{background:var(--lost-tint);color:var(--lost)}
+.pay{margin-top:8px}
+.pay-l{display:flex;justify-content:space-between;font-size:.66rem;color:var(--ink3)}
+.bar{height:5px;border-radius:3px;background:var(--rule);margin-top:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--acc);border-radius:3px}
+.k-foot{display:flex;align-items:center;gap:7px;margin-top:9px;padding-top:8px;border-top:1px solid var(--rule);font-size:.68rem;color:var(--ink3)}
+.av{width:20px;height:20px;border-radius:50%;background:var(--ink);color:#fff;font-size:.56rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none}
+.k-foot .who{color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.k-foot .when{margin-left:auto;white-space:nowrap}
+
+/* Меню карточки и окно причины */
+.pop{position:fixed;z-index:20;min-width:230px;background:var(--sheet);border:1px solid var(--rule2);border-radius:12px;box-shadow:var(--shadow);padding:6px}
+.pop[hidden]{display:none}
+.pop-h{font-size:.6rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);padding:6px 10px 4px}
+.pop button{display:flex;align-items:center;gap:8px;width:100%;min-height:38px;padding:6px 10px;border:0;border-radius:8px;background:none;font:inherit;font-size:.8rem;color:var(--ink);text-align:left;cursor:pointer}
+.pop button[disabled]{color:var(--ink3);cursor:default}
+.pop button small{display:block;font-size:.68rem;color:var(--ink3)}
+@media (hover:hover){.pop button:not([disabled]):hover{background:var(--tint2)}}
+.pop hr{border:0;border-top:1px solid var(--rule);margin:4px 6px}
+
+.ovl{position:fixed;inset:0;background:rgba(29,33,26,.35);z-index:30;display:flex;align-items:center;justify-content:center;padding:16px}
+.ovl[hidden]{display:none}
+.dlg{width:100%;max-width:420px;background:var(--sheet);border-radius:16px;box-shadow:var(--shadow);padding:18px 18px 16px}
+.dlg h3{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.9rem}
+.dlg p{font-size:.8rem;color:var(--ink2);margin-top:4px}
+.rs{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.rs label{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border:1px solid var(--rule2);border-radius:10px;font-size:.82rem;cursor:pointer}
+.rs label:has(input:checked){border-color:var(--acc);background:var(--tint2)}
+.rs input{accent-color:var(--acc);width:16px;height:16px}
+.dlg textarea{width:100%;margin-top:10px;min-height:64px;border:1px solid var(--rule2);border-radius:10px;padding:8px 10px;font:inherit;font-size:16px;resize:vertical}
+.dlg-f{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.btn{position:relative;height:36px;padding:0 16px;border-radius:9px;border:1px solid var(--rule2);background:var(--sheet);color:var(--ink);font:inherit;font-size:.8rem;font-weight:500;cursor:pointer}
+.btn::before{content:'';position:absolute;inset:-4px -2px}
+.btn.go{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+.btn[disabled]{opacity:.45;cursor:default}
+
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:40;background:var(--ink);color:#fff;border-radius:12px;padding:10px 14px;font-size:.8rem;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);max-width:calc(100vw - 32px)}
+.toast[hidden]{display:none}
+.toast button{position:relative;border:0;background:none;color:#cfe6b3;font:inherit;font-weight:600;cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px}
+.toast button::before{content:'';position:absolute;inset:-12px -8px}
+
+/* ── Как это работает ── */
+.sec{margin-top:44px}
+.sec h2{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:6px}
+.sec > p{color:var(--ink2);font-size:.88rem;max-width:760px}
+.flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:14px}
+@media (max-width:900px){.flow{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:560px){.flow{grid-template-columns:minmax(0,1fr)}}
+.st{background:var(--sheet);border:1px solid var(--rule);border-radius:14px;padding:14px 16px}
+.st h3{display:flex;align-items:center;gap:8px;font-family:'Unbounded',sans-serif;font-weight:600;font-size:.78rem}
+.st .how{display:inline-block;margin-top:8px;font-size:.66rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--acc-ink)}
+.st .how.hand{color:var(--warm)}
+.st p{font-size:.8rem;color:var(--ink2);margin-top:4px}
+.hdr{margin-top:24px;background:var(--sheet);border:1px solid var(--rule);border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:12px 18px;flex-wrap:wrap}
+.hdr-brand{display:flex;flex-direction:column;min-width:0}
+.hdr-brand b{font-family:'Unbounded',sans-serif;font-weight:700;font-size:.82rem;letter-spacing:.02em}
+.hdr-brand span{font-size:.7rem;color:var(--ink3)}
+.hdr-btns{margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.hb{position:relative;width:32px;height:32px;border:1px solid var(--rule2);border-radius:8px;background:var(--sheet);color:var(--ink2);display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:default}
+.hb.txt{width:auto;padding:0 11px;gap:6px;font:inherit;font-size:.76rem;font-weight:500;color:var(--ink)}
+.hb.new{cursor:pointer;color:var(--acc-ink);border-color:var(--acc);box-shadow:0 0 0 3px #e3f0d2}
+.hb.new[aria-pressed="true"]{background:var(--tint)}
+.hb.new::before{content:'';position:absolute;inset:-6px}
+.hb .cnt2{position:absolute;top:-6px;right:-7px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--warm);color:#fff;font-size:.58rem;font-weight:600;display:flex;align-items:center;justify-content:center}
+.hdr-note{flex-basis:100%;text-align:right;font-size:.74rem;color:var(--ink2)}
+.hdr-note b{color:var(--acc-ink)}
+@media (max-width:700px){.hdr-btns{margin-left:0;justify-content:flex-start}.hdr-note{text-align:left}}
+.win[hidden]{display:none}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.card.flash{animation:none}.col{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Макет · учебные данные</div>
+  <h1>Доска согласованных пресетов</h1>
+  <p class="lead">Согласованный пресет сам встаёт на доску и дальше идёт по столбцам: «Договор согласован», «Договор подписан» или «Не реализовано». Нажатие на карточку открывает пресет.</p>
+  <p class="lead">Доска открывается кнопкой в шапке калькулятора — между колокольчиком и «Пресетами»: доска и есть пресеты, только разложенные по состоянию. Число на кнопке — сколько карточек ждут повторного согласования: у менеджера это его пресеты, у руководителя — все. Нажми на кнопку в шапке ниже — доска свернётся и развернётся.</p>
+  <p class="lead">Карточки можно перетаскивать мышью, а на телефоне — переносить через меню «⋯» на карточке. Перенос в «Не реализовано» спрашивает причину, перенос в «Подписан» — подтверждение.</p>
+
+  <div class="hdr" aria-label="Шапка калькулятора">
+    <div class="hdr-brand"><b>БАНЯ МСК</b><span>Учебная баня 6×4 · каркас</span></div>
+    <div class="hdr-btns">
+      <span class="hb" title="Тёмный / светлый режим"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+      <span class="hb" title="Версия для печати"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span>
+      <span class="hb" title="Платёжный план" style="font-weight:700;font-size:.82rem">₽</span>
+      <span class="hb" title="Статистика"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+      <span class="hb" title="Журнал действий"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><polyline points="12 8 12 12 15 14"/></svg></span>
+      <span class="hb" title="Поиск по опциям"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+      <span class="hb" title="Уведомления"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+      <button type="button" class="hb new" id="boardBtn" aria-pressed="true" aria-controls="boardWin" title="Доска пресетов" aria-label="Доска пресетов"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1.2"/><rect x="10" y="4" width="5" height="11" rx="1.2"/><rect x="17" y="4" width="4" height="7" rx="1.2"/></svg><span class="cnt2" id="boardCnt">1</span></button>
+      <span class="hb txt"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>Пресеты</span>
+      <span class="hb txt">Сбросить</span>
+    </div>
+    <div class="hdr-note">Новая кнопка — <b>«Доска пресетов»</b>, обведена зелёным только в макете</div>
+  </div>
+
+  <div class="win" id="boardWin">
+    <div class="w-head">
+      <div class="w-t">Доска</div>
+      <div class="seg" role="group" aria-label="Чьи пресеты">
+        <button type="button" data-who="mine" aria-pressed="false">Мои</button>
+        <button type="button" data-who="all" aria-pressed="true">Все</button>
+      </div>
+      <label class="srch"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg><input id="q" type="search" placeholder="Пресет, код или менеджер" aria-label="Поиск по доске"></label>
+      <div class="w-tot">Согласовано и подписано<b id="inWork">0 ₽</b></div>
+    </div>
+    <div class="ptabs" id="ptabs" role="group" aria-label="Столбец"></div>
+    <div class="board" id="board"></div>
+  </div>
+
+  <section class="sec">
+    <h2>Как пресет идёт по доске</h2>
+    <p>Два первых столбца калькулятор ставит сам — по тем же событиям, что уже есть в мини-окне. Последний отмечает человек: калькулятор не знает, что клиент ушёл.</p>
+    <div class="flow">
+      <div class="st"><h3><span class="dot" style="background:#6daa34"></span>Договор согласован</h3><span class="how">Сам</span><p>Когда оба согласования — цена и чек-лист — получены. Изменили расчёт после согласования — карточка остаётся здесь с пометкой «Ждёт повторного согласования».</p></div>
+      <div class="st"><h3><span class="dot" style="background:#2f3a2a"></span>Договор подписан</h3><span class="how">Сам</span><p>По отметке «Подписан» в мини-окне. Перетаскивание сюда ставит ту же отметку и так же закрывает пресет для правок. На карточке — сколько платежей внесено по приходным ордерам.</p></div>
+      <div class="st"><h3><span class="dot" style="background:#c08a72"></span>Не реализовано</h3><span class="how hand">Вручную, с причиной</span><p>Клиент отказался или договор расторгнут. Причина выбирается из списка — по ней потом видно, почему уходят клиенты.</p></div>
+    </div>
+  </section>
+</div>
+
+<div class="pop" id="pop" hidden role="menu"></div>
+<div class="ovl" id="ovl" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgT">
+    <h3 id="dlgT">Не реализовано</h3>
+    <p id="dlgP">Почему пресет не стал стройкой?</p>
+    <div class="rs" id="rs">
+      <label><input type="radio" name="r" value="Выбрал другую компанию">Выбрал другую компанию</label>
+      <label><input type="radio" name="r" value="Дорого">Дорого</label>
+      <label><input type="radio" name="r" value="Отложил стройку">Отложил стройку</label>
+      <label><input type="radio" name="r" value="Договор расторгнут">Договор расторгнут</label>
+      <label><input type="radio" name="r" value="Другое">Другое</label>
+    </div>
+    <textarea id="rc" placeholder="Комментарий, если нужно" aria-label="Комментарий"></textarea>
+    <div class="dlg-f"><button type="button" class="btn" id="dNo">Отмена</button><button type="button" class="btn go" id="dOk" disabled>Перенести</button></div>
+  </div>
+</div>
+<div class="ovl" id="ovl2" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlg2T">
+    <h3 id="dlg2T">Договор подписан?</h3>
+    <p>Пресет закроется для правок у всех, как после отметки «Подписан» в мини-окне. Отменить подписание сможет только администратор.</p>
+    <div class="dlg-f"><button type="button" class="btn" id="d2No">Отмена</button><button type="button" class="btn go" id="d2Ok">Подписан</button></div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden><span id="tT"></span><button type="button" id="tU">Отменить</button></div>
+
+<script>
+(function () {
+  var СТ = [
+    { id: 'agreed', n: 'Договор согласован', c: '#6daa34', auto: 'Встают сами после согласования' },
+    { id: 'signed', n: 'Договор подписан', c: '#2f3a2a', auto: 'Сами — по отметке «Подписан»' },
+    { id: 'lost', n: 'Не реализовано', c: '#c08a72', auto: 'Вручную, с причиной' }
+  ];
+  var КАРТЫ = [
+    { id: 1, s: 'agreed', nm: 'Учебная баня 6×4', sub: 'Каркас 150 мм · терраса 12 м²', code: '482 916', sum: 2432000, who: 'Ольга Проверкина', me: true, when: 'согл. 18.10', tags: [['ok', 'Цена и чек-лист'], ['', 'Чат · 2']] },
+    { id: 2, s: 'agreed', nm: 'Баня с комнатой отдыха 7×5', sub: 'Клеёный брус 160 мм', code: '615 204', sum: 4185000, who: 'Игорь Учебный', me: false, when: 'согл. 16.10', tags: [['warm', 'Ждёт повторного согласования']] },
+    { id: 3, s: 'agreed', nm: 'Барнхаус-баня 6×8', sub: 'Каркас 200 мм · крытая терраса', code: '730 118', sum: 3640000, who: 'Ольга Проверкина', me: true, when: 'согл. 12.10', tags: [['ok', 'Цена и чек-лист']] },
+    { id: 4, s: 'signed', nm: 'Учебный проект 6×6', sub: 'Каркас 150 мм', code: '391 557', sum: 2870000, who: 'Анна Примерова', me: false, when: 'подп. 09.10', pay: [2, 5], tags: [] },
+    { id: 5, s: 'signed', nm: 'Баня для дачи 5×4', sub: 'Клеёный брус 125 мм', code: '208 640', sum: 2215000, who: 'Ольга Проверкина', me: true, when: 'подп. 03.10', pay: [1, 4], tags: [['', 'Чат · 1']] },
+    { id: 6, s: 'signed', nm: 'Учебная баня 4×6', sub: 'Каркас 150 мм', code: '117 902', sum: 1980000, who: 'Игорь Учебный', me: false, when: 'подп. 12.09', pay: [5, 5], tags: [['ok', 'Оплачено полностью']] },
+    { id: 7, s: 'lost', nm: 'Баня с бассейном 8×10', sub: 'Клеёный брус 205 мм', code: '856 330', sum: 7920000, who: 'Анна Примерова', me: false, when: '14.10', tags: [['lost', 'Дорого']] }
+  ];
+  var кто = 'all', вид = 'agreed', последнее = null, таймер = null;
+  function руб(ч) { return ч.toLocaleString('ru-RU').replace(/,/g, ' ') + ' ₽'; }
+  function ини(и) { return и.split(' ').map(function (с) { return с[0]; }).join(''); }
+  function видна(к) {
+    var q = document.getElementById('q').value.trim().toLowerCase();
+    if (кто === 'mine' && !к.me) return false;
+    return !q || (к.nm + ' ' + к.code + ' ' + к.code.replace(' ', '') + ' ' + к.who).toLowerCase().indexOf(q) >= 0;
+  }
+  function карта(к) {
+    var т = (к.tags || []).map(function (t) { return '<span class="tag ' + t[0] + '">' + t[1] + '</span>'; }).join('');
+    var п = к.pay ? '<div class="pay"><div class="pay-l"><span>Внесено платежей</span><span>' + к.pay[0] + ' из ' + к.pay[1] + '</span></div><div class="bar"><i style="width:' + Math.round(к.pay[0] / к.pay[1] * 100) + '%"></i></div></div>' : '';
+    return '<article class="card" draggable="true" data-id="' + к.id + '" tabindex="0" aria-label="' + к.nm + '">' +
+      '<div class="k-top"><div class="k-nm">' + к.nm + '</div><button type="button" class="k-menu" aria-label="Перенести карточку" data-menu="' + к.id + '"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></div>' +
+      '<div class="k-sub">' + к.sub + ' · <span style="white-space:nowrap">код ' + к.code + '</span></div>' +
+      '<div class="k-sum">' + руб(к.sum) + '</div>' + п +
+      (т ? '<div class="k-tags">' + т + '</div>' : '') +
+      '<div class="k-foot"><span class="av">' + ини(к.who) + '</span><span class="who">' + к.who + '</span><span class="when">' + к.when + '</span></div></article>';
+  }
+  function нарисовать(вспышка) {
+    var д = document.getElementById('board'), вк = document.getElementById('ptabs');
+    д.innerHTML = СТ.map(function (с) {
+      var кк = КАРТЫ.filter(function (к) { return к.s === с.id && видна(к); });
+      var сум = кк.reduce(function (a, к) { return a + к.sum; }, 0);
+      return '<section class="col' + (с.id === вид ? ' cur' : '') + '" data-col="' + с.id + '" aria-label="' + с.n + '">' +
+        '<div class="c-h"><span class="dot" style="background:' + с.c + '"></span><span class="c-n">' + с.n + '</span><span class="cnt">' + кк.length + '</span></div>' +
+        '<div class="c-auto"><span>' + с.auto + '</span><span class="c-sum">' + (сум ? руб(сум) : '') + '</span></div>' +
+        '<div class="list">' + (кк.length ? кк.map(карта).join('') : '<div class="empty">Пусто</div>') + '</div></section>';
+    }).join('');
+    вк.innerHTML = СТ.map(function (с) {
+      var n = КАРТЫ.filter(function (к) { return к.s === с.id && видна(к); }).length;
+      return '<button type="button" data-tab="' + с.id + '" aria-pressed="' + (с.id === вид) + '"><span class="dot" style="background:' + с.c + '"></span>' + с.n + '<span class="c">' + n + '</span></button>';
+    }).join('');
+    var вр = КАРТЫ.filter(function (к) { return (к.s === 'agreed' || к.s === 'signed') && видна(к); }).reduce(function (a, к) { return a + к.sum; }, 0);
+    document.getElementById('inWork').textContent = руб(вр);
+    if (вспышка) { var э = д.querySelector('[data-id="' + вспышка + '"]'); if (э) э.classList.add('flash'); }
+  }
+  function найти(id) { return КАРТЫ.filter(function (к) { return к.id === +id; })[0]; }
+  var СТАРЫЕ_ТЕГИ = {};
+  function перенести(id, куда, причина) {
+    var к = найти(id); if (!к || к.s === куда) return;
+    if (к.s === 'signed' && куда === 'agreed') { тост('Отменить подписание может только администратор — в мини-окне пресета', false); return; }
+    if (куда === 'lost' && причина == null) { спроситьПричину(id); return; }
+    if (куда === 'signed' && причина == null) { подтвердитьПодпись(id); return; }
+    последнее = { id: к.id, s: к.s, when: к.when, tags: (к.tags || []).slice(), pay: к.pay };
+    к.s = куда;
+    if (куда === 'lost') { к.tags = [['lost', причина]]; к.when = 'сегодня'; }
+    if (куда === 'signed') { к.when = 'подп. сегодня'; к.pay = к.pay || [0, 5]; к.tags = (к.tags || []).filter(function (t) { return t[0] !== 'ok'; }); }
+    вид = куда;
+    нарисовать(к.id);
+    тост('«' + к.nm + '» → ' + СТ.filter(function (с) { return с.id === куда; })[0].n, true);
+  }
+  function тост(текст, можноОтменить) {
+    var т = document.getElementById('toast');
+    document.getElementById('tT').textContent = текст;
+    document.getElementById('tU').hidden = !можноОтменить;
+    т.hidden = false; clearTimeout(таймер);
+    таймер = setTimeout(function () { т.hidden = true; последнее = null; }, можноОтменить ? 3000 : 3500);
+  }
+  document.getElementById('tU').onclick = function () {
+    if (!последнее) return;
+    var к = найти(последнее.id); к.s = последнее.s; к.when = последнее.when; к.tags = последнее.tags; к.pay = последнее.pay;
+    вид = к.s; последнее = null; document.getElementById('toast').hidden = true; нарисовать(к.id);
+  };
+
+  // Перетаскивание мышью.
+  var тащим = null;
+  document.addEventListener('dragstart', function (e) { var к = e.target.closest && e.target.closest('.card'); if (!к) return; тащим = к.getAttribute('data-id'); к.classList.add('drag'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', тащим); } catch (x) {} });
+  document.addEventListener('dragend', function () { document.querySelectorAll('.drag').forEach(function (э) { э.classList.remove('drag'); }); document.querySelectorAll('.col.over').forEach(function (э) { э.classList.remove('over'); }); });
+  document.addEventListener('dragover', function (e) { var с = e.target.closest && e.target.closest('.col'); if (!с || !тащим) return; e.preventDefault(); document.querySelectorAll('.col.over').forEach(function (э) { if (э !== с) э.classList.remove('over'); }); с.classList.add('over'); });
+  document.addEventListener('drop', function (e) { var с = e.target.closest && e.target.closest('.col'); if (!с || !тащим) return; e.preventDefault(); var id = тащим; тащим = null; с.classList.remove('over'); перенести(id, с.getAttribute('data-col')); });
+
+  // Меню «⋯» — перенос без перетаскивания (телефон, клавиатура).
+  var поп = document.getElementById('pop');
+  function открытьМеню(id, кн) {
+    var к = найти(id), р = кн.getBoundingClientRect();
+    поп.innerHTML = '<div class="pop-h">Перенести в</div>' + СТ.map(function (с) {
+      var нельзя = с.id === к.s || (к.s === 'signed' && с.id === 'agreed');
+      return '<button type="button" role="menuitem" data-to="' + с.id + '"' + (нельзя ? ' disabled' : '') + '><span class="dot" style="background:' + с.c + '"></span><span>' + с.n +
+        (с.id === к.s ? '<small>сейчас здесь</small>' : (к.s === 'signed' && с.id === 'agreed') ? '<small>отменяет подписание администратор</small>' : '') + '</span></button>';
+    }).join('') + '<hr><button type="button" role="menuitem" data-open="1">Открыть пресет</button>';
+    поп.hidden = false;
+    var ш = поп.offsetWidth, в = поп.offsetHeight;
+    поп.style.left = Math.max(8, Math.min(innerWidth - ш - 8, р.right - ш)) + 'px';
+    поп.style.top = (р.bottom + в + 8 > innerHeight ? Math.max(8, р.top - в - 6) : р.bottom + 6) + 'px';
+    поп.dataset.id = id;
+    var первая = поп.querySelector('button:not([disabled])'); if (первая) первая.focus();
+  }
+  function закрытьМеню() { поп.hidden = true; }
+  поп.addEventListener('click', function (e) {
+    var б = e.target.closest('button'); if (!б || б.disabled) return;
+    var id = поп.dataset.id; закрытьМеню();
+    if (б.dataset.open) { тост('Откроется пресет с кодом ' + найти(id).code, false); return; }
+    перенести(id, б.dataset.to);
+  });
+  document.addEventListener('click', function (e) {
+    var м = e.target.closest('[data-menu]');
+    if (м) { e.stopPropagation(); if (!поп.hidden && поп.dataset.id === м.dataset.menu) закрытьМеню(); else открытьМеню(м.dataset.menu, м); return; }
+    if (!e.target.closest('#pop')) закрытьМеню();
+    var т = e.target.closest('[data-tab]'); if (т) { вид = т.dataset.tab; нарисовать(); return; }
+    var w = e.target.closest('[data-who]'); if (w) { кто = w.dataset.who; document.querySelectorAll('[data-who]').forEach(function (б) { б.setAttribute('aria-pressed', б === w); }); нарисовать(); return; }
+    var к = e.target.closest('.card'); if (к && !e.target.closest('.k-menu')) тост('Откроется пресет с кодом ' + найти(к.dataset.id).code, false);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { закрытьМеню(); закрытьДиалоги(); }
+  });
+  document.getElementById('q').addEventListener('input', function () { нарисовать(); });
+
+  // Причина «Не реализовано».
+  var ждём = null;
+  function спроситьПричину(id) {
+    ждём = id;
+    document.querySelectorAll('#rs input').forEach(function (и) { и.checked = false; });
+    document.getElementById('rc').value = '';
+    document.getElementById('dOk').disabled = true;
+    document.getElementById('dlgP').textContent = '«' + найти(id).nm + '» — почему пресет не стал стройкой?';
+    document.getElementById('ovl').hidden = false;
+  }
+  document.getElementById('rs').addEventListener('change', function () { document.getElementById('dOk').disabled = false; });
+  document.getElementById('dOk').onclick = function () {
+    var в = document.querySelector('#rs input:checked'); if (!в) return;
+    var id = ждём; закрытьДиалоги(); перенести(id, 'lost', в.value);
+  };
+  function подтвердитьПодпись(id) { ждём = id; document.getElementById('ovl2').hidden = false; }
+  document.getElementById('d2Ok').onclick = function () { var id = ждём; закрытьДиалоги(); перенести(id, 'signed', ''); };
+  function закрытьДиалоги() { document.getElementById('ovl').hidden = true; document.getElementById('ovl2').hidden = true; }
+  document.getElementById('dNo').onclick = закрытьДиалоги;
+  document.getElementById('d2No').onclick = закрытьДиалоги;
+  document.querySelectorAll('.ovl').forEach(function (о) { о.addEventListener('click', function (e) { if (e.target === о) закрытьДиалоги(); }); });
+
+  // Кнопка доски в шапке: открывает и закрывает доску; число — свои карточки,
+  // которые ждут повторного согласования.
+  var кн = document.getElementById('boardBtn');
+  кн.addEventListener('click', function () {
+    var w = document.getElementById('boardWin'); w.hidden = !w.hidden;
+    кн.setAttribute('aria-pressed', String(!w.hidden));
+  });
+  function счётКнопки() {
+    var n = КАРТЫ.filter(function (к) { return к.s === 'agreed' && (к.tags || []).some(function (t) { return t[1] === 'Ждёт повторного согласования'; }); }).length;
+    var э = document.getElementById('boardCnt'); э.textContent = n; э.hidden = !n;
+  }
+  var прежнее = нарисовать; нарисовать = function (в) { прежнее(в); счётКнопки(); };
+  нарисовать();
+})();
+</script>
+</body>
+</html>
