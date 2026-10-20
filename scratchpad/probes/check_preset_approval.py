@@ -249,6 +249,23 @@ def прогон(бр, порт, ш, в, ночь, полный):
     стр.evaluate("() => { window.__ВЫЗ_ДО = (window.__ВЫЗОВЫ || []).length; отправитьНаСогласование(); }"); стр.wait_for_timeout(300)
     if стр.evaluate("() => (window.__ВЫЗОВЫ || []).length !== window.__ВЫЗ_ДО") or not any("опубликуйте" in т for т in стр.evaluate("() => window.__тосты.slice(-2)")):
         плохо(f"{н} личный пресет ушёл на согласование или отказ без слов")
+    # Личный пресет, который уже прошёл согласование (отправлен до правила о
+    # публикации), а потом изменён: повторная отправка открыта — публикация
+    # нужна только для первой (Константин, 20.10.2026: «Активных правок нет,
+    # но на повторное согласование не даёт отправить»).
+    пв = стр.evaluate("""() => { const о = пресетКарточки(); if (!о || !о.код) return { кода: false };
+      const было = _согласование, с = составДляСогласования();
+      _согласование = { код: String(о.код), строка: { code: String(о.код), state: 'approved', approved_print: 'прежний',
+        approved_snapshot: с, approved_at: new Date(Date.now() - 864e5).toISOString(), approved_total: 1 }, грузится: false, когда: Date.now(), ошибка: '', шлём: false };
+      заполнитьКарточкуЗначка();
+      const к = document.querySelector('#presetChipCard .pc-ap-blk [data-act="ap-send"]');
+      const п = document.querySelector('#presetChipCard .pc-ap-blk .pc-ap-why');
+      const р = { кода: true, вид: о.вид, есть: !!к, текст: к ? к.textContent : '', подсказка: п ? п.textContent : '' };
+      _согласование = было; заполнитьКарточкуЗначка(); return р; }""")
+    if not пв["кода"]:
+        плохо(f"{н} личному пресету не выдан код — повторную отправку не проверить")
+    elif пв["вид"] != "own" or not пв["есть"] or "повторное" not in пв["текст"] or "опубликуйте" in пв["подсказка"]:
+        плохо(f"{н} личный согласованный пресет: повторную отправку держит публикация {пв}")
     опубликовать_пресет(стр)
     лч = стр.evaluate("""() => { const к = document.querySelector('#presetChipCard .pc-ap-blk [data-act="ap-send"]');
       const п = document.querySelector('#presetChipCard .pc-ap-blk .pc-ap-why');
