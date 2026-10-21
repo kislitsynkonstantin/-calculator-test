@@ -43349,7 +43349,7 @@ function доскаВидна(с, q) {
   if (доскаКто() === 'mine' && !доскаМоя(с)) return false;
   if (!q) return true;
   const код = String(с.code || '');
-  return [с.preset_name, с.project_name, код, кодКрасиво(код), с.author_name, с.sent_name].join(' ').toLowerCase().indexOf(q) >= 0;
+  return [с.client_short, с.preset_name, с.project_name, код, кодКрасиво(код), с.author_name, с.sent_name].join(' ').toLowerCase().indexOf(q) >= 0;
 }
 
 async function загрузитьДоску(тихо) {
@@ -43358,9 +43358,11 @@ async function загрузитьДоску(тихо) {
   _доска.грузится = true;
   if (!тихо) отрисоватьДоску();
   try {
-    const { data, error } = await _sb.rpc('preset_board');
+    const [{ data, error }, кл] = await Promise.all([_sb.rpc('preset_board'),
+      _sb.rpc('preset_board_clients').then(о => о, () => ({ data: null }))]);
     if (error) throw error;
-    _доска.строки = Array.isArray(data) ? data : [];
+    const заказчики = new Map(((кл && кл.data) || []).map(х => [String(х.code), х.client_short]));
+    _доска.строки = (Array.isArray(data) ? data : []).map(с => заказчики.has(String(с.code)) ? Object.assign({}, с, { client_short: заказчики.get(String(с.code)) }) : с);
     _доска.ошибка = '';
     _доска.когда = Date.now();
   } catch (e) {
@@ -43414,7 +43416,10 @@ function карточкаДоски(с) {
   const тащить = доскаМожноДвигать(с) && !(window.matchMedia && matchMedia('(hover: none)').matches);
   return '<article class="dsk-card" data-dsk-code="' + escapeHtml(код) + '" tabindex="0"' + (тащить ? ' draggable="true"' : '')
     + ' aria-label="' + escapeHtml(имя) + '">'
-    + '<div class="dsk-top"><div class="dsk-nm">' + escapeHtml(имя) + '</div>'
+    // Заказчик — заголовком карточки, название пресета — строкой под ним
+    // (макет mockups/board-client-v2.html, вариант Г; Константин, 21.10.2026:
+    // «Вот, то что надо»). Без заказчика заголовок — название, как прежде.
+    + '<div class="dsk-top"><div class="dsk-nm">' + (с.client_short ? '<span class="dsk-cl">' + escapeHtml(с.client_short) + '</span><span class="dsk-nm2">' + escapeHtml(имя) + '</span>' : escapeHtml(имя)) + '</div>'
     + '<button type="button" class="dsk-menu" aria-label="Действия с карточкой" aria-haspopup="menu" data-dsk-menu="' + escapeHtml(код) + '">'
     + '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></div>'
     // Перед кодом — пробел, без точки: рамка кода сама разделитель
@@ -43756,6 +43761,21 @@ function закрытьДиалогиДоски() {
 // значок мини-окна перерисовывается на каждом нажатии.
 const _доскаОтпечатки = new Map();
 let _доскаОтпТаймер = null;
+// Заказчик карточки доски — фамилия с инициалами, как в подписи договора
+// (свернутьФИО), из реквизитов открытого пресета. Пишет автор или
+// администратор с редактором (preset_approval_client); шлётся, когда
+// поменялся. Пустое поле стирает заказчика с карточки.
+const _доскаЗаказчики = new Map();
+function заказчикДоски() {
+  return свернутьФИО((document.getElementById('clientName') || {}).value || '').slice(0, 80);
+}
+function сообщитьЗаказчикаДоске(код, а) {
+  if (!код || !/^\d{6}$/.test(код) || !а) return;
+  const кл = заказчикДоски();
+  if (_доскаЗаказчики.get(код) === кл || (а.client_short || '') === кл) { _доскаЗаказчики.set(код, кл); return; }
+  _доскаЗаказчики.set(код, кл);
+  _sb.rpc('preset_approval_client', { p_code: код, p_client: кл }).then(({ error }) => { if (error) _доскаЗаказчики.delete(код); });
+}
 function сообщитьОтпечатокДоске() {
   clearTimeout(_доскаОтпТаймер);
   _доскаОтпТаймер = setTimeout(() => {
@@ -43764,6 +43784,7 @@ function сообщитьОтпечатокДоске() {
       const а = согласованиеПресета();
       if (!а || а.signed_at || !_согласование.когда) return;
       const код = String(_согласование.код || '');
+      сообщитьЗаказчикаДоске(код, а);
       const отп = отпечатокСостава(составДляСогласования());
       if (!код || !/^v1-[0-9a-f]{16}$/.test(отп)) return;
       if (_доскаОтпечатки.get(код) === отп) return;
@@ -52964,6 +52985,9 @@ body.dark #boardPanel{--dsk-lost:#e0a58e;--dsk-lost-tint:rgba(224,165,142,.13);}
 @media (hover:hover){.dsk-card:hover{border-color:var(--pc-line);}}
 .dsk-top{display:flex;align-items:flex-start;gap:8px;}
 .dsk-nm{flex:1;min-width:0;font-weight:600;font-size:.84rem;line-height:1.3;overflow-wrap:anywhere;}
+/* Заказчик — заголовком карточки, название пресета — строкой под ним (макет board-client-v2, вариант Г). */
+.dsk-nm .dsk-cl{display:block;font-family:'Unbounded',sans-serif;font-weight:600;font-size:.82rem;line-height:1.3;color:var(--pc-ink);}
+.dsk-nm .dsk-nm2{display:block;margin-top:3px;font-weight:500;font-size:.76rem;line-height:1.35;color:var(--pc-ink2);}
 .dsk-menu{position:relative;width:28px;height:28px;margin:-4px -4px 0 0;border:0;border-radius:7px;background:none;color:var(--pc-ink3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;}
 .dsk-menu::before{content:'';position:absolute;inset:-8px;}
 @media (hover:hover){.dsk-menu:hover{background:var(--pc-tint);color:var(--pc-ink);}}

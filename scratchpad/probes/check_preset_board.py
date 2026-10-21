@@ -77,6 +77,8 @@ def плохо(т):
   пиши('preset_approval_lost', а => ({ code: а.p_code, lost_at: new Date().toISOString(), lost_reason: а.p_reason, lost_name: 'Проба' }));
   пиши('preset_approval_unlost', а => ({ code: а.p_code }));
   пиши('preset_approval_print', () => null);
+  пиши('preset_board_clients', () => [{ code: '222222', client_short: 'Сидорова Е. В.' }]);
+  пиши('preset_approval_client', () => null);
   window.__ОТКРЫТО = [];
   window.открытьСогласование = async код => { window.__ОТКРЫТО.push(String(код)); };
 }"""
@@ -192,6 +194,24 @@ def прогон(бр, порт, ш, в, ночь, модерн, полный):
         if sorted(к["коды"]) != sorted(ждём.get(к["ид"], [])):
             плохо(f"{н} в «{к['имя']}» карточки {к['коды']}, ждали {ждём.get(к['ид'])}")
     метки = {к["ид"]: к["метки"] for к in с["кол"]}
+    # Заказчик — заголовком карточки, название пресета — под ним; без
+    # заказчика заголовок — название (макет board-client-v2, вариант Г;
+    # Константин, 21.10.2026: «Вот, то что надо»).
+    зк = стр.evaluate("""() => { const к = c => document.querySelector('#boardCols [data-dsk-code="' + c + '"]');
+      const а = к('222222'), б = к('111111');
+      return { кл: а && а.querySelector('.dsk-cl') ? а.querySelector('.dsk-cl').textContent : '', ниже: а && а.querySelector('.dsk-nm2') ? а.querySelector('.dsk-nm2').textContent : '',
+        выше: а && а.querySelector('.dsk-cl') && а.querySelector('.dsk-nm2') ? а.querySelector('.dsk-cl').getBoundingClientRect().bottom <= а.querySelector('.dsk-nm2').getBoundingClientRect().top + 1 : false,
+        безЗк: б ? !б.querySelector('.dsk-cl') && б.querySelector('.dsk-nm').textContent.trim() === 'Учебная баня 6×4' : false }; }""")
+    if зк["кл"] != "Сидорова Е. В." or "Баня с террасой" not in зк["ниже"] or not зк["выше"] or not зк["безЗк"]:
+        плохо(f"{н} заказчик на карточке доски не заголовком: {зк}")
+    # Калькулятор сообщает базе заказчика открытого пресета — как в подписи
+    # договора, «Фамилия И. О.»; тот же заказчик второй раз не шлётся.
+    ш_ = стр.evaluate("""() => { const п = document.getElementById('clientName'); if (!п) return null; const было = п.value;
+      п.value = 'Петрова Анна Сергеевна'; const до = window.__ВЫЗОВЫ.length;
+      сообщитьЗаказчикаДоске('123456', { client_short: '' }); сообщитьЗаказчикаДоске('123456', { client_short: '' });
+      const в = window.__ВЫЗОВЫ.slice(до).filter(х => х[0] === 'preset_approval_client'); п.value = было; return в.map(х => х[1]); }""")
+    if ш_ is not None and (len(ш_) != 1 or ш_[0].get("p_client") != "Петрова А. С." or ш_[0].get("p_code") != "123456"):
+        плохо(f"{н} заказчик не ушёл в базу один раз как «Петрова А. С.»: {ш_}")
     # Перед кодом в рамке точки нет — рамка сама разделитель (21.10.2026).
     точка = стр.evaluate("() => [...document.querySelectorAll('#boardCols .dsk-sub')].map(э => э.textContent).filter(т => /·\\s*\\d{3}\\s\\d{3}\\s*$/.test(т))")
     if точка:
@@ -232,6 +252,10 @@ def прогон(бр, порт, ш, в, ночь, модерн, полный):
         л = стр.evaluate(ЛУПА)
         if not л["открыт"] or not л["фокус"] or л["вид"] < 1 or л["ш"] < 160 or л["ш"] > 340 or л["право"] < 0:
             плохо(f"{н} лупа не раскрылась в поле: {л}")
+        стр.keyboard.type("сидоров"); стр.wait_for_timeout(250)
+        if sum([к["коды"] for к in стр.evaluate(СОСТОЯНИЕ)["кол"]], []) != ["222222"]:
+            плохо(f"{н} поиск по фамилии заказчика не нашёл карточку")
+        стр.keyboard.press("Control+A"); стр.keyboard.press("Backspace")
         стр.keyboard.type("333 333"); стр.wait_for_timeout(250)
         коды = sum([к["коды"] for к in стр.evaluate(СОСТОЯНИЕ)["кол"]], [])
         if коды != ["333333"]:
