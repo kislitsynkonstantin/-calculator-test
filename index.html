@@ -39923,7 +39923,8 @@ function обновитьУпоминание() {
     ? варианты.map((ч, i) => '<button type="button" role="option" id="pcChmn-' + i + '" data-act="ch-mention" data-uid="' + escapeHtml(ч.id) + '"'
         + ' aria-selected="' + (i === выбран) + '"' + (i === выбран ? ' class="on"' : '') + '>'
         + '<span class="pc-chmn-a" aria-hidden="true">' + escapeHtml(буквы(ч.имя)) + '</span><span class="pc-chmn-n">' + escapeHtml(ч.имя) + '</span></button>').join('')
-    : '<div class="pc-chmn-w">' + (л.ошибка ? 'Список сотрудников не загрузился: ' + escapeHtml(л.ошибка) : 'Загружается список сотрудников…') + '</div>';
+    : '<div class="pc-chmn-w">' + (л.ошибка ? 'Список сотрудников не загрузился: ' + escapeHtml(л.ошибка)
+      : '<div class="bm-load" role="progressbar" aria-label="Список сотрудников загружается"><i></i></div>Список сотрудников загружается…') + '</div>';
   if (сп.dataset.h !== h) { сп.dataset.h = h; сп.innerHTML = h; }
   поле.setAttribute('aria-controls', 'pcChatMention');
   if (л.список) {
@@ -43670,7 +43671,11 @@ function отрисоватьДоску() {
   document.querySelectorAll('[data-dsk-who]').forEach(б => б.setAttribute('aria-pressed', String(б.dataset.dskWho === кто)));
   const сумма = document.getElementById('boardSum');
   if (_доска.ошибка || (_доска.грузится && !_доска.когда)) {
-    кол.innerHTML = '<div class="dsk-msg">' + escapeHtml(_доска.ошибка || 'Загружаем доску…') + '</div>';
+    // Загрузка — той же полоской, что у списков пресетов, журнала и справки
+    // (Константин, 21.10.2026: «Загрузка доски тоже полоску поставь, как на
+    // других окнах»); ошибка — текстом.
+    кол.innerHTML = _доска.ошибка ? '<div class="dsk-msg">' + escapeHtml(_доска.ошибка) + '</div>'
+      : '<div class="dsk-msg dsk-load"><div class="bm-load" role="progressbar" aria-label="Доска загружается"><i></i></div><div>Доска загружается…</div></div>';
     вкл.innerHTML = '';
     if (сумма) сумма.textContent = '—';
     return;
@@ -53231,7 +53236,11 @@ body.dark #boardPanel{--dsk-lost:#e0a58e;--dsk-lost-tint:rgba(224,165,142,.13);}
 .dsk-sum{margin-left:auto;font-size:.72rem;font-weight:600;color:var(--pc-ink2);font-variant-numeric:tabular-nums;white-space:nowrap;}
 .dsk-list{display:flex;flex-direction:column;gap:8px;min-height:60px;}
 .dsk-empty{font-size:.74rem;color:var(--pc-ink3);text-align:center;padding:18px 8px;border:1px dashed var(--pc-line);border-radius:10px;}
+/* Загрузка и ошибка — во всю видимую ширину окна, а не в первом столбце сетки
+   и не по середине прокручиваемой ленты из четырёх столбцов. */
+.dsk-board:has(> .dsk-msg){display:block;overflow:hidden}
 .dsk-msg{padding:40px 20px;text-align:center;font-size:.86rem;color:var(--pc-ink2);}
+.dsk-msg.dsk-load{display:flex;flex-direction:column;align-items:center;gap:14px;padding-top:56px}
 .dsk-card{position:relative;background:var(--pc-bg);border:1px solid var(--pc-rule);border-radius:12px;padding:10px 12px;cursor:pointer;touch-action:manipulation;}
 .dsk-card[draggable="true"]{cursor:grab;}
 .dsk-card.drag{opacity:.45;}
@@ -53976,6 +53985,7 @@ body.dark,body.ui-blank.dark{--pc-bub:rgba(255,255,255,.07)}
 .pc-card .pc-chmn button.on .pc-chmn-a{background:var(--pc-fill);color:var(--pc-on-fill)}
 .pc-card .pc-chmn-n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pc-card .pc-chmn-w{padding:10px 8px;font-size:.68rem;line-height:1.4;color:var(--pc-ink3)}
+.pc-card .pc-chmn-w .bm-load{width:120px;margin:4px 0 10px}
 .pc-card .pc-chmt{color:var(--pc-acc);font-weight:600}
 /* Подложка — тенью, а не полями: с полями строка с именем съезжала вправо от соседних. */
 .pc-card .pc-chmt.me{border-radius:3px;background:var(--pc-tint);box-shadow:0 0 0 2px var(--pc-tint)}

@@ -133,6 +133,23 @@ def прогон(бр, порт, ш, в, ночь, модерн, полный):
     if not код:
         плохо(f"{н} пресету не выдан код"); стр.close(); return
     стр.evaluate(ДОСКА, код)
+    # ── загрузка доски — полоской, как у других окон (21.10.2026) ──
+    стр.evaluate("""() => { const б = window.__RPC.preset_board; window.__RPC.preset_board = (а) =>
+      new Promise(r => setTimeout(() => r(typeof б === 'function' ? б(а) : б), 1500)); _доска.когда = 0; }""")
+    открыть_доску(стр); стр.wait_for_timeout(250)
+    з = стр.evaluate("""() => { const п = document.querySelector('#boardCols .bm-load'), к = document.getElementById('boardCols');
+      if (!п) return { есть: false, текст: к ? к.innerText.trim() : '' };
+      const р = п.getBoundingClientRect(), ок = к.getBoundingClientRect();
+      return { есть: true, ширина: Math.round(р.width), высота: Math.round(р.height), центр: Math.round(Math.abs((р.left + р.right) / 2 - (ок.left + ок.right) / 2)),
+        текст: к.innerText.trim(), бег: getComputedStyle(п.querySelector('i')).animationName }; }""")
+    if not з["есть"] or з["ширина"] < 100 or з["высота"] < 2 or з["центр"] > 30 or "загружается" not in з["текст"]:
+        плохо(f"{н} доска грузится без полоски загрузки или не по центру: {з}")
+    if ш == 390 and not ночь and not модерн:
+        стр.mouse.move(5, 5); стр.screenshot(path=f"/tmp/board-load-{ш}.png")
+    стр.wait_for_timeout(1800)
+    if стр.evaluate("() => !!document.querySelector('#boardCols .bm-load')"):
+        плохо(f"{н} полоска загрузки доски осталась после загрузки")
+    закрыть_доску(стр)
     # ── кнопка в шапке ──
     п = стр.evaluate("""() => { const к = [...document.querySelectorAll('#headerBtns > *')].map(э => э.id);
       return { до: к.indexOf('bellWrap'), доска: к.indexOf('boardBtn'), после: к.indexOf('presetsBtn') }; }""")
