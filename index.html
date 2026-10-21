@@ -25614,7 +25614,7 @@ a.tel{color:inherit;text-decoration:underline;text-decoration-color:var(--bl-acc
   </dl></div>
   <div class="v1-party"><span class="ey">Заказчик</span><dl class="rows">
     <dt>Ф. И. О.</dt><dd class="name">${зн(vars.clientFullName)}</dd>
-    <dt>Договор</dt><dd>${номераПравил.map(н => '№&nbsp;' + н).join(' и ')} от ${vars.contractDate}</dd>
+    <dt>Договор</dt><dd>${номераПравилHtml} от <span class="placeholder">${vars.contractDate}</span></dd>
     <dt>Адрес объекта</dt><dd>${зн(vars.plotAddress)}</dd>
     <dt>Телефон</dt><dd>${тел(vars.clientPhone)}</dd>
     <dt>Эл. почта</dt><dd>${зн(vars.clientEmail)}</dd>
