@@ -1,0 +1,164 @@
+Окно «Пресеты» на компьютере
+<main class="bl-sheet">
+  <header class="bl-doc-head">
+    <div><img class="bl-logo bl-logo--day" src="@@LOGO_DAY@@" alt="Баня МСК"><img class="bl-logo bl-logo--night" src="@@LOGO_NIGHT@@" alt="" aria-hidden="true"></div>
+    <div class="bl-doc-head__meta">Макет · версия 3<br>21.10.2026</div>
+  </header>
+  <p class="bl-eyebrow">Макет · окно «Пресеты»</p>
+  <h1 class="bl-title">Окно «Пресеты» на компьютере — <em>развитие варианта Е и новые концепты</em></h1>
+  <p class="bl-lead">Вариант Е из второго захода — список слева, выбранный пресет справа — понравился. Ниже он развит в четыре стороны: Е1–Е4 отличаются тем, что показывает правая часть и как устроен список. Дальше — четыре концепта, которые меняют само окно, а не карточку: З–Л.</p>
+  <p class="bl-lead">Рамка — окно «Пресеты» на экране 1440 px, уменьшенное под ширину листа. На телефоне окно остаётся как сейчас. Данные учебные.</p>
+  <div class="bl-head-rule"></div>
+  <div id="sections"></div>
+  <div class="tip"><strong>Предлагаю Е2 с разбивкой из Е1.</strong> Папки слева заменяют три вкладки и сразу показывают, сколько пресетов ждут согласования; в середине — короткий список; справа — выбранный пресет с суммой по разделам. Всё, что сейчас прячется за переключением вкладок, видно одним взглядом, а загрузить пресет — одна крупная кнопка.</div>
+  <div class="tip"><strong>Как отвечать:</strong> буквой — «Е2», «Е1», «З»; можно сочетанием: «Е2, справа как в Е4». Концепты И и К могут жить рядом с любым вариантом: сравнение — отдельной кнопкой, поиск — сочетанием клавиш.</div>
+  <div class="bl-foot"><span>Баня МСК · макет «Окно „Пресеты“ на компьютере», версия 3 · учебные данные</span><span>21.10.2026</span></div>
+</main>
+<script>
+const SV = {
+  srch: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
+  x: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+  edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+  dl: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+  del: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13"/></svg>',
+  pub: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 9l5-5 5 5M5 20h14"/></svg>',
+  open: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  star: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>',
+  starO: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>',
+  user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
+  stack: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>',
+  key: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="9" width="16" height="11" rx="2"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  cmp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 4v16M16 4v16M4 8h4M16 16h4"/></svg>',
+  sort: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>',
+};
+// Силуэт бани вместо визуализации — в калькуляторе здесь снимок из «Визуализации и планировки».
+const ДОМ = ['<svg viewBox="0 0 200 110" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M20 108V52L100 10l80 42v56"/><path d="M8 58L100 6l92 52"/><rect x="40" y="66" width="34" height="42"/><rect x="96" y="66" width="62" height="26"/><path d="M127 66v26"/></svg>',
+  '<svg viewBox="0 0 200 110" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M14 108V40h172v68"/><path d="M6 40l94-30 94 30"/><path d="M60 40v68M140 40v68"/><rect x="74" y="64" width="52" height="44"/></svg>',
+  '<svg viewBox="0 0 200 110" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M30 108V30h140v78"/><path d="M22 30l150-24v24"/><rect x="48" y="56" width="40" height="52"/><rect x="104" y="50" width="50" height="30"/></svg>',
+  '<svg viewBox="0 0 200 110" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M24 108V58l52-40 52 40v50"/><path d="M128 108V72h52v36"/><path d="M16 64l60-48 60 48"/><rect x="58" y="74" width="36" height="34"/></svg>'];
+const П = [
+  { н: 'Хай-тек баня «Пример» 7,7×8,2', д: '25.09.26', з: 'Петрова А. С.', т: 'Каркас', к: '482 615', с: '7 261 953 ₽', м: '63 м²', ст: 'rv', ж: 1, в: 0 },
+  { н: 'Фахверковая баня «Образец» 7×9', д: '17.09.26', з: 'Иванов К. Д.', т: 'Каркас', к: '730 214', с: '5 484 650 ₽', м: '63 м²', ст: 'ok', ж: 1, в: 1 },
+  { н: 'Баня из клеёного бруса «Учебная» 13,5×12', д: '25.09.26', з: 'Сидоров П. А.', т: 'Брус', к: '219 506', с: '11 255 215 ₽', м: '162 м²', ст: '', ж: 1, в: 2 },
+  { н: 'Баня с террасой 6×6', д: '17.10.26', з: 'Петрова А. С.', т: 'Каркас', к: '604 118', с: '3 616 080 ₽', м: '36 м²', ст: '', ж: 0, в: 3 },
+  { н: 'Барнхаус-баня «Тренировочная» 6×9', д: '03.10.26', з: 'Орлова Е. В.', т: 'Каркас', к: '355 902', с: '4 902 300 ₽', м: '54 м²', ст: 'sg', ж: 0, в: 0 },
+  { н: 'Баня с бассейном «Проба» 8×10', д: '01.10.26', з: 'Кузнецов Д. И.', т: 'Брус', к: '871 440', с: '9 120 000 ₽', м: '80 м²', ст: '', ж: 0, в: 1 },
+  { н: 'Хай-тек баня «Пример» 7,7×8,2 — без террасы', д: '14.10.26', з: 'Петрова А. С.', т: 'Каркас', к: '508 377', с: '6 480 120 ₽', м: '63 м²', ст: '', ж: 0, в: 0 },
+];
+const СТ = { rv: 'На согласовании', ok: 'Согласован', sg: 'Подписан' };
+const чип = т => '<span class="chip' + (т === 'Брус' ? ' br' : '') + '"><i></i>' + т + '</span>';
+const стат = с => с ? '<span class="st ' + с + '">' + СТ[с] + '</span>' : '';
+const звезда = п => '<span class="star">' + (п.ж ? SV.star : '<span style="color:var(--bl-rule2);display:inline-flex">' + SV.starO + '</span>') + '</span>';
+const кодЧ = п => '<span class="kc"><span class="code">' + п.к + '</span><span class="copy">Скопировать</span></span>';
+const шапка = (табы, справа) => '<div class="wh"><h3>Пресеты</h3>' + (табы ? '<div class="tb">' + табы + '</div>' : '') + '<span class="sp"></span>' + (справа || '') + '<span class="x">' + SV.x + '</span></div>';
+const ТАБЫ = '<span class="on">Мои</span><span>Общие</span><span>По коду</span>';
+const поиск = (т, ш) => '<div class="srch"' + (ш ? ' style="width:' + ш + 'px"' : '') + '>' + SV.srch + '<b>' + (т || 'Название, заказчик или код') + '</b></div>';
+const действия = (крупно) => '<span class="btn pri' + (крупно ? ' lg' : '') + '" style="flex:1">' + SV.open + 'Загрузить в расчёт</span>';
+const вторые = '<div class="row"><span class="btn">' + SV.edit + 'Переименовать</span><span class="btn">' + SV.dl + 'Скачать</span><span class="btn">' + SV.pub + 'Опубликовать</span><span class="btn q">' + SV.del + 'Удалить</span></div>';
+const РАЗД = [['Фундамент', 612400], ['Каркас и стены', 2183500], ['Кровля', 948200], ['Окна и двери', 512300], ['Отделка', 1640253], ['Печь и парная', 685300], ['Инженерия', 680000]];
+const руб = ч => ч.toLocaleString('ru-RU').replace(/,/g, ' ') + ' ₽';
+const полоски = '<div class="bars">' + РАЗД.map(([н, ч]) => '<div class="bar"><span>' + н + '</span><span class="t"><i style="width:' + Math.round(ч / 2183500 * 100) + '%"></i></span><span class="v">' + руб(ч) + '</span></div>').join('') + '</div>';
+
+// Е1 — список с колонками, справа визуализация и разбивка
+const колЕ1 = '16px minmax(0,1fr) 150px 90px 92px 130px';
+const строкаЕ1 = (п, i) => '<div class="lr' + (i === 0 ? ' sel' : '') + '" style="grid-template-columns:' + колЕ1 + '">' + звезда(п)
+  + '<div style="min-width:0"><div class="nm ell">' + п.н + '</div><div class="mt">' + п.з + '</div></div><span>' + стат(п.ст) + '</span>' + чип(п.т) + '<span class="s2">' + п.д + '</span><span class="sum r">' + п.с + '</span></div>';
+const деталиЕ1 = п => '<div class="det"><div class="viz">' + ДОМ[п.в] + '</div><div class="top"><div><div class="ttl">' + п.н + '</div><div class="sub">' + п.з + ' · ' + п.м + ' · сохранён ' + п.д + '</div></div>' + чип(п.т) + '</div>'
+  + '<div><div class="big">' + п.с + '</div><div class="sub">115 266 ₽ за м²</div></div>' + полоски
+  + '<div class="dl"><span>Код</span>' + кодЧ(п) + '</div><div class="row">' + действия(1) + '</div>' + вторые + '</div>';
+const Е1 = () => '<div class="wnd">' + шапка(ТАБЫ, '<span class="btn">' + SV.plus + 'Сохранить как новый</span>') + '<div class="split"><div class="lst"><div class="lbar">' + поиск() + '<span class="btn">Все технологии ' + SV.sort + '</span></div>'
+  + '<div class="lh" style="grid-template-columns:' + колЕ1 + '"><span></span><span class="cap">Пресет и заказчик</span><span class="cap">Согласование</span><span class="cap">Технология</span><span class="cap">Сохранён ' + SV.sort + '</span><span class="cap r">Сумма</span></div>'
+  + П.slice(0, 6).map(строкаЕ1).join('') + '</div>' + деталиЕ1(П[0]) + '</div></div>';
+
+// Е2 — папки слева вместо вкладок
+const колЕ2 = '16px minmax(0,1fr) auto';
+const строкаЕ2 = (п, i) => '<div class="lr' + (i === 0 ? ' sel' : '') + '" style="grid-template-columns:' + колЕ2 + '">' + звезда(п)
+  + '<div style="min-width:0"><div class="nm ell">' + п.н + '</div><div class="mt">' + п.з + ' · ' + п.т + ' · ' + п.д + '</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px"><span class="sum">' + п.с + '</span>' + стат(п.ст) + '</div></div>';
+const рельс = '<div class="rail"><div class="it on">' + SV.user + 'Мои<span class="n">24</span></div><div class="it">' + SV.star + 'Избранные<span class="n">6</span></div>'
+  + '<div class="it">' + SV.clock + 'На согласовании<span class="n" style="color:var(--mn-warn-strong);font-weight:600">2</span></div><div class="it">' + SV.pub + 'Опубликованные<span class="n">9</span></div>'
+  + '<div class="cap">Общие</div><div class="it">' + SV.globe + 'Все общие<span class="n">140</span></div><div class="it">' + SV.stack + 'Каркас<span class="n">96</span></div><div class="it">' + SV.stack + 'Брус<span class="n">44</span></div>'
+  + '<div class="cap">Открытые по коду</div><div class="it">' + SV.key + 'По коду<span class="n">3</span></div>'
+  + '<div class="new"><span class="btn" style="width:100%">' + SV.plus + 'Сохранить как новый</span></div></div>';
+const деталиЕ2 = п => '<div class="det"><div class="top"><div><div class="ttl">' + п.н + '</div><div class="sub">' + п.з + ' · ' + п.м + ' · сохранён ' + п.д + '</div></div>' + чип(п.т) + '</div>'
+  + '<div class="row" style="justify-content:space-between"><div class="big">' + п.с + '</div>' + стат(п.ст) + '</div>' + полоски
+  + '<div class="dl"><span>Код</span>' + кодЧ(п) + '<span>Автор</span><span>Вы · опубликован в общих</span></div><div class="row">' + действия(1) + '</div>' + вторые + '</div>';
+const Е2 = () => '<div class="wnd">' + шапка('', поиск('', 360)) + '<div class="split3">' + рельс + '<div class="lst">' + '<div class="lbar"><span class="cl" style="flex:1">Мои</span><span class="btn q">Сначала новые ' + SV.sort + '</span></div>'
+  + П.slice(0, 7).map(строкаЕ2).join('') + '</div>' + деталиЕ2(П[0]) + '</div></div>';
+
+// Е3 — группы по времени и сравнение с открытым расчётом
+const колЕ3 = '16px minmax(0,1fr) 72px auto';
+const строкаЕ3 = (п, i) => '<div class="lr' + (i === 0 ? ' sel' : '') + '" style="grid-template-columns:' + колЕ3 + '">' + звезда(п)
+  + '<div style="min-width:0"><div class="nm ell">' + п.н + '</div><div class="mt">' + п.з + ' · ' + п.к + '</div></div>' + чип(п.т) + '<span class="sum r">' + п.с + '</span></div>';
+const группа = т => '<div class="sg"><span class="cap">' + т + '</span></div>';
+const СР = [['Фундамент', '612 400', '612 400', ''], ['Каркас и стены', '2 183 500', '2 183 500', ''], ['Кровля', '948 200', '1 016 700', 'up:+68 500'], ['Отделка', '1 640 253', '1 512 880', 'dn:−127 373'], ['Печь и парная', '685 300', '685 300', ''], ['Терраса', '—', '186 400', 'up:+186 400']];
+const деталиЕ3 = п => '<div class="det"><div class="top"><div><div class="ttl">' + п.н + '</div><div class="sub">' + п.з + ' · сохранён ' + п.д + ' · ' + кодЧ(п) + '</div></div></div>'
+  + '<div class="row" style="justify-content:space-between;align-items:flex-end"><div><div class="big">' + п.с + '</div><div class="sub">на <b style="color:var(--bl-small)">+127 527 ₽</b> дороже открытого расчёта</div></div></div>'
+  + '<div class="cmp"><div class="h"><span class="cap">Раздел</span><span class="cap">Открыт сейчас</span><span class="cap">Этот пресет</span></div>'
+  + СР.map(([р, а, б, д]) => '<div class="r"><span>' + р + (д ? ' <span class="' + д.split(':')[0] + '">' + д.split(':')[1] + '</span>' : '') + '</span><span>' + а + '</span><span>' + б + '</span></div>').join('')
+  + '<div class="r tot"><span>Итого</span><span>7 134 426</span><span>7 261 953</span></div></div>'
+  + '<div class="row">' + действия(1) + '</div><div class="sub" style="margin-top:-6px">Открытый расчёт сохранён — загрузка его не потеряет.</div>' + вторые + '</div>';
+const Е3 = () => '<div class="wnd">' + шапка(ТАБЫ) + '<div class="split"><div class="lst"><div class="lbar">' + поиск() + '</div>'
+  + группа('Сегодня') + [П[0]].map(строкаЕ3).join('') + группа('На этой неделе') + [П[3], П[6]].map((п) => строкаЕ3(п, 1)).join('') + группа('Раньше') + [П[1], П[2], П[4], П[5]].map(п => строкаЕ3(п, 1)).join('')
+  + '</div>' + деталиЕ3(П[0]) + '</div></div>';
+
+// Е4 — справа путь согласования, чат и журнал
+const колЕ4 = '16px minmax(0,1fr) auto';
+const строкаЕ4 = (п, i) => '<div class="lr' + (i === 0 ? ' sel' : '') + '" style="grid-template-columns:' + колЕ4 + '">' + звезда(п)
+  + '<div style="min-width:0"><div class="nm ell">' + п.н + '</div><div class="mt" style="display:flex;align-items:center;gap:6px">' + (п.ст === 'rv' ? '<span class="dot"></span>' : '') + п.з + ' · ' + п.т + '</div></div><span class="sum r">' + п.с + '</span></div>';
+const деталиЕ4 = п => '<div class="det"><div class="top"><div><div class="ttl">' + п.н + '</div><div class="sub">' + п.з + ' · ' + п.м + '</div></div>' + чип(п.т) + '</div>'
+  + '<div class="row" style="justify-content:space-between"><div class="big">' + п.с + '</div>' + кодЧ(п) + '</div>'
+  + '<div class="steps"><div class="s done"><i></i>Сохранён</div><div class="s done"><i></i>Опубликован</div><div class="s cur"><i></i>На согласовании<br>цена · чек-лист</div><div class="s"><i></i>Согласован</div><div class="s"><i></i>Подписан</div></div>'
+  + '<div class="hr"></div><div class="cap">Чат пресета · 14 сообщений</div>'
+  + '<div class="msg"><span class="av">ОЛ</span><div><b>Ольга</b><span class="w">сегодня 11:20</span><br>Цену проверила, по кровле вопрос: металлочерепица или фальц?</div></div>'
+  + '<div class="msg"><span class="av">ВЫ</span><div><b>Вы</b><span class="w">сегодня 11:34</span><br>Фальц, поправил в разделе «Кровля».</div></div>'
+  + '<div class="row">' + действия(1) + '<span class="btn">Открыть чат</span></div>' + вторые + '</div>';
+const Е4 = () => '<div class="wnd">' + шапка(ТАБЫ, '<span class="btn">' + SV.plus + 'Сохранить как новый</span>') + '<div class="split"><div class="lst"><div class="lbar">' + поиск() + '<span class="btn">На согласовании · 2</span></div>'
+  + П.slice(0, 7).map(строкаЕ4).join('') + '</div>' + деталиЕ4(П[0]) + '</div></div>';
+
+// З — галерея с визуализацией
+const плиткаЗ = п => '<div class="gc"><div class="ph">' + ДОМ[п.в] + чип(п.т) + стат(п.ст) + '</div><div class="bd"><div class="nm">' + п.н + '</div><div class="mt" style="margin-top:0">' + п.з + ' · ' + п.м + ' · ' + п.д + '</div>'
+  + '<div class="ft"><span class="sum">' + п.с + '</span><span class="code">' + п.к + '</span></div></div></div>';
+const З = () => '<div class="wnd">' + шапка(ТАБЫ, поиск('', 340)) + '<div class="gal">' + П.slice(0, 7).concat([П[1]]).slice(0, 8).map(плиткаЗ).join('') + '</div></div>';
+
+// И — сравнение двух пресетов
+const СР2 = [['Фундамент', 'Свайно-винтовой, 24 сваи', 'Свайно-винтовой, 24 сваи', '612 400', '612 400', ''], ['Каркас и стены', 'Утепление 150 мм', 'Утепление 150 мм', '2 183 500', '2 183 500', ''], ['Кровля', 'Фальц', 'Металлочерепица', '948 200', '812 300', 'dn:−135 900'], ['Терраса', '12 м², лиственница', 'нет', '186 400', '—', 'dn:−186 400'], ['Отделка', 'Липа, имитация бруса', 'Липа, имитация бруса', '1 640 253', '1 640 253', ''], ['Печь и парная', 'Дровяная, бак 60 л', 'Дровяная, бак 60 л', '685 300', '685 300', '']];
+const И = () => '<div class="wnd">' + шапка(ТАБЫ, '<span class="btn">' + SV.cmp + 'Сравнить · 2 выбрано</span>') + '<div class="vs">'
+  + '<div class="hd"><span class="cap">Раздел</span><div><div class="nm">Хай-тек баня «Пример» 7,7×8,2</div><div class="mt">' + кодЧ(П[0]) + '</div></div><div><div class="nm">… — без террасы</div><div class="mt">' + кодЧ(П[6]) + '</div></div><span class="cap" style="text-align:right">Разница</span></div>'
+  + СР2.map(([р, а, б, ча, чб, д]) => '<div class="r' + (д ? ' diff' : '') + '"><span>' + р + '<div class="mt">' + (а === б ? '<span class="same">' + а + '</span>' : а + ' → ' + б) + '</div></span><span' + (д ? '' : ' class="same"') + '>' + ча + '</span><span' + (д ? '' : ' class="same"') + '>' + чб + '</span><span class="' + (д ? д.split(':')[0] : 'same') + '">' + (д ? д.split(':')[1] : 'одинаково') + '</span></div>').join('')
+  + '<div class="r"><span class="tot">Итого</span><span class="tot">7 261 953 ₽</span><span class="tot">6 480 120 ₽</span><span class="dn tot">−781 833 ₽</span></div>'
+  + '<div class="row" style="margin-top:16px;justify-content:flex-end"><span class="btn">Показать только различия</span><span class="btn pri">' + SV.open + 'Загрузить левый</span><span class="btn pri">' + SV.open + 'Загрузить правый</span></div></div></div>';
+
+// К — поиск в центре экрана
+const хит = (п, q, i) => '<div class="hit' + (i === 0 ? ' on' : '') + '">' + звезда(п) + '<div style="min-width:0"><div class="nm ell">' + п.н + '</div><div class="mt">' + п.з.replace(q, '<mark>' + q + '</mark>') + ' · ' + п.д + ' · ' + п.к + '</div></div>' + чип(п.т) + '<span class="sum">' + п.с + '</span></div>';
+const К = () => '<div class="wnd"><div class="pal"><div class="box"><div class="in">' + SV.srch + 'Петро<span class="cur"></span><span class="kbd">Esc</span></div>'
+  + '<div class="grp"><span class="cap">Мои · 3</span></div>' + [П[0], П[6], П[3]].map((п, i) => хит(п, 'Петро', i)).join('')
+  + '<div class="grp"><span class="cap">Общие · 1</span></div>' + хит({ н: 'Баня-бочка «Опыт» 2,2×4', з: 'Петров Н. Н.', д: '02.09.26', к: '140 228', т: 'Каркас', с: '1 240 000 ₽', ж: 0 }, 'Петро', 1)
+  + '<div class="ftr"><span>↑ ↓ — выбрать</span><span>Enter — загрузить</span><span>Ctrl + Enter — открыть карточку</span><span style="margin-left:auto">Ctrl + K — из любого места</span></div></div></div></div>';
+
+// Л — список по заказчикам
+const колЛ = '16px minmax(0,1fr) 150px 80px 92px 130px 110px';
+const строкаЛ = п => '<div class="lr" style="grid-template-columns:' + колЛ + '">' + звезда(п) + '<div style="min-width:0"><div class="nm ell">' + п.н + '</div></div><span>' + стат(п.ст) + '</span>' + чип(п.т) + '<span class="s2">' + п.д + '</span><span class="sum r">' + п.с + '</span><span class="r"><span class="btn" style="height:30px">Загрузить</span></span></div>';
+const клиент = (з, сп) => '<div class="grp"><span class="cl">' + з + '</span><span class="n">' + сп.length + ' ' + (сп.length === 1 ? 'расчёт' : 'расчёта') + '</span></div>' + сп.map(строкаЛ).join('');
+const Л = () => '<div class="wnd">' + шапка(ТАБЫ, поиск('', 340)) + '<div class="kl"><div class="lh" style="grid-template-columns:' + колЛ + ';padding:8px 20px"><span></span><span class="cap">Пресет</span><span class="cap">Согласование</span><span class="cap">Технология</span><span class="cap">Сохранён</span><span class="cap r">Сумма</span><span></span></div>'
+  + клиент('Петрова А. С.', [П[0], П[6], П[3]]) + клиент('Иванов К. Д.', [П[1]]) + клиент('Сидоров П. А.', [П[2]]) + клиент('Орлова Е. В.', [П[4]]) + '</div></div>';
+
+const ВАРИАНТЫ = [
+  { б: 'Е1.', имя: 'Список с колонками, справа — снимок и разбивка', о: 'Список получает колонки: пресет с заказчиком, согласование, технология, дата, сумма — по колонкам сортируется. Справа — визуализация проекта, сумма, цена за метр и сумма по разделам полосками: видно, на что ушли деньги, не загружая расчёт.', т: Е1 },
+  { б: 'Е2.', имя: 'Папки слева вместо вкладок', метка: 'предлагаю', о: 'Вкладки «Мои / Общие / По коду» становятся папками со счётом: избранные, на согласовании, опубликованные, общие по технологии. Поиск — один на всё окно, вверху. Справа — выбранный пресет со статусом и разбивкой.', т: Е2 },
+  { б: 'Е3.', имя: 'Группы по времени и сравнение с открытым', о: 'Список разбит на «Сегодня», «На этой неделе», «Раньше». Справа — чем выбранный пресет отличается от расчёта, который открыт сейчас: по разделам и итогом. Перед загрузкой видно, что поменяется.', т: Е3 },
+  { б: 'Е4.', имя: 'Справа — согласование и чат', о: 'Справа под суммой — путь пресета от сохранения до подписи, где он сейчас, и последние сообщения чата. Оранжевая точка в списке — пресет ждёт согласования. Окно становится рабочим местом по сделке, а не только хранилищем.', т: Е4 },
+  { б: 'З.', имя: 'Галерея с визуализацией', о: 'Каждый пресет — плитка со снимком проекта из «Визуализации и планировки». Баню узнают по виду быстрее, чем по названию; сумма и код — под снимком. Пресет без снимка получает силуэт по форме кровли.', т: З },
+  { б: 'И.', имя: 'Сравнение двух пресетов', о: 'Отмечаешь два пресета — окно показывает их рядом по разделам: что выбрано и сколько стоит, разница строкой. Удобно, когда у заказчика два-три варианта одной бани.', т: И },
+  { б: 'К.', имя: 'Поиск в центре экрана', о: 'Окно открывается одной строкой поиска по сочетанию Ctrl + K из любого места калькулятора. Набираешь заказчика, название или код — результаты из «Моих» и «Общих» сразу, Enter загружает. Полное окно остаётся для разбора.', т: К },
+  { б: 'Л.', имя: 'Список по заказчикам', о: 'Пресеты собраны под фамилией заказчика из реквизитов: все варианты одной бани стоят вместе. Строка — таблица с кнопкой «Загрузить» на конце, без карточек.', т: Л },
+];
+document.getElementById('sections').innerHTML = ВАРИАНТЫ.map(в => '<section class="bl-section">'
+  + '<h2 class="bl-section__h"><span class="bl-section__no">' + в.б + '</span>' + в.имя
+  + (в.метка ? '<span class="bl-section__tag">' + в.метка + '</span>' : '') + '</h2>'
+  + '<p class="bl-section__note">' + в.о + '</p><div class="bl-section__body">' + в.т() + '</div></section>').join('');
+const уместить = () => document.querySelectorAll('.wnd').forEach(о => { о.style.zoom = Math.min(1, о.parentElement.clientWidth / 1400); });
+уместить(); addEventListener('resize', уместить);
+</script>
