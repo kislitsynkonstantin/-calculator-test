@@ -75,7 +75,7 @@ def проверить(стр, н, код, что):
     стр.evaluate("""() => window.__событияПробы.unshift({ id: 'п-новая', user_id: _sbUser.id, event_type: 'print',
       created_at: new Date().toISOString(), total_price: 3300000, details: { presetCode: '', preset: 'Проба', rows: [{ k: 'Лист', b: 'Метка-новой-правки' }] } })""")
     к.открыть(стр)
-    for в, имя in (("l", "Журнал"), ("s", "Сводка")):
+    for в, имя in (("l", "Журнал"), ("p", "Пресет")):  # «Сводка» с 2.5.19 (4) — внутри «Пресета»
         стр.locator(f"#pcTab-{в}").click(); стр.wait_for_timeout(120)
         т = стр.evaluate(ВКЛАДКА, в)
         if т["ждёт"] or "загружается" in т["текст"]:

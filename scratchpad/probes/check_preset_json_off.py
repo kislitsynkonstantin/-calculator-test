@@ -9,7 +9,7 @@
   • в «Моих» у опубликованного кнопка скачивания неактивна (aria-disabled,
     подсказка говорит почему), нажатие файла не даёт и говорит словами; у
     неопубликованного — скачивает;
-  • в «Общих» у опубликованного — так же неактивна;
+  • в «Общих» кнопки «Скачать» нет вовсе (с 2.5.19);
   • неактивная кнопка — того же размера, что соседние, и бледнее их.
 
     python3 check_preset_json_off.py
@@ -109,14 +109,12 @@ def главная():
                         плохо(f"{н} кнопка не одной высоты с соседней: {к['размер']}")
                 стр.evaluate("async () => { switchPresetTab('shared'); await new Promise(r => setTimeout(r, 500)); }")
                 н = f"[{ш} Общие]"
+                # С 2.5.19 кнопки «Скачать» в «Общих» нет вовсе (Константин,
+                # 20.10.2026: «чтобы не появлялись дубли»): карточка есть, кнопки нет.
+                есть = стр.evaluate("() => !!document.querySelector('#sharedPresetList .shared-pcard[data-scode=\"235788\"]')")
                 к = стр.evaluate(КНОПКА, '#sharedPresetList .shared-pcard[data-scode="235788"] button')
-                стр.evaluate("() => { window.__скачано.length = 0; }")
-                if not к or not к["выкл"]:
-                    плохо(f"{н} опубликованный в «Общих»: {к}")
-                else:
-                    стр.locator('#sharedPresetList .shared-pcard[data-scode="235788"] button[aria-disabled="true"]').first.click(force=True); стр.wait_for_timeout(300)
-                    if стр.evaluate("() => window.__скачано.length"):
-                        плохо(f"{н} неактивная кнопка всё же скачала")
+                if not есть or к:
+                    плохо(f"{н} опубликованный в «Общих»: карточка {есть}, кнопка «Скачать» {к}")
                 стр.screenshot(path=str(СНИМКИ / f"json-off-{ш}.png"))
                 if ошибки:
                     плохо(f"[{ш}] ошибки страницы: {ошибки[:3]}")

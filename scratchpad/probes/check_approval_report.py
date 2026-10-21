@@ -350,7 +350,10 @@ def прогон(бр, порт, ш, в, полный):
         лента = стр.evaluate("() => [...document.querySelectorAll('#presetChipCard .pc-chev-ap')].map(х => х.innerText.replace(/\\s+/g, ' ').trim())")
         if not any("Договор подписан" in л for л in лента):
             плохо(f"{н} в чате нет строки «Договор подписан»: {лента}")
-        вспл = стр.evaluate("() => [...document.querySelectorAll('body *')].filter(х => х.children.length === 0 && /код\\s\\d{3}/.test(х.textContent)).map(х => х.textContent)")
+        # Лист предпросмотра печати — не всплывающее окно: на нём код стоит
+        # обычным пробелом нарочно (check_print_code.py), а после «Подписан»
+        # лист собирается для PDF подписанного комплекта (21.10.2026).
+        вспл = стр.evaluate("() => [...document.querySelectorAll('body *')].filter(х => х.children.length === 0 && /код\\s\\d{3}/.test(х.textContent) && !х.closest('#printDoc, #printPreviewWrap, #contractPreviewDoc')).map(х => х.textContent)")
         if any(re.search(r"код \d{3} \d{3}", в) for в in вспл):
             плохо(f"{н} код пресета во всплывающем окне может переломиться посередине: {вспл[:3]}")
         стр.mouse.move(5, 5)

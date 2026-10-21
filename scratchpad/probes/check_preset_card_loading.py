@@ -70,7 +70,7 @@ def прогон(бр, порт, шир, выс, ночь, тихо=False):
     if not стр.evaluate("() => document.getElementById('presetChipCard').classList.contains('show')"):
         стр.locator("#presetChip .pc-body").click()
     стр.wait_for_timeout(300)
-    for в, имя in (("l", "Журнал"), ("s", "Сводка")):
+    for в, имя in (("l", "Журнал"), ("p", "Пресет")):  # «Сводка» с 2.5.19 (4) — внутри «Пресета»
         if not стр.locator(f"#pcTab-{в}").count():
             НАХОДКИ.append(f"{н} нет вкладки «{имя}»"); continue
         стр.evaluate("() => { _журналПресета = { код: '', события: null, ошибка: '', грузится: false, когда: 0 }; _сводкаПресета = { код: '', данные: null, ошибка: '', грузится: false, когда: 0 }; }")
