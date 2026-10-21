@@ -43417,7 +43417,9 @@ function карточкаДоски(с) {
     + '<div class="dsk-top"><div class="dsk-nm">' + escapeHtml(имя) + '</div>'
     + '<button type="button" class="dsk-menu" aria-label="Действия с карточкой" aria-haspopup="menu" data-dsk-menu="' + escapeHtml(код) + '">'
     + '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></div>'
-    + '<div class="dsk-sub">' + (под ? под + ' · ' : '') + '<span class="dsk-code">' + кодКрасиво(код) + '</span></div>'
+    // Перед кодом — пробел, без точки: рамка кода сама разделитель
+    // (Константин, 21.10.2026: «Тут точка думаю не нужна, рамка и есть разделитель»).
+    + '<div class="dsk-sub">' + (под ? под + ' ' : '') + '<span class="dsk-code">' + кодКрасиво(код) + '</span></div>'
     + (сумма ? '<div class="dsk-k">' + fmt(сумма) + '</div>' : '')
     + (метки.length ? '<div class="dsk-tags">' + метки.map(([в, т]) => '<span class="dsk-tag' + (в ? ' ' + в : '') + '">' + escapeHtml(т) + '</span>').join('') + '</div>' : '')
     + '<div class="dsk-foot"><span class="dsk-av" aria-hidden="true">' + escapeHtml(доскаИнициалы(кто)) + '</span><span class="who">' + escapeHtml(кто) + '</span><span class="when">' + escapeHtml(когда) + '</span></div>'

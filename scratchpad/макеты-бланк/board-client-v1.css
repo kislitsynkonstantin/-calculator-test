@@ -1,0 +1,22 @@
+/* Карточка доски — как в калькуляторе, с местом для заказчика */
+.dc{background:var(--bl-sheet);border:1px solid var(--bl-rule);border-radius:12px;padding:12px 14px 10px;max-width:340px}
+.dc + .dc{margin-top:12px}
+.dc-top{display:flex;align-items:flex-start;gap:8px}
+.dc-n{flex:1;min-width:0;font-weight:600;font-size:.86rem;line-height:1.35;color:var(--bl-ink)}
+.dc-m{flex:none;color:var(--bl-ink3);letter-spacing:.1em;font-weight:700;line-height:1}
+.dc-s{font-size:.72rem;color:var(--bl-ink2);margin-top:5px;display:flex;align-items:center;flex-wrap:wrap;gap:3px}
+.dc-c{font-size:.74rem;color:var(--bl-ink);margin-top:5px;display:flex;align-items:center;gap:6px}
+.dc-c svg{flex:none;color:var(--bl-ink3)}
+.dc-c .k,.dc-f .k{color:var(--bl-ink3)}
+.code{display:inline-flex;align-items:center;height:1.55em;padding:0 .42em;border:1.5px solid var(--bl-ink);border-radius:.38em;font-weight:600;font-size:.94em;letter-spacing:.04em;color:var(--bl-ink);line-height:1;font-variant-numeric:tabular-nums}
+.dc-k{font-family:'Unbounded',sans-serif;font-weight:600;font-size:1rem;margin-top:8px;color:var(--bl-ink);font-variant-numeric:tabular-nums}
+.dc-t{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.dc-t span{font-size:.66rem;font-weight:500;padding:3px 9px;border-radius:11px;background:var(--bl-rule);color:var(--bl-ink2)}
+.dc-t .warm{background:#f6ebdd;color:#8a5a1c}
+[data-theme="night"] .dc-t .warm{background:#3a2f22;color:#e0b070}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .dc-t .warm{background:#3a2f22;color:#e0b070}}
+.dc-f{display:flex;align-items:center;gap:7px;margin-top:9px;padding-top:8px;border-top:1px solid var(--bl-rule);font-size:.7rem;color:var(--bl-ink2)}
+.dc-f .av{flex:none;width:20px;height:20px;border-radius:50%;background:var(--bl-rule);color:var(--bl-ink);display:inline-flex;align-items:center;justify-content:center;font-size:.54rem;font-weight:700}
+.dc-f .who{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dc-f .when{flex:none;color:var(--bl-ink3)}
+.dc-f .cl{color:var(--bl-ink)}
