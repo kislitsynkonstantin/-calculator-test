@@ -62,3 +62,21 @@
 .scr .chip{position:absolute;right:228px;bottom:74px;width:200px;height:46px;border-radius:12px;background:var(--bl-sheet);border:1px solid var(--bl-rule);box-shadow:var(--win-shadow)}
 .scr .put{position:absolute;right:236px;top:120px;width:400px}
 @media (max-width:760px){.stage{padding:18px 14px}}
+/* Переключатель «Сейчас / Станет» — подчёркнутые сегменты листа */
+.sw{display:inline-flex;gap:18px;margin:0 0 12px;border-bottom:1px solid var(--bl-rule)}
+.sw button{position:relative;height:34px;padding:0;border:0;background:none;font:inherit;font-size:.78rem;color:var(--bl-ink2);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer}
+.sw button::before{content:'';position:absolute;inset:-6px -8px}
+.sw button.on{color:var(--bl-ink);font-weight:600;border-bottom-color:var(--bl-acc)}
+.mode-now .v-new,.mode-new .v-now{display:none}
+.now-note{font-size:.72rem;color:var(--bl-ink3);margin-top:-6px}
+/* Нынешние: тёмная плашка внизу экрана и всплывающая карточка справа сверху */
+.t0{display:inline-flex;gap:8px;align-items:center;max-width:100%;padding:10px 18px;border-radius:10px;background:#24271f;color:#fff;font-size:.78rem;line-height:1.6;box-shadow:0 4px 20px rgba(0,0,0,.25);text-align:center}
+.t0 svg{flex:none}
+.p0{display:grid;grid-template-columns:36px minmax(0,1fr) 28px;gap:12px;align-items:start;width:360px;max-width:100%;padding:14px 10px 14px 14px;background:var(--bl-sheet);border:1px solid var(--bl-rule);border-radius:12px;box-shadow:0 14px 36px rgba(30,32,28,.2)}
+.p0 .ic0{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bl-tint);color:var(--bl-acc)}
+.p0 .ic0 svg{width:18px;height:18px}
+.p0 .h{font-size:.84rem;font-weight:600;color:var(--bl-ink);line-height:1.35}
+.p0 .t{font-size:.78rem;color:var(--bl-ink);line-height:1.4}
+.p0 .m{font-size:.7rem;color:var(--bl-ink2)}
+.p0 .go{display:inline-flex;align-items:center;margin-top:8px;height:30px;padding:0 12px;border-radius:8px;background:var(--bl-fill);color:var(--bl-on-acc);font-size:.76rem;font-weight:600}
+.p0 .x{width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:var(--bl-ink3)}

@@ -7,6 +7,7 @@
   <p class="bl-eyebrow">Макет · уведомления</p>
   <h1 class="bl-title">Уведомления на языке листа — <em>вместо пилюли</em></h1>
   <p class="bl-lead">Пилюля — скруглённая коробка с заливкой, а «Бланк» держится на линейках и чернилах. Здесь шесть вариантов, которые улучшают нынешнее сообщение и при этом говорят языком калькулятора: черта, строка листа, полоска итога, штамп.</p>
+  <p class="bl-lead">У каждого варианта переключатель «Сейчас / Станет»: «Сейчас» — те же три сообщения, как они выглядят в калькуляторе сегодня, «Станет» — в этом варианте.</p>
   <p class="bl-lead">Что берём из пилюли во всех вариантах: заголовок и пояснение раздельно, действие отдельной кнопкой — «Вернуть», «Открыть», «Повторить», — и время на отмену видно линией, которая убывает.</p>
   <div class="bl-head-rule"></div>
   <div id="sections"></div>
@@ -33,6 +34,14 @@ const В = с => '<div class="smp nc" style="max-width:640px"><div class="msg">'
 const Г = с => '<div class="smp nd"><div class="bd">' + с.и + текст(с) + '<span class="lnk">' + с.д + '</span></div>' + (с.тм ? '<div class="tm"><i></i></div>' : '') + '</div>';
 const Д = с => '<div class="smp" style="max-width:520px"><div class="ne' + (с.тёпл ? ' warm' : '') + '"><span class="st">' + с.е.split(' · ')[0] + '</span>' + текст(с) + '<span class="lnk">' + с.д + '</span></div></div>';
 const Е = с => '<div class="smp" style="max-width:520px"><span class="nf">' + с.и + текст({ т: с.т.replace(/<b>.*?<\/b> ?/, 'Ольга П.: '), п: '' }) + '<span class="sep"></span><span class="lnk">' + с.д + '</span></span></div>';
+// Как сейчас: удаление и сбой — тёмная плашка внизу экрана, текстом по центру;
+// новое в чате — всплывающая карточка справа сверху с кнопкой «Открыть чат».
+const ИНФО = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><circle cx="12" cy="16.5" r=".5" fill="#fff"/></svg>';
+const СЕЙЧАС = [
+  '<span class="t0">' + ИНФО + '<span>Пресет «Баня с террасой 6×6» удалён</span></span>',
+  '<div class="p0"><span class="ic0">' + З.chat.replace('class="ic"', '') + '</span><div><div class="h">Новое сообщение в чате</div><div class="t">«Пример» 7,7×8,2: по кровле — фальц или металлочерепица?</div><div class="m">Ольга П. · 11:20</div><span class="go">Открыть чат</span></div><span class="x"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></div>',
+  '<span class="t0">' + ИНФО + '<span>Не удалось сохранить: нет связи</span></span>',
+];
 const экран = () => '<div class="wrapz"><div class="scr"><div class="sh"><div class="lg"></div><div class="h1"></div><div class="h2"></div><div class="tb">' + '<i></i>'.repeat(14) + '</div>'
   + '<div class="ln" style="width:60%"></div><div class="ln" style="width:85%"></div><div class="ln" style="width:72%"></div><div class="ln" style="width:90%"></div><div class="ln" style="width:66%"></div></div>'
   + '<div class="chip"></div><div class="strip"></div><div class="put">' + А(С[0]) + '</div></div></div>';
@@ -52,9 +61,18 @@ const ВАР = [
 ];
 document.getElementById('sections').innerHTML = ВАР.map(в => '<section class="bl-section">'
   + '<h2 class="bl-section__h"><span class="bl-section__no">' + в.б + '</span>' + в.имя + (в.метка ? '<span class="bl-section__tag">' + в.метка + '</span>' : '') + '</h2>'
-  + '<p class="bl-section__note">' + в.о + '</p><div class="bl-section__body"><div class="stage">'
-  + С.map((с, i) => '<div class="smp" style="max-width:none"><div class="cap">' + ['С отменой', 'Новое в чате', 'Сбой'][i] + '</div>' + в.ф(с) + '</div>').join('') + '</div>'
-  + (в.еще ? '<div style="margin-top:14px"><div class="cap">Где встаёт — справа под шапкой</div>' + в.еще() + '</div>' : '') + '</div></section>').join('');
+  + '<p class="bl-section__note">' + в.о + '</p><div class="bl-section__body mode-new">'
+  + '<div class="sw" role="tablist"><button type="button" data-m="now">Сейчас</button><button type="button" class="on" data-m="new">Станет</button></div>'
+  + '<div class="stage v-now">' + СЕЙЧАС.map((х, i) => '<div class="smp" style="max-width:none"><div class="cap">' + ['С отменой', 'Новое в чате', 'Сбой'][i] + '</div>' + х + '</div>').join('')
+  + '<div class="now-note">Отменить удаление нельзя, повторить сохранение — только заново; чат приходит отдельной карточкой с кнопкой.</div></div>'
+  + '<div class="stage v-new">' + С.map((с, i) => '<div class="smp" style="max-width:none"><div class="cap">' + ['С отменой', 'Новое в чате', 'Сбой'][i] + '</div>' + в.ф(с) + '</div>').join('') + '</div>'
+  + (в.еще ? '<div class="v-new" style="margin-top:14px"><div class="cap">Где встаёт — справа под шапкой</div>' + в.еще() + '</div>' : '') + '</div></section>').join('');
+document.querySelectorAll('.sw').forEach(п => п.addEventListener('click', e => {
+  const к = e.target.closest('button'); if (!к) return;
+  п.querySelectorAll('button').forEach(б => б.classList.toggle('on', б === к));
+  const тело = п.parentElement; тело.classList.toggle('mode-now', к.dataset.m === 'now'); тело.classList.toggle('mode-new', к.dataset.m === 'new');
+  уместить();
+}));
 const уместить = () => document.querySelectorAll('.scr').forEach(о => { о.style.zoom = Math.min(1, о.parentElement.clientWidth / 1400); });
 уместить(); addEventListener('resize', уместить);
 </script>
