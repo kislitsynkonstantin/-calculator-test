@@ -1,0 +1,76 @@
+Уведомления-пилюли
+<main class="bl-sheet">
+  <header class="bl-doc-head">
+    <div><img class="bl-logo bl-logo--day" src="@@LOGO_DAY@@" alt="Баня МСК"><img class="bl-logo bl-logo--night" src="@@LOGO_NIGHT@@" alt="" aria-hidden="true"></div>
+    <div class="bl-doc-head__meta">Макет · версия 1<br>21.10.2026</div>
+  </header>
+  <p class="bl-eyebrow">Макет · уведомления</p>
+  <h1 class="bl-title">Уведомления-пилюли — <em>как в macOS</em></h1>
+  <p class="bl-lead">Образец — уведомление macOS «AirPods Pro · Переключились на iPhone»: значок слева, две строки по центру, круглая кнопка действия справа. Ниже — где такой вид работает в калькуляторе и где он встаёт на экране.</p>
+  <p class="bl-lead">Сейчас все 248 сообщений калькулятора — одна тёмная плашка с текстом. Пилюля разводит их на виды: подтверждение без кнопки, действие с отменой, новое событие с переходом, сбой с повтором.</p>
+  <div class="bl-head-rule"></div>
+  <div id="sections"></div>
+  <div class="tip"><strong>Предлагаю: пилюля вместо всех сообщений калькулятора, сверху по центру.</strong> Кнопка справа — только там, где есть действие: «Вернуть» удалённое, «Открыть» чат или доску, «Повторить» при сбое. Подтверждения — без кнопки, гаснут сами через 3 секунды. Сверху пилюля не спорит ни с полосой итога, ни с мини-окном в правом нижнем углу.</div>
+  <div class="tip"><strong>Как отвечать:</strong> 1 — да или нет пилюле вместо нынешних сообщений; 2 — место: сверху по центру (А) или снизу над полосой итога (Б); 3 — какие из шести случаев брать (по умолчанию все).</div>
+  <div class="bl-foot"><span>Баня МСК · макет «Уведомления-пилюли», версия 1 · учебные данные</span><span>21.10.2026</span></div>
+</main>
+<script>
+const З = {
+  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>',
+  open: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  retry: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  cloud: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A6 6 0 0 0 4.3 12.5 3.5 3.5 0 0 0 6 19z"/><path d="M9 14.5l2 2 4-4"/></svg>',
+  copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>',
+  del: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13"/></svg>',
+  doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 14l2 2 4-4"/></svg>',
+  wifi: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.5a15 15 0 0 1 20 0M5.5 12a10 10 0 0 1 13 0M9 15.5a5 5 0 0 1 6 0"/><circle cx="12" cy="19" r="1"/><path d="M3 3l18 18"/></svg>',
+  info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><circle cx="12" cy="16.5" r=".5" fill="#fff"/></svg>',
+};
+const пилюля = (ико, т1, т2, дей, кл) => '<div class="pill' + (кл ? ' ' + кл : '') + '"><span class="ico' + (ико.к ? ' ' + ико.к : '') + '">' + ико.з + '</span>'
+  + '<div class="tx"><div class="t1">' + т1 + '</div><div class="t2">' + т2 + '</div></div>'
+  + (дей ? '<span class="act' + (дей.к ? ' ' + дей.к : '') + '" title="' + дей.п + '">' + дей.з + '</span>' : '<span></span>') + '</div>';
+const СЛУЧАИ = [
+  { к: '1 · Действие с отменой', п: пилюля({ з: З.del }, 'Пресет удалён', '«Баня с террасой 6×6» — можно вернуть', { з: З.undo, п: 'Вернуть' }),
+    о: 'Удаление пресета, «Выполнено» и «В правки» в чате, «Сбросить» расчёт. Кнопка — та самая стрелка возврата из образца; 5 секунд, потом пилюля гаснет.' },
+  { к: '2 · Новое в чате', п: пилюля({ з: 'ОП', к: 'av' }, 'Ольга П. · «Пример» 7,7×8,2', 'По кровле: металлочерепица или фальц?', { з: З.open, п: 'Открыть чат' }),
+    о: 'Сообщение в чате пресета, который сейчас не открыт, отметка «@Имя». Кнопка открывает пресет на этом сообщении — сейчас для этого нужно идти в колокольчик.' },
+  { к: '3 · Согласование', п: пилюля({ з: З.doc }, 'Расчёт согласован', '«Пример» 7,7×8,2 — договор можно печатать', { з: З.open, п: 'Открыть доску' }),
+    о: 'Шаги согласования: отправлено, возвращено с правками, согласовано, подписано. Кнопка ведёт на доску пресетов к этой карточке.' },
+  { к: '4 · Подтверждение', п: пилюля({ з: З.cloud }, 'Пресет сохранён', 'Хай-тек баня «Пример» · в облаке', { з: З.check, п: '', к: 'ring' }),
+    о: 'Сохранено, опубликовано, отправлено в чат, письмо ушло. Действия нет — справа галочка вместо кнопки, пилюля гаснет через 3 секунды.' },
+  { к: '5 · Скопировано', п: пилюля({ з: З.copy }, 'Код скопирован', '482 615 — вставьте в сообщение клиенту', null),
+    о: 'Код, ссылка, текст комплектации. Самая короткая пилюля: без кнопки, 2 секунды.' },
+  { к: '6 · Сбой', п: пилюля({ з: З.wifi, к: 'warm' }, 'Не сохранено', 'Нет связи — повторю через 10 секунд', { з: З.retry, п: 'Повторить сейчас' }),
+    о: 'Ошибки базы и связи. Значок — тёплый, а не красный: это не поломка расчёта. Кнопка повторяет сразу, не дожидаясь отсчёта.' },
+];
+const scr = (место) => '<div class="wrapz"><div class="scr"><div class="sh"><div class="lg"></div><div class="h1"></div><div class="h2"></div><div class="tb">' + '<i></i>'.repeat(14) + '</div>'
+  + '<div class="ln" style="width:60%"></div><div class="ln" style="width:85%"></div><div class="ln" style="width:72%"></div><div class="ln" style="width:90%"></div><div class="ln" style="width:66%"></div><div class="ln" style="width:80%"></div></div>'
+  + '<div class="chip"></div><div class="strip"><span>Общая стоимость</span><span>7 261 953 ₽</span></div>'
+  + (место === 'top'
+    ? '<div class="pill top">' + СЛУЧАИ[1].п.replace('<div class="pill">', '').replace(/<\/div>$/, '') + '</div>'
+      + '<div class="pill b2">' + СЛУЧАИ[3].п.replace('<div class="pill">', '').replace(/<\/div>$/, '') + '</div>'
+    : '<div class="pill" style="bottom:80px;left:50%">' + СЛУЧАИ[0].п.replace('<div class="pill">', '').replace(/<\/div>$/, '') + '</div>')
+  + '</div></div>';
+const тел = (т1, т2, дей, ико, низ) => '<div class="ph"><div class="ln" style="width:40%"></div><div class="ln" style="width:80%"></div><div class="ln" style="width:65%"></div><div class="ln" style="width:90%"></div><div class="ln" style="width:55%"></div><div class="ln" style="width:75%"></div>'
+  + пилюля(ико, т1, т2, дей, низ ? 'pb' : '').replace('class="pill', 'style="' + (низ ? 'top:auto;bottom:74px' : '') + '" class="pill') + '<div class="strip"></div></div>';
+const ВАР = [
+  { б: '1.', имя: 'Шесть случаев', о: 'Одна форма — шесть видов сообщений калькулятора. Кнопка справа появляется, только когда есть что нажать.',
+    т: () => '<div class="stage"><div class="cases">' + СЛУЧАИ.map(с => '<div class="case"><div class="cap">' + с.к + '</div>' + с.п + '<div class="why">' + с.о + '</div></div>').join('') + '</div></div>' },
+  { б: '2.', имя: 'Сейчас и в виде пилюли', о: 'Слева — нынешнее сообщение калькулятора, справа — то же сообщение пилюлей. Текст делится на заголовок и пояснение, отмена становится кнопкой.',
+    т: () => '<div class="stage" style="display:flex;gap:28px;flex-wrap:wrap;align-items:center"><div><div class="case"><div class="cap">Сейчас</div></div><span class="toast0">' + З.info + '<span>Пресет «Баня с террасой 6×6» удалён</span></span></div>'
+      + '<div><div class="case"><div class="cap">Пилюлей</div></div>' + СЛУЧАИ[0].п + '</div></div>' },
+  { б: 'А.', имя: 'Место на компьютере — сверху по центру', метка: 'предлагаю', о: 'Под шапкой калькулятора, как в macOS. Не спорит с полосой итога и мини-окном внизу; два сообщения подряд встают стопкой, новое сверху.',
+    т: () => scr('top') },
+  { б: 'Б.', имя: 'Место на компьютере — снизу над полосой итога', о: 'Там, где сообщение стоит сейчас. Ближе к руке, но при открытом мини-окне пилюля уезжает наверх — место меняется в зависимости от окна.',
+    т: () => scr('bottom') },
+  { б: 'В.', имя: 'Телефон', о: 'На телефоне пилюля во всю ширину с полями 12 px — сверху, под вырезом экрана, как системные уведомления. Смахивается вверх.',
+    т: () => '<div class="phones">' + тел('Пресет удалён', 'Можно вернуть 5 секунд', { з: З.undo, п: 'Вернуть' }, { з: З.del }) + тел('Ольга П. · «Пример»', 'Фальц или металлочерепица?', { з: З.open, п: 'Открыть' }, { з: 'ОП', к: 'av' }) + '</div>' },
+];
+document.getElementById('sections').innerHTML = ВАР.map(в => '<section class="bl-section">'
+  + '<h2 class="bl-section__h"><span class="bl-section__no">' + в.б + '</span>' + в.имя
+  + (в.метка ? '<span class="bl-section__tag">' + в.метка + '</span>' : '') + '</h2>'
+  + '<p class="bl-section__note">' + в.о + '</p><div class="bl-section__body">' + в.т() + '</div></section>').join('');
+const уместить = () => document.querySelectorAll('.scr').forEach(о => { о.style.zoom = Math.min(1, о.parentElement.clientWidth / 1400); });
+уместить(); addEventListener('resize', уместить);
+</script>
