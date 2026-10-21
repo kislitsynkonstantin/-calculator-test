@@ -1,0 +1,64 @@
+/* Уведомления в языке «Бланка»: линейки и чернила вместо пилюли */
+.stage{border-radius:14px;padding:26px 22px;background:var(--bl-page);display:flex;flex-direction:column;gap:18px;align-items:flex-start}
+.stage.dark-bg{background:#2c3027}
+.cap{font-size:.62rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-small);margin-bottom:6px}
+.smp{width:100%;max-width:440px;min-width:0}
+.ey{font-size:.6rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--bl-small)}
+.ey.warm{color:var(--mn-warn-strong)}
+.tx{font-size:.84rem;color:var(--bl-ink);line-height:1.4}
+.tx b{font-weight:600}
+.sub{font-size:.76rem;color:var(--bl-ink2);line-height:1.4;margin-top:2px}
+.lnk{font-size:.78rem;font-weight:600;color:var(--bl-small);white-space:nowrap;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;position:relative}
+.lnk::before{content:'';position:absolute;inset:-12px -8px}
+.ic{width:18px;height:18px;flex:none;color:var(--bl-small)}
+.ic.warm{color:var(--mn-warn-strong)}
+/* таймер отмены — линия, которая убывает */
+.tm{height:2px;background:var(--bl-rule);position:relative;overflow:hidden}
+.tm i{position:absolute;left:0;top:0;bottom:0;width:62%;background:var(--bl-acc)}
+
+/* А. Сноска: лист с чертой сверху */
+.na{background:var(--bl-sheet);border:1px solid var(--bl-rule);border-radius:10px;box-shadow:var(--win-shadow);overflow:hidden}
+.na .tm{height:2px}
+.na .bd{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 16px 13px}
+.na .tm.full i{width:100%}
+.na .tm.warm i{background:var(--mn-warn-strong);width:100%}
+/* Б. Строка листа под панелью кнопок */
+.nb{background:var(--bl-sheet);border-top:1px solid var(--bl-rule);border-bottom:1px solid var(--bl-rule);display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 4px;position:relative}
+.nb.on{background:linear-gradient(90deg,var(--bl-tint),transparent 300px)}
+.nb.warm{background:linear-gradient(90deg,var(--mn-warn-bg),transparent 300px)}
+.nb .tm{position:absolute;left:0;right:0;bottom:-1px}
+/* В. Полоска итога говорит */
+.nc{background:#24271f;border-radius:10px 10px 0 0;overflow:hidden}
+.nc .msg{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 18px;border-bottom:1px solid #3a3f33}
+.nc .msg .tx{color:#edefea}.nc .msg .sub{color:#a9ada6}.nc .lnk{color:#a6d474}.nc .ic{color:#a6d474}.nc .ic.warm{color:#e0b070}
+.nc .tot{display:flex;justify-content:space-between;align-items:center;padding:12px 18px}
+.nc .tot span:first-child{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:#cfd6c6}
+.nc .tot span:last-child{font-family:'Unbounded',sans-serif;font-weight:600;color:#a6d474}
+/* Г. Нынешняя тёмная плашка, доведённая */
+.nd{background:#24271f;border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.22);overflow:hidden}
+.nd .bd{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 16px}
+.nd .tx{color:#edefea}.nd .sub{color:#a9ada6}.nd .lnk{color:#a6d474}.nd .ic{color:#a6d474}.nd .ic.warm{color:#e0b070}
+.nd .tm{background:#3a3f33}.nd .tm i{background:#a6d474}
+/* Д. Штамп */
+.ne{display:inline-grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:9px 14px;border:1.5px solid var(--bl-small);border-radius:6px;background:var(--bl-sheet);box-shadow:var(--win-shadow);max-width:100%}
+.ne .st{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-small);padding-right:12px;border-right:1px solid var(--bl-rule2)}
+.ne.warm{border-color:var(--mn-warn-strong)}.ne.warm .st{color:var(--mn-warn-strong)}
+/* Е. В значке мини-окна */
+.nf{display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 14px;border:1px solid var(--bl-rule);border-radius:12px;background:var(--bl-sheet);box-shadow:var(--win-shadow);max-width:100%}
+.nf .was{font-size:.62rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-ink3)}
+.nf .sep{width:1px;height:22px;background:var(--bl-rule)}
+
+/* Экран — где встаёт */
+.wrapz{overflow:hidden}
+.scr{position:relative;width:1400px;height:560px;box-sizing:border-box;border:1px solid var(--bl-rule2);border-radius:14px;background:var(--bl-page);overflow:hidden}
+.scr .sh{position:absolute;left:220px;right:220px;top:24px;bottom:0;background:var(--bl-sheet);box-shadow:0 8px 28px rgba(30,40,20,.08);padding:30px 44px}
+.scr .lg{width:96px;height:14px;border-radius:3px;background:var(--bl-ink)}
+.scr .h1{width:330px;height:22px;border-radius:4px;background:var(--bl-ink);margin-top:26px}
+.scr .h2{width:280px;height:22px;border-radius:4px;background:var(--bl-acc);margin-top:8px}
+.scr .tb{display:flex;gap:18px;margin-top:22px;padding:14px 0;border-top:1px solid var(--bl-rule);border-bottom:1px solid var(--bl-rule)}
+.scr .tb i{width:18px;height:18px;border-radius:5px;background:var(--bl-rule2)}
+.scr .ln{height:12px;border-radius:3px;background:var(--bl-rule);margin-top:18px}
+.scr .strip{position:absolute;left:0;right:0;bottom:0;height:60px;background:var(--bl-fill)}
+.scr .chip{position:absolute;right:228px;bottom:74px;width:200px;height:46px;border-radius:12px;background:var(--bl-sheet);border:1px solid var(--bl-rule);box-shadow:var(--win-shadow)}
+.scr .put{position:absolute;right:236px;top:120px;width:400px}
+@media (max-width:760px){.stage{padding:18px 14px}}

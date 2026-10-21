@@ -1,0 +1,60 @@
+Уведомления в «Бланке»
+<main class="bl-sheet">
+  <header class="bl-doc-head">
+    <div><img class="bl-logo bl-logo--day" src="@@LOGO_DAY@@" alt="Баня МСК"><img class="bl-logo bl-logo--night" src="@@LOGO_NIGHT@@" alt="" aria-hidden="true"></div>
+    <div class="bl-doc-head__meta">Макет · версия 2<br>21.10.2026</div>
+  </header>
+  <p class="bl-eyebrow">Макет · уведомления</p>
+  <h1 class="bl-title">Уведомления на языке листа — <em>вместо пилюли</em></h1>
+  <p class="bl-lead">Пилюля — скруглённая коробка с заливкой, а «Бланк» держится на линейках и чернилах. Здесь шесть вариантов, которые улучшают нынешнее сообщение и при этом говорят языком калькулятора: черта, строка листа, полоска итога, штамп.</p>
+  <p class="bl-lead">Что берём из пилюли во всех вариантах: заголовок и пояснение раздельно, действие отдельной кнопкой — «Вернуть», «Открыть», «Повторить», — и время на отмену видно линией, которая убывает.</p>
+  <div class="bl-head-rule"></div>
+  <div id="sections"></div>
+  <div class="tip"><strong>Предлагаю А — «Сноска».</strong> Это тот же лист, что и окна калькулятора: белое поле, волосяная рамка, черта сверху — как под заголовком раздела. Черта же и отсчитывает время на «Вернуть». Встаёт справа под шапкой и не спорит ни с полосой итога, ни с мини-окном.</div>
+  <div class="tip"><strong>Как отвечать:</strong> буквой — «А», «В» или другой; можно сочетанием, например «А, а ошибки — как в Б».</div>
+  <div class="bl-foot"><span>Баня МСК · макет «Уведомления в „Бланке“», версия 2 · учебные данные</span><span>21.10.2026</span></div>
+</main>
+<script>
+const З = {
+  del: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13"/></svg>',
+  chat: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>',
+  err: '<svg class="ic warm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.5"/></svg>',
+  ok: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+};
+const С = [
+  { и: З.del, е: 'Удалено', т: 'Пресет «Баня с террасой 6×6» удалён', п: 'Его можно вернуть ещё 5 секунд', д: 'Вернуть', тм: 1 },
+  { и: З.chat, е: 'Чат · «Пример» 7,7×8,2', т: '<b>Ольга П.:</b> по кровле — фальц или металлочерепица?', п: '', д: 'Открыть' },
+  { и: З.err, е: 'Не сохранено', т: 'Нет связи с базой', п: 'Повторю через 10 секунд', д: 'Повторить', тёпл: 1 },
+];
+const текст = с => '<div style="min-width:0"><div class="tx">' + с.т + '</div>' + (с.п ? '<div class="sub">' + с.п + '</div>' : '') + '</div>';
+const А = с => '<div class="smp na"><div class="tm' + (с.тёпл ? ' warm' : с.тм ? '' : ' full') + '"><i></i></div><div class="bd"><div style="min-width:0"><div class="ey' + (с.тёпл ? ' warm' : '') + '">' + с.е + '</div>' + текст(с) + '</div><span class="lnk">' + с.д + '</span></div></div>';
+const Б = с => '<div class="smp nb ' + (с.тёпл ? 'warm' : 'on') + '" style="max-width:640px">' + с.и + текст(с) + '<span class="lnk">' + с.д + '</span>' + (с.тм ? '<div class="tm"><i></i></div>' : '') + '</div>';
+const В = с => '<div class="smp nc" style="max-width:640px"><div class="msg">' + с.и + текст(с) + '<span class="lnk">' + с.д + '</span></div><div class="tot"><span>Общая стоимость</span><span>7 261 953 ₽</span></div></div>';
+const Г = с => '<div class="smp nd"><div class="bd">' + с.и + текст(с) + '<span class="lnk">' + с.д + '</span></div>' + (с.тм ? '<div class="tm"><i></i></div>' : '') + '</div>';
+const Д = с => '<div class="smp" style="max-width:520px"><div class="ne' + (с.тёпл ? ' warm' : '') + '"><span class="st">' + с.е.split(' · ')[0] + '</span>' + текст(с) + '<span class="lnk">' + с.д + '</span></div></div>';
+const Е = с => '<div class="smp" style="max-width:520px"><span class="nf">' + с.и + текст({ т: с.т.replace(/<b>.*?<\/b> ?/, 'Ольга П.: '), п: '' }) + '<span class="sep"></span><span class="lnk">' + с.д + '</span></span></div>';
+const экран = () => '<div class="wrapz"><div class="scr"><div class="sh"><div class="lg"></div><div class="h1"></div><div class="h2"></div><div class="tb">' + '<i></i>'.repeat(14) + '</div>'
+  + '<div class="ln" style="width:60%"></div><div class="ln" style="width:85%"></div><div class="ln" style="width:72%"></div><div class="ln" style="width:90%"></div><div class="ln" style="width:66%"></div></div>'
+  + '<div class="chip"></div><div class="strip"></div><div class="put">' + А(С[0]) + '</div></div></div>';
+const ВАР = [
+  { б: 'А.', имя: 'Сноска — лист с чертой сверху', метка: 'предлагаю', ф: А,
+    о: 'Белый лист в волосяной рамке, сверху черта цвета тона — как под заголовком раздела. Надзаголовок прописными говорит вид сообщения, действие — подчёркнутое слово справа. У сообщения с отменой черта убывает, пока можно вернуть; у сбоя черта тёплая.', еще: экран },
+  { б: 'Б.', имя: 'Строка листа под панелью кнопок', ф: Б,
+    о: 'Сообщение встаёт строкой прямо в лист, под панелью кнопок: линейки сверху и снизу, гаснущая подсветка слева — как у выбранной строки ведомости. Никакой коробки поверх расчёта, но строка сдвигает лист на время сообщения.' },
+  { б: 'В.', имя: 'Полоска итога говорит', ф: В,
+    о: 'Над полосой итога вырастает строка в её же графите — единственное тёмное место калькулятора остаётся единственным. Сообщение там, куда и так смотрят, следя за суммой.' },
+  { б: 'Г.', имя: 'Нынешняя тёмная плашка, доведённая', ф: Г,
+    о: 'Та же плашка, что сейчас, но с выравниванием по левому краю, значком вида, пояснением второй строкой, действием справа и линией отсчёта снизу. Ближе всего к привычному.' },
+  { б: 'Д.', имя: 'Штамп', ф: Д,
+    о: 'Рамка в цвет вида, слева — слово-штамп прописными: «Удалено», «Чат», «Не сохранено». Как отметка на документе. Читается сразу, но для длинных сообщений тесен.' },
+  { б: 'Е.', имя: 'В значке мини-окна', ф: Е,
+    о: 'Значок мини-окна в правом нижнем углу на 4 секунды меняет свою надпись на сообщение, потом возвращается. Нового элемента на экране нет вовсе; годится для коротких сообщений, длинные остаются за другим вариантом.' },
+];
+document.getElementById('sections').innerHTML = ВАР.map(в => '<section class="bl-section">'
+  + '<h2 class="bl-section__h"><span class="bl-section__no">' + в.б + '</span>' + в.имя + (в.метка ? '<span class="bl-section__tag">' + в.метка + '</span>' : '') + '</h2>'
+  + '<p class="bl-section__note">' + в.о + '</p><div class="bl-section__body"><div class="stage">'
+  + С.map((с, i) => '<div class="smp" style="max-width:none"><div class="cap">' + ['С отменой', 'Новое в чате', 'Сбой'][i] + '</div>' + в.ф(с) + '</div>').join('') + '</div>'
+  + (в.еще ? '<div style="margin-top:14px"><div class="cap">Где встаёт — справа под шапкой</div>' + в.еще() + '</div>' : '') + '</div></section>').join('');
+const уместить = () => document.querySelectorAll('.scr').forEach(о => { о.style.zoom = Math.min(1, о.parentElement.clientWidth / 1400); });
+уместить(); addEventListener('resize', уместить);
+</script>
