@@ -210,12 +210,37 @@ def прогон(бр, порт, ш, в, ночь, модерн, полный):
         if стр.evaluate("() => document.querySelector('[data-dsk-who=mine]').getAttribute('aria-pressed')") != "true":
             плохо(f"{н} выбор «Мои» не сохранился после повторного открытия")
         стр.locator("[data-dsk-who=all]").click(); стр.wait_for_timeout(200)
-        # ── поиск по коду ──
-        стр.fill("#boardQ", "333 333"); стр.wait_for_timeout(200)
+        # ── поиск: лупа рядом с «Мои / Все», по нажатию раскрывается в поле ──
+        # (Константин, 21.10.2026: «Тут сделай слева просто лупу (как поиск на
+        # главной в справке). А по нажатию, чтобы раздвигалось поле»).
+        ЛУПА = """() => { const о = document.getElementById('boardSrch'), р = о.getBoundingClientRect(), с = document.querySelector('.dsk-seg').getBoundingClientRect();
+          const ряд = о.parentElement.getBoundingClientRect(), п = document.getElementById('boardQ'), х = о.querySelector('.dsk-srch-x');
+          return { ш: Math.round(р.width), в: Math.round(р.height), отСег: Math.round(р.left - с.right), сегВ: Math.round(с.top - р.top), право: Math.round(ряд.right - р.right),
+            открыт: о.classList.contains('open'), фокус: document.activeElement === п, вид: +getComputedStyle(п).opacity, крестик: getComputedStyle(х).display !== 'none' }; }"""
+        л = стр.evaluate(ЛУПА)
+        if л["открыт"] or л["ш"] > 40 or л["в"] > 40 or л["отСег"] > 26 or л["отСег"] < 4 or abs(л["сегВ"]) > 2:
+            плохо(f"{н} поиск доски закрытым — не лупа рядом с «Мои / Все»: {л}")
+        стр.locator("#boardSrch .dsk-srch-b").click(); стр.wait_for_timeout(350)
+        л = стр.evaluate(ЛУПА)
+        if not л["открыт"] or not л["фокус"] or л["вид"] < 1 or л["ш"] < 160 or л["ш"] > 340 or л["право"] < 0:
+            плохо(f"{н} лупа не раскрылась в поле: {л}")
+        стр.keyboard.type("333 333"); стр.wait_for_timeout(250)
         коды = sum([к["коды"] for к in стр.evaluate(СОСТОЯНИЕ)["кол"]], [])
         if коды != ["333333"]:
             плохо(f"{н} поиск по коду «333 333»: {коды}")
-        стр.fill("#boardQ", ""); стр.wait_for_timeout(200)
+        if not стр.evaluate(ЛУПА)["крестик"]:
+            плохо(f"{н} в поле поиска с текстом нет крестика «Очистить»")
+        стр.locator("#boardSrch .dsk-srch-x").click(); стр.wait_for_timeout(250)
+        л = стр.evaluate(ЛУПА)
+        if стр.input_value("#boardQ") or not л["открыт"] or not л["фокус"] or л["крестик"]:
+            плохо(f"{н} «Очистить» не очистил поле или закрыл его: {л}")
+        стр.keyboard.type("333"); стр.keyboard.press("Escape"); стр.wait_for_timeout(350)
+        л = стр.evaluate(ЛУПА)
+        if л["открыт"] or л["ш"] > 40 or стр.input_value("#boardQ") or not стр.evaluate("() => доскаОткрыта()"):
+            плохо(f"{н} Esc не свернул поиск в лупу или закрыл доску: {л}")
+        if len(sum([к["коды"] for к in стр.evaluate(СОСТОЯНИЕ)["кол"]], [])) < 2:
+            плохо(f"{н} после Esc доска осталась отфильтрованной")
+
         # ── чужая карточка: менеджер не переносит ──
         if ш < 701:
             стр.locator("[data-dsk-tab=review]").click(); стр.wait_for_timeout(150)

@@ -11129,7 +11129,7 @@ function входПоказатьКто() {
         <button type="button" data-dsk-who="mine" aria-pressed="false">Мои</button>
         <button type="button" data-dsk-who="all" aria-pressed="true">Все</button>
       </div>
-      <label class="dsk-srch"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg><input id="boardQ" type="search" placeholder="Пресет, код или менеджер" aria-label="Поиск по доске" autocomplete="off"></label>
+      <div class="dsk-srch" id="boardSrch"><button type="button" class="dsk-srch-b" aria-label="Поиск по доске" title="Поиск по доске" aria-expanded="false" aria-controls="boardQ"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg></button><input id="boardQ" type="search" placeholder="Пресет, код или менеджер" aria-label="Поиск по доске" autocomplete="off" tabindex="-1"><button type="button" class="dsk-srch-x" aria-label="Очистить поиск" title="Очистить"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
       <div class="dsk-tot">Согласовано и подписано<b id="boardSum">0 ₽</b></div>
     </div>
     <div class="dsk-tabs" id="boardTabs" role="group" aria-label="Столбец"></div>
@@ -43607,6 +43607,35 @@ function подтвердитьПодписьДоски(с) {
   document.getElementById('boardSignDlg').hidden = false;
   document.getElementById('boardSignOk').focus();
 }
+// Лупа раскрывается в поле на место между «Мои / Все» и итогом справа (на
+// телефоне итог стоит строкой ниже — тогда до правого края), не шире 340 px.
+// Пустое поле, потерявшее фокус, и Esc сворачивают его обратно.
+function открытьПоискДоски() {
+  const о = document.getElementById('boardSrch'), п = document.getElementById('boardQ');
+  if (!о || !п) return;
+  if (!о.classList.contains('open')) {
+    const ряд = о.parentElement, св = getComputedStyle(ряд), зазор = parseFloat(св.columnGap) || 0;
+    const сег = ряд.querySelector('.dsk-seg'), ит = ряд.querySelector('.dsk-tot');
+    const итВРяду = ит && getComputedStyle(ит).flexBasis !== '100%';
+    const место = ряд.clientWidth - parseFloat(св.paddingLeft) - parseFloat(св.paddingRight)
+      - (сег ? сег.getBoundingClientRect().width + зазор : 0) - (итВРяду ? ит.getBoundingClientRect().width + зазор : 0) - 1;
+    о.style.width = Math.max(160, Math.min(340, Math.floor(место))) + 'px';
+    о.classList.add('open');
+    о.querySelector('.dsk-srch-b').setAttribute('aria-expanded', 'true');
+    п.tabIndex = 0;
+  }
+  п.focus();
+}
+function свернутьПоискДоски(толькоПустой) {
+  const о = document.getElementById('boardSrch'), п = document.getElementById('boardQ');
+  if (!о || !п || !о.classList.contains('open')) return;
+  if (толькоПустой && (п.value || document.activeElement === п)) return;
+  const был = !!п.value;
+  п.value = ''; о.classList.remove('open', 'has-q'); о.style.width = '';
+  о.querySelector('.dsk-srch-b').setAttribute('aria-expanded', 'false');
+  п.tabIndex = -1;
+  if (был) отрисоватьДоску();
+}
 function закрытьДиалогиДоски() {
   ['boardLostDlg', 'boardSignDlg'].forEach(ид => { const э = document.getElementById(ид); if (э) э.hidden = true; });
 }
@@ -43615,7 +43644,14 @@ function закрытьДиалогиДоски() {
   const о = document.getElementById('boardOverlay');
   if (!о) return;
   о.addEventListener('mousedown', e => { if (e.target === о) закрытьДоску(); });
-  document.getElementById('boardQ').addEventListener('input', () => отрисоватьДоску());
+  const сп = document.getElementById('boardSrch'), q = document.getElementById('boardQ');
+  сп.querySelector('.dsk-srch-b').addEventListener('click', открытьПоискДоски);
+  q.addEventListener('input', () => { сп.classList.toggle('has-q', !!q.value); отрисоватьДоску(); });
+  q.addEventListener('blur', () => setTimeout(() => свернутьПоискДоски(true), 150));
+  q.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); свернутьПоискДоски(); q.blur(); } });
+  const х = сп.querySelector('.dsk-srch-x');
+  х.addEventListener('mousedown', e => e.preventDefault());
+  х.addEventListener('click', () => { q.value = ''; сп.classList.remove('has-q'); отрисоватьДоску(); q.focus(); });
   о.addEventListener('click', e => {
     const м = e.target.closest('[data-dsk-menu]');
     if (м) {
@@ -52881,9 +52917,23 @@ body.dark #boardPanel{--dsk-lost:#e0a58e;--dsk-lost-tint:rgba(224,165,142,.13);}
 .dsk-seg button{position:relative;height:30px;padding:0 12px;border:0;border-radius:7px;background:none;font:inherit;font-size:.78rem;color:var(--pc-ink2);cursor:pointer;}
 .dsk-seg button::before{content:'';position:absolute;inset:-7px -1px;}
 .dsk-seg button[aria-pressed="true"]{background:var(--pc-fill);color:var(--pc-on-fill);font-weight:500;}
-.dsk-srch{flex:1 1 220px;max-width:340px;display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border:1px solid var(--pc-line);border-radius:9px;color:var(--pc-ink3);box-sizing:border-box;}
-.dsk-srch input{flex:1;min-width:0;border:0;outline:0;font:inherit;font-size:16px;background:none;color:var(--pc-ink);}
-.dsk-srch:focus-within{border-color:var(--pc-acc);}
+/* Поиск — лупой рядом с «Мои / Все», которая раскрывается в поле, как поиск
+   на главной справки (Константин, 21.10.2026: «Тут сделай слева просто лупу
+   (как поиск на главной в справке). А по нажатию, чтобы раздвигалось поле»).
+   Ширину открытого поля ставит открытьПоискДоски — по месту в ряду. */
+.dsk-srch{flex:none;display:flex;align-items:center;width:36px;height:36px;box-sizing:border-box;border:1px solid var(--pc-line);border-radius:9px;color:var(--pc-ink3);transition:width .22s ease,border-color .15s;}
+.dsk-srch.open{border-color:var(--pc-acc);}
+.dsk-srch-b{position:relative;flex:none;width:34px;height:34px;display:flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:8px;background:none;color:inherit;cursor:pointer;}
+.dsk-srch-b::before{content:'';position:absolute;inset:-5px;}
+.dsk-srch input{flex:1 1 auto;min-width:0;width:0;height:34px;box-sizing:border-box;padding:0 4px 0 0;border:0;outline:0;font:inherit;font-size:16px;background:none;color:var(--pc-ink);opacity:0;-webkit-appearance:none;appearance:none;}
+.dsk-srch.open input{opacity:1;}
+.dsk-srch input::placeholder{color:var(--pc-ink3);}
+.dsk-srch input::-webkit-search-cancel-button{display:none;}
+.dsk-srch-x{position:relative;flex:none;display:none;width:26px;height:26px;margin-right:4px;align-items:center;justify-content:center;padding:0;border:0;border-radius:7px;background:none;color:var(--pc-ink3);cursor:pointer;}
+.dsk-srch-x::before{content:'';position:absolute;inset:-9px -4px;}
+.dsk-srch.open.has-q .dsk-srch-x{display:flex;}
+@media (hover:hover){.dsk-srch:not(.open) .dsk-srch-b:hover,.dsk-srch-x:hover{color:var(--pc-ink);background:var(--pc-tint);}}
+@media (prefers-reduced-motion:reduce){.dsk-srch{transition:none;}}
 .dsk-tot{margin-left:auto;font-size:.76rem;color:var(--pc-ink2);text-align:right;}
 .dsk-tot b{display:block;font-family:'Unbounded',sans-serif;font-weight:600;font-size:.95rem;color:var(--pc-ink);font-variant-numeric:tabular-nums;}
 .dsk-tabs{display:none;}
