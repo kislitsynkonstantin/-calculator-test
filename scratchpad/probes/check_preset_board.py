@@ -241,6 +241,18 @@ def прогон(бр, порт, ш, в, ночь, модерн, полный):
         вкладки = стр.evaluate("() => [...document.querySelectorAll('#boardTabs button')].map(б => б.textContent)")
         if len(вкладки) != 4 or not вкладки[0].startswith("На согласовании"):
             плохо(f"{н} вкладки столбцов на телефоне: {вкладки}")
+        # Ряд меток листается только вбок: прокрутка по вертикали внутри ряда
+        # уводила метки вверх-вниз и обрезала их (21.10.2026). Пробуем сдвинуть
+        # ряд вниз колесом и руками — он должен остаться на месте, метки целиком.
+        р = стр.evaluate("""() => { const т = document.getElementById('boardTabs'); т.scrollTop = 20;
+          const в = т.getBoundingClientRect(), б = [...т.querySelectorAll('button')].map(x => x.getBoundingClientRect());
+          return { сверху: т.scrollTop, лишнее: т.scrollHeight - т.clientHeight, оверфлоу: getComputedStyle(т).overflowY,
+            обрезаны: б.filter(x => x.top < в.top - .5 || x.bottom > в.bottom + .5).length }; }""")
+        стр.mouse.move(195, стр.evaluate("() => { const r = document.getElementById('boardTabs').getBoundingClientRect(); return r.top + r.height / 2; }"))
+        стр.mouse.wheel(0, 60); стр.wait_for_timeout(200)
+        р["после колеса"] = стр.evaluate("() => document.getElementById('boardTabs').scrollTop")
+        if р["сверху"] or р["после колеса"] or р["обрезаны"] or р["оверфлоу"] not in ("hidden", "clip"):
+            плохо(f"{н} ряд меток доски ездит по вертикали или режет метки: {р}")
     for т in стр.evaluate(ВЁРСТКА):
         плохо(f"{н} {т}")
     стр.screenshot(path=str(СНИМКИ / f"доска_{ш}{'_ночь' if ночь else ''}{'_модерн' if модерн else ''}.png"))

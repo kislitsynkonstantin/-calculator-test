@@ -53302,7 +53302,11 @@ body.dark #boardPanel{--dsk-lost:#e0a58e;--dsk-lost-tint:rgba(224,165,142,.13);}
   #boardPanel > .ovl-head{padding:9px 10px;}
   .dsk-bar{padding:12px;}
   .dsk-tot{margin-left:0;text-align:left;flex-basis:100%;}
-  .dsk-tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 12px 0;scrollbar-width:none;}
+  /* Ряд меток листается только вбок. overflow-x:auto делает ряд прокручиваемым
+     и по вертикали, а поле нажатия меток (::before, −5 px) выше самого ряда —
+     и ряд ездил вверх-вниз под пальцем, обрезая метки (Константин, 21.10.2026,
+     двумя снимками: «Эти метки плавают вверх и вниз, зачем»). */
+  .dsk-tabs{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding:10px 12px 6px;scrollbar-width:none;touch-action:pan-x;overscroll-behavior-x:contain;}
   .dsk-tabs::-webkit-scrollbar{display:none;}
   .dsk-tabs button{position:relative;flex:none;height:34px;padding:0 12px;border-radius:17px;border:1px solid var(--pc-line);background:var(--pc-bg);font:inherit;font-size:.76rem;color:var(--pc-ink);cursor:pointer;display:flex;align-items:center;gap:6px;}
   .dsk-tabs button::before{content:'';position:absolute;inset:-5px -3px;}
