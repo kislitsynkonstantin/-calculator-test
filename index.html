@@ -25014,13 +25014,21 @@ function confirmClearContractData() {
 // ── Open / close Contract Data modal ──
 function openContractDataModal() {
   loadContractData();
+  // Подпись и образец номера основного договора — с кодом технологии.
+  const кодОсн = КОД_ОСНОВНОГО_ПО_ТЕХНОЛОГИИ[currentTech === 'glulam' ? 'glulam' : 'frame'];
+  const полеОсн = document.getElementById('cdContractNumKar');
+  if (полеОсн) {
+    полеОсн.placeholder = '00000000-' + кодОсн;
+    const подп = полеОсн.previousElementSibling;
+    if (подп && подп.tagName === 'LABEL') подп.textContent = '№ Основного договора (' + кодОсн + ')';
+  }
   // Auto-prefill contract numbers from main contractNumber field if empty
   const baseNum = (document.getElementById('contractNumber')?.value || '').trim();
   if (baseNum) {
     const karEl = document.getElementById('cdContractNumKar');
     const oEl = document.getElementById('cdContractNumO');
     const подставлено = (karEl && !karEl.value) || (oEl && !oEl.value);
-    if (karEl && !karEl.value) karEl.value = baseNum + '-КАР';
+    if (karEl && !karEl.value) karEl.value = baseNum + '-' + КОД_ОСНОВНОГО_ПО_ТЕХНОЛОГИИ[currentTech === 'glulam' ? 'glulam' : 'frame'];
     if (oEl && !oEl.value) oEl.value = baseNum + '-ОТД';
     // Подставленные номера сохраняются сразу: кнопки «Сохранить» больше нет,
     // а раньше они уходили в память только через неё.
@@ -26335,7 +26343,14 @@ function getContractVarsKar(ид) {
   const baseNum = (document.getElementById('contractNumber')?.value || '').trim();
   // У договора на покраску своего поля номера нет: номер — общий с кодом -ПОК.
   let contractNumKar = пок ? '' : v(отд ? 'cdContractNumO' : 'cdContractNumKar');
-  if (!contractNumKar && baseNum) contractNumKar = baseNum + (пок ? '-ПОК' : отд ? '-ОТД' : основнойБруса ? '-КБ' : '-КАР');
+  // Окно данных договора до 22.10.2026 подставляло основному договору «-КАР» и
+  // у бруса — такой номер сохранён в расчётах, его код меняется на «-КБ».
+  if (основнойБруса && /-КАР$/.test(contractNumKar)) contractNumKar = contractNumKar.replace(/-КАР$/, '-КБ');
+  // Без общего «№ договора» номер покраски берётся у номера основного или
+  // отделки: своего поля у покраски нет, и в правилах оставалось «№ ____».
+  const основаНомера = baseNum || [v('cdContractNumKar'), v('cdContractNumO')]
+    .map(н => н.replace(/-(КАР|КБ|ОТД|ПОК)$/, '')).find(н => н) || '';
+  if (!contractNumKar && основаНомера) contractNumKar = основаНомера + (пок ? '-ПОК' : отд ? '-ОТД' : основнойБруса ? '-КБ' : '-КАР');
 
   // Resolve total (with discount via ppGetTotal)
   let total = 0;
@@ -28228,6 +28243,19 @@ function togglePreviewEntityDrop() {
   if (!isOpen) обновитьМенюДокумента();
   m.style.display = isOpen ? 'none' : 'block';
   if (arr) arr.style.transform = isOpen ? '' : 'rotate(180deg)';
+  // Нажатие по листу документа приходит в его кадр, а не в окно калькулятора, —
+  // кадр слушается отдельно, пока меню открыто.
+  if (!isOpen) document.querySelectorAll('#printOverlay iframe').forEach(к => {
+    try { к.contentDocument.addEventListener('pointerdown', закрытьМенюДокумента, { capture: true, once: true }); } catch (e) {}
+  });
+}
+
+function закрытьМенюДокумента() {
+  const menu = document.getElementById('previewEntityMenu');
+  if (!menu || menu.style.display === 'none') return;
+  menu.style.display = 'none';
+  const arr = document.getElementById('previewEntityArrow');
+  if (arr) arr.style.transform = '';
 }
 
 function setPreviewEntity(entity) {
@@ -28888,16 +28916,15 @@ function toggleContractHl() {
   }
 }
 
-// Close entity dropdown on outside click
-document.addEventListener('click', function(e) {
+// Нажатие в любом месте мимо меню документа закрывает его (Константин,
+// 22.10.2026, снимком телефона: «когда открыто выпадающее меню нажатие в любой
+// области вне меню закрывай его»). Слушается pointerdown, а не click: Safari на
+// телефоне не шлёт click с элементов, на которые нечем нажать, — с листа, полей
+// окна, затемнения, — и меню оставалось открытым.
+document.addEventListener('pointerdown', function(e) {
   const wrap = document.getElementById('previewEntityWrap');
-  const menu = document.getElementById('previewEntityMenu');
-  if (wrap && menu && !wrap.contains(e.target)) {
-    menu.style.display = 'none';
-    const arr = document.getElementById('previewEntityArrow');
-    if (arr) arr.style.transform = '';
-  }
-});
+  if (wrap && !wrap.contains(e.target)) закрытьМенюДокумента();
+}, true);
 
 
 
