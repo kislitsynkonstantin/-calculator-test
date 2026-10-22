@@ -196,10 +196,11 @@ with sync_playwright() as pw:
       contractsConfig.find(c => c.id === 3).sections.push('paint');
       customOptions.paint = (customOptions.paint || []).concat([{ id: 'пок1', name: 'Покраска фасада (учебная)', price: 431234, checked: true }]); calc();
       ppDistribute(3); const st = ppState[3], c = getPPContracts().find(x => x.id === 3);
-      return { st: st && { amounts: st.amounts, final: st.finalAmt, hasFinal: st.hasFinal }, т: ppGetTotal(c) }; }""")
+      return { st: st && { amounts: st.amounts, final: st.finalAmt, hasFinal: st.hasFinal, hasFinalFixed: st.hasFinalFixed }, т: ppGetTotal(c) }; }""")
+    # Покраска с 22.10.2026 — всё задатком, финальный до 50 000 ₽ с остатками округления.
     if д["т"] > 0 and д["st"]:
-        факт(д["st"]["hasFinal"] and abs(sum(д["st"]["amounts"]) + д["st"]["final"] - д["т"]) <= 1,
-             f"своя схема, распределённая заново: финальный собирает остаток, сумма — цена: {д}")
+        факт(д["st"]["hasFinalFixed"] and 0 < д["st"]["final"] <= 50000 and abs(sum(д["st"]["amounts"]) + д["st"]["final"] - д["т"]) <= 1,
+             f"покраска, распределённая заново: задаток — всё, финальный до 50 000 ₽, сумма — цена: {д}")
     else:
         НАХОДКИ.append(f"своя схема: у договора покраски нет цены — нечего распределять: {д}")
     факт(not any("покраску в отдельный" in х for х in стр.evaluate("() => проверкаПоЧекЛисту().замечания.map(з => з.т)")),

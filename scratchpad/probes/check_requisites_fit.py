@@ -58,6 +58,14 @@ def напечатать(бр, html):
     п.set_content(html, wait_until="load")
     п.wait_for_timeout(800)
     вместе = п.evaluate("() => !!document.querySelector('.keep.keep-fit')")
+    # Номера пунктов правил — на одной вертикали, черта плашки — левее (22.10.2026).
+    выр = п.evaluate("""() => { const н = [...document.querySelectorAll('.rules p.clause:not(.sub) > .clause-num')].map(x => Math.round(x.getBoundingClientRect().left));
+      const ч = [...document.querySelectorAll('.rules p.clause.hl, .rules p.clause.warn')].map(x => Math.round(x.getBoundingClientRect().left));
+      return { н: [...new Set(н)], ч: [...new Set(ч)] }; }""")
+    if len(выр["н"]) > 1:
+        НАХОДКИ.append(f"номера пунктов правил не на одной вертикали: {выр['н']}")
+    if выр["ч"] and выр["н"] and not all(ч < min(выр["н"]) for ч in выр["ч"]):
+        НАХОДКИ.append(f"черта плашки не левее номеров: черта {выр['ч']}, номера {выр['н']}")
     п.emulate_media(media="print")
     pdf = п.pdf(prefer_css_page_size=True, print_background=True)
     п.close()
