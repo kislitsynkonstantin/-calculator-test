@@ -68,6 +68,9 @@ def начать(бр, порт, ш, роль="admin"):
       await loadSbProfile(); applyUiStyle('blank', false); applyTone('bmsk', false); selectProjectOption(0); await new Promise(r => setTimeout(r, 900));
       // В расчёте должна быть отделка, иначе её договор пустой: отмечаем первые опции разделов отделки.
       for (const к of ['interior', 'steam']) { const о = document.querySelector('[data-section="' + к + '"] .opt-item:not(.checked) .opt-check, #sec_' + к + ' .opt-item:not(.checked) .opt-check'); if (о) о.click(); }
+      // Гарантия следует спецификации (22.10.2026): инженерия и плитка — своими позициями в отделке.
+      getCustomOpts('interior').push({ id: customIdCounter++, name: 'Электромонтаж освещения проба', price: 50000, checked: true },
+        { id: customIdCounter++, name: 'Укладка плитки в санузле проба', price: 50000, checked: true }); calc();
       document.getElementById('contractNumber').value = '11112222'; openPrintPreview(); await new Promise(r => setTimeout(r, 400)); }""")
     return к, стр, ош
 

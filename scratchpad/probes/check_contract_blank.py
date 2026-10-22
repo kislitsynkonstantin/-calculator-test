@@ -106,6 +106,9 @@ def главная():
             кт = СоШрифтами(бр)
             стр, ошибки = к.начать(кт, порт, 1440, 900, False)
             тоны = стр.evaluate("() => Object.keys(ТОНЫ_ПОДПИСИ)")
+            # Гарантия с 22.10.2026 следует спецификации: инженерия в расчёте —
+            # своей позицией, чтобы вид проверялся на полном наборе из пяти строк.
+            стр.evaluate("() => { getCustomOpts('engineering').push({ id: customIdCounter++, name: 'Электромонтаж проба', price: 50000, checked: true }); calc(); }")
             черты = {}
             for тон in тоны:
                 html = стр.evaluate("(т) => { applyTone(т, false); return сПалитрой(buildContractHtmlKar(getContractVarsKar())); }", тон)

@@ -63,8 +63,12 @@ def страниц(путь):
     return int(re.search(r"Pages:\s+(\d+)", subprocess.run(["pdfinfo", путь], capture_output=True, text=True).stdout).group(1))
 
 
-def в_пдф(к, html, путь):
+def в_пдф(к, html, путь, уложить=None):
     л = к.new_page(); л.set_content(html, wait_until="load"); л.wait_for_timeout(1500)
+    # Комплект печатает напечататьВКадре, и перед печатью он укладывает
+    # реквизиты (скриптов документов в комплекте нет) — здесь так же.
+    if уложить:
+        л.evaluate("(src) => { (0, eval)('(' + src + ')')(document); }", уложить)
     л.pdf(path=путь, format="A4", prefer_css_page_size=True, print_background=True); л.close()
     return страниц(путь)
 
@@ -246,7 +250,7 @@ def прогон(бр, порт, ш, полный):
         ключи = стр.evaluate("() => документыКомплекта().filter(х => х.можно).map(х => х.к)")
         with tempfile.TemporaryDirectory() as папка:
             отд = {кл: в_пдф(к, стр.evaluate("async (к) => сПалитрой(await htmlДокументаКомплекта(к))", кл), f"{папка}/{кл}.pdf") for кл in ключи}
-            всего = в_пдф(к, к_["h"], f"{папка}/комплект.pdf")
+            всего = в_пдф(к, к_["h"], f"{папка}/комплект.pdf", стр.evaluate("() => уложитьРеквизиты.toString()"))
             if всего != sum(отд.values()):
                 плохо(f"{н} страниц в комплекте {всего}, по отдельности {отд}")
             for т in сравнить(папка, ключи):

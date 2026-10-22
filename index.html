@@ -25480,7 +25480,12 @@ function buildContractHtmlKar(vars) {
   @bottom-left{content:"Подрядчик ${вСтроку('Баранов Г. Н.')}";${полеПодп}}
   @bottom-right{content:"Заказчик${клиентКоротко ? ' ' + вСтроку(клиентКоротко) : ''}";${полеПодп}}}
 @page sign{@bottom-left{content:none}@bottom-right{content:none}}
-.keep{page:sign}`;
+.keep{page:sign}
+/* Реквизиты умещаются на последний лист текста — остаются на нём (см.
+   уложитьРеквизиты): своя страница им не нужна, подписи этого листа — в его
+   нижнем поле, поэтому свои строки подписей у блока на печати сняты. */
+.keep.keep-fit{page:auto}
+@media print{.keep.keep-fit .v1-sign{display:none}}`;
 
   const styleCss = `/* Договор в оформлении «Бланк» — язык листа, как у Приложения № 2: коробок
    нет, разделы держат линейки, бирюзовый — цвет чернил, а не заливка. Цвета —
@@ -26139,11 +26144,62 @@ ${реквизиты(13)}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Geologica:wght@400;500;600&display=swap" rel="stylesheet">
 ${сКолонтитулами ? '<script>if (/Chrome\\/\\d/.test(navigator.userAgent)) document.documentElement.classList.add(\'mb\');<\/script>' : ''}
+${сКолонтитулами ? '<script>(function () { var f = ' + уложитьРеквизиты.toString() + '; var go = function () { f(document); }; if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go(); if (document.fonts) document.fonts.ready.then(go); window.addEventListener("load", go); })();<\/script>' : ''}
 <style>${styleCss}
 /* Подсветку незаполненного снимает переключатель в окне предпросмотра. */
 body.hl-off .placeholder{background:transparent!important;padding:0!important;color:inherit!important}
 ${сПравками ? стильПравкиДоговора(vars.правкаТекста === true) : ''}
 </style></head><body>${bodyHtml}</body></html>`;
+}
+
+// Реквизиты сторон — на последнем листе текста, если там хватает места
+// (Константин, 22.10.2026, снимком правил бруса, где лист с разделом
+// «Подписание» на две трети пуст, а реквизиты ушли на следующий: «Делай
+// проверку, если хватает места, зачем оставлять пустое и переносить на ещё один
+// лист»). Блок реквизитов стоит на своей именованной странице (page: sign) —
+// без нижних полей с подписями, — а смена имени страницы всегда начинает лист.
+// Здесь лист раскладывается заранее: правила печати ставятся поверх экранных,
+// ширина листа — 190 мм, высота страницы — 257 мм (A4 без полей 20 + 20 мм),
+// и неразрывные блоки, которым не хватило места, переносятся на следующую
+// страницу, как это делает Chromium. Хватает места с запасом в 10 мм — блок
+// получает keep-fit и остаётся на листе. Работает в самом документе (скрипт
+// договора и правил), в окне печати и в комплекте.
+function уложитьРеквизиты(д) {
+  try {
+    var мм = 96 / 25.4, запас = 4 * мм;
+    var печать = [];
+    var собрать = function (правила) {
+      for (var и = 0; и < правила.length; и++) {
+        var r = правила[и];
+        if (r.type === 4 && /print/.test(r.media.mediaText) && !/screen/.test(r.media.mediaText))
+          for (var j = 0; j < r.cssRules.length; j++) печать.push(r.cssRules[j].cssText);
+      }
+    };
+    for (var л = 0; л < д.styleSheets.length; л++) { try { собрать(д.styleSheets[л].cssRules); } catch (e) {} }
+    // Лист — колонками по 190 × 257 мм: колонка режет текст так же, как
+    // страница печати (тот же разрыв неразрывных блоков, висячих строк и
+    // заголовков), а смена именованной страницы колонку не начинает.
+    var ст = д.createElement('style');
+    ст.textContent = печать.join('\n') + '\n.page{width:190mm!important;height:257mm!important;max-width:none!important;margin:0!important;padding:0!important;'
+      + 'box-sizing:content-box!important;column-width:190mm!important;column-count:auto!important;column-gap:0!important;column-fill:auto!important;overflow:visible!important}';
+    (д.head || д.documentElement).appendChild(ст);
+    var листы = д.querySelectorAll('.page');
+    for (var п = 0; п < листы.length; п++) {
+      var лист = листы[п], к = null, дети = лист.children;
+      for (var и = 0; и < дети.length; и++) if (дети[и].classList.contains('keep')) к = дети[и];
+      if (!к) continue;
+      к.classList.remove('keep-fit');
+      var пред = к.previousElementSibling;
+      while (пред && !пред.getClientRects().length) пред = пред.previousElementSibling;
+      if (!пред) continue;
+      var куски = пред.getClientRects(), последний = куски[куски.length - 1];
+      var рл = лист.getBoundingClientRect(), рк = к.getBoundingClientRect();
+      var колонка = function (x) { return Math.round((x - рл.left) / (190 * мм)); };
+      // Блок в той же колонке, что конец текста, и не упирается в низ — помещается.
+      if (колонка(рк.left) === колонка(последний.left) && рк.bottom <= рл.top + 257 * мм - запас) к.classList.add('keep-fit');
+    }
+    ст.remove();
+  } catch (e) {}
 }
 
 // ── Build vars from current calculator state (KAR) ──
@@ -27803,6 +27859,8 @@ function напечататьВКадре(html, заголовок) {
     window.addEventListener('afterprint', вернуть, { once: true });
     setTimeout(вернуть, 120000);
     try {
+      // В комплекте скриптов документов нет — реквизиты укладываются отсюда.
+      уложитьРеквизиты(iframe.contentDocument);
       iframe.contentWindow.focus();
       const начало = Date.now();
       iframe.contentWindow.print();

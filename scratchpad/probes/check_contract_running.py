@@ -54,6 +54,8 @@ from playwright.sync_api import sync_playwright
 def pdf(кт, html, print_media=False):
     д = кт.new_page(viewport={"width": 900, "height": 1200})
     д.set_content(html, wait_until="load"); д.wait_for_timeout(900)
+    # Реквизиты легли под текст последнего листа (уложитьРеквизиты, 22.10.2026).
+    вместе = д.evaluate("() => !!document.querySelector('.keep.keep-fit')")
     with tempfile.NamedTemporaryFile(suffix=".pdf") as ф:
         д.pdf(path=ф.name, format="A4", prefer_css_page_size=True, print_background=True)
         док = fitz.open(ф.name)
@@ -66,7 +68,7 @@ def pdf(кт, html, print_media=False):
                     т = "".join(с["text"] for с in л["spans"]).strip()
                     if т:
                         строки.append((л["bbox"][1], л["bbox"][3], л["bbox"][0], т))
-            стр.append({"h": h, "строки": строки, "текст": п.get_text()})
+            стр.append({"h": h, "строки": строки, "текст": п.get_text(), "вместе": вместе})
     д.close()
     return стр
 
@@ -89,9 +91,12 @@ def основной(кт, html, имя, ВЕРСИЯ=ВЕРСИЯ):
         # У правил 3.2 реквизиты без банка и ОГРН — лист узнаётся по заголовку.
         if "1237700535049" in с["текст"] or any(re.fullmatch(r"\d+\.\s*Адреса и реквизиты", т_) for *_, т_ in с["строки"]):
             реквизиты.append(i)
-            if any(т.startswith(("Подрядчик", "Заказчик", "Баранов", "Петров")) for т in тн):
-                НАХОДКИ.append(f"[{имя}] стр. {i}: на листе реквизитов в нижнем поле остались подписи: {тн}")
-            continue
+            # Реквизиты на листе с текстом — подписи листа в нижнем поле, как у
+            # остальных; на своём листе — свои подписи, поле пустое.
+            if not с["вместе"]:
+                if any(т.startswith(("Подрядчик", "Заказчик", "Баранов", "Петров")) for т in тн):
+                    НАХОДКИ.append(f"[{имя}] стр. {i}: на листе реквизитов в нижнем поле остались подписи: {тн}")
+                continue
         for нужно in ("Подрядчик", "Заказчик"):
             if нужно not in тн:
                 НАХОДКИ.append(f"[{имя}] стр. {i}: в нижнем поле нет «{нужно}»: {тн}")
