@@ -206,7 +206,10 @@ with sync_playwright() as pw:
          "каркас: пункта про отдельный договор покраски нет")
 
     # ── Брус: покраска отдельным договором ──
-    стр.evaluate("async () => { contractsConfig = contractsConfig.filter(c => c.id !== 3); contractsConfig.find(c => c.id === 1).sections.push('paint'); await switchTech('glulam'); await new Promise(r => setTimeout(r, 700)); selectProjectOption(0); calc(); }")
+    # С 22.10.2026 у бруса покраска по умолчанию — третьим договором, и выбор
+    # проекта ставит этот состав; покраску в общий договор кладём после выбора.
+    стр.evaluate("async () => { await switchTech('glulam'); await new Promise(r => setTimeout(r, 700)); selectProjectOption(0); "
+                 "contractsConfig = contractsConfig.filter(c => c.id !== 3); const о = contractsConfig.find(c => c.id === 1); if (!о.sections.includes('paint')) о.sections.push('paint'); calc(); }")
     стр.wait_for_timeout(700)
     факт(стр.evaluate("() => currentTech") == "glulam", "расчёт бруса открыт")
     о = стр.evaluate("() => { customOptions.paint = [{ id: 'пок2', name: 'Покраска снаружи (учебная)', price: 250000, checked: true }]; calc(); return 'пок2'; }")
