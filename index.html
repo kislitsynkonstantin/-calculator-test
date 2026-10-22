@@ -25641,6 +25641,8 @@ dl.rows>dt,dl.rows>dd,.o2 .row,.cells,.g1>div,.bar{break-inside:avoid;page-break
 .rules .clause.warn .clause-num{color:#8a7060}
 .rules .clause.warn .lead{font-weight:600;color:#c06010}
 .rules .clause.hl b,.rules .clause.warn b{font-weight:600}
+/* Заголовок раздела не рвётся: перед неразрывной плашкой номер оставался внизу листа, а название уезжало на следующий. */
+.rules h2.section{break-inside:avoid;page-break-inside:avoid}
 .rules .clause.sub .clause-num{min-width:4em}
 
 /* Узкий экран: выключка по ширине растаскивает слова пробелами — там по левому краю. */
