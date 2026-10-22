@@ -1,0 +1,135 @@
+Калькулятор опций — страница по своей ссылке
+<div class="pg"><div class="oc pgw" id="A"></div>
+<p class="pg-note">Макет отдельной страницы. Адрес в работе — calculator.baniamsk.ru/options: тот же вход, тот же каталог, что в калькуляторе. Цены учебные.</p></div>
+<div class="pbar" id="pbar"></div>
+<div hidden><div id="B"></div><pre id="out"></pre></div>
+<script>
+// Учебные ставки: себестоимость за единицу, маржа по умолчанию, надбавка.
+const КАТ = {
+ frame: [
+  ['Парная', [['Панно из гималайской соли', 'шт.', 40000, .3], ['Спилы можжевельника с подсветкой', 'шт.', 30000, .3], ['Второе дыхание', 'шт.', 20000, .3], ['Вагонка — ольха экстра', 'м²', 2000, .3]]],
+  ['Печи', [['Портал в камне — змеевик', 'шт.', 20000, .15], ['Замена печи на «Змеевик»', 'шт.', 50000, .15]]],
+  ['Полы и терраса', [['Тёплый пол электрический', 'м²', 2000, .3], ['Стяжка пола', 'м²', 1000, .35], ['Террасная доска ДПК', 'м²', 3000, .3]]],
+  ['Окна и двери', [['Мансардное окно', 'шт.', 30000, .3], ['Входная дверь ПВХ стеклянная', 'шт.', 25000, .35]]],
+  ['Кровля', [['Снегозадержатели', 'п. м', 1500, .3], ['Водосток металл', 'п. м', 2000, .3], ['Замена профлиста на фальц', 'м²', 1000, .25, 1.05]]],
+  ['Фасад', [['Планкен сосна АБ', 'м²', 300, .3, 1.05, 10000], ['Белтермо 35 мм', 'м²', 1000, .3, 1, 10000]]],
+  ['Обеспечение стройки', [['Аренда крана, смена', 'шт.', 20000, .05], ['Вывоз мусора, 20 м³', 'шт.', 25000, .05]]],
+ ],
+ glulam: [
+  ['Парная', [['Панно из гималайской соли', 'шт.', 35000, .3], ['Спилы можжевельника с подсветкой', 'шт.', 30000, .3]]],
+  ['Печи', [['Портал в камне — змеевик', 'шт.', 20000, .15]]],
+  ['Полы и терраса', [['Покраска террасы маслом', 'м²', 1500, .3], ['Тёплый пол электрический', 'м²', 2000, .3]]],
+  ['Кровля', [['Снегозадержатели', 'п. м', 1500, .3], ['Водосток пластик', 'п. м', 1200, .3]]],
+  ['Обеспечение стройки', [['Аренда крана, смена', 'шт.', 20000, .05]]],
+ ],
+};
+let тех = 'frame', поиск = '';
+const выбор = [];            // {тех, раздел, имя, ед, ставка, м0, м, к, мн, над}
+let любая = {имя: '', с: '', м: 20};
+const руб = в => Math.round(в).toLocaleString('ru-RU').replace(/,/g, ' ') + ' ₽';
+const цена = о => ((о.к || 0) * о.ставка * (о.мн || 1) + (о.над || 0)) / (1 - о.м / 100);
+const ПЛЮС = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>';
+const ГАЛКА = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 12l5 5 9-10"/></svg>';
+const КРЕСТ = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const ЛУПА = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>';
+const есть = (р, и) => выбор.findIndex(о => о.тех === тех && о.раздел === р && о.имя === и);
+function переключить(р, о) {
+  const и = есть(р, о[0]);
+  if (и >= 0) выбор.splice(и, 1);
+  else выбор.push({тех, раздел: р, имя: о[0], ед: о[1], ставка: о[2], м0: о[3] * 100, м: о[3] * 100, к: о[1] === 'шт.' ? 1 : 10, мн: о[4], над: о[5]});
+  всё();
+}
+function верх(id) {
+  return '<div class="oc-top"><div><div class="oc-k">Без проекта</div><div class="oc-nm">Калькулятор опций</div></div>'
+    + '<div class="seg"><button data-t="frame" class="' + (тех === 'frame' ? 'on' : '') + '">Каркас</button><button data-t="glulam" class="' + (тех === 'glulam' ? 'on' : '') + '">Клеёный брус</button></div>'
+    + '<button class="oc-x" aria-label="Закрыть">' + КРЕСТ + '</button></div>'
+    + '<div class="oc-sub">Опции и формулы — из каталога выбранной технологии. Количество вписывается руками.</div>';
+}
+function итог() {
+  const св = выбор.filter(о => о.тех === тех);
+  const л = любая.с ? +любая.с / (1 - любая.м / 100) : 0;
+  return св.reduce((s, о) => s + цена(о), 0) + л;
+}
+function рисА() {
+  const кат = КАТ[тех].map(([р, оп]) => {
+    const видно = оп.filter(о => !поиск || о[0].toLowerCase().includes(поиск));
+    if (!видно.length) return '';
+    return '<div class="cs"><div class="cs-h">' + р + '<span>' + видно.length + '</span></div>' + видно.map(о => {
+      const в = есть(р, о[0]) >= 0;
+      return '<div class="co"><div class="co-b"><div class="co-n">' + о[0] + '</div><div class="co-r">' + руб(о[2] / (1 - о[3])) + ' за ' + о[1] + ' · маржа ' + о[3] * 100 + ' %</div></div>'
+        + '<button class="add' + (в ? ' sel' : '') + '" data-r="' + р + '" data-o="' + о[0] + '" aria-label="' + (в ? 'Убрать' : 'Добавить') + '">' + (в ? ГАЛКА : ПЛЮС) + '</button></div>';
+    }).join('') + '</div>';
+  }).join('');
+  const св = выбор.filter(о => о.тех === тех);
+  const строки = св.length ? св.map(о => {
+    const i = выбор.indexOf(о);
+    return '<div class="ln"><div class="ln-t"><div class="ln-n">' + о.имя + '<small>' + о.раздел + '</small></div><div class="ln-p">' + руб(цена(о)) + '</div>'
+      + '<button class="rm" data-i="' + i + '" aria-label="Убрать">' + КРЕСТ + '</button></div>'
+      + '<div class="ln-f"><div class="f"><label>Количество</label><input class="in n" data-i="' + i + '" data-k="к" inputmode="decimal" value="' + о.к + '"></div><span class="u">' + о.ед + '</span>'
+      + '<div class="f m"><label>Маржа, %</label><input class="in n" data-i="' + i + '" data-k="м" inputmode="decimal" value="' + о.м + '"></div>'
+      + (о.м != о.м0 ? '<span class="mg">' + (о.м > о.м0 ? 'выше' : 'ниже') + ' каталожной ' + о.м0 + ' %</span>' : '') + '</div></div>';
+  }).join('') : '<div class="empty">Добавьте опции из списка слева</div>';
+  document.getElementById('A').innerHTML = верх('A') + '<div class="oc-a"><div class="cat"><label class="srch">' + ЛУПА + '<input id="q" placeholder="Найти опцию" value="' + поиск + '"></label>' + кат + '</div>'
+    + '<div class="calc" id="calc"><div class="any"><div class="f"><label>Любая опция</label><input class="in" id="anyN" placeholder="Название" value="' + любая.имя + '"></div>'
+    + '<div class="f"><label>Себестоимость</label><input class="in n" id="anyC" inputmode="decimal" placeholder="0" value="' + любая.с + '"></div>'
+    + '<div class="f"><label>Маржа, %</label><input class="in n" id="anyM" inputmode="decimal" value="' + любая.м + '"></div>'
+    + '<div class="go">Цена с маржой<b>' + (любая.с ? руб(+любая.с / (1 - любая.м / 100)) : '—') + '</b></div></div>'
+    + строки + '<div class="tot"><span>Итого</span><b>' + руб(итог()) + '</b></div>'
+    + '<div class="acts"><button class="btn pri" id="cp">Скопировать</button><button class="btn">PDF</button><button class="btn" id="clr">Очистить</button></div><div class="copied" id="cpd"></div></div></div>';
+}
+function рисБ() {
+  const тело = КАТ[тех].map(([р, оп]) => '<tr class="sec"><td colspan="6">' + р + '</td></tr>' + оп.map(о => {
+    const i = есть(р, о[0]); const в = i >= 0 ? выбор[i] : null;
+    return '<tr class="' + (в ? 'has' : '') + '"><td>' + о[0] + '</td><td class="r"><input data-r="' + р + '" data-o="' + о[0] + '" data-k="к" inputmode="decimal" placeholder="0" value="' + (в ? в.к : '') + '"></td><td class="u">' + о[1] + '</td>'
+      + '<td class="r"><input class="m" data-r="' + р + '" data-o="' + о[0] + '" data-k="м" inputmode="decimal" value="' + (в ? в.м : о[3] * 100) + '"></td>'
+      + '<td class="r u hide">' + руб(о[2] / (1 - о[3])) + '</td><td class="r p' + (в ? '' : ' z') + '">' + (в ? руб(цена(в)) : '—') + '</td></tr>';
+  }).join('')).join('');
+  document.getElementById('B').innerHTML = верх('B') + '<div class="oc-b"><div class="b-scroll"><table class="tb"><thead><tr><th>Опция</th><th class="r">Кол-во</th><th></th><th class="r">Маржа, %</th><th class="r hide">За ед.</th><th class="r">Цена</th></tr></thead><tbody>' + тело + '</tbody></table></div>'
+    + '<div class="b-foot"><div class="t"><span>Итого</span><b>' + руб(итог()) + '</b></div><button class="btn pri">Скопировать</button><button class="btn">PDF</button></div></div>';
+}
+function текст() {
+  const св = выбор.filter(о => о.тех === тех);
+  const л = св.map((о, н) => (н + 1) + '. ' + о.имя + ' — ' + String(о.к).replace('.', ',') + ' ' + о.ед + ' — ' + руб(цена(о)));
+  if (любая.с) л.push((л.length + 1) + '. ' + (любая.имя || 'Опция') + ' — ' + руб(+любая.с / (1 - любая.м / 100)));
+  return (тех === 'frame' ? 'Дополнительные опции, каркас' : 'Дополнительные опции, клеёный брус') + '\n' + (л.length ? л.join('\n') : '—') + '\nИтого: ' + руб(итог());
+}
+function всё() { рисА(); рисБ(); document.getElementById('out').textContent = текст(); }
+document.addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.t) { тех = t.dataset.t; всё(); }
+  else if (t.classList.contains('add')) { const р = t.dataset.r; переключить(р, КАТ[тех].find(x => x[0] === р)[1].find(о => о[0] === t.dataset.o)); }
+  else if (t.classList.contains('rm')) { выбор.splice(+t.dataset.i, 1); всё(); }
+  else if (t.id === 'clr') { for (let i = выбор.length - 1; i >= 0; i--) if (выбор[i].тех === тех) выбор.splice(i, 1); любая = {имя: '', с: '', м: 20}; всё(); }
+  else if (t.id === 'cp') { try { navigator.clipboard.writeText(текст()); } catch (_) {} document.getElementById('cpd').textContent = 'Список скопирован'; }
+});
+document.addEventListener('change', e => {
+  const t = e.target; const в = t.value.replace(',', '.');
+  if (t.id === 'anyN') любая.имя = t.value;
+  else if (t.id === 'anyC') любая.с = в;
+  else if (t.id === 'anyM') любая.м = +в || 0;
+  else if (t.dataset.i != null) выбор[+t.dataset.i][t.dataset.k] = +в || 0;
+  else if (t.dataset.r) {
+    const р = t.dataset.r, о = КАТ[тех].find(x => x[0] === р)[1].find(x => x[0] === t.dataset.o);
+    let i = есть(р, о[0]);
+    if (i < 0) { переключить(р, о); i = есть(р, о[0]); }
+    выбор[i][t.dataset.k] = +в || 0;
+    if (t.dataset.k === 'к' && !(+в)) выбор.splice(i, 1);
+  } else return;
+  всё();
+});
+document.addEventListener('input', e => { if (e.target.id === 'q') { поиск = e.target.value.toLowerCase(); const п = e.target.selectionStart; рисА(); const q = document.getElementById('q'); q.focus(); q.setSelectionRange(п, п); } });
+// Стартовое состояние — три опции, чтобы окно не было пустым.
+переключить('Парная', КАТ.frame[0][1][0]); переключить('Полы и терраса', КАТ.frame[2][1][0]); выбор[1].к = 24; переключить('Кровля', КАТ.frame[4][1][0]); выбор[2].к = 18;
+всё();
+
+function верх(id) {
+  return '<div class="pg-bar"><div class="pg-l"><img class="bl-logo bl-logo--day" src="@@LOGO_DAY@@" alt="Баня МСК"><img class="bl-logo bl-logo--night" src="@@LOGO_NIGHT@@" alt="" aria-hidden="true"><span class="pg-t">Калькулятор опций</span></div>'
+    + '<div class="seg"><button data-t="frame" class="' + (тех === 'frame' ? 'on' : '') + '">Каркас</button><button data-t="glulam" class="' + (тех === 'glulam' ? 'on' : '') + '">Клеёный брус</button></div>'
+    + '<div class="pg-u"><span class="av">ОС</span><span class="nm">Ольга Смирнова<small>клиентский отдел</small></span></div></div>'
+    + '<div class="oc-sub">Опции и формулы — те же, что в калькуляторе спецификаций. Количество вписывается руками.</div>';
+}
+const _всё = всё;
+всё = function () { _всё(); const св = выбор.filter(о => о.тех === тех);
+  document.getElementById('pbar').innerHTML = '<span>В расчёте ' + св.length + '</span><b>' + руб(итог()) + '</b><a href="#calc">К расчёту</a>'; };
+всё();
+</script>
