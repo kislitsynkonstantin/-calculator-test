@@ -146,6 +146,11 @@ def прогон(бр, порт, ш, в):
 def исходник():
     текст = (м.КОРЕНЬ / "index.html").read_text(encoding="utf-8")
     for н, строка in enumerate(текст.split("\n"), 1):
+        # Плашки «Важно» и «Осторожно» в правилах эксплуатации — вид блока, а не
+        # выделение: черта у них по макету rules-emphasis-v2 (Константин,
+        # 22.10.2026: «Оба варианта используй в правилах»), как у .tip/.warn/.quote.
+        if ".rules .clause.hl" in строка or ".rules .clause.warn" in строка:
+            continue
         for шаблон, что in ИСХОДНИК:
             if шаблон.search(строка):
                 НАХОДКИ.append(f"index.html:{н} — {что}: {строка.strip()[:110]}")
