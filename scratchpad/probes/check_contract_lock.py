@@ -57,7 +57,7 @@ def прогон(бр, порт, ш, стиль, роль):
         НАХОДКИ.append(f"{н} в меню документа пунктов договора: {len(пункты)}, ждали два")
     for п in пункты:
         и = f"{н} пункт договора {п['ид']}:"
-        if роль == "manager":
+        if роль in ("manager", "editor"):
             if not п["закрыт"] or п["строка"] != "После согласования спецификации":
                 НАХОДКИ.append(f"{и} у менеджера не закрыт: {п}")
             if п["прозр"] > 0.6:
@@ -71,12 +71,12 @@ def прогон(бр, порт, ш, стиль, роль):
             НАХОДКИ.append(f"{и} высота пункта {п['выс']:.0f} px, меньше 44")
         if п["меню"]["л"] < 0 or п["меню"]["п"] > п["экран"]:
             НАХОДКИ.append(f"{и} меню за краем экрана: {п['меню']}")
-    if роль == "manager" and ш in (390, 1440) and стиль == "blank":
+    if роль in ("manager", "editor") and ш in (390, 1440) and стиль == "blank":
         стр.screenshot(path=str(м.СНИМКИ / f"contract-lock-{ш}.png"))
-    стр.locator('#previewEntityMenu [data-contract="1"]').click(force=(роль == "manager")); стр.wait_for_timeout(1000)
+    стр.locator('#previewEntityMenu [data-contract="1"]').click(force=(роль in ("manager", "editor"))); стр.wait_for_timeout(1000)
     сущ = стр.evaluate("() => previewEntity")
     кнопки = стр.evaluate(КНОПКИ)
-    if роль == "manager":
+    if роль in ("manager", "editor"):
         if сущ != "spec":
             НАХОДКИ.append(f"{н} нажатие на закрытый пункт открыло «{сущ}»")
         стр.evaluate("() => { setPreviewEntity('contract'); }"); стр.wait_for_timeout(300)
@@ -115,7 +115,7 @@ def главная():
             бр = pw.chromium.launch(executable_path=м.хром(), args=["--no-sandbox"])
             for ш in (390, 1440):
                 for стиль in ("blank",):
-                    for роль in ("manager", "admin"):
+                    for роль in ("manager", "editor", "admin"):
                         прогон(бр, порт, ш, стиль, роль)
             бр.close()
     finally:
