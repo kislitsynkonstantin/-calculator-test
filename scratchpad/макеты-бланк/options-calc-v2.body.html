@@ -1,0 +1,193 @@
+Калькулятор опций без проекта, ещё варианты и одна логика расчёта
+<main class="bl-sheet">
+  <header class="bl-doc-head">
+    <div><img class="bl-logo bl-logo--day" src="@@LOGO_DAY@@" alt="Баня МСК"><img class="bl-logo bl-logo--night" src="@@LOGO_NIGHT@@" alt="" aria-hidden="true"></div>
+    <div class="bl-doc-head__meta">Макет · версия 2<br>22.10.2026</div>
+  </header>
+  <p class="bl-eyebrow">Макет · калькулятор опций</p>
+  <h1 class="bl-title">Калькулятор опций — <em>ещё четыре варианта и одна логика с проектами</em></h1>
+  <p class="bl-lead">Первый заход: окно с каталогом и расчётом рядом (А) и одна ведомость (Б) — <a href="options-calc-v1.html">options-calc-v1.html</a>. Здесь — ещё четыре места для того же окна, устройство расчёта, при котором опция в проекте и в калькуляторе опций считается одной функцией из одного каталога, и файл экспорта.</p>
+  <p class="bl-lead">Все четыре варианта ниже работают от одного списка и одной функции цены: добавьте опцию в любом — она появится во всех, с той же суммой. Цены и ставки учебные.</p>
+  <div class="bl-head-rule"></div>
+
+  <section class="bl-section">
+    <h2 class="bl-section__h"><span class="bl-section__no">1.</span>Одна логика расчёта<span class="bl-section__tag">главное</span></h2>
+    <p class="bl-section__note">Сейчас опция по формуле в проекте уже считается так: основание × ставка × запас + надбавка, делённое на (1 − маржа); основание — площадь проекта. Калькулятор опций — та же функция, только основание вписывается руками. Ставки, маржа и запас лежат в одном месте — в каталоге опций базы, и правит их администратор, как сейчас.</p>
+    <div class="bl-section__body">
+      <div class="flow">
+        <div><div class="fb"><h4>Каталог опций</h4>Одна строка на опцию: ставка за единицу, маржа, запас, надбавка, основание — фасад, кровля, покраска, терраса, тёплый контур, штуки или метры.</div></div>
+        <div class="arr">→</div>
+        <div><div class="fb core"><h4>Одна функция «цена опции»</h4><code>(основание × ставка × запас + надбавка) ÷ (1 − маржа)</code><br>Ставка и маржа — из каталога; маржу можно поправить, отклонение помечается.</div></div>
+        <div class="arr">→</div>
+        <div><div class="fb"><h4>Расчёт проекта</h4>Основание — площадь проекта; можно поправить в строке опции, как сейчас.</div><div class="fb"><h4>Калькулятор опций</h4>Основание вписывается руками; если открыт проект — подставляется его площадь (вариант В).</div></div>
+      </div>
+      <ol class="ol">
+        <li>Опции с ценой только из таблицы проекта получают ставку.<p>Таких 33 у каркаса и 25 у бруса: окна, утепление, фундаменты, водостоки, обработка каркаса. В проекте у них цена за весь проект, ставки за единицу нет, и без проекта их не посчитать. Ставка выводится из нынешних цен: цена ÷ площадь проекта, по всем проектам. Таблица проекта остаётся только как исключение — «у этого проекта своя цена».</p></li>
+        <li>Опции с одной ценой — та же функция с основанием «штук».<p>Печи, панно, порталы: ставка — цена за штуку, количество 1. Отдельной ветки для них нет.</p></li>
+        <li>«Любая опция» — тоже она: ставка — себестоимость, количество 1.<p>Маржа по умолчанию 20 %, как в первой строке таблицы Google.</p></li>
+        <li>Проба держит совпадение.<p>Для каждого проекта и каждой опции цена в строке проекта и цена в калькуляторе опций при той же площади должны совпасть до рубля. Разойдутся — проба красная, выкладка стоит.</p></li>
+        <li>Таблица Google больше не источник.<p>После переноса цены правятся только в каталоге; таблица остаётся архивом. Сначала — решить расхождения по сверке от 21.10.2026 (задача 16), иначе в окно переедут нынешние цены каталога, а не таблицы.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="bl-section">
+    <h2 class="bl-section__h"><span class="bl-section__no">2.</span>Вариант В — шторка справа, поверх расчёта<span class="bl-section__tag">предлагаю</span></h2>
+    <p class="bl-section__note">Выезжает справа, расчёт под ней остаётся на месте. Если открыт проект, основание подставляется из него с меткой «из проекта»; переключатель «Без проекта» — всё вписывается руками. Так клиентский отдел считает допы и к уже проданной бане, и в отрыве от неё.</p>
+    <div class="bl-section__body"><div class="stage" id="V"></div></div>
+  </section>
+
+  <section class="bl-section">
+    <h2 class="bl-section__h"><span class="bl-section__no">3.</span>Вариант Г — вкладка «Опции» в мини-окне</h2>
+    <p class="bl-section__note">Пятая вкладка рядом с «Пресетом», «Журналом» и «Проверкой». Ничего нового на экране, но окно узкое: список длиннее пяти строк прокручивается.</p>
+    <div class="bl-section__body"><div class="stage" id="G"></div></div>
+  </section>
+
+  <section class="bl-section">
+    <h2 class="bl-section__h"><span class="bl-section__no">4.</span>Вариант Д — чек с поиском</h2>
+    <p class="bl-section__note">Одна строка поиска: начинаешь писать «тёпл» — подсказка, нажал — строка в чеке с количеством 1. Быстрее всего, если название опции знаешь; каталога целиком не видно.</p>
+    <div class="bl-section__body"><div class="rc" id="D"></div></div>
+  </section>
+
+  <section class="bl-section">
+    <h2 class="bl-section__h"><span class="bl-section__no">5.</span>Вариант Е — по шагам, для телефона</h2>
+    <p class="bl-section__note">Технология → раздел → опция → количество → в список. Крупно, без мелких полей; для того, кто считает у клиента на объекте.</p>
+    <div class="bl-section__body"><div class="wz" id="E"></div></div>
+  </section>
+
+  <section class="bl-section">
+    <h2 class="bl-section__h"><span class="bl-section__no">6.</span>Экспорт — отдельным файлом</h2>
+    <p class="bl-section__note">В окне две кнопки выгрузки. «Расчёт в Excel» — посчитанный список, как ниже: с формулой в каждой строке, чтобы цену можно было пересчитать в самом файле. «Прайс опций» — весь каталог технологии одной таблицей со ставками за единицу: замена нынешней таблицы Google для тех, кто привык к ней.</p>
+    <div class="bl-section__body">
+      <div class="xl" id="X"></div>
+      <div class="files">
+        <div class="file"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#217346" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 8l8 8M16 8l-8 8"/></svg><div>Опции — каркас — 22.10.2026.xlsx<small>расчёт: список, количество, маржа, цена с формулой</small></div></div>
+        <div class="file"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#217346" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 8l8 8M16 8l-8 8"/></svg><div>Прайс опций — каркас — 22.10.2026.xlsx<small>весь каталог: ставка, маржа, основание</small></div></div>
+        <div class="file"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--bl-small)" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg><div>Опции — каркас — 22.10.2026.pdf<small>лист «Бланка» для клиента, без ставок и маржи</small></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bl-section">
+    <h2 class="bl-section__h"><span class="bl-section__no">7.</span>Вопросы</h2>
+    <div class="qs">
+      <div class="q"><b>1.</b><span>Какой вариант: А, Б из первого макета или В, Г, Д, Е.</span><p>Предлагаю В: он единственный подставляет площадь открытого проекта, и одна логика с проектом видна прямо в окне.</p></div>
+      <div class="q"><b>2.</b><span>Переводить опции с ценой из таблицы проекта на ставку.</span><p>Предлагаю да — без этого 33 опции каркаса и 25 бруса в окне не посчитать. Своя цена проекта остаётся исключением.</p></div>
+      <div class="q"><b>3.</b><span>Какие файлы экспорта.</span><p>Предлагаю все три: расчёт в Excel, прайс опций и PDF для клиента. В PDF ставок и маржи нет.</p></div>
+    </div>
+  </section>
+  <div class="tip"><strong>Как отвечать:</strong> «1 — В, 2 — да, 3 — да» или со своими поправками.</div>
+  <div class="bl-foot"><span>Баня МСК · макет «Калькулятор опций», версия 2 · учебные данные</span><span>22.10.2026</span></div>
+</main>
+<script>
+// Учебный каталог. Основание: fasad, roof, terrace, warm — площадь; qty — штуки; m — метры.
+const КАТ = [
+  ['Парная', [['Панно из гималайской соли', 'qty', 40000, .3], ['Спилы можжевельника с подсветкой', 'qty', 30000, .3], ['Второе дыхание', 'qty', 20000, .3]]],
+  ['Печи', [['Портал в камне — змеевик', 'qty', 20000, .15], ['Замена печи на «Змеевик»', 'qty', 50000, .15]]],
+  ['Полы и терраса', [['Тёплый пол электрический', 'warm', 2000, .3], ['Стяжка пола', 'warm', 1000, .35], ['Покраска террасы маслом', 'terrace', 1500, .3, 1, 5000]]],
+  ['Окна', [['Окна Veka 70', 'warm', 900, .25], ['Мансардное окно', 'qty', 30000, .3]]],
+  ['Кровля', [['Снегозадержатели', 'm', 1500, .3], ['Замена профлиста на фальц', 'roof', 1000, .25, 1.05]]],
+  ['Фасад', [['Планкен сосна АБ', 'fasad', 300, .3, 1.05, 10000], ['Белтермо 35 мм', 'fasad', 1000, .3, 1, 10000]]],
+];
+const ОСН = {fasad: ['м²', 'фасад'], roof: ['м²', 'кровля'], terrace: ['м²', 'терраса'], warm: ['м²', 'тёплый контур'], qty: ['шт.', ''], m: ['п. м', '']};
+const ПРОЕКТ = {имя: 'Баня «Пример» 6×8', fasad: 72, roof: 60, terrace: 18, warm: 48};
+let безПроекта = false;
+const выбор = [];           // {р, о, к, м, своё}
+// Одна функция цены — и для проекта, и для окна.
+function ценаОпции(о, основание, маржа) {
+  const [, , ставка, , запас = 1, надбавка = 0] = о;
+  return (основание * ставка * запас + надбавка) / (1 - маржа / 100);
+}
+const найти = (р, и) => КАТ.find(x => x[0] === р)[1].find(о => о[0] === и);
+const основаниеИзПроекта = о => (безПроекта || !ПРОЕКТ[о[1]]) ? null : ПРОЕКТ[о[1]];
+const кол = в => { const о = найти(в.р, в.о); const п = основаниеИзПроекта(о); return в.своё || п == null ? в.к : п; };
+const цена = в => ценаОпции(найти(в.р, в.о), кол(в), в.м);
+const итог = () => выбор.reduce((s, в) => s + цена(в), 0);
+const руб = в => Math.round(в).toLocaleString('ru-RU').replace(/,/g, ' ') + ' ₽';
+const ч = в => String(в).replace('.', ',');
+function добавить(р, и) {
+  if (выбор.some(в => в.р === р && в.о === и)) return;
+  const о = найти(р, и);
+  выбор.push({р, о: и, к: о[1] === 'qty' ? 1 : (о[1] === 'm' ? 10 : 20), м: о[3] * 100, своё: false});
+  всё();
+}
+const убрать = i => { выбор.splice(i, 1); всё(); };
+const ПЛЮС = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>';
+const КРЕСТ = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const ЛУПА = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>';
+const фон = '<div class="ghost"><div class="gh t"></div><div class="gh w8"></div><div class="gh w6"></div><div class="gh w8"></div><div class="gh w4"></div><div class="gh t"></div><div class="gh w8"></div><div class="gh w6"></div><div class="gh w8"></div><div class="gh w6"></div></div>';
+function строкаРасчёта(в, i, узко) {
+  const о = найти(в.р, в.о); const п = основаниеИзПроекта(о); const из = п != null && !в.своё;
+  const метка = ОСН[о[1]][1] ? (из ? '<span class="src">из проекта · ' + ОСН[о[1]][1] + '</span>' : '<span class="src man">вписано</span>') : '';
+  return '<div class="ln"><div class="ln-t"><div class="ln-n">' + в.о + '<small>' + в.р + '</small></div><div class="ln-p">' + руб(цена(в)) + '</div><button class="rm" data-rm="' + i + '" aria-label="Убрать">' + КРЕСТ + '</button></div>'
+    + '<div class="ln-f"><div class="f"><label>' + (о[1] === 'qty' ? 'Количество' : 'Основание') + '</label><input class="in n" data-i="' + i + '" data-k="к" inputmode="decimal" value="' + ч(кол(в)) + '"></div><span class="u">' + ОСН[о[1]][0] + '</span>'
+    + '<div class="f m"><label>Маржа, %</label><input class="in n" data-i="' + i + '" data-k="м" inputmode="decimal" value="' + в.м + '"></div>' + (узко ? '' : метка) + '</div>' + (узко && метка ? '<div style="margin-top:4px">' + метка + '</div>' : '') + '</div>';
+}
+function чипы() { return '<div class="pick">' + КАТ.flatMap(([р, оп]) => оп.slice(0, 1).concat(р === 'Полы и терраса' || р === 'Фасад' ? оп.slice(1, 2) : []).map(о => '<button class="chip' + (выбор.some(в => в.о === о[0]) ? ' on' : '') + '" data-r="' + р + '" data-o="' + о[0] + '">' + о[0] + '</button>')).join('') + '</div>'; }
+function рисВ() {
+  document.getElementById('V').innerHTML = фон + '<div class="drawer"><div class="oc-top"><div><div class="oc-k">Опции</div><div class="oc-nm">Калькулятор опций</div></div><button class="oc-x" aria-label="Закрыть">' + КРЕСТ + '</button></div>'
+    + '<div class="prj">Проект: <b>' + ПРОЕКТ.имя + '</b><div class="sw"><button data-p="0" class="' + (безПроекта ? '' : 'on') + '">С проектом</button><button data-p="1" class="' + (безПроекта ? 'on' : '') + '">Без проекта</button></div></div>'
+    + '<div class="body">' + чипы() + (выбор.length ? выбор.map((в, i) => строкаРасчёта(в, i, true)).join('') : '<div class="empty">Добавьте опцию</div>') + '</div>'
+    + '<div class="dfoot"><div class="tt"><span>Итого</span><b>' + руб(итог()) + '</b></div><div class="acts"><button class="btn pri">Скопировать</button><button class="btn">Excel</button><button class="btn">PDF</button></div></div></div>';
+}
+function рисГ() {
+  document.getElementById('G').innerHTML = фон + '<div class="mw"><div class="hd"><div class="oc-k">Мой пресет</div><div class="oc-nm" style="font-size:.78rem">' + ПРОЕКТ.имя + '</div></div>'
+    + '<div class="tabs"><span class="tab">Пресет</span><span class="tab">Журнал</span><span class="tab">Проверка</span><span class="tab on">Опции</span></div>'
+    + '<div class="body">' + чипы() + выбор.map((в, i) => строкаРасчёта(в, i, true)).join('') + '</div>'
+    + '<div class="dfoot"><div class="tt"><span>Итого</span><b>' + руб(итог()) + '</b></div><div class="acts"><button class="btn pri">Скопировать</button><button class="btn">Excel</button></div></div></div>';
+}
+let запрос = '';
+function рисД() {
+  const все = КАТ.flatMap(([р, оп]) => оп.map(о => [р, о]));
+  const подх = запрос ? все.filter(([, о]) => о[0].toLowerCase().includes(запрос)).slice(0, 4) : [];
+  document.getElementById('D').innerHTML = '<div class="oc-k">Опции · без проекта</div><div class="oc-nm" style="margin:2px 0 10px">Калькулятор опций</div>'
+    + '<label class="cmd">' + ЛУПА + '<input id="dq" placeholder="Начните писать: «тёпл», «панно»…" value="' + запрос + '"></label>'
+    + (подх.length ? '<div class="sug">' + подх.map(([р, о]) => '<button data-r="' + р + '" data-o="' + о[0] + '">' + о[0] + '<span>' + р + '</span></button>').join('') + '</div>' : '')
+    + '<div style="margin-top:10px">' + выбор.map((в, i) => '<div class="rl"><span>' + в.о + '</span><b>' + руб(цена(в)) + '</b><span class="q"><input data-i="' + i + '" data-k="к" inputmode="decimal" value="' + ч(кол(в)) + '">' + ОСН[найти(в.р, в.о)[1]][0] + ' · маржа ' + в.м + ' %</span><button class="rm" data-rm="' + i + '" aria-label="Убрать" style="justify-self:end">' + КРЕСТ + '</button></div>').join('') + '</div>'
+    + '<div class="tot"><span>Итого</span><b>' + руб(итог()) + '</b></div><div class="acts"><button class="btn pri">Скопировать</button><button class="btn">Excel</button><button class="btn">PDF</button></div>';
+}
+let шаг = 0, wр = null, wо = null, wк = '';
+function рисЕ() {
+  const полосы = '<div class="steps">' + [0, 1, 2].map(i => '<span class="' + (i <= шаг ? 'on' : '') + '"></span>').join('') + '</div>';
+  let т = '';
+  if (шаг === 0) т = '<div class="wq">Раздел</div><div class="wl">' + КАТ.map(([р, оп]) => '<button data-ws="' + р + '">' + р + '<span>' + оп.length + '</span></button>').join('') + '</div>';
+  if (шаг === 1) т = '<div class="wq">' + wр + '</div><div class="wl">' + КАТ.find(x => x[0] === wр)[1].map(о => '<button data-wo="' + о[0] + '">' + о[0] + '<span>' + руб(о[2] / (1 - о[3])) + ' за ' + ОСН[о[1]][0] + '</span></button>').join('') + '</div><div class="wnav"><button class="btn" data-wb="1">Назад</button></div>';
+  if (шаг === 2) { const о = найти(wр, wо); т = '<div class="wq">' + wо + '</div><div class="oc-k">' + (о[1] === 'qty' ? 'Количество' : 'Основание, ' + ОСН[о[1]][0]) + '</div><div class="big"><input id="wk" inputmode="decimal" value="' + wк + '" placeholder="0"><span class="u">' + ОСН[о[1]][0] + '</span></div>'
+    + '<div style="font-size:.78rem;color:var(--bl-ink2)">Цена: <b style="color:var(--bl-ink)">' + (wк ? руб(ценаОпции(о, +String(wк).replace(',', '.'), о[3] * 100)) : '—') + '</b> · маржа ' + о[3] * 100 + ' %</div>'
+    + '<div class="wnav"><button class="btn" data-wb="1">Назад</button><button class="btn pri" data-wadd="1">В список</button></div>'; }
+  document.getElementById('E').innerHTML = '<div class="oc-k">Опции · без проекта</div><div class="oc-nm">Калькулятор опций</div>' + полосы + т
+    + '<div class="tot" style="margin-top:14px"><span>В списке ' + выбор.length + '</span><b>' + руб(итог()) + '</b></div>';
+}
+function рисX() {
+  const стр = выбор.map((в, i) => { const о = найти(в.р, в.о); const r = i + 4;
+    return '<tr><td class="rn">' + r + '</td><td>' + (i + 1) + '</td><td>' + в.о + '</td><td>' + в.р + '</td><td class="r">' + ч(кол(в)) + '</td><td>' + ОСН[о[1]][0] + '</td><td class="r">' + руб(о[2]) + '</td><td class="r">' + в.м + ' %</td><td class="r">' + руб(цена(в)) + '<br><span class="fx">=(E' + r + '*G' + r + (о[4] && о[4] !== 1 ? '*' + ч(о[4]) : '') + (о[5] ? '+' + о[5] : '') + ')/(1-H' + r + ')</span></td></tr>'; }).join('');
+  const н = выбор.length + 4;
+  document.getElementById('X').innerHTML = '<div class="bar">Опции — каркас — 22.10.2026.xlsx</div><table>'
+    + '<tr class="ttl"><td class="rn">1</td><td colspan="8">Расчёт опций · каркас · ' + (безПроекта ? 'без проекта' : ПРОЕКТ.имя) + '</td></tr>'
+    + '<tr class="sub"><td class="rn">2</td><td colspan="8">22.10.2026 · посчитал: Иван Петров · ставки каталога на эту дату</td></tr>'
+    + '<tr><th class="rn">3</th><th>№</th><th>Опция</th><th>Раздел</th><th class="r">Кол-во</th><th>Ед.</th><th class="r">Ставка за ед.</th><th class="r">Маржа</th><th class="r">Цена</th></tr>'
+    + стр + '<tr class="tt"><td class="rn">' + н + '</td><td></td><td colspan="6">Итого</td><td class="r">' + руб(итог()) + '<br><span class="fx">=СУММ(I4:I' + (н - 1) + ')</span></td></tr></table>';
+}
+function всё() { рисВ(); рисГ(); рисД(); рисЕ(); рисX(); }
+document.addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.rm != null) убрать(+t.dataset.rm);
+  else if (t.dataset.p != null) { безПроекта = t.dataset.p === '1'; всё(); }
+  else if (t.dataset.r) { добавить(t.dataset.r, t.dataset.o); if (t.closest('#D')) { запрос = ''; рисД(); } }
+  else if (t.dataset.ws) { wр = t.dataset.ws; шаг = 1; рисЕ(); }
+  else if (t.dataset.wo) { wо = t.dataset.wo; wк = найти(wр, wо)[1] === 'qty' ? '1' : ''; шаг = 2; рисЕ(); }
+  else if (t.dataset.wb) { шаг = Math.max(0, шаг - 1); рисЕ(); }
+  else if (t.dataset.wadd) { const к = +String(wк).replace(',', '.'); if (к > 0) { добавить(wр, wо); const в = выбор.find(x => x.о === wо); в.к = к; в.своё = true; шаг = 0; wк = ''; всё(); } }
+});
+document.addEventListener('change', e => {
+  const t = e.target; if (t.dataset.i == null) return;
+  const в = выбор[+t.dataset.i]; const v = +t.value.replace(',', '.') || 0;
+  if (t.dataset.k === 'к') { в.к = v; в.своё = true; } else в.м = v;
+  всё();
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'dq') { запрос = e.target.value.toLowerCase(); const p = e.target.selectionStart; рисД(); const q = document.getElementById('dq'); q.focus(); q.setSelectionRange(p, p); }
+  if (e.target.id === 'wk') { wк = e.target.value; const p = e.target.selectionStart; рисЕ(); const q = document.getElementById('wk'); q.focus(); q.setSelectionRange(p, p); }
+});
+добавить('Полы и терраса', 'Тёплый пол электрический'); добавить('Фасад', 'Планкен сосна АБ'); добавить('Парная', 'Панно из гималайской соли');
+</script>
