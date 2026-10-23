@@ -51918,7 +51918,17 @@ function loginTogglePwd(btn) {
   const f = document.getElementById('loginPassword');
   if (!f) return;
   f.type = f.type === 'password' ? 'text' : 'password';
-  btn.title = f.type === 'password' ? 'Показать пароль' : 'Скрыть пароль';
+  const скрыт = f.type === 'password';
+  btn.title = скрыт ? 'Показать пароль' : 'Скрыть пароль';
+  btn.setAttribute('aria-label', btn.title);
+  btn.setAttribute('aria-pressed', скрыт ? 'false' : 'true');
+  // Значок говорит, что сделает нажатие: пароль скрыт — открытый глаз, виден —
+  // перечёркнутый (Константин, 23.10.2026, снимками экрана входа: «когда глаз
+  // нажимаешь, чтобы в одной из версий он был перечёркнут, а в другой открыт.
+  // Сейчас вообще не меняется, только чуть подсветка»).
+  btn.innerHTML = скрыт
+    ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+    : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
 }
 
 function hideLoginScreen() {
