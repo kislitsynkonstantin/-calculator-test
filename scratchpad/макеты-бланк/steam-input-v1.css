@@ -1,0 +1,100 @@
+/* Парная — окно ввода: главный экран калькулятора в «Бланке», тон «Зелёный-графит» */
+.scr{margin-top:6px;background:var(--bl-sheet);border:1px solid var(--bl-rule);border-radius:14px;box-shadow:var(--win-shadow);padding:22px clamp(14px,3vw,30px) 26px;overflow:hidden}
+.a-eb{font-size:.6rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--bl-small)}
+.a-h{margin-top:4px;font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.05rem;line-height:1.2;color:var(--bl-head)}
+.a-h em{display:block;font-style:normal;color:var(--bl-acc)}
+.a-rule{height:1px;background:var(--bl-rule);margin:16px 0 0}
+/* Две карточки, как «Выбор проекта» и «Реквизиты» */
+.cards{display:grid;grid-template-columns:1fr 1fr;margin-top:18px}
+.cards > div{padding:0 26px;min-width:0}
+.cards > div:first-child{padding-left:0}
+.cards > div + div{border-left:1px solid var(--bl-rule);padding-right:0}
+@media (max-width:760px){.cards{grid-template-columns:1fr}.cards > div{padding:0}.cards > div + div{border-left:0;border-top:1px solid var(--bl-rule);margin-top:22px;padding-top:18px}}
+.ch{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.82rem;color:var(--bl-head);padding-bottom:8px;border-bottom:2px solid var(--bl-acc)}
+.ch small{font-family:'Geologica',sans-serif;font-weight:500;font-size:.66rem;color:var(--bl-ink3);margin-left:6px}
+/* Поле: подпись слева, место для ответа справа */
+.fld{display:grid;grid-template-columns:minmax(70px,104px) minmax(0,1fr);align-items:end;gap:10px;margin-top:12px}
+.fld > span{font-size:.68rem;color:var(--bl-ink3);padding-bottom:9px}
+.val{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:38px;padding:6px 2px;border-bottom:1px solid var(--bl-rule2);font-size:.84rem;color:var(--bl-ink);min-width:0}
+.val > b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.val svg{flex:none;color:var(--bl-ink3)}
+.fld.st{grid-template-columns:1fr;gap:0}
+.fld.st > span{padding-bottom:0}
+/* Размеры: три поля в ряд */
+.dims{display:flex;align-items:flex-end;gap:8px}
+.dims .d{flex:1 1 0;min-width:0}
+.dims .d .val{justify-content:flex-start;font-variant-numeric:tabular-nums}
+.dims .d i{display:block;font-style:normal;font-size:.62rem;color:var(--bl-ink3);margin-top:3px}
+.dims .x{padding-bottom:26px;color:var(--bl-ink3);font-size:.8rem}
+/* Сегменты, как толщина утепления */
+.seg{display:flex;gap:0;border-bottom:1px solid var(--bl-rule2)}
+.seg span{flex:1 1 0;text-align:center;font-size:.72rem;color:var(--bl-ink2);padding:9px 4px 7px;border-bottom:2px solid transparent;margin-bottom:-1px}
+.seg span.on{color:var(--bl-small);font-weight:600;border-bottom-color:var(--bl-acc)}
+/* Строки-определения с отточием */
+.defs{margin-top:16px}
+.def{display:flex;align-items:baseline;gap:6px;font-size:.74rem;color:var(--bl-ink2);padding:5px 0}
+.def::after{content:'';order:1;flex:1;height:1px;background:radial-gradient(circle,var(--bl-rule2) 1px,transparent 1.2px) 0 0/5px 1px repeat-x;align-self:center}
+.def b{order:2;font-weight:600;color:var(--bl-ink);font-size:.8rem;white-space:nowrap}
+.def b small{font-weight:500;color:var(--bl-ink3);font-size:.7rem}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.ob{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border:1px solid var(--bl-acc);border-radius:8px;font-size:.7rem;font-weight:500;color:var(--bl-ink)}
+.ob.f{background:var(--bl-tint)}
+/* Открытый список технологий */
+.dd{margin-top:4px;border:1px solid var(--bl-rule);border-radius:10px;box-shadow:var(--win-shadow);background:var(--bl-sheet);padding:4px 0;max-width:280px;margin-left:auto}
+.dd div{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;font-size:.78rem}
+.dd div.on{font-weight:600;background:var(--bl-tint)}
+.dd div.soon{color:var(--bl-ink3)}
+.dd div.soon i{font-style:normal;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase}
+.dd div.new i{font-style:normal;font-size:.58rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--bl-small);background:var(--bl-tint);border-radius:20px;padding:2px 7px}
+/* Итоги по разделам */
+.tot{margin-top:26px;font-size:.78rem}
+.tot .r{display:grid;grid-template-columns:minmax(0,1fr) 54px 110px;gap:8px;padding:7px 0;border-bottom:1px solid var(--bl-rule)}
+.tot .r span:nth-child(2){text-align:right;color:var(--bl-small)}
+.tot .r span:nth-child(3){text-align:right;font-weight:600}
+.tot .r.hd{font-size:.58rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-ink2);border-bottom:2px solid var(--bl-acc)}
+.tot .r.hd span:nth-child(2){color:var(--bl-ink2)}
+.tot .r.ft{font-weight:700;border-bottom:0;border-top:2px solid var(--bl-acc);margin-top:-1px}
+/* Раздел спецификации */
+.sx{margin-top:30px}
+.sx-h{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:baseline;gap:10px;padding-bottom:6px;border-bottom:2px solid var(--bl-acc)}
+.sx-no{font-family:'Unbounded',sans-serif;font-weight:300;font-size:clamp(1.5rem,4vw,2rem);line-height:1;color:var(--bl-pale)}
+.sx-t{font-family:'Unbounded',sans-serif;font-weight:600;font-size:.84rem;color:var(--bl-head)}
+.sx-t small{display:block;font-family:'Geologica',sans-serif;font-weight:400;font-size:.66rem;color:var(--bl-ink3);margin-top:3px}
+.sx-s{font-weight:600;font-size:.86rem;white-space:nowrap}
+.sx.cl .sx-h{border-bottom-width:1px;border-bottom-color:var(--bl-rule)}
+.sx.cl .sx-no{color:var(--bl-rule2)}
+/* Выбор раздела — наверху раздела, до строк */
+.par{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:2px 22px;padding:4px 0 12px;border-bottom:1px solid var(--bl-rule)}
+.par .fld{grid-template-columns:1fr;gap:0;margin-top:8px}
+.par .fld > span{padding-bottom:0}
+.chk-ok,.chk-w{display:flex;align-items:flex-start;gap:8px;grid-column:1 / -1;margin-top:10px;padding:8px 12px;border-radius:10px;font-size:.74rem;line-height:1.4}
+.chk-ok{background:linear-gradient(90deg,var(--bl-tint) 0%,transparent 90%);color:var(--bl-ink)}
+.chk-ok svg{color:var(--bl-small);flex:none;margin-top:1px}
+.chk-w{background:linear-gradient(90deg,var(--mn-warn-bg) 0%,transparent 90%);color:var(--mn-warn-text)}
+.chk-w b{color:var(--mn-warn-strong)}
+/* Ярусы полков */
+.tiers{grid-column:1 / -1;margin-top:8px;font-size:.76rem}
+.tiers .ti{display:grid;grid-template-columns:minmax(0,1fr) 110px 70px;gap:8px;padding:7px 0;border-bottom:1px solid var(--bl-rule);align-items:baseline}
+.tiers .ti span:nth-child(2){color:var(--bl-ink2)}
+.tiers .ti span:nth-child(3){text-align:right;font-weight:600}
+.tiers .ti.hd{font-size:.58rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--bl-ink3)}
+.tiers .add{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:.72rem;color:var(--bl-small);font-weight:500}
+/* Строка позиции */
+.op{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:4px 10px;align-items:start;padding:10px 0;border-bottom:1px solid var(--bl-rule)}
+.ck{width:18px;height:18px;border-radius:4px;background:var(--bl-acc);display:flex;align-items:center;justify-content:center;margin-top:1px}
+.ck svg{color:#fff}
+.op .n{font-size:.8rem;font-weight:500;line-height:1.35}
+.op .n em{font-style:normal;color:var(--bl-ink3);font-weight:400;font-size:.7rem;margin-right:5px}
+.op .q{font-size:.68rem;color:var(--bl-ink2);margin-top:2px}
+.op .p{font-size:.8rem;font-weight:600;white-space:nowrap;text-align:right}
+.auto{display:inline-block;margin-left:6px;font-size:.58rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--bl-small);background:var(--bl-tint);border-radius:20px;padding:2px 7px;vertical-align:.1em;white-space:nowrap}
+.more{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;height:34px;border:1px dashed var(--bl-rule2);border-radius:8px;font-size:.72rem;color:var(--bl-ink2)}
+.cl-note{font-size:.7rem;color:var(--bl-ink2);margin-top:6px}
+/* Вариант Б: анкета */
+.ank{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0 26px;margin-top:6px}
+.ank .bk{padding-top:14px}
+.ank .bk-h{font-size:.6rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--bl-small);padding-bottom:4px;border-bottom:1px solid var(--bl-rule)}
+.ank .fld{grid-template-columns:minmax(70px,96px) minmax(0,1fr);margin-top:6px}
+.ank .val{min-height:32px;font-size:.78rem}
+.plain .op{padding:8px 0}
+@media (max-width:480px){.cards .fld{grid-template-columns:1fr;gap:0}.cards .fld > span{padding-bottom:0}}

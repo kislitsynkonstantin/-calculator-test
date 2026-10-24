@@ -1,0 +1,26 @@
+/* Экономика парной: блок администратора во вкладке «Проверка» мини-окна */
+.win{max-width:360px;padding-bottom:12px}
+.pn{margin-top:12px}
+.pn-h{display:flex;align-items:center;gap:8px;padding-bottom:6px;border-bottom:2px solid var(--bl-acc);font-family:'Unbounded',sans-serif;font-weight:600;font-size:.78rem;color:var(--bl-head)}
+.pn-h .cnt{margin-left:auto}
+.only{display:flex;align-items:center;gap:5px;margin-top:6px;font-size:.62rem;color:var(--bl-ink3)}
+.only svg{flex:none}
+.ec{display:flex;align-items:baseline;gap:6px;padding:6px 0;font-size:.74rem;color:var(--bl-ink2);border-bottom:1px solid var(--bl-rule)}
+.ec b{margin-left:auto;font-weight:600;color:var(--bl-ink);white-space:nowrap;font-size:.78rem}
+.ec b small{font-weight:500;color:var(--bl-ink3);font-size:.66rem;margin-left:4px}
+.ec.big b{font-size:.86rem}
+.ec.low b{color:var(--mn-warn-strong)}
+.it{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--bl-rule)}
+.it .t{font-size:.76rem;font-weight:500;line-height:1.35}
+.it .s{grid-column:1;font-size:.64rem;font-weight:600;color:var(--bl-small)}
+.it svg{grid-column:2;grid-row:1 / span 2;color:var(--bl-ink3)}
+.it.w{background:linear-gradient(90deg,var(--mn-warn-bg) 0%,transparent 95%);border-radius:10px;border-bottom:0;padding:9px 10px;margin-top:8px}
+.it.w .t{color:var(--mn-warn-text)}
+.it.w .t b{color:var(--mn-warn-strong)}
+.none{font-size:.72rem;color:var(--bl-ink3);padding:9px 0}
+/* Настройки: поле маржи */
+.st-f{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:10px;align-items:end;margin-top:12px}
+.st-f span{font-size:.72rem;color:var(--bl-ink2);padding-bottom:9px}
+.st-f .v{display:flex;align-items:center;justify-content:flex-end;gap:4px;min-height:38px;border-bottom:1px solid var(--bl-rule2);font-size:.9rem;font-weight:600}
+.st-f .v small{font-size:.72rem;font-weight:500;color:var(--bl-ink3)}
+.st-n{font-size:.68rem;color:var(--bl-ink3);margin-top:8px;line-height:1.45}
