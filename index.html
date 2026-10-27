@@ -1050,6 +1050,7 @@ window.ТОНЫ_ПАЛИТРЫ = {"значок": {"sky": "0c65e6", "blue": "1e4
   --tech-frame: var(--br-38);
   --tech-glulam: #a9713a;
   --tech-stone: #6f7c83;
+  --tech-steam: #b25a3c;
 }
 body.dark {
   --black: var(--br-94б);
@@ -1067,6 +1068,7 @@ body.dark {
   --tech-frame: var(--br-48);
   --tech-glulam: #c79a5b;
   --tech-stone: #8d9aa0;
+  --tech-steam: #d0805f;
 }
 body.dark { background: var(--page-bg); color: var(--black); }
 body.dark .card { background: var(--card-bg); border-color: var(--br-24); }
@@ -5188,6 +5190,7 @@ body.dark .tech-chip:hover, body.dark .tech-chip.on { color: var(--green-light);
 .tech-dot.t-frame  { background: var(--tech-frame); }
 .tech-dot.t-glulam { background: var(--tech-glulam); }
 .tech-dot.t-stone  { background: var(--tech-stone); }
+.tech-dot.t-steam  { background: var(--tech-steam); }
 
 /* ── Фильтр по технологии над списком пресетов ── */
 .tfilter { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 0 14px 10px; }
@@ -11812,7 +11815,11 @@ function входПоказатьКто() {
       .status-pill.ok .pill-dot { background:#2e9d52 !important; }
     </style>
     <div class="field" style="margin-top:18px;">
-      <label>Технология</label>
+      <!-- «Расчёт», а не «Технология»: с парной в списке стоит не только
+           технология постройки, но и отделка готового помещения
+           (Константин, 27.10.2026, со снимком поля: «Переименуй «Расчёт»,
+           вместо технологии»). -->
+      <label>Расчёт</label>
       <div class="custom-select-wrap" id="techSelectWrap">
         <div class="custom-select-trigger" id="techSelectTrigger" onclick="toggleTechDropdown()" style="cursor:pointer;">
           <span id="techSelectLabel">Каркас</span>
@@ -12376,7 +12383,7 @@ function рядФильтраТехнологий(откуда, все) {
     const т = техПресета(п);
     счёт[т] = (счёт[т] || 0) + 1;
   });
-  const чипы = ТЕХ_ФИЛЬТР.map(т => {
+  const чипы = ТЕХ_ФИЛЬТР.filter(т => т !== 'steam' || парнаяОткрыта()).map(т => {
     const имя = TECH_КОРОТКО[т] || т;
     const n = счёт[т] || 0;
     return '<button class="tfilter-chip' + (н.has(т) ? ' on' : '') + (n ? '' : ' soon') + '"'
@@ -12385,7 +12392,7 @@ function рядФильтраТехнологий(откуда, все) {
          + '<span class="tech-dot t-' + т + '"></span>' + имя
          + '<span class="tfilter-n">' + n + '</span></button>';
   }).join('');
-  return '<div class="tfilter"><span class="tfilter-label">Технология</span>'
+  return '<div class="tfilter"><span class="tfilter-label">Расчёт</span>'
        + '<button class="tfilter-chip' + (н.size ? '' : ' on') + '"'
        + ' onclick="всеТехнологии(\'' + откуда + '\')">Все</button>' + чипы + '</div>';
 }
@@ -12421,8 +12428,11 @@ function суммаСМеткой(цена, тех, откуда, классЦе
        + '<span class="' + (классЦены || 'pcard-price') + '">' + цена + '</span></span>';
 }
 /* Порядок чипов фильтра. «Камень» стоит в ряду пунктиром и с нулём: расчётов
-   на нём нет, но спрятать его значило бы скрыть, что технология на подходе. */
-const ТЕХ_ФИЛЬТР = ['frame', 'glulam', 'stone'];
+   на нём нет, но спрятать его значило бы скрыть, что технология на подходе.
+   «Парная» — там же, где пункт в поле «Расчёт»: видна тому, кому открыта
+   (`парнаяОткрыта`). Пока пресеты парной не сохраняются, у неё ноль и пунктир
+   (Константин, 27.10.2026: «в пресетах добавь тип расчёта «Парная»»). */
+const ТЕХ_ФИЛЬТР = ['frame', 'glulam', 'steam', 'stone'];
 /* Технология расчёта лежит в снимке. Расчёты, сохранённые до разделения
    технологий, поля не несут и считаются каркасными — так их читает и
    `restoreState`, и разойтись с ним здесь нельзя. */
@@ -38008,7 +38018,7 @@ function renderPresetList() {
     // список не пуст, он отфильтрован, и вернуть его можно одним нажатием.
     if (доТехнологии.length && ТЕХ_ВЫБОР.my.size) {
       list.innerHTML = рядФильтраТехнологий('my', доТехнологии)
-        + '<div class="preset-empty">На выбранных технологиях расчётов нет.<br>'
+        + '<div class="preset-empty">Таких расчётов в списке нет.<br>'
         + 'Нажмите «Все», чтобы вернуть список.</div>';
       return;
     }
@@ -47369,7 +47379,7 @@ function renderSharedList() {
     if (доТехнологии.length && ТЕХ_ВЫБОР.shared.size) {
       list.innerHTML = рядФильтраТехнологий('shared', доТехнологии)
         + '<div style="text-align:center;padding:24px 16px;color:var(--gray-light);'
-        + 'font-size:0.74rem;line-height:1.5;">На выбранных технологиях расчётов нет.<br>'
+        + 'font-size:0.74rem;line-height:1.5;">Таких расчётов в списке нет.<br>'
         + 'Нажмите «Все», чтобы вернуть список.</div>';
       return;
     }

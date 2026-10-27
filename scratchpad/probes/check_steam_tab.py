@@ -97,7 +97,8 @@ def расчёт(бр, порт):
     # Калитка: в бою — только администратор, на тесте — все.
     калитка = стр.evaluate("""() => {
       const было = [window.IS_TEST_DOMAIN, window._sbProfile];
-      const пункт = () => document.querySelector('#techSelectDropdown [data-tech="steam"]').style.display;
+      const пункт = () => document.querySelector('#techSelectDropdown [data-tech="steam"]').style.display
+        + (/>Парная</.test(рядФильтраТехнологий('my', [])) ? '' : '|без чипа');
       window.IS_TEST_DOMAIN = false; window._sbProfile = { role: 'manager' }; applySteamGate();
       const менеджер = пункт();
       window._sbProfile = { role: 'admin' }; applySteamGate();
@@ -107,8 +108,13 @@ def расчёт(бр, порт):
       [window.IS_TEST_DOMAIN, window._sbProfile] = было;
       return { менеджер, админ, тест };
     }""")
-    if калитка != {"менеджер": "none", "админ": "", "тест": ""}:
-        плохо(f"калитка парной: {калитка} — ждали скрыто у менеджера в бою, видно у администратора и на тесте")
+    if калитка != {"менеджер": "none|без чипа", "админ": "", "тест": ""}:
+        плохо(f"калитка парной: {калитка} — ждали скрыто у менеджера в бою (и пункт, и чип «Парная» "
+              "в фильтре пресетов), видно у администратора и на тесте")
+    # Поле называется «Расчёт» (Константин, 27.10.2026, со снимком поля).
+    подпись = стр.evaluate("() => document.querySelector('#techSelectWrap').parentElement.querySelector('label').textContent.trim()")
+    if подпись != "Расчёт":
+        плохо(f"поле выбора расчёта подписано «{подпись}», а должно «Расчёт»")
 
     в_парную(стр)
     ч = стр.evaluate(ЧИСЛА)
