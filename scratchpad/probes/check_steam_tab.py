@@ -45,7 +45,8 @@ from playwright.sync_api import sync_playwright
 ЗДЕСЬ = pathlib.Path(__file__).parent
 ШРИФТЫ = (ЗДЕСЬ / "шрифты_google.css").read_text(encoding="utf-8")
 НАХОДКИ = []
-МАКЕТ = ['olha', 'polkiOlha', 'podsv', 'spinki', 'parya', 'panno', 'okno', 'maslo', 'nastil', 'yalta', 'talk', 'econ']
+# Печь макета — Ялта 35 в камне: она стоит в строке печи по умолчанию.
+МАКЕТ = ['olha', 'polkiOlha', 'podsv', 'spinki', 'parya', 'panno', 'okno', 'maslo', 'nastil', 'pech', 'talk', 'econ']
 
 ЧИСЛА = """() => {
   const ч = ид => Number(((document.getElementById(ид) || {}).textContent || '').replace(/\\D/g, '')) || 0;
@@ -118,9 +119,10 @@ def расчёт(бр, порт):
 
     в_парную(стр)
     ч = стр.evaluate(ЧИСЛА)
-    # 39 своих строк и 23 из каталога каркаса: 10 печей, 4 портала, 3 дымохода, 3 вывода иначе, 3 кассеты и пароиспаритель.
-    if ч["тех"] != "steam" or ч["строк"] != 62:
-        плохо(f"после выбора «Парная»: технология {ч['тех']}, строк парной {ч['строк']} — ждали 62")
+    # 39 своих строк (печь — одна строка) и 13 из каталога каркаса: 4 портала,
+    # 3 дымохода, 3 вывода иначе, 3 кассеты и пароиспаритель.
+    if ч["тех"] != "steam" or ч["строк"] != 52:
+        плохо(f"после выбора «Парная»: технология {ч['тех']}, строк парной {ч['строк']} — ждали 52")
         стр.close()
         return ош
     if ч["итог"] != 1257216:
@@ -155,18 +157,44 @@ def расчёт(бр, порт):
         плохо("сборку премиальной снимает нажатие — она должна держаться шкалой")
     стр.evaluate("() => { resetCheckedOptions(); }")
 
-    # Печи каталога каркаса: все дровяные с его ценой и названием (пересылкой
-    # 27.10.2026: «Нет печей, там огромный список в калькуляторе»).
-    печи = стр.evaluate("""() => ['yalta', ...ПАР_ПЕЧИ_КАРКАСА].map(к => [к, !!document.getElementById('lbl_par_' + к),
-      Number((document.getElementById('optprice_par_' + к) || {}).textContent?.replace(/\\D/g, '') || 0)])""")
-    нет = [к for к, есть, _ in печи if not есть]
-    if нет or len(печи) != 11:
-        плохо(f"печей в разделе: {len(печи) - len(нет)} из 11, нет строк {нет}")
-    for к, есть, цена in печи:
-        if к in ЦЕНЫ_ПЕЧЕЙ and есть and цена != ЦЕНЫ_ПЕЧЕЙ[к]:
-            плохо(f"печь {к}: цена {цена}, в каталоге каркаса {ЦЕНЫ_ПЕЧЕЙ[к]}")
-    if стр.evaluate("() => document.getElementById('name_par_st18').textContent") != "Печь Ферингер Оптима до 28 м³":
-        плохо("печь каталога каркаса без его названия")
+    # Печи — каталогом книги (лист «Печи»), выбором в карточке помещения
+    # (Константин, 27.10.2026: «И где выбор печей? Там в таблице их много было»).
+    в = стр.evaluate("""() => {
+      const опции = [...document.querySelectorAll('#steamStoveDropdown .custom-select-option')];
+      return { всего: опции.length, первая: опции[0] && опции[0].textContent.trim(),
+               группы: [...document.querySelectorAll('#steamStoveDropdown .cso-group')].map(г => г.textContent.trim()),
+               подходят: опции.filter(о => о.querySelector('.cso-fit')).map(о => о.dataset.stove),
+               ярлык: document.getElementById('steamStoveLabel').textContent };
+    }""")
+    if в["всего"] != 48 or в["первая"] != "Без печи":
+        плохо(f"список печей: {в['всего']} пунктов, первый «{в['первая']}» — ждали «Без печи» и 47 моделей книги")
+    if в["группы"] != ["Ферингер", "ИзиСтим", "ГРОМ", "Другие", "Монтаж печи заказчика"]:
+        плохо(f"группы списка печей: {в['группы']}")
+    if в["ярлык"] != "Без печи" or "izistim-yalta-35-v-kamne" not in в["подходят"] or "feringer-malyutka" in в["подходят"]:
+        плохо(f"поле «Печь» до выбора: «{в['ярлык']}», подходят к 27,6 м³: {в['подходят'][:6]}…")
+    # Цены книги: цена с сайта × наценка, до рубля.
+    for ид, цена, камни in (("izistim-yalta-35-v-kamne", 208425, 80), ("grom-40-p2-pech-komplekt", 249690, 120),
+                            ("feringer-optima", 64400, 80), ("grom-50-p2-uragan", 359415, 180)):
+        стр.evaluate("ид => { document.getElementById('steamStoveTrigger').click(); document.querySelector('#steamStoveDropdown [data-stove=\"' + ид + '\"]').click(); }", ид)
+        в = стр.evaluate("""() => [Number(document.getElementById('optprice_par_pech').textContent.replace(/\\D/g, '')), ПАР.kamni,
+          document.getElementById('lbl_par_pech').classList.contains('active'), document.getElementById('name_par_pech').textContent,
+          document.getElementById('steamStoveWrap').classList.contains('open'), document.getElementById('steamStoveLabel').textContent]""")
+        if в[0] != цена or в[1] != камни or not в[2] or в[4]:
+            плохо(f"печь {ид}: цена {в[0]} (книга {цена}), камни {в[1]} (книга {камни}), строка отмечена {в[2]}, список открыт {в[4]}")
+        if not в[3].startswith("Печь — ") or в[3][7:] != в[5]:
+            плохо(f"печь {ид}: строка «{в[3]}», поле «{в[5]}»")
+    # «Без печи» снимает строку, нажатие по строке возвращает последнюю модель.
+    стр.evaluate("() => { document.getElementById('steamStoveTrigger').click(); document.querySelector('#steamStoveDropdown [data-stove=\"\"]').click(); }")
+    if стр.evaluate("() => [ПАР.вкл.has('pech'), document.getElementById('steamStoveLabel').textContent]") != [False, "Без печи"]:
+        плохо("«Без печи» не сняла строку печи")
+    стр.evaluate("() => document.getElementById('lbl_par_pech').click()")
+    if стр.evaluate("() => [ПАР.вкл.has('pech'), ПАР.печь]") != [True, "grom-50-p2-uragan"]:
+        плохо("нажатие по строке печи не вернуло последнюю модель")
+    # «Выбрать» у строки раскрывает список в карточке.
+    стр.evaluate("() => document.querySelector('#lbl_par_pech .par-pick').click()")
+    if not стр.evaluate("() => document.getElementById('steamStoveWrap').classList.contains('open')"):
+        плохо("«Выбрать» у строки печи не раскрыл список печей")
+    стр.evaluate("() => { document.body.click(); ПАР.печь = 'izistim-yalta-35-v-kamne'; ПАР.kamni = 80; resetCheckedOptions(); }")
     # Другой вывод дымохода — доплатой к выводу в крышу в 1 этаж, один из трёх.
     if стр.evaluate("() => Number(document.getElementById('optprice_par_st7').textContent.replace(/\\D/g, ''))") != 114200 - 97700:
         плохо("вывод дымохода в 2 этажа — не доплата к выводу в 1 этаж (16 500 ₽)")
@@ -174,16 +202,19 @@ def расчёт(бр, порт):
     if стр.evaluate(ЧИСЛА)["вкл"] != ["st8"]:
         плохо(f"выводы дымохода: отмечено {стр.evaluate(ЧИСЛА)['вкл']} — ждали один")
     стр.evaluate("() => { resetCheckedOptions(); }")
-    # Одна печь, один пол.
-    стр.evaluate("() => ['yalta', 'st16', 'st18', 'polList', 'plitka'].forEach(к => document.getElementById('lbl_par_' + к).click())")
-    if стр.evaluate(ЧИСЛА)["вкл"] != ["plitka", "st18"]:
-        плохо(f"печь и пол: отмечено {стр.evaluate(ЧИСЛА)['вкл']} — ждали одну печь (Оптима) и плитку")
-    почему = стр.evaluate("() => [document.getElementById('why_par_yalta').textContent, document.getElementById('why_par_st18').textContent, document.getElementById('why_par_st16').textContent]")
-    # 27,6 м³ входит в 25–35 м³ Ялты и в «до 28 м³» Оптимы; для Малютки «до 18 м³» печь мала.
-    if почему != ["подходит: парная 27,6 м³", "подходит: парная 27,6 м³", "мала: парная 27,6 м³"]:
-        плохо(f"подсказка печей по объёму: {почему}")
+    # Один пол; подсказка печи по объёму.
+    стр.evaluate("() => ['pech', 'polList', 'plitka'].forEach(к => document.getElementById('lbl_par_' + к).click())")
+    if стр.evaluate(ЧИСЛА)["вкл"] != ["pech", "plitka"]:
+        плохо(f"печь и пол: отмечено {стр.evaluate(ЧИСЛА)['вкл']} — ждали печь и плитку")
+    # 27,6 м³ входит в 25–35 м³ Ялты 35; для Малютки (8–18 м³) печь мала.
+    почему = [стр.evaluate("() => document.getElementById('why_par_pech').textContent")]
+    стр.evaluate("() => парнаяПечь('feringer-malyutka')")
+    почему.append(стр.evaluate("() => document.getElementById('why_par_pech').textContent"))
+    стр.evaluate("() => парнаяПечь('izistim-yalta-35-v-kamne')")
+    if почему != ["подходит: парная 27,6 м³", "мала: парная 27,6 м³"]:
+        плохо(f"подсказка печи по объёму: {почему}")
     стр.evaluate("() => { ПАР.L = 4; calc(); }")
-    почему = стр.evaluate("() => [document.getElementById('why_par_yalta').textContent, document.getElementById('why_par_yalta').classList.contains('warn')]")
+    почему = стр.evaluate("() => [document.getElementById('why_par_pech').textContent, document.getElementById('why_par_pech').classList.contains('warn')]")
     if почему != ["мала: парная 36,8 м³", True]:
         плохо(f"печь для парной 36,8 м³: {почему} — ждали «мала» с тревогой")
     стр.evaluate("() => { ПАР.L = 3; resetCheckedOptions(); }")
@@ -206,10 +237,15 @@ def расчёт(бр, порт):
 
     # Размеры, счётчики, бригада.
     стр.evaluate("() => { const и = document.getElementById('pardim_L'); и.focus(); и.value = '3,6'; и.dispatchEvent(new Event('input')); и.blur(); }")
+    # Поля размеров — в карточке помещения, а не в строке раздела
+    # (Константин, 27.10.2026, снимками: «вот это перенеси, вот тут чтобы задавать»).
     в = стр.evaluate("""() => [ПАР.L, document.getElementById('name_par_dims').textContent,
-      document.getElementById('pardim_L').value, (document.querySelector('#steamInfo .info-chip strong') || {}).textContent]""")
-    if в[0] != 3.6 or "3,6 × 4 × 2,3 м" not in в[1] or в[2] != "3,6":
-        плохо(f"длина 3,6 м: {в}")
+      document.getElementById('pardim_L').value, (document.querySelector('#steamInfo .info-chip strong') || {}).textContent,
+      !!document.getElementById('pardim_L').closest('#steamRoomCard'), !!document.querySelector('#lbl_par_dims input:not([type=checkbox])')]""")
+    if в[0] != 3.6 or "3,6 × 4 × 2,3 м" not in в[1] or в[2] != "3,6" or в[3] != "33,12 м³":
+        плохо(f"длина 3,6 м: {в[:4]} — ждали объём 33,12 м³ первым в карточке")
+    if not в[4] or в[5]:
+        плохо(f"поля размеров: в карточке помещения {в[4]}, в строке раздела {в[5]}")
     стр.evaluate("() => { const и = document.getElementById('pardim_L'); и.focus(); и.value = '0,2'; и.dispatchEvent(new Event('input')); и.blur(); }")
     if стр.evaluate("() => [ПАР.L, document.getElementById('pardim_L').value]") != [3.6, "3,6"]:
         плохо("неверная длина 0,2 м не вернулась к последней верной")
@@ -391,11 +427,23 @@ def расчёт(бр, порт):
     const з = Math.min(р.left - м.getBoundingClientRect().right, п.getBoundingClientRect().left - р.right);
     if (з < 4) н.push('счётчик ' + с.closest('.opt-item').id + ': до кнопки ' + з.toFixed(1) + ' px');
   });
-  // Поля размеров — внутри строки, не меньше 28 px в высоту.
-  document.querySelectorAll('.dim-in').forEach(и => {
-    const р = и.getBoundingClientRect(), с = и.closest('.opt-item').getBoundingClientRect();
-    if (р.right > с.right + 1) н.push('поле размера ' + и.dataset.dim + ' за строкой');
-    if (р.height < 28) н.push('поле размера ' + и.dataset.dim + ' ' + р.height + ' px');
+  // Поля размеров — в карточке, не за её краем, высотой под палец, и число
+  // в поле видно целиком.
+  const карт = document.getElementById('steamRoomCard').getBoundingClientRect();
+  document.querySelectorAll('#steamRoomCard .steam-dim').forEach(и => {
+    const р = и.getBoundingClientRect();
+    if (р.right > карт.right + 1 || р.left < карт.left - 1) н.push('поле размера ' + и.dataset.dim + ' за карточкой');
+    if (р.height < 36) н.push('поле размера ' + и.dataset.dim + ' ' + р.height + ' px');
+    const с = getComputedStyle(и), к = document.createElement('canvas').getContext('2d');
+    к.font = с.font;
+    if (к.measureText(и.value).width > р.width - parseFloat(с.paddingLeft) - parseFloat(с.paddingRight) + 0.5)
+      н.push('поле размера ' + и.dataset.dim + ': число не помещается');
+  });
+  // «Выбрать» у строки печи: поле нажатия не меньше 32 px.
+  document.querySelectorAll('.par-pick').forEach(к => {
+    const р = к.getBoundingClientRect(), д = getComputedStyle(к, '::before');
+    const в = р.height - parseFloat(д.top) - parseFloat(д.bottom);
+    if (в < 32) н.push('«Выбрать» у печи: поле нажатия ' + Math.round(в) + ' px');
   });
   return н;
 }"""
