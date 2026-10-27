@@ -169,13 +169,17 @@ def расчёт(бр, порт):
     # (Константин, 27.10.2026: «И где выбор печей? Там в таблице их много было»).
     в = стр.evaluate("""() => {
       const опции = [...document.querySelectorAll('#steamStoveDropdown .custom-select-option')];
-      return { всего: опции.length, первая: опции[0] && опции[0].textContent.trim(),
+      return { всего: опции.length, первая: опции[0] && опции[0].dataset.stove,
+               ряд: (document.querySelector('#steamStoveDropdown .cs-sortrow .cs-sortcap, #steamStoveDropdown .cs-sortrow .custom-select-deselect') || {}).textContent?.trim(),
                группы: [...document.querySelectorAll('#steamStoveDropdown .cso-group')].map(г => г.textContent.trim()),
                подходят: опции.filter(о => о.querySelector('.cso-fit')).map(о => о.dataset.stove),
                ярлык: document.getElementById('steamStoveLabel').textContent };
     }""")
-    if в["всего"] != 48 or в["первая"] != "Без печи":
-        плохо(f"список печей: {в['всего']} пунктов, первый «{в['первая']}» — ждали «Без печи» и 47 моделей книги")
+    # «Без печи» отдельной строкой нет: снять выбор — в строке порядка, как у
+    # проектов (Константин, 27.10.2026: «Снять выбор с печи сделай также напротив
+    # иконок сортировки, как в технологиях»); пока печь не выбрана — подпись.
+    if в["всего"] != 47 or в["первая"] != "feringer-uyut-18-topka-vnutri-parnoy" or в["ряд"] != "Порядок списка":
+        плохо(f"список печей: {в['всего']} пунктов, первый «{в['первая']}», строка порядка «{в['ряд']}» — ждали 47 моделей книги без «Без печи» и подпись «Порядок списка»")
     if в["группы"] != ["Ферингер", "ИзиСтим", "ГРОМ", "Другие", "Монтаж печи заказчика"]:
         плохо(f"группы списка печей: {в['группы']}")
     if в["ярлык"] != "Без печи" or "grom-40-p2-pech-komplekt" not in в["подходят"] or "izistim-yalta-35-v-kamne" in в["подходят"] or "feringer-malyutka" in в["подходят"]:
@@ -202,14 +206,14 @@ def расчёт(бр, порт):
         плохо(f"шапка списка печей: значки {с['значки']}, переключатель «{с['надпись']}» включён {с['вкл']}")
     стр.evaluate("() => document.querySelector('#steamStoveDropdown .kit-ready-toggle').click()")
     с = стр.evaluate(СПИСОК)
-    if not (с["вкл"] and с["открыт"] and all(с["подходят"]) and len(с["ид"]) == с["все"] > 0 and с["крайние"] == ["", "pech-zakazchika"]):
+    if not (с["вкл"] and с["открыт"] and all(с["подходят"]) and len(с["ид"]) == с["все"] > 0 and с["крайние"][1] == "pech-zakazchika" and с["крайние"][0] != ""):
         плохо(f"«Подходят к парной»: включён {с['вкл']}, список открыт {с['открыт']}, моделей {len(с['ид'])} из {с['все']} подходящих, "
               f"все подходят {all(с['подходят'])}, первый и последний пункт {с['крайние']}")
-    # Ни одна печь не рассчитана на 4,5 м³ + 30 % = 5,9 м³ — список говорит об этом словами.
-    стр.evaluate("() => { window._размеры = [ПАР.L, ПАР.W, ПАР.H]; ПАР.L = 1.5; ПАР.W = 1.5; ПАР.H = 2; calc(); }")
+    # Ни одна печь не рассчитана на 108 м³ + 30 % = 140,4 м³ — список говорит об этом словами.
+    стр.evaluate("() => { window._размеры = [ПАР.L, ПАР.W, ПАР.H]; ПАР.L = 6; ПАР.W = 6; ПАР.H = 3; calc(); }")
     с = стр.evaluate(СПИСОК)
-    if с["ид"] or с["пусто"] != "Нет печей на 5,9 м³":
-        плохо(f"«Подходят к парной» при 4,5 м³: моделей {len(с['ид'])}, пустое состояние «{с['пусто']}»")
+    if с["ид"] or с["пусто"] != "Нет печей на 140,4 м³":
+        плохо(f"«Подходят к парной» при 108 м³: моделей {len(с['ид'])}, пустое состояние «{с['пусто']}»")
     стр.evaluate("() => { [ПАР.L, ПАР.W, ПАР.H] = window._размеры; calc(); document.querySelector('#steamStoveDropdown .kit-ready-toggle').click(); }")
     if len(стр.evaluate(СПИСОК)["ид"]) != 46:
         плохо("переключатель «Подходят к парной» не вернул весь список")
@@ -228,6 +232,57 @@ def расчёт(бр, порт):
     с = стр.evaluate(СПИСОК)
     if с["группы"] != ["Ферингер", "ИзиСтим", "ГРОМ", "Другие", "Монтаж печи заказчика"] or с["значки"] != ["volume", "price", "default*"]:
         плохо(f"«Как в книге» не вернул группы: {с['группы']}, значки {с['значки']}")
+    # Поиск — первой строкой раскрытого списка (вариант Б макета stove-search-v1,
+    # Константин, 27.10.2026: «Этот вариант давай»): по словам, в другой
+    # раскладке, с подсветкой; поле не теряет курсор при наборе; Enter берёт
+    # первую найденную, Escape закрывает; новое открытие — с пустым поиском.
+    ПОИСК = """() => { const д = document.getElementById('steamStoveDropdown'), п = document.getElementById('steamStoveSearch');
+      const о = [...д.querySelectorAll('.cso-body .custom-select-option[data-stove]')];
+      return { есть: !!п, значение: п ? п.value : null, фокус: document.activeElement === п,
+        имена: о.map(х => х.querySelector('.cso-name').firstChild ? х.querySelector('.cso-name').childNodes : []).length,
+        ид: о.map(х => х.dataset.stove), названия: о.map(х => ПАР_ПЕЧИ.find(м => м.id === х.dataset.stove).имя.toLowerCase()),
+        метки: д.querySelectorAll('.cso-body mark.cso-hit').length,
+        пусто: д.querySelector('.cso-empty')?.textContent.trim() || '', открыт: document.getElementById('steamStoveWrap').classList.contains('open') }; }"""
+    с = стр.evaluate(ПОИСК)
+    if not (с["есть"] and с["значение"] == "" and с["фокус"]):
+        плохо(f"поиск печи при открытии: поле есть {с['есть']}, значение «{с['значение']}», курсор в нём {с['фокус']}")
+    стр.fill('#steamStoveSearch', 'ялта')
+    с = стр.evaluate(ПОИСК)
+    ялта = с["ид"]
+    if not (ялта and all('ялта' in н for н in с["названия"]) and с["метки"] == len(ялта) and с["фокус"] and с["значение"] == "ялта" and с["открыт"]):
+        плохо(f"поиск «ялта»: найдено {len(ялта)}, все с «ялта» {all('ялта' in н for н in с['названия'])}, подсветок {с['метки']}, курсор {с['фокус']}, список открыт {с['открыт']}")
+    стр.fill('#steamStoveSearch', 'zknf')
+    if стр.evaluate(ПОИСК)["ид"] != ялта:
+        плохо("поиск в другой раскладке: «zknf» нашёл не то же, что «ялта»")
+    стр.fill('#steamStoveSearch', 'гром 40')
+    с = стр.evaluate(ПОИСК)
+    if not (с["ид"] and all('гром' in н and '40' in н for н in с["названия"])):
+        плохо(f"поиск «гром 40»: {с['названия'][:4]}")
+    первая = с["ид"][0] if с["ид"] else None
+    стр.fill('#steamStoveSearch', 'щщщ')
+    с = стр.evaluate(ПОИСК)
+    if с["ид"] or с["пусто"] != "Ничего не нашлось по «щщщ»":
+        плохо(f"поиск без находок: {len(с['ид'])} печей, пустое состояние «{с['пусто']}»")
+    # Строки поиска и порядка стоят на месте, пока список прокручивается.
+    стр.fill('#steamStoveSearch', '')
+    в = стр.evaluate("""() => { const д = document.getElementById('steamStoveDropdown'); д.scrollTop = д.scrollHeight;
+      const р = д.getBoundingClientRect(), п = д.querySelector('.cso-search').getBoundingClientRect(), с = д.querySelector('.cs-sortrow').getBoundingClientRect();
+      return [Math.round(п.top - р.top), Math.round(с.top - п.bottom), д.scrollTop > 100]; }""")
+    if not (в[2] and abs(в[0]) <= 2 and abs(в[1]) <= 2):
+        плохо(f"прокрученный список печей: строка поиска от верха {в[0]} px, строка порядка от поиска {в[1]} px, прокручен {в[2]}")
+    стр.fill('#steamStoveSearch', 'гром 40')
+    стр.press('#steamStoveSearch', 'Enter')
+    в = стр.evaluate("() => [ПАР.печь, ПАР.вкл.has('pech'), document.getElementById('steamStoveWrap').classList.contains('open')]")
+    if в != [первая, True, False]:
+        плохо(f"Enter в поиске: печь {в[0]} (ждали первую найденную {первая}), отмечена {в[1]}, список открыт {в[2]}")
+    стр.evaluate("() => парнаяПечьОткрыть()")
+    с = стр.evaluate(ПОИСК)
+    снять = стр.evaluate("() => (document.querySelector('#steamStoveDropdown .cs-sortrow .custom-select-deselect') || {}).textContent?.trim()")
+    if с["значение"] != "" or len(с["ид"]) != 47 or снять != "Снять выбор":
+        плохо(f"повторное открытие: поиск «{с['значение']}», пунктов {len(с['ид'])}, строка порядка «{снять}» — ждали пустой поиск, весь список и «Снять выбор»")
+    стр.press('#steamStoveSearch', 'Escape')
+    if стр.evaluate("() => document.getElementById('steamStoveWrap').classList.contains('open')"):
+        плохо("Escape в поиске печи не закрыл список")
     стр.evaluate("() => document.body.click()")
     # Цены книги: цена с сайта × наценка, до рубля.
     for ид, цена, камни in (("izistim-yalta-35-v-kamne", 208425, 80), ("grom-40-p2-pech-komplekt", 249690, 120),
@@ -240,10 +295,10 @@ def расчёт(бр, порт):
             плохо(f"печь {ид}: цена {в[0]} (книга {цена}), камни {в[1]} (книга {камни}), строка отмечена {в[2]}, список открыт {в[4]}")
         if not в[3].startswith("Печь — ") or в[3][7:] != в[5]:
             плохо(f"печь {ид}: строка «{в[3]}», поле «{в[5]}»")
-    # «Без печи» снимает строку, нажатие по строке возвращает последнюю модель.
-    стр.evaluate("() => { document.getElementById('steamStoveTrigger').click(); document.querySelector('#steamStoveDropdown [data-stove=\"\"]').click(); }")
+    # «Снять выбор» в строке порядка снимает строку печи, нажатие по строке возвращает последнюю модель.
+    стр.evaluate("() => { document.getElementById('steamStoveTrigger').click(); document.querySelector('#steamStoveDropdown .cs-sortrow .custom-select-deselect').click(); }")
     if стр.evaluate("() => [ПАР.вкл.has('pech'), document.getElementById('steamStoveLabel').textContent]") != [False, "Без печи"]:
-        плохо("«Без печи» не сняла строку печи")
+        плохо("«Снять выбор» не сняло строку печи")
     стр.evaluate("() => document.getElementById('lbl_par_pech').click()")
     if стр.evaluate("() => [ПАР.вкл.has('pech'), ПАР.печь]") != [True, "grom-50-p2-uragan"]:
         плохо("нажатие по строке печи не вернуло последнюю модель")
@@ -277,7 +332,13 @@ def расчёт(бр, порт):
     почему = стр.evaluate("() => [document.getElementById('why_par_pech').textContent, document.getElementById('why_par_pech').classList.contains('warn')]")
     if почему != ["мала: нужна на 47,8 м³", True]:
         плохо(f"печь для парной 36,8 м³: {почему} — ждали «мала: нужна на 47,8 м³» с тревогой")
-    стр.evaluate("() => { ПАР.L = 3; resetCheckedOptions(); }")
+    # Маленькой парной 30 % меньше 5 м³ — запас 5 м³ (чек-лист П-ПС-8-1;
+    # Константин, 27.10.2026: «одно правило везде… с запасом не меньше 5 м³»):
+    # 2 × 2 × 2 м = 8 м³ → 13 м³, а не 10,4.
+    стр.evaluate("() => { ПАР.L = 2; ПАР.W = 2; ПАР.H = 2; calc(); }")
+    if стр.evaluate("() => парГеом().печь") != 13:
+        плохо(f"парная 8 м³: объём для печи {стр.evaluate('() => парГеом().печь')} — ждали 13 м³ (запас не меньше 5 м³)")
+    стр.evaluate("() => { ПАР.L = 3; ПАР.W = 4; ПАР.H = 2.3; resetCheckedOptions(); }")
     # Панорамное окно («каждый метр квадратный +4 куба, с округлением в большую
     # сторону»): у Ялты 40 (28–40 м³) окно 1 м² → 39,9 м³ — ещё подходит;
     # 1,1 м² считается за 2 м² → 43,9 м³ — мала; снятое окно объём не прибавляет.

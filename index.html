@@ -2104,7 +2104,29 @@ body.ui-blank .page-wrap #steamDimsField .steam-dims-hint { grid-column: 2; marg
 #steamStoveArrow { flex-shrink: 0; opacity: 0.5; transition: transform 0.2s; }
 .custom-select-wrap.open #steamStoveArrow { transform: rotate(180deg); opacity: 0.8; }
 #steamStoveLabel { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#steamStoveDropdown { max-height: 360px; scroll-padding-top: 44px; }
+#steamStoveDropdown { max-height: 360px; scroll-padding-top: 84px; }
+/* Строка поиска печи — первая в списке и стоит на месте при прокрутке;
+   строка порядка прилипает под ней (её высота — --cso-search-h). Поле без
+   рамки: строка сама и есть место для ответа, как переключатель ниже. На
+   телефоне кегль 16 px — с меньшим iOS увеличивает страницу при вводе. */
+.cso-search { position: sticky; top: -4px; z-index: 3; display: flex; align-items: center; gap: 9px; padding: 9px 14px;
+  background: var(--card-bg); border-bottom: 1px solid var(--border); cursor: text; }
+.cso-search svg { flex: none; color: var(--gray-light); }
+/* Поле стоит внутри .field карточки, и правила полей формы («Бланк» —
+   подчёркнутое место 44 px) легли бы и на него: держит их селектор по id. */
+#steamStoveSearch, #steamStoveSearch:focus { flex: 1; min-width: 0; height: auto; min-height: 0; border: 0; border-radius: 0;
+  background: none; box-shadow: none; outline: none; padding: 0; margin: 0;
+  font-family: 'Geologica', sans-serif; font-size: .9rem; line-height: 1.4; color: var(--black); }
+#steamStoveSearch::placeholder { color: var(--gray-light); }
+.cso-search:focus-within { border-bottom-color: var(--green-mid); }
+@media (pointer: coarse) { #steamStoveSearch, #steamStoveSearch:focus { font-size: 16px; } }
+#steamStoveDropdown .cs-sortrow { top: calc(var(--cso-search-h, 39px) - 4px); }
+body.ui-blank .cso-search { background: var(--bl-sheet); border-bottom-color: var(--bl-rule); }
+body.ui-blank .cso-search svg, body.ui-blank #steamStoveSearch::placeholder { color: var(--bl-ink3); }
+body.ui-blank #steamStoveSearch { color: var(--bl-ink); }
+body.ui-blank .cso-search:focus-within { border-bottom-color: var(--bl-acc2); }
+/* Найденное — теми же токенами, что метка «подходит» рядом. */
+.cso-hit { background: var(--green-bg); color: var(--green-dark); border-radius: 3px; padding: 0 1px; }
 /* Порядок печей: стрелка в значке переворачивается сама по себе — ₽ и куб
    вверх ногами не читаются. «Как в книге» переворачивается целиком, как у
    проектов. */
@@ -31800,13 +31822,28 @@ function парнаяБезЭтого(что) {
 // Константина: «Привязка к площади окна — каждый метр квадратный +4 куба, с
 // округлением в большую сторону», и следом, к пунктам чек-листа о запасе:
 // «Можно 4 куба на каждый метр окна», «Запас 30% по печи»; первым сообщением
-// было +20 % и +3 м³): объём парной × 1,3, и за каждый начатый м²
-// панорамного окна, если оно в расчёте, ещё 4 м³. До десятой — так же
-// считает выгрузка.
-const ПАР_ЗАПАС_ПЕЧИ = 0.3, ПАР_ОКНО_М3 = 4;
+// было +20 % и +3 м³): объём парной + 30 %, но запас не меньше 5 м³ — его
+// чек-лист (П-ПС-8-1) требовал и раньше (Константин, 27.10.2026: «одно
+// правило везде — правило Анатолия с запасом не меньше 5 м³… Так ок»), — и за
+// каждый начатый м² панорамного окна ещё 4 м³. До десятой — так же считает
+// выгрузка. Правило одно для парной и для «Проверки» каркаса и бруса.
+const ПАР_ЗАПАС_ПЕЧИ = 0.3, ПАР_ЗАПАС_МИН = 5, ПАР_ОКНО_М3 = 4;
+function объёмДляПечи(объём, окноМ2) {
+  const окно = окноМ2 > 0 ? Math.ceil(Math.round(окноМ2 * 10) / 10) : 0;
+  return Math.round((объём + Math.max(объём * ПАР_ЗАПАС_ПЕЧИ, ПАР_ЗАПАС_МИН) + ПАР_ОКНО_М3 * окно) * 10) / 10;
+}
+// Площадь окна из названия: «2000×1000», «2 × 1 м», «2,5 м²»; нет размера — null.
+function площадьОкнаИзНазвания(т) {
+  const с = String(т || ''), ч = х => parseFloat(х.replace(',', '.'));
+  let м = с.match(/(\d{3,4})\s*[×xх*]\s*(\d{3,4})/i);
+  if (м) return ч(м[1]) * ч(м[2]) / 1e6;
+  м = с.match(/(\d+(?:[.,]\d+)?)\s*[×xх*]\s*(\d+(?:[.,]\d+)?)\s*м(?![мa-zа-яё])/i);
+  if (м) return ч(м[1]) * ч(м[2]);
+  м = с.match(/(\d+(?:[.,]\d+)?)\s*(?:м²|м2|кв\.?\s*м)/i);
+  return м ? ч(м[1]) : null;
+}
 function парОбъёмПечи(объём, п = ПАР) {
-  const окно = п.вкл && п.вкл.has('okno') ? Math.ceil(Math.round((Number(п.okno) || 0) * 10) / 10) : 0;
-  return Math.round((объём * (1 + ПАР_ЗАПАС_ПЕЧИ) + ПАР_ОКНО_М3 * окно) * 10) / 10;
+  return объёмДляПечи(объём, п.вкл && п.вкл.has('okno') ? Number(п.okno) || 0 : 0);
 }
 function парГеом(п = ПАР) {
   const { L, W, H } = п;
@@ -32107,12 +32144,20 @@ function парнаяПечьОткрыть(e) {
   document.getElementById('steamRoomWrap')?.classList.remove('open');
   обёртка.classList.toggle('open', открыть);
   if (!открыть) return;
+  // Каждое открытие — с пустым поиском: закрытый список набранное забывает.
+  _печьПоиск = '';
+  парнаяСписокПечей();
   if (e) { try { обёртка.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) { обёртка.scrollIntoView(); } }
   const выбран = обёртка.querySelector('.custom-select-option.selected');
   const список = document.getElementById('steamStoveDropdown');
-  // Строка порядка прилипает к верху списка — выбранная печь встаёт под ней.
-  const ряд = список && список.querySelector('.cs-sortrow');
-  if (выбран && список) список.scrollTop = Math.max(0, выбран.offsetTop - (ряд ? ряд.offsetHeight : 0) - 40);
+  // Строки поиска и порядка прилипают к верху списка — выбранная печь встаёт под ними.
+  const ряд = список && список.querySelector('.cs-sortrow'), поиск = список && список.querySelector('.cso-search');
+  if (выбран && список) список.scrollTop = Math.max(0, выбран.offsetTop - (ряд ? ряд.offsetHeight : 0) - (поиск ? поиск.offsetHeight : 0) - 8);
+  // На компьютере курсор сразу в поиске — открыл список и печатаешь. На
+  // телефоне клавиатура сама не выезжает: она закрыла бы список.
+  if (window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    try { document.getElementById('steamStoveSearch')?.focus({ preventScroll: true }); } catch (_) {}
+  }
 }
 // Над списком печей — переключатель «Подходят к парной» и строка «Порядок
 // списка», как у списка проектов каркаса (Константин, 27.10.2026: «нужен фильтр
@@ -32181,13 +32226,67 @@ function парнаяПечиПодходят(событие) {
   _печиПодходят = !_печиПодходят;
   парнаяСписокПечей();
 }
+// Поиск печи — первой строкой раскрытого списка (Константин, 27.10.2026,
+// макет stove-search-v1, вариант Б: «Этот вариант давай»): карточка не растёт,
+// поиск есть, пока список открыт, и закрытый список набранное забывает. Ищет
+// по словам в любом порядке и в другой раскладке, как поиск проектов. Строка
+// поиска и строка порядка стоят на месте, пока список прокручивается.
+let _печьПоиск = '';
+function парСловаПоиска(текст) {
+  return String(текст || '').toLowerCase().trim().split(/\s+/).filter(Boolean)
+    .map(с => [...new Set([с, вРусскуюРаскладку(с), вЛатинскуюРаскладку(с)])]);
+}
+function парПечьНайдена(имя, слова) {
+  const н = имя.toLowerCase();
+  return слова.every(вв => вв.some(с => н.includes(с)));
+}
+// Найденное в названии подсвечено: по первому вхождению каждого слова.
+function парПодсветитьНайденное(имя, слова) {
+  const н = имя.toLowerCase(), куски = [];
+  слова.forEach(вв => { for (const с of вв) { const и = н.indexOf(с); if (и >= 0) { куски.push([и, и + с.length]); break; } } });
+  if (!куски.length) return escapeHtml(имя);
+  куски.sort((а, б) => а[0] - б[0]);
+  let о = '', п = 0;
+  куски.forEach(([а, б]) => { if (а < п) а = п; if (б <= а) return; о += escapeHtml(имя.slice(п, а)) + '<mark class="cso-hit">' + escapeHtml(имя.slice(а, б)) + '</mark>'; п = б; });
+  return о + escapeHtml(имя.slice(п));
+}
+function парнаяПоискПечи(значение) {
+  _печьПоиск = значение;
+  парнаяСписокПечей();
+  const список = document.getElementById('steamStoveDropdown');
+  if (список) список.scrollTop = 0;
+}
+// Enter выбирает первую найденную печь, Escape закрывает список.
+function парнаяПоискКлавиша(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const первая = document.querySelector('#steamStoveDropdown .cso-body .custom-select-option[data-stove]');
+    if (первая) парнаяПечь(первая.dataset.stove);
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    document.getElementById('steamStoveWrap')?.classList.remove('open');
+    e.target.blur();
+  }
+}
 function парнаяСписокПечей(г = парГеом()) {
   const список = document.getElementById('steamStoveDropdown');
   if (!список) return;
+  // Строка поиска рисуется один раз: список под ней перерисовывается на каждом
+  // наборе, а поле с курсором остаётся на месте.
+  let тело = список.querySelector('.cso-body');
+  if (!тело) {
+    список.innerHTML = '<label class="cso-search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>'
+      + '<input type="text" id="steamStoveSearch" placeholder="Найти печь…" autocomplete="off" spellcheck="false" aria-label="Найти печь"'
+      + ' oninput="парнаяПоискПечи(this.value)" onkeydown="парнаяПоискКлавиша(event)"></label><div class="cso-body"></div>';
+    тело = список.querySelector('.cso-body');
+  }
+  const поле = document.getElementById('steamStoveSearch');
+  if (поле && поле.value !== _печьПоиск) поле.value = _печьПоиск;
   const есть = ПАР.вкл.has('pech');
+  const слова = парСловаПоиска(_печьПоиск);
   const подпись = { 'Заказчика': 'Монтаж печи заказчика' };
-  const заказчика = ПАР_ПЕЧИ.filter(м => м.id === 'pech-zakazchika');
-  let модели = ПАР_ПЕЧИ.filter(м => м.id !== 'pech-zakazchika');
+  const заказчика = ПАР_ПЕЧИ.filter(м => м.id === 'pech-zakazchika' && парПечьНайдена(м.имя, слова));
+  let модели = ПАР_ПЕЧИ.filter(м => м.id !== 'pech-zakazchika' && парПечьНайдена(м.имя, слова));
   if (_печиПодходят) модели = модели.filter(м => парПечьПодходит(м, г));
   модели = парПорядокПечей(модели);
   // По производителям — с заголовками групп; по объёму и цене — сплошным
@@ -32196,20 +32295,35 @@ function парнаяСписокПечей(г = парГеом()) {
   let html = `<div class="kit-ready-toggle" onclick="парнаяПечиПодходят(event)" title="Показать только печи, рассчитанные на объём этой парной">
       <span class="krt-switch${_печиПодходят ? ' on' : ''}"><span class="krt-knob"></span></span>
       <span class="krt-label">Подходят к парной · ${парЧисло(г.печь)} м³</span>
+    </div>`;
+  // «Снять выбор» — в строке порядка, как у списка проектов (Константин,
+  // 27.10.2026: «Снять выбор с печи сделай также напротив иконок сортировки,
+  // как в технологиях»). Печь не выбрана — снимать нечего, слева подпись.
+  html += '<div class="cs-sortrow">' + (есть
+    ? `<div class="custom-select-option custom-select-deselect" onclick="парнаяПечь('')">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="opacity:0.5;flex-shrink:0;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Снять выбор
     </div>`
-    + '<div class="cs-sortrow"><span class="cs-sortcap">Порядок списка</span>'
+    : '<span class="cs-sortcap">Порядок списка</span>')
     + '<span class="cs-sortname" onclick="скрытьНазваниеПорядка(event)"></span>' + парЗначкиПорядка() + '</div>';
-  html += `<div class="custom-select-option${есть ? '' : ' selected'}" data-stove="" onclick="парнаяПечь('')"><span class="cso-name">Без печи</span></div>`;
-  if (!модели.length) html += `<div class="custom-select-option cso-empty">Нет печей на ${парЧисло(г.печь)} м³</div>`;
+  if (!модели.length && !заказчика.length) {
+    const ч = escapeHtml(_печьПоиск.trim());
+    html += `<div class="custom-select-option cso-empty">${ч ? 'Ничего не нашлось по «' + ч + '»' + (_печиПодходят ? ' среди подходящих' : '') : 'Нет печей на ' + парЧисло(г.печь) + ' м³'}</div>`;
+  } else if (!модели.length && _печиПодходят && !слова.length) {
+    html += `<div class="custom-select-option cso-empty">Нет печей на ${парЧисло(г.печь)} м³</div>`;
+  }
   let группа = '';
   [...модели, ...заказчика].forEach(м => {
     if ((сГруппами || м.id === 'pech-zakazchika') && м.марка !== группа) { группа = м.марка; html += `<div class="cso-group">${подпись[группа] || группа}</div>`; }
     const подходит = парПечьПодходит(м, г);
     const мета = м.id === 'pech-zakazchika' ? '0 ₽' : `${парЧисло(м.от)}–${парЧисло(м.до)} м³ · ${fmt(парЦенаМодели(м))}`;
     html += `<div class="custom-select-option${есть && м.id === ПАР.печь ? ' selected' : ''}" data-stove="${м.id}" onclick="парнаяПечь('${м.id}')">`
-      + `<span class="cso-name">${м.имя}<span class="cso-meta"><span>${мета}</span>${подходит ? '<span class="cso-fit">подходит</span>' : ''}</span></span></div>`;
+      + `<span class="cso-name">${парПодсветитьНайденное(м.имя, слова)}<span class="cso-meta"><span>${мета}</span>${подходит ? '<span class="cso-fit">подходит</span>' : ''}</span></span></div>`;
   });
-  список.innerHTML = html;
+  тело.innerHTML = html;
+  // Строка порядка прилипает под строкой поиска — на её высоту.
+  const п = список.querySelector('.cso-search');
+  if (п && п.offsetHeight) список.style.setProperty('--cso-search-h', п.offsetHeight + 'px');
 }
 function парнаяТипОткрыть() {
   const обёртка = document.getElementById('steamRoomWrap');
@@ -32597,8 +32711,9 @@ function парнаяВExcel() {
   // Окно_отмечено — ячейка «Отмечена» строки окна на листе раздела: отметка
   // одна, и объём для печи идёт за ней.
   пар('Запас печи по объёму', н(ПАР_ЗАПАС_ПЕЧИ), 'доля', 'Запас_печи', 'Анатолий, 27.10.2026: объём парной + 30 %');
+  пар('Запас печи не меньше', н(ПАР_ЗАПАС_МИН), 'м³', 'Запас_мин', 'чек-лист П-ПС-8-1: у маленькой парной 30 % меньше 5 м³');
   пар('Окно: прибавка к объёму печи', н(ПАР_ОКНО_М3), 'м³ за м²', 'Окно_м3', 'за каждый начатый м² окна, если окно в расчёте');
-  пар('Объём для печи', н(г.печь, 'ROUND(Объём*(1+Запас_печи)+Окно_м3*ROUNDUP(Окно_м2,0)*Окно_отмечено,1)'), 'м³', 'Объём_печи',
+  пар('Объём для печи', н(г.печь, 'ROUND(Объём+MAX(Объём*Запас_печи,Запас_мин)+Окно_м3*ROUNDUP(Окно_м2,0)*Окно_отмечено,1)'), 'м³', 'Объём_печи',
     'по нему подбирается печь на листе «Печи»');
   пар('Камни для печи', н(п.kamni), 'кг', 'Камни_кг', 'вводится; при выборе печи — масса с листа «Печи»');
   пар('Доставка', н(п.dost), 'км от МКАД', 'Доставка_км', 'вводится');
@@ -32758,7 +32873,7 @@ function парнаяВExcel() {
 
   // ── Печи ──
   const K = [['Каталог печей — книга «Калькулятор парной» v2.4, лист «Печи»'],
-    ['Цена заказчику = цена с сайта × наценка. Модель для расчёта выбирается на листе «Параметры» (Модель_печи). «Подходит» — объём для печи (Объём_печи: парная + 30 % и 4 м³ за начатый м² окна) в пределах «от» и «до».'], [],
+    ['Цена заказчику = цена с сайта × наценка. Модель для расчёта выбирается на листе «Параметры» (Модель_печи). «Подходит» — объём для печи (Объём_печи: парная + 30 %, но не меньше 5 м³, и 4 м³ за начатый м² окна) в пределах «от» и «до».'], [],
     ['Модель', 'Производитель', 'Объём от, м³', 'Объём до, м³', 'Цена с сайта, ₽', 'Наценка', 'Цена заказчику, ₽', 'Камни, кг', 'Подходит к парной']];
   ПАР_ПЕЧИ.forEach(м2 => {
     const r = K.length + 1, подходит = парПечьПодходит(м2, г);
@@ -46549,16 +46664,21 @@ function проверкаПоЧекЛисту() {
       if (selectedProject && снимкиПоВидам().план.length && сведенияПоПланировке()) спросить('Сверить размер парного отделения и печь с планировкой', '', 'imageCanvasCard');
     } else {
       const чс = ч => String(Math.round(ч * 10) / 10).replace('.', ',');
-      // Печь: «до N м³» в названии против объёма парной — высота 2,2 м и
-      // запас 5 м³, при панорамном окне 10 м³.
+      // Печь: «до N м³» в названии против объёма для печи — парная при высоте
+      // 2,2 м по тому же правилу, что в расчёте парной (`объёмДляПечи`): +30 %,
+      // не меньше 5 м³, и 4 м³ за каждый начатый м² панорамного окна. Размер
+      // окна берётся из его названия; без размера окно считается 2 × 1 м, как
+      // в пункте чек-листа П-ПС-8-3 (прежде было +5 м³, с окном +10 м³).
       const печи = [];
       (OPTIONS || []).forEach(o => { if (o.section === 'stove' && checkedOptions[o.id]) печи.push({ т: o.name, эл: 'lbl_' + o.id }); });
       (customOptions.stove || []).forEach(co => { if (co && co.checked) печи.push({ т: co.name, эл: 'lbl_custom_' + co.id }); });
       const печь = печи.map(п => { const м = String(п.т || '').match(/до\s+(\d+(?:[.,]\d+)?)\s*(?:м³|м3|куб)/i); return { ...п, до: м ? parseFloat(м[1].replace(',', '.')) : 0 }; })
         .filter(п => п.до).sort((а, б) => б.до - а.до)[0];
-      const панорама = тексты.some(х => /^lbl_/.test(х.эл) && /панорам/i.test(х.т));
-      const нужно = площадь * 2.2 + (панорама ? 10 : 5);
-      if (печь && печь.до < нужно) добавить('stove', 'Печь мала для парной по планировке: нужна от ' + чс(нужно) + ' м³, выбрана до ' + чс(печь.до) + ' м³', false, печь.эл);
+      const панорама = тексты.find(х => /^lbl_/.test(х.эл) && /панорам|термоокн/i.test(х.т));
+      const окно = панорама ? площадьОкнаИзНазвания(панорама.т) : null;
+      const нужно = объёмДляПечи(площадь * 2.2, панорама ? (окно || 2) : 0);
+      if (печь && печь.до < нужно) добавить('stove', 'Печь мала для парной по планировке: нужна от ' + чс(нужно) + ' м³, выбрана до ' + чс(печь.до) + ' м³'
+        + (панорама && !окно ? ' (размера окна нет — считается 2 × 1 м)' : ''), false, печь.эл);
       // Размер: ближайший стандартный не меньше площади по планировке (минус
       // 0,2 м² на отделку) — против размеров в отмеченных опциях парной. У
       // каркаса без опции увеличения парное базовое, 2500×2000.
