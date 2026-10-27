@@ -12,7 +12,10 @@
     «Калькулятор опций» v2.4 с ответами 26.10;
   • шкалу сборки премиальной парной: 0 опций — строки нет, 1 — 120 000 ₽,
     2 — 150 000 ₽, 5 — 240 000 ₽, строка ставится и снимается сама;
-  • одну печь и один пол: вторая печь снимает первую, лиственница — плитку;
+  • печи и комплектующие каталога каркаса — с его названием и ценой; вывод
+    дымохода иначе — доплатой к выводу в крышу в 1 этаж; одну печь и один пол:
+    вторая печь снимает первую, лиственница — плитку; подсказку по объёму;
+  • панно и окно — руками с точностью до десятых, кнопками по 0,1 м²;
   • тип помещения: каркас под отделку и утепление по камню ставятся и
     снимаются сами, и база раздела меняется ровно на их цену;
   • размеры, счётчики, срок бригады вручную, «Снять базу», скидку;
@@ -75,7 +78,16 @@ def открыть(бр, порт, ш, ночь=False):
     return стр, ош
 
 
+# Цены печей каталога каркаса — как в базе на 27.10.2026: в заглушке базы у строк
+# каркаса только названия, а парная берёт печи и комплектующие из его каталога.
+ЦЕНЫ_ПЕЧЕЙ = {"st6": 97700, "st7": 114200, "st8": 123620, "st9": 141300, "st13": 13431, "st14": 45256,
+              "st16": 58700, "st17": 73300, "st18": 64400, "st19": 43000, "st21": 129700, "st22": 159900,
+              "st23": 156000, "st24": 192200, "st25": 76000, "st26": 24000, "st27": 15850, "st28": 32550,
+              "st29": 16900, "st30": 25350, "st31": 8450, "st32": 33450, "st33": 37650, "st34": 229000}
+
+
 def в_парную(стр):
+    стр.evaluate("ц => FRAME_OPTIONS.forEach(о => { if (о.id in ц) о.price = ц[о.id]; })", ЦЕНЫ_ПЕЧЕЙ)
     стр.evaluate("""async () => { window.IS_TEST_DOMAIN = true; applySteamGate();
       selectTech('Парная'); await new Promise(r => setTimeout(r, 500)); }""")
 
@@ -100,8 +112,9 @@ def расчёт(бр, порт):
 
     в_парную(стр)
     ч = стр.evaluate(ЧИСЛА)
-    if ч["тех"] != "steam" or ч["строк"] != 40:
-        плохо(f"после выбора «Парная»: технология {ч['тех']}, строк парной {ч['строк']} — ждали 40")
+    # 39 своих строк и 23 из каталога каркаса: 10 печей, 4 портала, 3 дымохода, 3 вывода иначе, 3 кассеты и пароиспаритель.
+    if ч["тех"] != "steam" or ч["строк"] != 62:
+        плохо(f"после выбора «Парная»: технология {ч['тех']}, строк парной {ч['строк']} — ждали 62")
         стр.close()
         return ош
     if ч["итог"] != 1257216:
@@ -136,13 +149,32 @@ def расчёт(бр, порт):
         плохо("сборку премиальной снимает нажатие — она должна держаться шкалой")
     стр.evaluate("() => { resetCheckedOptions(); }")
 
+    # Печи каталога каркаса: все дровяные с его ценой и названием (пересылкой
+    # 27.10.2026: «Нет печей, там огромный список в калькуляторе»).
+    печи = стр.evaluate("""() => ['yalta', ...ПАР_ПЕЧИ_КАРКАСА].map(к => [к, !!document.getElementById('lbl_par_' + к),
+      Number((document.getElementById('optprice_par_' + к) || {}).textContent?.replace(/\\D/g, '') || 0)])""")
+    нет = [к for к, есть, _ in печи if not есть]
+    if нет or len(печи) != 11:
+        плохо(f"печей в разделе: {len(печи) - len(нет)} из 11, нет строк {нет}")
+    for к, есть, цена in печи:
+        if к in ЦЕНЫ_ПЕЧЕЙ and есть and цена != ЦЕНЫ_ПЕЧЕЙ[к]:
+            плохо(f"печь {к}: цена {цена}, в каталоге каркаса {ЦЕНЫ_ПЕЧЕЙ[к]}")
+    if стр.evaluate("() => document.getElementById('name_par_st18').textContent") != "Печь Ферингер Оптима до 28 м³":
+        плохо("печь каталога каркаса без его названия")
+    # Другой вывод дымохода — доплатой к выводу в крышу в 1 этаж, один из трёх.
+    if стр.evaluate("() => Number(document.getElementById('optprice_par_st7').textContent.replace(/\\D/g, ''))") != 114200 - 97700:
+        плохо("вывод дымохода в 2 этажа — не доплата к выводу в 1 этаж (16 500 ₽)")
+    стр.evaluate("() => ['st7', 'st8'].forEach(к => document.getElementById('lbl_par_' + к).click())")
+    if стр.evaluate(ЧИСЛА)["вкл"] != ["st8"]:
+        плохо(f"выводы дымохода: отмечено {стр.evaluate(ЧИСЛА)['вкл']} — ждали один")
+    стр.evaluate("() => { resetCheckedOptions(); }")
     # Одна печь, один пол.
-    стр.evaluate("() => ['yalta', 'optima', 'polList', 'plitka'].forEach(к => document.getElementById('lbl_par_' + к).click())")
-    if стр.evaluate(ЧИСЛА)["вкл"] != ["optima", "plitka"]:
+    стр.evaluate("() => ['yalta', 'st16', 'st18', 'polList', 'plitka'].forEach(к => document.getElementById('lbl_par_' + к).click())")
+    if стр.evaluate(ЧИСЛА)["вкл"] != ["plitka", "st18"]:
         плохо(f"печь и пол: отмечено {стр.evaluate(ЧИСЛА)['вкл']} — ждали одну печь (Оптима) и плитку")
-    почему = стр.evaluate("() => [document.getElementById('why_par_yalta').textContent, document.getElementById('why_par_optima').textContent]")
-    # 27,6 м³ входит и в 25–35 м³ Ялты, и в 16–28 м³ Оптимы.
-    if почему != ["подходит: парная 27,6 м³", "подходит: парная 27,6 м³"]:
+    почему = стр.evaluate("() => [document.getElementById('why_par_yalta').textContent, document.getElementById('why_par_st18').textContent, document.getElementById('why_par_st16').textContent]")
+    # 27,6 м³ входит в 25–35 м³ Ялты и в «до 28 м³» Оптимы; для Малютки «до 18 м³» печь мала.
+    if почему != ["подходит: парная 27,6 м³", "подходит: парная 27,6 м³", "мала: парная 27,6 м³"]:
         плохо(f"подсказка печей по объёму: {почему}")
     стр.evaluate("() => { ПАР.L = 4; calc(); }")
     почему = стр.evaluate("() => [document.getElementById('why_par_yalta').textContent, document.getElementById('why_par_yalta').classList.contains('warn')]")
@@ -177,16 +209,34 @@ def расчёт(бр, порт):
         плохо("неверная длина 0,2 м не вернулась к последней верной")
     стр.evaluate("() => { const и = document.getElementById('pardim_L'); и.value = '3'; и.dispatchEvent(new Event('input')); и.blur(); }")
     стр.evaluate("() => document.querySelector('#lbl_par_polki .opt-qty-btn:last-child').click()")
-    if стр.evaluate("() => [ПАР.polki, document.getElementById('qtyval_par_polki').textContent]") != [4, "4"]:
+    if стр.evaluate("() => [ПАР.polki, document.getElementById('qtyval_par_polki').value]") != [4, "4"]:
         плохо(f"счётчик полков +0,25: {стр.evaluate('() => ПАР.polki')}")
     стр.evaluate("() => document.querySelector('#lbl_par_polki .opt-qty-btn').click()")
-    дни = стр.evaluate("() => [парДниАвто(парГеом()), document.getElementById('qtyval_par_brig').textContent]")
+    дни = стр.evaluate("() => [парДниАвто(парГеом()), document.getElementById('qtyval_par_brig').value]")
     # ⌈44,2 / 3,5 + 3,75 / 1,5 + 4⌉ = ⌈19,13⌉ = 20 — те же 20 дней дают 143 280 ₽ логистики книги.
     if дни != [20, "20"]:
         плохо(f"срок бригады по расчёту: {дни} — ждали 20 дней")
     стр.evaluate("() => document.querySelector('#lbl_par_brig .opt-qty-btn:last-child').click()")
     if стр.evaluate("() => [ПАР.brig, document.getElementById('calc_par_brig').textContent.startsWith('срок вписан вручную')]") != [21, True]:
         плохо("срок бригады вручную: счётчик или подпись не поменялись")
+
+    # Панно и окно — руками с точностью до десятых (пересылкой 27.10.2026:
+    # «Базово 1 м2, но в ручную менять с точностью до десятых»).
+    стр.fill('#qtyval_par_panno', '1,23')
+    стр.press('#qtyval_par_panno', 'Enter')
+    в = стр.evaluate("""() => [ПАР.panno, document.getElementById('qtyval_par_panno').value,
+      Number(document.getElementById('optprice_par_panno').textContent.replace(/\\D/g, '')),
+      Math.round((1.2 * 35000 + 15000) / 0.7 * ПАР_К)]""")
+    if в[0] != 1.2 or в[1] != "1,2" or в[2] != в[3]:
+        плохо(f"панно 1,23 м² руками: {в} — ждали 1,2 м² и цену от площади")
+    стр.click('#lbl_par_okno .opt-qty-btn:last-child')
+    if стр.evaluate("() => [ПАР.okno, document.getElementById('qtyval_par_okno').value]") != [1.1, "1,1"]:
+        плохо("окно: кнопка «+» не прибавила 0,1 м²")
+    стр.fill('#qtyval_par_okno', 'abc')
+    стр.press('#qtyval_par_okno', 'Enter')
+    if стр.evaluate("() => [ПАР.okno, document.getElementById('qtyval_par_okno').value]") != [1.1, "1,1"]:
+        плохо("окно: неверный ввод не вернулся к прежнему")
+    стр.evaluate("() => { ПАР.panno = 1; ПАР.okno = 1; calc(); }")
 
     # Снять базу раздела.
     до = стр.evaluate(ЧИСЛА)
@@ -325,7 +375,13 @@ def расчёт(бр, порт):
   // Поле между числом счётчика и кнопками: «3,75» не должно касаться минуса.
   document.querySelectorAll('#optionSections .opt-qty-stepper').forEach(с => {
     const [м, п] = с.querySelectorAll('.opt-qty-btn'), в = с.querySelector('.opt-qty-val');
-    const т = document.createRange(); т.selectNodeContents(в); const р = т.getBoundingClientRect();
+    let р;
+    if (в.tagName === 'INPUT') {
+      const с2 = getComputedStyle(в), к2 = document.createElement('canvas').getContext('2d');
+      к2.font = с2.font; const ш2 = к2.measureText(в.value).width, б = в.getBoundingClientRect();
+      const прав = с2.textAlign === 'center' ? (б.left + б.right + ш2) / 2 : б.right - parseFloat(с2.paddingRight);
+      р = { left: прав - ш2, right: прав };
+    } else { const т = document.createRange(); т.selectNodeContents(в); р = т.getBoundingClientRect(); }
     const з = Math.min(р.left - м.getBoundingClientRect().right, п.getBoundingClientRect().left - р.right);
     if (з < 4) н.push('счётчик ' + с.closest('.opt-item').id + ': до кнопки ' + з.toFixed(1) + ' px');
   });
