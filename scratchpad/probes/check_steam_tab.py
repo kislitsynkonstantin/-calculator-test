@@ -179,7 +179,56 @@ def расчёт(бр, порт):
     if в["группы"] != ["Ферингер", "ИзиСтим", "ГРОМ", "Другие", "Монтаж печи заказчика"]:
         плохо(f"группы списка печей: {в['группы']}")
     if в["ярлык"] != "Без печи" or "izistim-yalta-35-v-kamne" not in в["подходят"] or "feringer-malyutka" in в["подходят"]:
-        плохо(f"поле «Печь» до выбора: «{в['ярлык']}», подходят к 27,6 м³: {в['подходят'][:6]}…")
+        плохо(f"поле «Печь» до выбора: «{в['ярлык']}», подходят к 33,1 м³ (парная 27,6 м³ + 20 %): {в['подходят'][:6]}…")
+
+    # Переключатель «Подходят к парной» и строка «Порядок списка» (Константин,
+    # 27.10.2026: «нужен фильтр по „Подходит“ (как в каркасе фильтр по
+    # комплектациям)… добавь порядок списка иконками, как в других расчётах»).
+    СПИСОК = """() => { const д = document.getElementById('steamStoveDropdown');
+      const ид = [...д.querySelectorAll('.custom-select-option[data-stove]')].map(о => о.dataset.stove).filter(х => х && х !== 'pech-zakazchika');
+      const м = ид.map(х => ПАР_ПЕЧИ.find(п => п.id === х));
+      const г = парГеом();
+      return { ид, цены: м.map(парЦенаМодели), от: м.map(п => п.от), подходят: м.map(п => г.печь >= п.от && г.печь <= п.до),
+        все: ПАР_ПЕЧИ.filter(п => п.id !== 'pech-zakazchika' && г.печь >= п.от && г.печь <= п.до).length,
+        группы: [...д.querySelectorAll('.cso-group')].map(х => х.textContent.trim()),
+        крайние: [д.querySelector('.custom-select-option[data-stove]')?.dataset.stove, [...д.querySelectorAll('.custom-select-option[data-stove]')].pop()?.dataset.stove],
+        вкл: !!д.querySelector('.kit-ready-toggle .krt-switch.on'), надпись: (д.querySelector('.krt-label')?.textContent || '').replace(/\\u00a0/g, ' '),
+        пусто: д.querySelector('.cso-empty')?.textContent.trim() || '', открыт: document.getElementById('steamStoveWrap').classList.contains('open'),
+        значки: [...д.querySelectorAll('.cs-sbtn')].map(б => б.dataset.sort + (б.classList.contains('on') ? '*' : '') + (б.classList.contains('desc') ? 'v' : '')),
+        подпись: д.querySelector('.cs-sortname.show')?.textContent || '' }; }"""
+    стр.evaluate("() => { appSettings.stoveSort = 'default'; appSettings.stoveSortDesc = false; парнаяПечьОткрыть(); }")
+    с = стр.evaluate(СПИСОК)
+    if с["значки"] != ["volume", "price", "default*"] or с["надпись"] != "Подходят к парной · 33,1 м³" or с["вкл"]:
+        плохо(f"шапка списка печей: значки {с['значки']}, переключатель «{с['надпись']}» включён {с['вкл']}")
+    стр.evaluate("() => document.querySelector('#steamStoveDropdown .kit-ready-toggle').click()")
+    с = стр.evaluate(СПИСОК)
+    if not (с["вкл"] and с["открыт"] and all(с["подходят"]) and len(с["ид"]) == с["все"] > 0 and с["крайние"] == ["", "pech-zakazchika"]):
+        плохо(f"«Подходят к парной»: включён {с['вкл']}, список открыт {с['открыт']}, моделей {len(с['ид'])} из {с['все']} подходящих, "
+              f"все подходят {all(с['подходят'])}, первый и последний пункт {с['крайние']}")
+    # Ни одна печь не рассчитана на 4,5 м³ + 20 % = 5,4 м³ — список говорит об этом словами.
+    стр.evaluate("() => { window._размеры = [ПАР.L, ПАР.W, ПАР.H]; ПАР.L = 1.5; ПАР.W = 1.5; ПАР.H = 2; calc(); }")
+    с = стр.evaluate(СПИСОК)
+    if с["ид"] or с["пусто"] != "Нет печей на 5,4 м³":
+        плохо(f"«Подходят к парной» при 4,5 м³: моделей {len(с['ид'])}, пустое состояние «{с['пусто']}»")
+    стр.evaluate("() => { [ПАР.L, ПАР.W, ПАР.H] = window._размеры; calc(); document.querySelector('#steamStoveDropdown .kit-ready-toggle').click(); }")
+    if len(стр.evaluate(СПИСОК)["ид"]) != 46:
+        плохо("переключатель «Подходят к парной» не вернул весь список")
+    # Порядки: по цене, по объёму, повторное нажатие разворачивает.
+    for код, ключ, подпись, вниз in (("price", "цены", "Сначала дешевле", False), ("price", "цены", "Сначала дороже", True),
+                                    ("volume", "от", "По объёму: с маленьких парных", False)):
+        стр.evaluate("к => document.querySelector('#steamStoveDropdown .cs-sbtn[data-sort=\"' + к + '\"]').click()", код)
+        с = стр.evaluate(СПИСОК)
+        ряд = с[ключ]
+        верно = ряд == sorted(ряд, reverse=вниз)
+        if not верно or с["группы"] != ["Монтаж печи заказчика"] or not с["открыт"] or с["подпись"] != подпись or len(с["ид"]) != 46:
+            плохо(f"порядок «{подпись}»: по порядку {верно}, группы {с['группы']}, список открыт {с['открыт']}, подпись «{с['подпись']}», моделей {len(с['ид'])}")
+    if стр.evaluate("() => [appSettings.stoveSort, appSettings.stoveSortDesc]") != ["volume", False]:
+        плохо("порядок печей не записан в настройки аккаунта")
+    стр.evaluate("() => document.querySelector('#steamStoveDropdown .cs-sbtn[data-sort=\"default\"]').click()")
+    с = стр.evaluate(СПИСОК)
+    if с["группы"] != ["Ферингер", "ИзиСтим", "ГРОМ", "Другие", "Монтаж печи заказчика"] or с["значки"] != ["volume", "price", "default*"]:
+        плохо(f"«Как в книге» не вернул группы: {с['группы']}, значки {с['значки']}")
+    стр.evaluate("() => document.body.click()")
     # Цены книги: цена с сайта × наценка, до рубля.
     for ид, цена, камни in (("izistim-yalta-35-v-kamne", 208425, 80), ("grom-40-p2-pech-komplekt", 249690, 120),
                             ("feringer-optima", 64400, 80), ("grom-50-p2-uragan", 359415, 180)):
@@ -214,18 +263,34 @@ def расчёт(бр, порт):
     стр.evaluate("() => ['pech', 'polList', 'plitka'].forEach(к => document.getElementById('lbl_par_' + к).click())")
     if стр.evaluate(ЧИСЛА)["вкл"] != ["pech", "plitka"]:
         плохо(f"печь и пол: отмечено {стр.evaluate(ЧИСЛА)['вкл']} — ждали печь и плитку")
-    # 27,6 м³ входит в 25–35 м³ Ялты 35; для Малютки (8–18 м³) печь мала.
+    # Печь подбирается на объём парной + 20 % (Анатолий, 27.10.2026): 27,6 м³ →
+    # 33,1 м³, это в 25–35 м³ Ялты 35; для Малютки (8–18 м³) печь мала.
     почему = [стр.evaluate("() => document.getElementById('why_par_pech').textContent")]
     стр.evaluate("() => парнаяПечь('feringer-malyutka')")
     почему.append(стр.evaluate("() => document.getElementById('why_par_pech').textContent"))
     стр.evaluate("() => парнаяПечь('izistim-yalta-35-v-kamne')")
-    if почему != ["подходит: парная 27,6 м³", "мала: парная 27,6 м³"]:
+    if почему != ["подходит: нужна на 33,1 м³", "мала: нужна на 33,1 м³"]:
         плохо(f"подсказка печи по объёму: {почему}")
     стр.evaluate("() => { ПАР.L = 4; calc(); }")
     почему = стр.evaluate("() => [document.getElementById('why_par_pech').textContent, document.getElementById('why_par_pech').classList.contains('warn')]")
-    if почему != ["мала: парная 36,8 м³", True]:
-        плохо(f"печь для парной 36,8 м³: {почему} — ждали «мала» с тревогой")
+    if почему != ["мала: нужна на 44,2 м³", True]:
+        плохо(f"печь для парной 36,8 м³: {почему} — ждали «мала: нужна на 44,2 м³» с тревогой")
     стр.evaluate("() => { ПАР.L = 3; resetCheckedOptions(); }")
+    # Панорамное окно (Анатолий, 27.10.2026: «каждый метр квадратный +3 куба,
+    # с округлением в большую сторону»): 1 м² → 36,1 м³, и Ялта 35 уже мала;
+    # 1,1 м² считается за 2 м² → 39,1 м³; снятое окно объём не прибавляет.
+    ОКНО = """() => [document.getElementById('why_par_pech').textContent, парГеом().печь,
+      [...document.querySelectorAll('#steamInfo .info-chip')].map(ч => (ч.querySelector('.ic-k') || {}).textContent + ' ' + (ч.querySelector('strong') || {}).textContent).find(т => т.startsWith('Объём для печи'))]"""
+    стр.evaluate("() => { парнаяПечь('izistim-yalta-35-v-kamne'); ПАР.okno = 1; document.getElementById('lbl_par_okno').click(); }")
+    о1 = стр.evaluate(ОКНО)
+    стр.evaluate("() => { ПАР.okno = 1.1; calc(); }")
+    о2 = стр.evaluate(ОКНО)
+    стр.evaluate("() => document.getElementById('lbl_par_okno').click()")
+    о3 = стр.evaluate(ОКНО)
+    if (о1, о2, о3) != (["мала: нужна на 36,1 м³", 36.1, "Объём для печи 36,1 м³"], ["мала: нужна на 39,1 м³", 39.1, "Объём для печи 39,1 м³"],
+                        ["подходит: нужна на 33,1 м³", 33.1, "Объём для печи 33,1 м³"]):
+        плохо(f"окно и объём для печи: окно 1 м² {о1}, 1,1 м² {о2}, снято {о3} — ждали 36,1 / 39,1 / 33,1 м³")
+    стр.evaluate("() => { ПАР.okno = 1; resetCheckedOptions(); }")
 
     # Тип помещения.
     база0 = стр.evaluate(ЧИСЛА)["база"]["par_st"]
@@ -308,7 +373,7 @@ def расчёт(бр, порт):
 
     # Боковая панель — разделы парной; «Сбросить всё» — расчёт парной заново.
     панель = стр.evaluate("""() => [...document.querySelectorAll('#sideNavInner .nav-section .sn-nm')].map(э => э.textContent)""")
-    if панель != ["Парное отделение", "Печь и комплектующие", "Логистика"]:
+    if панель != ["Парное отделение", "Печь и комплектующие", "Дополнительные опции"]:
         плохо(f"боковая панель у парной: {панель}")
     стр.evaluate("() => { ПАР.L = 4; ПАР.комн = 'log'; ПАР.вкл.add('olha'); calc(); resetEverything(); }")
     в = стр.evaluate("() => [ПАР.L, ПАР.комн, [...ПАР.вкл], Number(document.getElementById('totalDisplay').textContent.replace(/\\D/g, '')), currentTech]")
@@ -353,7 +418,8 @@ def расчёт(бр, порт):
         плохо("подсветка полков на одном уровне: подпись счётчика не «уровень»")
     стр.evaluate("() => { ПАР.podsv = 2; calc(); }")
 
-    # Печать: открывается, пресет не сохраняет, лист — с помещением и суммами парной.
+    # Печать: открывается, лист — с помещением и суммами парной. Несохранённый
+    # расчёт печать сохраняет пресетом, как у каркаса, — сообщение об этом законно.
     в = стр.evaluate("""async () => {
       const т = []; const было = window.showToast; window.showToast = с => т.push(String(с));
       try {
@@ -365,7 +431,7 @@ def расчёт(бр, порт):
     }""")
     лист = в["лист"]
     разделы = стр.evaluate("() => ['par_st', 'par_pech', 'par_log'].map(к => document.getElementById('sec_total_' + к).textContent.replace(/\\s₽$/, ''))")
-    if в["открыта"] != "block" or в["тосты"]:
+    if в["открыта"] != "block" or any("следующей сборке" in т for т in в["тосты"]):
         плохо(f"окно печати парной: показ {в['открыта']}, сообщения {в['тосты']}")
     for нужно in ["ПОМЕЩЕНИЕ", "Камень, 3 × 4 × 2,3 м", "Парная 3 × 4 × 2,3 м", "Полка-лежак из кедра",
                   "Полки из осины, 2 яруса — 3,75 м²", "Дымоход до 6 м входит в расчёт"] + разделы:
@@ -404,8 +470,93 @@ def расчёт(бр, порт):
               "ждали 1 440 000 / 910 000 / 46 892 при 2 396 892 ₽")
     стр.evaluate("() => resetEverything()")
 
+    # Строки базы снимаются, под замком — нет (Константин, 27.10.2026: «То, что
+    # включено в базу, сделай возможность снимать галочку… возле них поставь где-то
+    # замок, чтобы было понятно, что это опция не снимается»).
+    БАЗА = "() => Math.round(парБазы(парГеом()).par_st)"
+    до = стр.evaluate(БАЗА)
+    стр.evaluate("() => document.getElementById('lbl_par_door').click()")
+    в = стр.evaluate("""() => [document.getElementById('chk_par_door').checked, document.getElementById('lbl_par_door').classList.contains('active'),
+      document.getElementById('incl_par_door').textContent.replace(/\u00a0/g, ' '), ПАР.снятыСтроки.has('door')]""")
+    if стр.evaluate(БАЗА) != до - 39192 or в != [False, False, "Снято с базы · −39 192 ₽", True]:
+        плохо(f"снятие двери с базы: база {стр.evaluate(БАЗА)} при {до}, строка {в} — ждали минус 39 192 ₽")
+    стр.evaluate("() => document.getElementById('lbl_par_door').click()")
+    if стр.evaluate(БАЗА) != до or not стр.evaluate("() => document.getElementById('chk_par_door').checked"):
+        плохо("повторное нажатие не вернуло дверь в базу")
+    замки = стр.evaluate("() => ['dims','karkas','obr','utepl','par','osina','polki','door','plaf','vent','klap','prop','ust','dym','mineri','kamni','list','pusk','dost','brig','nakl','uborka'].filter(к => document.querySelector('#lbl_par_' + к + ' .par-lock'))")
+    if замки != ["dims", "karkas", "obr", "utepl", "par", "osina"]:
+        плохо(f"замки у строк базы: {замки} — ждали у самого отделения, каркаса, утепления и трёх строк отделки за м²")
+    в = стр.evaluate("""() => { const т = []; const было = window.showToast; window.showToast = с => т.push(String(с));
+      try { document.getElementById('lbl_par_obr').click(); } finally { window.showToast = было; }
+      return [т, ПАР.снятыСтроки.has('obr'), document.getElementById('chk_par_obr').checked]; }""")
+    if not (в[0] and "не снимается" in в[0][0]) or в[1] or not в[2]:
+        плохо(f"строка под замком (обрешётка): сообщения {в[0]}, снята {в[1]}, отмечена {в[2]}")
+    # Каждая снимаемая строка уносит свою часть, и все вместе — всю базу, кроме строк под замком.
+    в = стр.evaluate("""() => { const к = ['polki','door','plaf','vent','klap','prop','ust','dym','mineri','kamni','list','pusk','dost','brig','nakl','uborka'];
+      const б0 = парБазы(парГеом()); к.forEach(х => document.getElementById('lbl_par_' + х).click());
+      const б1 = парБазы(парГеом()); const печь = Math.round(б1.par_pech), доп = Math.round(б1.par_log);
+      const отд = Math.round(б1.par_st); const г = парГеом();
+      const ждём = Math.round(23143 + (9116.98 + 3041.66 + 2108.85) * г.отд);
+      к.forEach(х => document.getElementById('lbl_par_' + х).click());
+      return [печь, доп, отд, ждём, Math.round(парБазы(парГеом()).par_st) === Math.round(б0.par_st)]; }""")
+    if в[0] != 0 or в[1] != 0 or в[2] != в[3] or not в[4]:
+        плохо(f"все снимаемые строки базы сняты: печь {в[0]}, доп. опции {в[1]}, парное {в[2]} (ждали {в[3]}), вернулись {в[4]}")
+    # Раздел 3 — «Дополнительные опции» (Константин, 27.10.2026).
+    if стр.evaluate("() => SECTIONS.find(с => с.key === 'par_log').name") != "3. Дополнительные опции":
+        плохо("раздел 3 парной не называется «Дополнительные опции»")
+
+    # Пресет парной (Константин, 27.10.2026: «По парной не предлагает сохранить
+    # пресет… И в целом нет такой кнопки сохранить пресет»): кнопка в карточке,
+    # напоминание внизу, и сохранённый расчёт открывается тем же до рубля.
+    # Значок стоит position:fixed, а у такого offsetParent всегда null: видимость
+    # меряется нарисованной рамкой, прозрачностью и тем, что лежит в его центре.
+    стр.wait_for_timeout(700)
+    в = стр.evaluate("""() => { const з = document.getElementById('presetChip');
+      const р = з && з.getBoundingClientRect(), с = з && getComputedStyle(з);
+      const виден = !!р && р.width > 20 && р.height > 16 && с.display !== 'none' && с.visibility !== 'hidden'
+        && +с.opacity > .9 && !з.classList.contains('pc-hide')
+        && з.contains(document.elementFromPoint(р.left + р.width / 2, р.top + р.height / 2));
+      return [!!document.querySelector('#steamInfo .btn-save-preset'), надоНапомнитьСохранить(),
+              виден && /Не сохран/.test(з.textContent),
+              з && [з.className, з.textContent.trim().slice(0, 30), с.opacity, Math.round(р.width), Math.round(р.top)]]; }""")
+    if в[:3] != [True, True, True]:
+        плохо(f"парная без пресета: кнопка «Сохранить пресет» в карточке {в[0]}, напоминание {в[1]}, значок «Не сохранён» виден {в[2]} — {в[3]}")
+    стр.evaluate("ид => ид.forEach(к => document.getElementById('lbl_par_' + к).click())", МАКЕТ)
+    стр.evaluate("""() => { парнаяТип('log'); ПАР.L = 3.4; парнаяПечь('grom-40-p2-pech-komplekt'); ПАР.brig = 24;
+      document.getElementById('lbl_par_vent').click(); document.getElementById('clientName').value = 'Проба Парная';
+      calc(); }""")
+    стр.click('#gift_par_spinki', force=True)
+    стр.click('#hl_par_okno', force=True)
+    стр.click('#addBtn_par_log')
+    стр.fill('#addName_par_log', 'Вывоз мусора')
+    стр.fill('#addPrice_par_log', '12000')
+    стр.click('#addForm_par_log .btn-confirm-add')
+    стр.click('#discSumLab'); стр.fill('#discountSavedInput', '50000')
+    стр.evaluate("() => { document.getElementById('discountSavedInput').blur(); document.getElementById('cashDiscountCheck').click(); }")
+    ОТПЕЧАТОК = """() => ({ итог: Math.round(_currentTotal), разделы: ['par_st','par_pech','par_log'].map(к => Math.round(_secTotalsCache[к])),
+      спец: Math.round(window._итогСоСкидкой), вкл: [...ПАР.вкл].sort(), снято: [...ПАР.снятыСтроки], комн: ПАР.комн, L: ПАР.L, печь: ПАР.печь,
+      бригада: ПАР.brig, подарки: [...giftedOpts], выделено: [...highlightedOpts], свои: getCustomOpts('par_log').map(о => о.name + ':' + о.price),
+      клиент: document.getElementById('clientName').value, наличные: document.getElementById('cashDiscountCheck').checked,
+      план: (() => { const к = getPPContracts()[0]; const с = ppState[к.id]; return [к.code, ...(с.amounts || []), с.finalAmt]; })() })"""
+    было = стр.evaluate(ОТПЕЧАТОК)
+    ид = стр.evaluate("""async () => { const st = collectState(); await сохранитьНовыйПресет('Проба парной', 'Проба парной', st);
+      const все = loadAllPresets(); return Object.keys(все).find(к => все[к].name === 'Проба парной'); }""")
+    if not ид:
+        плохо("пресет парной не сохранился")
+    else:
+        стр.evaluate("async () => { resetEverything(); selectTech('Каркас'); await new Promise(r => setTimeout(r, 900)); }")
+        стр.evaluate("ид => loadPreset(ид)", ид)
+        стр.wait_for_timeout(2600)
+        стало = стр.evaluate(ОТПЕЧАТОК)
+        тех = стр.evaluate("() => [currentTech, document.getElementById('techSelectLabel').textContent, customProjects.some(п => /Парная/.test(п[0]))]")
+        if стало != было or тех != ["steam", "Парная", False]:
+            плохо(f"пресет парной открылся не тем: было {было}, стало {стало}, технология {тех}")
+        if стр.evaluate("() => техПресета(loadAllPresets()[%r])" % ид) != "steam":
+            плохо("сохранённый пресет парной не помечен технологией «Парная»")
+    стр.evaluate("() => resetEverything()")
+
     # Чего у парной нет — словами, без окон.
-    for вызов, окно in (("savePreset()", "presetNameOverlay"), ("openOptSearch()", "optSearchOverlay")):
+    for вызов, окно in (("openOptSearch()", "optSearchOverlay"),):
         в = стр.evaluate("""([вызов, окно]) => { const т = []; const было = window.showToast;
           window.showToast = с => т.push(String(с)); try { eval(вызов); } finally { window.showToast = было; }
           const о = document.getElementById(окно); return [т, !!(о && о.style.display && о.style.display !== 'none')]; }""", [вызов, окно])
@@ -460,6 +611,10 @@ def расчёт(бр, порт):
     } else { const т = document.createRange(); т.selectNodeContents(в); р = т.getBoundingClientRect(); }
     const з = Math.min(р.left - м.getBoundingClientRect().right, п.getBoundingClientRect().left - р.right);
     if (з < 4) н.push('счётчик ' + с.closest('.opt-item').id + ': до кнопки ' + з.toFixed(1) + ' px');
+    // И обратное: число не висит в пустой клетке между кнопками (Константин,
+    // 27.10.2026, снимком счётчиков парной: «Тут что за пробелы»).
+    const пусто = Math.max(р.left - м.getBoundingClientRect().right, п.getBoundingClientRect().left - р.right);
+    if (пусто > 10) н.push('счётчик ' + с.closest('.opt-item').id + ': между числом и кнопкой ' + пусто.toFixed(1) + ' px пустоты');
   });
   // Поля размеров — в карточке, не за её краем, высотой под палец, и число
   // в поле видно целиком.
@@ -518,7 +673,9 @@ def main():
         sys.exit(1)
     print(f"Чисто: парная считает по книге (база 1 257 216 ₽, двенадцать опций — 2 313 757 ₽), шкала сборки "
           f"120 000 → 240 000 ₽, одна печь и один пол, тип помещения, размеры, счётчики, база и скидка; "
-          f"печать работает, платёжный план 60 % / остаток / финальный до 50 000 ₽ и идёт за ценой, пресет отвечает словами; "
+          f"печать работает, платёжный план 60 % / остаток / финальный до 50 000 ₽ и идёт за ценой; строки базы снимаются, "
+          f"под замком — нет; пресет сохраняется и открывается тем же до рубля; печь подбирается на объём парной + 20 % "
+          f"и 3 м³ за начатый м² окна, список печей фильтруется «Подходят к парной» и ставится по объёму, цене и книге; "
           f"каркас и брус после парной свои; вёрстка — {len(кадры)} кадров.")
 
 

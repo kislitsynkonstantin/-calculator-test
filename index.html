@@ -2104,7 +2104,13 @@ body.ui-blank .page-wrap #steamDimsField .steam-dims-hint { grid-column: 2; marg
 #steamStoveArrow { flex-shrink: 0; opacity: 0.5; transition: transform 0.2s; }
 .custom-select-wrap.open #steamStoveArrow { transform: rotate(180deg); opacity: 0.8; }
 #steamStoveLabel { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#steamStoveDropdown { max-height: 360px; }
+#steamStoveDropdown { max-height: 360px; scroll-padding-top: 44px; }
+/* Порядок печей: стрелка в значке переворачивается сама по себе — ₽ и куб
+   вверх ногами не читаются. «Как в книге» переворачивается целиком, как у
+   проектов. */
+.cs-sbtn .cs-arr { transition: transform .15s; transform-box: fill-box; transform-origin: center; }
+.cs-sbtn.desc[data-sort="volume"] .cs-arr, .cs-sbtn.desc[data-sort="price"] .cs-arr { transform: scaleY(-1); }
+.cso-empty { opacity: .6; cursor: default; pointer-events: none; }
 .cso-group { padding: 10px 14px 4px 20px; font-family: 'Unbounded', sans-serif; font-size: .56rem; font-weight: 700;
   letter-spacing: .09em; text-transform: uppercase; color: var(--gray-light); }
 /* Объём и цена — второй строкой под названием: в одну строку на телефоне
@@ -2126,9 +2132,17 @@ body.dark .par-pick { color: var(--green-light); }
 body.dark .opt-why.warn { color: #e0b070; background: rgba(224,176,112,.12); }
 .opt-calc { margin-top: 4px; font-size: .66rem; line-height: 1.4; color: var(--gray-light); }
 .opt-item[data-par="premium"] { cursor: default; }
-/* Дробные значения счётчиков парной (3,75 м²) — с полем до кнопок: у
-   целых каркаса поля хватало, «3,75» вставало вплотную к минусу. */
-.opt-item[data-par] .opt-qty-val { min-width: 30px; padding: 0 4px; }
+/* Замок у строки базы, которую не снять: значок рядом с «Включено в базу»,
+   причина — в подсказке и словами при нажатии. */
+.par-lock { display: inline-flex; align-items: center; color: var(--gray-light); }
+.par-lock svg { display: block; }
+.opt-included.par-off, body.ui-blank .opt-included.par-off { color: var(--gray-light); }
+/* Число в счётчике парной — шириной по себе, как у каркаса, и посередине между
+   кнопками: дробное «3,75» не встаёт вплотную к минусу, а одна цифра не висит в
+   пустой клетке (Константин, 27.10.2026, снимком счётчиков: «Тут что за
+   пробелы» — клетка была не уже 30 px). */
+.opt-item[data-par] .opt-qty-val { min-width: 0; width: calc(var(--n, 2) * 1ch + 6px); padding: 0 2px; text-align: center; }
+.opt-item[data-par] .opt-qty-in:focus { width: max(3.2em, calc(var(--n, 2) * 1ch + 12px)); }
 /* Count badge next to arrow */
 #projectSelectBadge {
   display: none;
@@ -12960,9 +12974,9 @@ function значкиПорядкаПроектов() {
 // По нажатию на название сортировки оно исчезает… а так планово само гаснет».
 const НАЗВАНИЕ_ПОРЯДКА_МС = 1200;
 let _подписьПорядкаТаймер = null;
-function _названиеПорядка() { return document.querySelector('#projectSelectDropdown .cs-sortname'); }
-function показатьНазваниеПорядка(текст, надолго) {
-  const м = _названиеПорядка();
+function _названиеПорядка(ид = 'projectSelectDropdown') { return document.querySelector('#' + ид + ' .cs-sortname'); }
+function показатьНазваниеПорядка(текст, надолго, ид) {
+  const м = _названиеПорядка(ид);
   if (!м) return;
   м.textContent = текст;
   м.classList.add('show');
@@ -12974,8 +12988,8 @@ function скрытьНазваниеПорядка(событие) {
   // до него, ни до обработчика «нажатие мимо списка».
   if (событие) { событие.stopPropagation(); событие.preventDefault(); }
   if (_подписьПорядкаТаймер) { clearTimeout(_подписьПорядкаТаймер); _подписьПорядкаТаймер = null; }
-  const м = _названиеПорядка();
-  if (м) м.classList.remove('show');
+  // Подпись есть и у списка проектов, и у списка печей парной.
+  document.querySelectorAll('.cs-sortname.show').forEach(м => м.classList.remove('show'));
 }
 function показатьПодписьПорядка(код) {
   const п = ПОРЯДКИ_ПРОЕКТОВ.find(x => x.код === код);
@@ -20194,6 +20208,11 @@ function resetEverything() {
   updateProjectInfo();
   refreshOptPricesInDOM();
   calc();
+  // У парной проекта нет: сброшенный расчёт — снова новый расчёт, и значок
+  // «Не сохранён» встаёт сразу, как при переходе на парную. Сброс снял
+  // привязку к пресету раньше, чем парная вернула свой псевдопроект, и
+  // значок остался скрытым.
+  if (currentTech === 'steam') { _напоминаниеСнято = false; _позжеДо = 0; try { обновитьНапоминаниеСохранить(); } catch (e) {} }
   showToast('Всё сброшено');
 }
 
@@ -23227,8 +23246,6 @@ function htmlСпецификацииДляПечати() {
 function кодРасчётаДляПечати() {
   let код = _активныйПресетКод();
   if (код) return код;
-  // Пресетов у парной пока нет — лист печатается без кода.
-  if (currentTech === 'steam') return null;
   try {
     const state = collectState();
     const proj = state.project ? state.project.name : 'Без проекта';
@@ -23885,6 +23902,10 @@ const appSettings = {
   // «запоминаем выбор в аккаунте» (Константин, 24.09.2026).
   projectSort: 'default',
   projectSortDesc: false,
+  // Порядок печей парной: 'default' — как в книге, 'volume' — по объёму
+  // парной, 'price' — по цене. Тоже настройка аккаунта.
+  stoveSort: 'default',
+  stoveSortDesc: false,
   resetAllConfig: {
     project: true,
     checkedOptions: true,
@@ -26820,7 +26841,11 @@ function getContractVarsKar(ид) {
 // договорам бруса: «Для КБ такие же правила по открытию договора, как по
 // каркасу (открывается менеджерам и редактору после согласования; мне доступен
 // всегда)» — правило одно для каркаса и бруса, для всех трёх договоров.
-const РОЛИ_ДОГОВОРА = ['admin'];
+// Специалисту комплект открыт сразу (Константин, 27.10.2026: «„Специалисту“
+// сделай доступ к комплекту договора сразу, так как ей надо заполнить
+// реквизиты, может текст поправить»): весь комплект — договоры, ордер, правила
+// и согласие, — и правка текста и суммы ордера, как у администратора.
+const РОЛИ_ДОГОВОРА = ['admin', 'specialist'];
 function договорДоступен() {
   if (РОЛИ_ДОГОВОРА.includes(window._sbProfile?.role)) return true;
   try { return согласованиеДействует(); } catch (e) { return false; }
@@ -31362,6 +31387,9 @@ async function switchTech(код, опц) {
   // У парной свой состав договоров и свой план; уход из неё возвращает состав
   // технологии. Восстановление расчёта кладёт свой состав позже, поверх.
   if (код !== _былаТех && (код === 'steam' || _былаТех === 'steam')) { try { сбросПлатёжногоПлана(); } catch (e) {} }
+  // Парная — новый расчёт, как выбор проекта у каркаса: напоминание сохранить
+  // его пресетом встаёт сразу. Открытый пресет снимет его сам.
+  if (код === 'steam') { _напоминаниеСнято = false; _позжеДо = 0; try { обновитьНапоминаниеСохранить(); } catch (e) {} }
   окнаПослеСменыТехнологии();
   try {
     if (код !== _былаТех && опц && опц.вЖурнал) {
@@ -31597,7 +31625,8 @@ document.addEventListener('click', function(e) {
 const ПАР_РАЗДЕЛЫ = [
   { key: 'par_st',   name: '1. Парное отделение' },
   { key: 'par_pech', name: '2. Печь и комплектующие' },
-  { key: 'par_log',  name: '3. Логистика' },
+  // Константин, 27.10.2026, снимком раздела: «Это переименуй „Дополнительные опции“».
+  { key: 'par_log',  name: '3. Дополнительные опции' },
 ];
 const ПАР_ПРИМЕЧАНИЯ = { par_log: ['Демонтаж старой парной не входит в расчёт'] };
 // Строка: ключ, вид ('b' — база раздела, 'p' — опция), название, единица счётчика.
@@ -31739,7 +31768,7 @@ const ПАР_К = 0.944615;
 
 function парНачало() {
   return { L: 3, W: 4, H: 2.3, комн: 'stone', печь: ПАР_ПЕЧЬ_НАЧАЛО, polki: 3.75, plaf: 2, klap: 2, podsv: 2, panno: 1, okno: 1,
-           kamni: 80, dost: 50, brig: null, вкл: new Set(), снятыБазы: new Set() };
+           kamni: 80, dost: 50, brig: null, вкл: new Set(), снятыБазы: new Set(), снятыСтроки: new Set() };
 }
 let ПАР = парНачало();
 
@@ -31767,9 +31796,20 @@ function парнаяБезЭтого(что) {
   return true;
 }
 
+// Объём, на который подбирается печь (Анатолий, 27.10.2026, пересылкой
+// Константина: «Сама печка считается по кубатуре парной + 20% запаса»;
+// «Привязка к площади окна — каждый метр квадратный +3 куба, с округлением в
+// большую сторону»): объём парной × 1,2, и за каждый начатый м² панорамного
+// окна, если оно в расчёте, ещё 3 м³. До десятой — так же считает выгрузка.
+const ПАР_ЗАПАС_ПЕЧИ = 0.2, ПАР_ОКНО_М3 = 3;
+function парОбъёмПечи(объём, п = ПАР) {
+  const окно = п.вкл && п.вкл.has('okno') ? Math.ceil(Math.round((Number(п.okno) || 0) * 10) / 10) : 0;
+  return Math.round((объём * (1 + ПАР_ЗАПАС_ПЕЧИ) + ПАР_ОКНО_М3 * окно) * 10) / 10;
+}
 function парГеом(п = ПАР) {
   const { L, W, H } = п;
-  return { отд: 2 * (L + W) * H + L * W, пол: L * W, объём: L * W * H };
+  const объём = L * W * H;
+  return { отд: 2 * (L + W) * H + L * W, пол: L * W, объём, печь: парОбъёмПечи(объём, п) };
 }
 // Срок бригады — от площади отделки и полков.
 function парДниАвто(г, п = ПАР) { return Math.ceil(г.отд / 3.5 + п.polki / 1.5 + 4); }
@@ -31796,13 +31836,52 @@ function парЦены(г, п = ПАР) {
 // только по камню; КуБасту с работами — 64 000 ₽ внутри базы (ответ 3.2).
 function парБазы(г, п = ПАР) {
   const каркас = п.комн !== 'frame', утепл = п.комн === 'stone';
+  const минус = ключ => (ПАР_СТРОКИ[ключ] || []).reduce((с, [к, вид]) =>
+    с + (вид === 'b' && парСнятаСтрока(к, п) ? (парСуммаБазовой(к, г, п) || 0) : 0), 0);
   return {
     par_st: 178213 + 6518 * п.plaf + 2579 * п.klap + 15000 * п.polki
-          + (9116.98 + (каркас ? 3041.66 : 0) + (утепл ? 2108.85 : 0)) * г.отд,
-    par_pech: 199673 + 387.29 * п.kamni,
-    par_log: 30228 + Math.max(0, п.dost - 50) * 100 + парДни(г, п) * (2 * 425.08 + 2456) + 14736 + 26922 + 5271,
+          + (9116.98 + (каркас ? 3041.66 : 0) + (утепл ? 2108.85 : 0)) * г.отд - минус('par_st'),
+    par_pech: 199673 + 387.29 * п.kamni - минус('par_pech'),
+    par_log: 30228 + Math.max(0, п.dost - 50) * 100 + парДни(г, п) * (2 * 425.08 + 2456) + 14736 + 26922 + 5271 - минус('par_log'),
   };
 }
+// Строки базы снимаются галочкой, как опции (Константин, 27.10.2026: «То, что
+// включено в базу, сделай возможность снимать галочку. Но, сам реши, если есть
+// опции, которые нельзя снимать галочку и поедет расчёт. Тогда возле них поставь
+// где-то замок»). Снятая строка уносит из базы ровно свою часть — суммы те же,
+// что в строках книги, из которых сложены числа парБазы. Строки, у которых своей
+// части нет (обрешётка, пароизоляция и вагонка считаются вместе за м² стен), и
+// строки, которые ставит тип помещения, стоят под замком.
+function парСуммаБазовой(к, г = парГеом(), п = ПАР) {
+  switch (к) {
+    case 'door': return 30700 + 8492;                  // дверь и её установка
+    case 'plaf': return 6518 * п.plaf + 12091 + 15227;  // плафоны, кабель, электромонтаж
+    case 'vent': return 64000;
+    case 'klap': return 2579 * п.klap;
+    case 'prop': return 24560;
+    case 'polki': return 15000 * п.polki;
+    case 'ust': return 52502;
+    case 'dym': return 92289;
+    case 'mineri': return 17475 + 18741;                // портал и его монтаж
+    case 'kamni': return 387.29 * п.kamni;
+    case 'list': return 2267;
+    case 'pusk': return 16399;
+    case 'dost': return 30228 + Math.max(0, п.dost - 50) * 100;
+    case 'brig': return парДни(г, п) * (2 * 425.08 + 2456);
+    case 'nakl': return 14736 + 26922;                  // накладные и расходные
+    case 'uborka': return 5271;
+  }
+  return null;
+}
+const ПАР_НЕ_СНИМАЕТСЯ = {
+  dims: 'это само парное отделение',
+  karkas: 'ставится по типу помещения',
+  utepl: 'ставится по типу помещения',
+  obr: 'считается вместе с отделкой стен за м²',
+  par: 'считается вместе с отделкой стен за м²',
+  osina: 'считается вместе с отделкой стен за м²; ольха — разница к ней',
+};
+function парСнятаСтрока(к, п = ПАР) { return !!(п.снятыСтроки && п.снятыСтроки.has(к)); }
 function парБазоваяНужна(к, п = ПАР) {
   if (к === 'karkas') return п.комн !== 'frame';
   if (к === 'utepl') return п.комн === 'stone';
@@ -31903,8 +31982,11 @@ function парСтрока(opt) {
     : '';
   const почему = `<span class="opt-why" id="why_${ид}" hidden></span>`;
   const { hlBtn, giftBtn, eyeBtn } = кнопкиСтрокиHtml(opt);
+  const замок = база && ПАР_НЕ_СНИМАЕТСЯ[к]
+    ? `<span class="par-lock" title="Не снимается: ${ПАР_НЕ_СНИМАЕТСЯ[к]}" aria-label="Не снимается: ${ПАР_НЕ_СНИМАЕТСЯ[к]}">${значокЗамка(true, 12, 2)}</span>`
+    : '';
   const ряд = база
-    ? `<div class="opt-included-row"><span class="opt-included" title="Включено в базовую комплектацию">✓ Включено в базу</span>${почему}${шаги}${hlBtn}${giftBtn}</div>`
+    ? `<div class="opt-included-row"><span class="opt-included" id="incl_${ид}" title="Включено в базовую комплектацию">✓ Включено в базу</span>${замок}${почему}${шаги}${hlBtn}${giftBtn}</div>`
     : `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><div class="opt-price" id="optprice_${ид}"></div>${почему}${выбрать}${шаги}${eyeBtn}${hlBtn}${giftBtn}</div>`;
   item.innerHTML = `
     <span class="drag-handle" title="Переместить">⠿</span>
@@ -31944,6 +32026,18 @@ function парСтрока(opt) {
 
 // ── Действия ──
 function парнаяНажать(к) {
+  // Строка базы: снимается и возвращается; под замком — объясняет словами.
+  if (OPTIONS.some(о => о.парная === к && о.included)) {
+    if (ПАР_НЕ_СНИМАЕТСЯ[к] || парСуммаБазовой(к) == null) {
+      const о = OPTIONS.find(х => х.парная === к);
+      try { showToast('«' + (о ? о.имяСтроки : к) + '» не снимается: ' + (ПАР_НЕ_СНИМАЕТСЯ[к] || 'входит в базу')); } catch (e) {}
+      return;
+    }
+    const с = ПАР.снятыСтроки || (ПАР.снятыСтроки = new Set());
+    if (с.has(к)) с.delete(к); else с.add(к);
+    calc();
+    return;
+  }
   const опция = OPTIONS.some(о => о.парная === к && !о.included);
   // Базу раздела снимает кнопка под заголовком, сборку премиальной ставит шкала.
   if (!опция || к === 'premium') return;
@@ -32014,18 +32108,101 @@ function парнаяПечьОткрыть(e) {
   if (e) { try { обёртка.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) { обёртка.scrollIntoView(); } }
   const выбран = обёртка.querySelector('.custom-select-option.selected');
   const список = document.getElementById('steamStoveDropdown');
-  if (выбран && список) список.scrollTop = Math.max(0, выбран.offsetTop - 40);
+  // Строка порядка прилипает к верху списка — выбранная печь встаёт под ней.
+  const ряд = список && список.querySelector('.cs-sortrow');
+  if (выбран && список) список.scrollTop = Math.max(0, выбран.offsetTop - (ряд ? ряд.offsetHeight : 0) - 40);
+}
+// Над списком печей — переключатель «Подходят к парной» и строка «Порядок
+// списка», как у списка проектов каркаса (Константин, 27.10.2026: «нужен фильтр
+// по „Подходит“ (как в каркасе фильтр по комплектациям)… добавь порядок списка
+// иконками, как в других расчётах. Только подбери сортировку под парные»).
+// Частоты у печей нет, поэтому порядки свои: по объёму парной, по цене и как в
+// книге — по производителям. Порядок, как у проектов, — настройка аккаунта;
+// переключатель, как «С готовыми комплектациями», живёт до перезагрузки.
+// «Без печи» и «Печь заказчика» стоят в списке всегда: это не модели.
+const ПАР_СТРЕЛКА = '<path class="cs-arr" d="M18 5v14M18 19l-2.5-2.5M18 19l2.5-2.5"/>';
+const ПОРЯДКИ_ПЕЧЕЙ = [
+  { код: 'volume', прямо: 'По объёму: с маленьких парных', обратно: 'По объёму: с больших парных',
+    svg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4.5l5 2.7v5.6L8 15.5l-5-2.7V7.2z M8 9.9l5-2.7 M8 9.9v5.6 M8 9.9L3 7.2"/>' + ПАР_СТРЕЛКА + '</svg>' },
+  { код: 'price', прямо: 'Сначала дешевле', обратно: 'Сначала дороже',
+    svg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 19V5h4a3.5 3.5 0 0 1 0 7H4 M4 15.5h7"/>' + ПАР_СТРЕЛКА + '</svg>' },
+  { код: 'default', прямо: 'Как в книге: по производителям', обратно: 'Как в книге, наоборот',
+    svg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h9M4 12h9M4 17h9"/>' + ПАР_СТРЕЛКА + '</svg>' },
+];
+let _печиПодходят = false;
+function парПечьПодходит(м, г) { return м.id !== 'pech-zakazchika' && г.печь >= м.от && г.печь <= м.до; }
+function парПорядокПечей(список) {
+  const порядок = ПОРЯДКИ_ПЕЧЕЙ.some(п => п.код === appSettings.stoveSort) ? appSettings.stoveSort : 'default';
+  const место = new Map(список.map((м, i) => [м, i]));
+  const копия = список.slice();
+  if (порядок === 'volume') копия.sort((а, б) => а.от - б.от || а.до - б.до || парЦенаМодели(а) - парЦенаМодели(б) || место.get(а) - место.get(б));
+  if (порядок === 'price') копия.sort((а, б) => парЦенаМодели(а) - парЦенаМодели(б) || место.get(а) - место.get(б));
+  // Обратный — прямой, развёрнутый целиком, как у проектов.
+  return appSettings.stoveSortDesc ? копия.reverse() : копия;
+}
+function парЗначкиПорядка() {
+  const текущий = ПОРЯДКИ_ПЕЧЕЙ.some(п => п.код === appSettings.stoveSort) ? appSettings.stoveSort : 'default';
+  const обратно = !!appSettings.stoveSortDesc;
+  return '<span class="cs-sorts" role="group" aria-label="Порядок списка">' + ПОРЯДКИ_ПЕЧЕЙ.map(п => {
+    const вкл = п.код === текущий;
+    const подпись = подписьПорядка(п, вкл && обратно);
+    return '<button type="button" class="cs-sbtn' + (вкл ? ' on' : '') + (вкл && обратно ? ' desc' : '') + '"'
+      + ' data-sort="' + п.код + '" aria-label="' + подпись + '" aria-pressed="' + вкл + '"'
+      + ' onmouseenter="парнаяНавестиНаПорядок(\'' + п.код + '\', true)" onmouseleave="парнаяНавестиНаПорядок(\'' + п.код + '\', false)"'
+      + ' onclick="парнаяПорядокПечей(event,\'' + п.код + '\')">' + п.svg + '</button>';
+  }).join('') + '</span>';
+}
+function парнаяПорядокПечей(событие, код) {
+  // Список перерисовывается, и нажатие по ушедшей из документа кнопке
+  // обработчик «мимо списка» принял бы за нажатие снаружи.
+  if (событие) { событие.stopPropagation(); событие.preventDefault(); }
+  if (!ПОРЯДКИ_ПЕЧЕЙ.some(п => п.код === код)) return;
+  if ((appSettings.stoveSort || 'default') === код) appSettings.stoveSortDesc = !appSettings.stoveSortDesc;
+  else { appSettings.stoveSort = код; appSettings.stoveSortDesc = false; }
+  saveSettings();
+  парнаяСписокПечей();
+  const список = document.getElementById('steamStoveDropdown');
+  if (список) список.scrollTop = 0;
+  const п = ПОРЯДКИ_ПЕЧЕЙ.find(x => x.код === код);
+  показатьНазваниеПорядка(подписьПорядка(п, !!appSettings.stoveSortDesc), false, 'steamStoveDropdown');
+}
+function парнаяНавестиНаПорядок(код, вошли) {
+  if (!window.matchMedia || !window.matchMedia('(hover: hover)').matches) return;
+  if (!вошли) { if (!_подписьПорядкаТаймер) скрытьНазваниеПорядка(); return; }
+  if (_подписьПорядкаТаймер) return;
+  const п = ПОРЯДКИ_ПЕЧЕЙ.find(x => x.код === код);
+  const вкл = (appSettings.stoveSort || 'default') === код;
+  if (п) показатьНазваниеПорядка(подписьПорядка(п, вкл && !!appSettings.stoveSortDesc), true, 'steamStoveDropdown');
+}
+function парнаяПечиПодходят(событие) {
+  if (событие) { событие.stopPropagation(); событие.preventDefault(); }
+  _печиПодходят = !_печиПодходят;
+  парнаяСписокПечей();
 }
 function парнаяСписокПечей(г = парГеом()) {
   const список = document.getElementById('steamStoveDropdown');
   if (!список) return;
   const есть = ПАР.вкл.has('pech');
   const подпись = { 'Заказчика': 'Монтаж печи заказчика' };
-  let html = `<div class="custom-select-option${есть ? '' : ' selected'}" data-stove="" onclick="парнаяПечь('')"><span class="cso-name">Без печи</span></div>`;
+  const заказчика = ПАР_ПЕЧИ.filter(м => м.id === 'pech-zakazchika');
+  let модели = ПАР_ПЕЧИ.filter(м => м.id !== 'pech-zakazchika');
+  if (_печиПодходят) модели = модели.filter(м => парПечьПодходит(м, г));
+  модели = парПорядокПечей(модели);
+  // По производителям — с заголовками групп; по объёму и цене — сплошным
+  // списком: производитель стоит в начале названия модели.
+  const сГруппами = !ПОРЯДКИ_ПЕЧЕЙ.some(п => п.код === appSettings.stoveSort) || appSettings.stoveSort === 'default';
+  let html = `<div class="kit-ready-toggle" onclick="парнаяПечиПодходят(event)" title="Показать только печи, рассчитанные на объём этой парной">
+      <span class="krt-switch${_печиПодходят ? ' on' : ''}"><span class="krt-knob"></span></span>
+      <span class="krt-label">Подходят к парной · ${парЧисло(г.печь)} м³</span>
+    </div>`
+    + '<div class="cs-sortrow"><span class="cs-sortcap">Порядок списка</span>'
+    + '<span class="cs-sortname" onclick="скрытьНазваниеПорядка(event)"></span>' + парЗначкиПорядка() + '</div>';
+  html += `<div class="custom-select-option${есть ? '' : ' selected'}" data-stove="" onclick="парнаяПечь('')"><span class="cso-name">Без печи</span></div>`;
+  if (!модели.length) html += `<div class="custom-select-option cso-empty">Нет печей на ${парЧисло(г.печь)} м³</div>`;
   let группа = '';
-  ПАР_ПЕЧИ.forEach(м => {
-    if (м.марка !== группа) { группа = м.марка; html += `<div class="cso-group">${подпись[группа] || группа}</div>`; }
-    const подходит = м.id !== 'pech-zakazchika' && г.объём >= м.от && г.объём <= м.до;
+  [...модели, ...заказчика].forEach(м => {
+    if ((сГруппами || м.id === 'pech-zakazchika') && м.марка !== группа) { группа = м.марка; html += `<div class="cso-group">${подпись[группа] || группа}</div>`; }
+    const подходит = парПечьПодходит(м, г);
     const мета = м.id === 'pech-zakazchika' ? '0 ₽' : `${парЧисло(м.от)}–${парЧисло(м.до)} м³ · ${fmt(парЦенаМодели(м))}`;
     html += `<div class="custom-select-option${есть && м.id === ПАР.печь ? ' selected' : ''}" data-stove="${м.id}" onclick="парнаяПечь('${м.id}')">`
       + `<span class="cso-name">${м.имя}<span class="cso-meta"><span>${мета}</span>${подходит ? '<span class="cso-fit">подходит</span>' : ''}</span></span></div>`;
@@ -32051,21 +32228,82 @@ document.addEventListener('click', function (e) {
 });
 // «Сбросить всё» и «Сбросить выбор опций» — начало расчёта парной.
 function парнаяЗаново(толькоОпции) {
-  if (толькоОпции) ПАР.вкл = new Set();
+  if (толькоОпции) { ПАР.вкл = new Set(); ПАР.снятыСтроки = new Set(); }
   else ПАР = парНачало();
 }
 
 // ── Снимок ──
+// Наборы (отмеченные опции, снятые базы разделов, снятые строки базы) лежат в
+// снимке списками.
 function парнаяСнимок() {
-  return { ...ПАР, вкл: [...ПАР.вкл], снятыБазы: [...ПАР.снятыБазы] };
+  const с = { ...ПАР };
+  Object.keys(с).forEach(к => { if (с[к] instanceof Set) с[к] = [...с[к]]; });
+  return с;
 }
 function парнаяРазложить(снимок) {
   const н = парНачало();
   Object.keys(н).forEach(к => {
-    if (к === 'вкл' || к === 'снятыБазы') н[к] = new Set(Array.isArray(снимок && снимок[к]) ? снимок[к] : []);
+    if (н[к] instanceof Set) н[к] = new Set(Array.isArray(снимок && снимок[к]) ? снимок[к] : []);
     else if (снимок && снимок[к] != null) н[к] = снимок[к];
   });
   ПАР = н;
+}
+
+// ── Пресет парной ──
+// Открытие сохранённого расчёта парной (Константин, 27.10.2026: «По парной не
+// предлагает сохранить пресет… И в целом нет такой кнопки сохранить пресет»).
+// Проекта и толщины у парной нет — их ветку общего разбора она не проходит: «проект»
+// парной искался бы в каталоге и приезжал «из архива». Остальное — как у каркаса:
+// свои позиции и примечания, отметки строк, реквизиты, скидка, договоры и план.
+function парнаяОткрытьСнимок(state) {
+  парнаяРазложить(state.steam);
+  SECTIONS.forEach(с => { customOptions[с.key] = []; customNotes[с.key] = []; });
+  Object.entries(state.customOptions || {}).forEach(([к, список]) => {
+    if (customOptions[к]) customOptions[к] = (список || []).map(о => ({ ...о }));
+  });
+  const иды = Object.values(customOptions).flat().map(о => typeof о.id === 'number' ? о.id : 0);
+  if (иды.length) customIdCounter = Math.max(customIdCounter, ...иды) + 1;
+  Object.entries(state.customNotes || {}).forEach(([к, список]) => {
+    if (!customNotes[к]) return;
+    customNotes[к] = (список || []).map(з => ({ ...з }));
+    if (customNotes[к].length) customNoteIdCounter = Math.max(customNoteIdCounter,
+      ...customNotes[к].map(з => parseInt(String(з.id).replace('cn_', '')) || 0));
+  });
+  [[starredOpts, 'starredOpts'], [highlightedOpts, 'highlightedOpts'], [giftedOpts, 'giftedOpts'],
+   [printPriceVisible, 'printPriceVisible']].forEach(([набор, поле]) => {
+    набор.clear(); (state[поле] || []).forEach(ид => набор.add(ид));
+  });
+  hiddenNotes.clear();
+  if (state.hiddenNotes) перевестиМеткиПримечаний(state.hiddenNotes).forEach(ид => hiddenNotes.add(ид));
+  задатьПараметрыПечати(state.printDoc);
+  const поле = ид => document.getElementById(ид);
+  поле('managerName').value = state.manager != null ? безЦифрВТексте(state.manager) : '';
+  setTimeout(function () { try { подставитьМенеджера(); } catch (e) {} }, 60);
+  if (state.client != null) поле('clientName').value = state.client;
+  if (state.contractNumber != null && поле('contractNumber')) поле('contractNumber').value = state.contractNumber;
+  if (state.contractDate != null && поле('contractDate')) {
+    поле('contractDate').value = state.contractDate;
+    поле('contractDate').classList.toggle('empty', !state.contractDate);
+  }
+  положитьСкидку({ процент: state.discountPct != null ? state.discountPct : '0', режим: state.discountMode,
+                   сумма: state.discountAmt, наличные: state.cashDiscount, до: state.discountUntil });
+  if (state.contractData && typeof CD_FIELDS !== 'undefined') {
+    CD_FIELDS.forEach(([ид]) => { const е = поле(ид); if (е && state.contractData[ид] != null) е.value = state.contractData[ид]; });
+    try { saveContractData(); } catch (e) {}
+    try { updateContractDataStatus(); } catch (e) {}
+  }
+  if (Array.isArray(state.contractsConfig) && state.contractsConfig.length) {
+    contractsConfig = state.contractsConfig.map(д => ({ ...д,
+      payments: д.payments ? д.payments.map(р => ({ ...р })) : undefined, sections: д.sections ? [...д.sections] : [] }));
+    contractsNextId = Math.max(...contractsConfig.map(д => д.id), 1) + 1;
+    проставитьКодыСоставов();
+  }
+  if (state.ppState && typeof state.ppState === 'object') {
+    ppState = {};
+    Object.entries(state.ppState).forEach(([к, з]) => { ppState[parseInt(к)] = з; });
+  }
+  renderOptionSections();
+  calc();
 }
 
 // ── Расчёт ──
@@ -32094,7 +32332,7 @@ function парнаяПосчитать() {
     (ПАР_СТРОКИ[key] || []).forEach(([к, вид]) => {
       const ид = 'par_' + к;
       const базовая = вид === 'b';
-      const на = базовая ? (!снята && парБазоваяНужна(к)) : п.вкл.has(к);
+      const на = базовая ? (!снята && парБазоваяНужна(к) && !парСнятаСтрока(к)) : п.вкл.has(к);
       checkedOptions[ид] = на;
       const стр = эл('lbl_' + ид), чк = эл('chk_' + ид);
       if (стр) стр.classList.toggle('active', на);
@@ -32131,6 +32369,16 @@ function парнаяПосчитать() {
     }
   });
   renumberPositions();
+  // Снятая строка базы говорит, сколько она унесла.
+  ПАР_РАЗДЕЛЫ.forEach(({ key }) => (ПАР_СТРОКИ[key] || []).forEach(([к, вид]) => {
+    if (вид !== 'b') return;
+    const е = эл('incl_par_' + к);
+    if (!е) return;
+    const снята = парСнятаСтрока(к);
+    е.textContent = снята ? 'Снято с базы · −' + fmt(Math.round(парСуммаБазовой(к, г) || 0)) : '✓ Включено в базу';
+    е.classList.toggle('par-off', снята);
+    е.title = снята ? 'Снято с базовой комплектации — нажмите, чтобы вернуть' : 'Включено в базовую комплектацию';
+  }));
 
   // Поля и подписи строк
   document.querySelectorAll('#steamRoomCard .steam-dim').forEach(и => {
@@ -32141,7 +32389,12 @@ function парнаяПосчитать() {
   Object.keys(ПАР_ШАГ).forEach(к => {
     const ч = к === 'brig' ? парДни(г) : п[к];
     const в = эл('qtyval_par_' + к), е = эл('unit_par_' + к);
-    if (в && document.activeElement !== в) { в.value = парЧисло(ч); в.style.setProperty('--n', в.value.length); }
+    // Ширина поля — по цифрам, запятая узкая и считается за долю цифры: иначе
+    // «3,75» стояло в клетке на четыре цифры, с пустотой по краям.
+    if (в && document.activeElement !== в) {
+      в.value = парЧисло(ч);
+      в.style.setProperty('--n', в.value.replace(/\D/g, '').length + (/,/.test(в.value) ? 0.4 : 0));
+    }
     if (е) е.textContent = парЕдиница(к, ч);
   });
   const м2 = ч => парЧисло(ч) + ' м²';
@@ -32160,8 +32413,8 @@ function парнаяПосчитать() {
     if (имяП) имяП.textContent = парИмяПечи(м);
     if (м.id === 'pech-zakazchika') { почему('pech', ''); подпись('pech', 'печь даёт заказчик — в расчёте установка из базы раздела'); }
     else {
-      const ок = г.объём >= м.от && г.объём <= м.до;
-      почему('pech', (ок ? 'подходит' : г.объём > м.до ? 'мала' : 'велика') + ': парная ' + парЧисло(г.объём) + ' м³', !ок);
+      const ок = парПечьПодходит(м, г);
+      почему('pech', (ок ? 'подходит' : г.печь > м.до ? 'мала' : 'велика') + ': нужна на ' + парЧисло(г.печь) + ' м³', !ок);
       подпись('pech', парЧисло(м.от) + '–' + парЧисло(м.до) + ' м³ · камни ' + м.камни + ' кг · цена поставщика'
         + (м.наценка !== 1 ? ' × ' + парЧисло(м.наценка) : ''));
     }
@@ -32178,10 +32431,14 @@ function парнаяПосчитать() {
     о.classList.toggle('selected', о.dataset.room === п.комн));
   const инфо = эл('steamInfo');
   if (инфо) {
-    инфо.innerHTML = [['Объём', парЧисло(г.объём) + ' м³'],
+    инфо.innerHTML = [['Объём', парЧисло(г.объём) + ' м³'], ['Объём для печи', парЧисло(г.печь) + ' м³'],
       ['Стены и потолок', м2(г.отд)], ['Пол', м2(г.пол)], ['Цена базы', fmt(база)]]
       .map(([к, в]) => `<div class="info-chip"><span class="ic-k">${к}</span><strong>${в}</strong></div>`).join('')
-      + `<div class="info-chip" id="steamM3Chip" style="color:var(--green-dark);border-color:var(--green-mid);"><span class="ic-k">Цена за м³</span><strong>${fmt(всего / г.объём)}</strong></div>`;
+      + `<div class="info-chip" id="steamM3Chip" style="color:var(--green-dark);border-color:var(--green-mid);"><span class="ic-k">Цена за м³</span><strong>${fmt(всего / г.объём)}</strong></div>`
+      // Та же кнопка, что под проектом у каркаса.
+      + `<button class="btn-edit-project btn-save-preset" onclick="savePreset()" style="background:color-mix(in srgb,var(--green-light) 15%,var(--card-bg));border-color:var(--green-mid);color:var(--green-dark);">`
+      + `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>`
+      + `Сохранить пресет</button>`;
   }
 
   // «Проект» парной: имя с размерами, цена базы — им подписаны лист печати и шапка.
@@ -32267,6 +32524,12 @@ function парнаяПосчитать() {
   if (typeof updateSideNavInfo === 'function') { try { updateSideNavInfo(); } catch (e) {} }
   // План идёт за ценой, как у каркаса: через этот пересчёт проходит любая правка.
   try { следитьЗаПарнойВПлане(); } catch (e) {}
+  // Дальше — как в конце calc(): открытый пресет помечается изменённым и
+  // сохраняется сам, реквизиты сверяются, общий пресет и ссылка обновляются.
+  пометитьПресетГрязным();
+  try { al2РеквизитыПроверить(); } catch (e) {}
+  if (typeof collabSectionChanged === 'function') collabSectionChanged('spec');
+  try { запланироватьАвтообновлениеСсылки(); } catch (e) {}
 }
 
 // ── Выгрузка парной в Excel ──
@@ -32322,13 +32585,19 @@ function парнаяВExcel() {
   пар('Утепление нужно', н(п.комн === 'stone' ? 1 : 0, 'IF(Тип_помещения="Камень",1,0)'), '1 / 0', 'Утепление_нужно', 'только по камню');
   пар('Площадь стен и потолка', н(г.отд, '2*(Длина+Ширина)*Высота+Длина*Ширина', СТАВКА), 'м²', 'Площадь_отделки', 'периметр × высота + потолок');
   пар('Площадь пола', н(г.пол, 'Длина*Ширина', СТАВКА), 'м²', 'Площадь_пола', 'длина × ширина');
-  пар('Объём парной', н(г.объём, 'Длина*Ширина*Высота', СТАВКА), 'м³', 'Объём', 'по нему подбирается печь');
+  пар('Объём парной', н(г.объём, 'Длина*Ширина*Высота', СТАВКА), 'м³', 'Объём', 'длина × ширина × высота');
   пар('Полки из осины, 2 яруса', н(п.polki), 'м²', 'Полки_м2', 'вводится');
   пар('Плафоны', н(п.plaf), 'шт.', 'Плафоны', 'вводится');
   пар('Клапаны «Флама»', н(п.klap), 'шт.', 'Клапаны', 'вводится');
   пар('Подсветка полков', н(п.podsv), 'уровней', 'Подсветка_уровней', 'вводится');
   пар('Можжевеловое панно', н(п.panno), 'м²', 'Панно_м2', 'вводится');
   пар('Панорамное окно', н(п.okno), 'м²', 'Окно_м2', 'вводится');
+  // Окно_отмечено — ячейка «Отмечена» строки окна на листе раздела: отметка
+  // одна, и объём для печи идёт за ней.
+  пар('Запас печи по объёму', н(ПАР_ЗАПАС_ПЕЧИ), 'доля', 'Запас_печи', 'Анатолий, 27.10.2026: объём парной + 20 %');
+  пар('Окно: прибавка к объёму печи', н(ПАР_ОКНО_М3), 'м³ за м²', 'Окно_м3', 'за каждый начатый м² окна, если окно в расчёте');
+  пар('Объём для печи', н(г.печь, 'ROUND(Объём*(1+Запас_печи)+Окно_м3*ROUNDUP(Окно_м2,0)*Окно_отмечено,1)'), 'м³', 'Объём_печи',
+    'по нему подбирается печь на листе «Печи»');
   пар('Камни для печи', н(п.kamni), 'кг', 'Камни_кг', 'вводится; при выборе печи — масса с листа «Печи»');
   пар('Доставка', н(п.dost), 'км от МКАД', 'Доставка_км', 'вводится');
   пар('Модель печи', т(м.имя), '', 'Модель_печи', 'название с листа «Печи», цена берётся оттуда');
@@ -32361,7 +32630,7 @@ function парнаяВExcel() {
       const кол = с.кол === undefined ? н(1) : с.кол;
       const колЧ = кол.v;
       if (с.база) {
-        const отм = с.отм === undefined ? н(1) : с.отм;
+        const отм = с.отм === undefined ? н(парСнятаСтрока(с.код) ? 0 : 1) : с.отм;
         const цена = с.ставка * колЧ;
         const вСумму = цена * отм.v * (1 - снята);
         сумма += вСумму;
@@ -32375,6 +32644,7 @@ function парнаяВExcel() {
         const вСумму = цена * отм * (1 - подарок);
         сумма += вСумму;
         const ставка = с.ставка === undefined ? '' : (typeof с.ставка === 'object' ? с.ставка : н(с.ставка, null, СТАВКА));
+        if (с.код === 'okno') имена.push({ Name: 'Окно_отмечено', Ref: имя(лист, '$D$' + r) });
         S.push([с.код, с.имя, 'опция', н(отм), н(подарок), кол, с.ед || '', ставка,
           н(цена, с.формула ? с.формула(r) : (с.ставка === undefined ? null : `ROUND(F${r}*H${r},0)`), РУБ),
           н(вСумму, `I${r}*D${r}*(1-E${r})`, РУБ), с.как || (typeof с.ставка === 'number' ? 'цена книги' : '')]);
@@ -32474,7 +32744,7 @@ function парнаяВExcel() {
     { база: 1, код: 'kamni', имя: 'Камень для печи «Жадеит»', кол: кол(п.kamni, 'Камни_кг'), ед: 'кг', ставка: 387.29, как: 'за кг' },
   ].concat(опцииПечи));
 
-  раздел('Логистика', 'par_log', [
+  раздел('Дополнительные опции', 'par_log', [
     { база: 1, код: 'dost', имя: 'Доставка материалов и оборудования — до 50 км от МКАД', ставка: 30228, как: 'книга, раздел 9' },
     { база: 1, код: 'dost', имя: 'Доставка дальше 50 км от МКАД', кол: н(Math.max(0, п.dost - 50), 'MAX(0,Доставка_км-50)'), ед: 'км', ставка: 100, как: 'за километр сверх 50' },
     { база: 1, код: 'brig', имя: 'Суточные бригады, 2 человека', кол: н(2 * дни, '2*Дни_бригады'), ед: 'чел.-дн.', ставка: 425.08, как: 'книга, раздел 9' },
@@ -32486,13 +32756,13 @@ function парнаяВExcel() {
 
   // ── Печи ──
   const K = [['Каталог печей — книга «Калькулятор парной» v2.4, лист «Печи»'],
-    ['Цена заказчику = цена с сайта × наценка. Модель для расчёта выбирается на листе «Параметры» (Модель_печи).'], [],
+    ['Цена заказчику = цена с сайта × наценка. Модель для расчёта выбирается на листе «Параметры» (Модель_печи). «Подходит» — объём для печи (Объём_печи: парная + 20 % и 3 м³ за м² окна) в пределах «от» и «до».'], [],
     ['Модель', 'Производитель', 'Объём от, м³', 'Объём до, м³', 'Цена с сайта, ₽', 'Наценка', 'Цена заказчику, ₽', 'Камни, кг', 'Подходит к парной']];
   ПАР_ПЕЧИ.forEach(м2 => {
-    const r = K.length + 1, подходит = г.объём >= м2.от && г.объём <= м2.до && м2.id !== 'pech-zakazchika';
+    const r = K.length + 1, подходит = парПечьПодходит(м2, г);
     K.push([м2.имя, м2.марка === 'Заказчика' ? '—' : м2.марка, н(м2.от), н(м2.до), н(м2.сайт, null, РУБ), н(м2.наценка),
       н(парЦенаМодели(м2), `ROUND(E${r}*F${r},0)`, РУБ), н(м2.камни),
-      т(подходит ? 'да' : '', `IF(AND(Объём>=C${r},Объём<=D${r},E${r}>0),"да","")`)]);
+      т(подходит ? 'да' : '', `IF(AND(Объём_печи>=C${r},Объём_печи<=D${r},E${r}>0),"да","")`)]);
   });
   XL.book_append_sheet(wb, вЛист(K, [52, 14, 12, 12, 15, 9, 16, 10, 16]), 'Печи');
 
@@ -32504,7 +32774,7 @@ function парнаяВExcel() {
   ПАР_РАЗДЕЛЫ.forEach(({ key, name }) => I.push([name, н(итоги[key].сумма, 'Итог_' + key, РУБ), 'итог листа раздела']));
   const rВсего = I.length + 1;
   I.push(['Общая стоимость', н(всего, `SUM(B4:B${I.length})`, РУБ), 'сумма разделов']);
-  const базаФ = ['Парное отделение', 'Печь и комплектующие', 'Логистика'].map(л => `SUMIF('${л}'!C:C,"база",'${л}'!J:J)`).join('+');
+  const базаФ = ['Парное отделение', 'Печь и комплектующие', 'Дополнительные опции'].map(л => `SUMIF('${л}'!C:C,"база",'${л}'!J:J)`).join('+');
   I.push(['в том числе база комплектации', н(базаВсего, базаФ, РУБ), 'строки «база» всех разделов']);
   const rСкидка = I.length + 1;
   I.push(['Скидка', н(скидка, null, РУБ), 'из калькулятора при выгрузке']);
@@ -33776,14 +34046,7 @@ function разложитьРасчёт(state) {
     });
     return;
   }
-  if (currentTech === 'steam') {
-    парнаяРазложить(state.steam);
-    const поле = document.getElementById('discountPctInput');
-    if (поле) поле.value = state.discountPct || 0;
-    renderOptionSections();
-    calc();
-    return;
-  }
+  if (currentTech === 'steam') { парнаяОткрытьСнимок(state); return; }
   clearAppliedKit();
   забытьСуммыБезПлощади();
   kbAreas.fasad = state.kbAreas ? (state.kbAreas.fasad ?? null) : null;
@@ -37533,7 +37796,6 @@ function данныеНовогоПресета() {
   return { state, autoName };
 }
 function savePreset() {
-  if (парнаяБезЭтого('Сохранение пресетом')) return;
   const { state, autoName } = данныеНовогоПресета();
   // Колбэк async: любое исключение внутри превращалось в необработанный
   // rejection — ни тоста, ни записи в список, ни следа в интерфейсе. Ловим сами,
@@ -37545,7 +37807,6 @@ function savePreset() {
 // Сохранение расчёта новым пресетом — из диалога имени и без него (печать
 // несохранённого расчёта, см. кодРасчётаДляПечати). Возвращает код пресета.
 async function сохранитьНовыйПресет(name, autoName, state) {
-    if (парнаяБезЭтого('Сохранение пресетом')) return null;
     const id = 'preset_' + Date.now();
     // Код запоминаем здесь, а не ищем потом по открытому пресету: в журнал он
     // уходит из этой же переменной, и найдётся ли он в памяти браузера, уже
@@ -40108,8 +40369,6 @@ function вернутьНапоминаниеПослеПравки() { верн
 
 function надоНапомнитьСохранить() {
   if (_напоминаниеСнято) return false;
-  // У парной пресетов пока нет — напоминать сохранить нечем.
-  if (typeof currentTech !== 'undefined' && currentTech === 'steam') return false;
   if (typeof selectedProject === 'undefined' || !selectedProject) return false;
   if (typeof activePresetId !== 'undefined' && activePresetId) return false;
   if (typeof _activeSharedCode !== 'undefined' && _activeSharedCode) return false;
@@ -43240,7 +43499,7 @@ function блокСогласованияHtml(пр) {
     return '<div class="pc-row">' + кнопка('ap-send', текст, true, !!под) + '</div>' + (под ? '<div class="pc-hint pc-ap-why">' + escapeHtml(под) + '</div>' : '');
   };
   if (!а) {
-    h = плашка('pc-ap-off', ЗНАЧОК_ЗАМОК_МАЛ, '<b>Не согласован.</b> ' + (РОЛИ_ДОГОВОРА.includes(window._sbProfile?.role) ? 'Договор администратору и редактору открыт и без согласования.' : 'Договор откроется после согласования.'))
+    h = плашка('pc-ap-off', ЗНАЧОК_ЗАМОК_МАЛ, '<b>Не согласован.</b> ' + (РОЛИ_ДОГОВОРА.includes(window._sbProfile?.role) ? 'Договор открыт и без согласования: вашей роли он доступен всегда.' : 'Договор откроется после согласования.'))
       + отправка('Отправить на согласование');
   } else if (а.state === 'approved' && а.approved_print === отп) {
     h = плашка('pc-ap-ok', ЗНАЧОК_СОГЛАСОВАН, '<b>Согласовано</b> ' + escapeHtml(строкаСогласования([когдаСогласования(а.approved_at), сумма(а.approved_total),

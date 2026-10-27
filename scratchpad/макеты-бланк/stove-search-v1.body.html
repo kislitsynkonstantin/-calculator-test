@@ -1,0 +1,122 @@
+Поиск печи парной
+<main class="bl-sheet">
+  <header class="bl-doc-head">
+    <div><img class="bl-logo bl-logo--day" src="@@LOGO_DAY@@" alt="Баня МСК"><img class="bl-logo bl-logo--night" src="@@LOGO_NIGHT@@" alt="" aria-hidden="true"></div>
+    <div class="bl-doc-head__meta">Макет · версия 1<br>27.10.2026</div>
+  </header>
+  <p class="bl-eyebrow">Макет · калькулятор парных</p>
+  <h1 class="bl-title">Поиск печи — <em>отдельным полем или внутри списка</em></h1>
+  <p class="bl-lead">В списке печей парной 46 моделей из книги. В каркасе и брусе поиск — отдельное поле «Поиск» над полем «Проект». Для парной есть второй путь: строка поиска первой строкой раскрытого списка, над переключателем «Подходят к парной» и строкой «Порядок списка». Оба варианта ниже живые: в поле можно печатать, переключатель и значки порядка работают.</p>
+  <div class="bl-head-rule"></div>
+
+  <section class="bl-section">
+    <div class="bl-section__h"><span class="bl-section__no">1.</span>Два варианта на одном расчёте<span class="bl-section__tag">парная 3 × 4 × 2,3 м · печь на 33,1 м³</span></div>
+    <div class="bl-section__body bl-row-samples">
+      <div class="var">
+        <div class="bl-k">А · поле «Поиск» над «Печью», как в каркасе и брусе</div>
+        <div class="card">
+          <div class="ch">Параметры парной</div>
+          <div class="fld"><span>Тип помещения</span><div class="val"><b>Камень: кирпич, блок, бетон</b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div></div>
+          <div class="fld"><span>Размеры, м</span><div class="val"><span class="dims"><b>3</b><i>×</i><b>4</b><i>×</i><b>2,3</b></span></div></div>
+          <div class="fld"><span>Поиск</span><div class="val"><label class="srch" data-v="a"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input type="text" placeholder="Поиск по названию…" value="ялта" aria-label="Поиск печи"><button class="x" type="button" aria-label="Очистить"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></label></div></div>
+          <div class="fld"><span>Печь</span><div class="val trig open" data-v="a"><b>ИзиСтим Ялта 35 в камне</b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div></div>
+          <div class="dd" id="dd-a"></div>
+        </div>
+        <p class="cost"><b>Что стоит:</b> карточка «Параметры парной» растёт на одну строку навсегда — и тогда, когда печь уже выбрана и искать нечего. На телефоне это ещё один экран прокрутки до разделов.</p>
+        <p class="cost"><b>Что даёт:</b> привычно по каркасу и брусу; набранное видно и при закрытом списке.</p>
+      </div>
+      <div class="var">
+        <div class="bl-k">Б · поиск первой строкой раскрытого списка</div>
+        <div class="card">
+          <div class="ch">Параметры парной</div>
+          <div class="fld"><span>Тип помещения</span><div class="val"><b>Камень: кирпич, блок, бетон</b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div></div>
+          <div class="fld"><span>Размеры, м</span><div class="val"><span class="dims"><b>3</b><i>×</i><b>4</b><i>×</i><b>2,3</b></span></div></div>
+          <div class="fld"><span>Печь</span><div class="val trig open" data-v="b"><b>ИзиСтим Ялта 35 в камне</b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div></div>
+          <div class="dd" id="dd-b"></div>
+        </div>
+        <p class="cost"><b>Что стоит:</b> ничего в карточке — поиск появляется, только пока список открыт, и закрытый список забывает набранное.</p>
+        <p class="cost"><b>Что даёт:</b> на компьютере курсор сразу в строке поиска — открыл список и печатаешь. На телефоне клавиатура сама не выезжает: она закрыла бы список, строку поиска нажимают, когда она нужна.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="tip"><strong>Предлагаю вариант Б.</strong> Поиск нужен только в момент выбора, а карточка остаётся той же высоты. С включённым «Подходят к парной» список и так короткий — парной 27,6 м³ нужна печь на 33,1 м³, таких <span id="nfit"></span> моделей, — поэтому поиск в парной нужен реже, чем в каталоге проектов каркаса. Ищет он так же, как поиск проектов: по словам в любом порядке и в другой раскладке — «zknf» находит «Ялту».</div>
+  <div class="tip"><strong>Как отвечать:</strong> «Б — да» или «А».</div>
+  <div class="bl-foot"><span>Баня МСК · макет «Поиск печи парной» · 46 дровяных печей книги «Калькулятор парной» v2.4, цены — сайт × наценка</span><span>27.10.2026</span></div>
+</main>
+<script>
+const ПЕЧИ = [["Ферингер", "Ферингер Уют-18 (топка внутри парной)", 8, 18, 43000], ["Ферингер", "Ферингер Малютка", 8, 18, 58700], ["Ферингер", "Ферингер Классика", 12, 23, 79000], ["Ферингер", "Ферингер Квадра (квадратная)", 14, 25, 73300], ["Ферингер", "Ферингер Оптима", 16, 28, 64400], ["Ферингер", "Ферингер Малютка, Змеевик наборный", 8, 18, 129700], ["Ферингер", "Ферингер Оптима, Змеевик наборный", 16, 28, 159900], ["Ферингер", "Ферингер Малютка, Окаменевшее дерево", 8, 18, 156000], ["Ферингер", "Ферингер Оптима, Окаменевшее дерево", 12, 23, 192200], ["ИзиСтим", "ИзиСтим Ялта 15 модерн", 10, 15, 103950], ["ИзиСтим", "ИзиСтим Ялта 15 в кожухе из природного камня", 10, 15, 155505], ["ИзиСтим", "ИзиСтим Ялта 25 модерн", 16, 25, 115500], ["ИзиСтим", "ИзиСтим Ялта 25 в кожухе из природного камня", 16, 25, 183015], ["ИзиСтим", "ИзиСтим Ялта 25К", 16, 25, 197505], ["ИзиСтим", "ИзиСтим Ялта 25К в облицовке из камня", 16, 25, 259875], ["ИзиСтим", "ИзиСтим Ялта 35 модерн", 25, 35, 145950], ["ИзиСтим", "ИзиСтим Ялта 35 в камне", 25, 35, 208425], ["ИзиСтим", "ИзиСтим Ялта 35К", 25, 35, 243705], ["ИзиСтим", "ИзиСтим Ялта 40/2024 (AISI 430)", 28, 40, 170100], ["ИзиСтим", "ИзиСтим Ялта 40/2024 в облицовке из камня (AISI 430)", 28, 40, 241500], ["ИзиСтим", "ИзиСтим Ялта 40/2024 (AISI 321)", 28, 40, 269850], ["ИзиСтим", "ИзиСтим Ялта 40/2024 в облицовке из камня (AISI 321)", 28, 40, 346185], ["ИзиСтим", "ИзиСтим Анапа", 10, 16, 146685], ["ИзиСтим", "ИзиСтим Анапа К", 10, 16, 249375], ["ИзиСтим", "ИзиСтим Анапа в трёхстороннем кожухе из талькохлорита", 10, 16, 299775], ["ИзиСтим", "ИзиСтим Сочи", 14, 22, 164010], ["ИзиСтим", "ИзиСтим Сочи-М2", 14, 22, 173250], ["ИзиСтим", "ИзиСтим Сочи К", 14, 22, 277830], ["ИзиСтим", "ИзиСтим Геленджик", 25, 35, 214830], ["ИзиСтим", "ИзиСтим Южная 9, открытый верх", 6, 9, 277830], ["ГРОМ", "ГРОМ 30 (П2), печь-комплект", 16, 30, 192255], ["ГРОМ", "ГРОМ 30 (П2) Русский пар", 16, 30, 224700], ["ГРОМ", "ГРОМ 30 (П2) Ураган", 16, 30, 205590], ["ГРОМ", "ГРОМ 40 (П2), печь-комплект", 25, 40, 249690], ["ГРОМ", "ГРОМ 40 (П2) Русский пар", 25, 40, 284760], ["ГРОМ", "ГРОМ 40 (П2) Ураган", 25, 40, 265755], ["ГРОМ", "ГРОМ 50 (П2), печь-комплект", 35, 50, 357105], ["ГРОМ", "ГРОМ 50 (П2) Ураган", 35, 50, 359415], ["ГРОМ", "ГРОМ 30 (П2) Президент 1000/40 Талькохлорит", 16, 30, 333900], ["ГРОМ", "ГРОМ 30 (П2) Президент 980/40 Змеевик", 16, 30, 338835], ["ГРОМ", "ГРОМ 40 (П2) Президент 1150/40 Талькохлорит", 25, 40, 432915], ["ГРОМ", "ГРОМ 40 (П2) Президент 1130/40/40 Змеевик", 25, 40, 442470], ["ГРОМ", "ГРОМ 30 (П2) Русский пар 1540/40 Талькохлорит кирпич", 16, 30, 446250], ["Другие", "Ермак-Элит 12-ПС", 6, 12, 43401], ["Другие", "ERMAK 16 Премиум", 8, 18, 51194], ["Другие", "Harvia Legend 240", 12, 24, 165000]];
+const ОБЪЁМ = 33.1;  // парная 27,6 м³ + 20 % — правило Анатолия, 27.10.2026
+const ЛАТ = "qwertyuiop[]asdfghjkl;'zxcvbnm,.`", РУС = 'йцукенгшщзхъфывапролджэячсмитьбюё';
+const перевод = (т, из, в) => [...т].map(ч => { const и = из.indexOf(ч); return и >= 0 ? в[и] : ч; }).join('');
+const р = ч => ч.toLocaleString('ru-RU') + ' ₽';
+const ч = х => String(х).replace('.', ',');
+const подходит = п => ОБЪЁМ >= п[2] && ОБЪЁМ <= п[3];
+const СТР = '<path class="ar" d="M18 5v14M18 19l-2.5-2.5M18 19l2.5-2.5"/>';
+const ПОРЯДКИ = [
+  ['volume', 'По объёму: с маленьких парных', 'По объёму: с больших парных', '<path d="M8 4.5l5 2.7v5.6L8 15.5l-5-2.7V7.2z M8 9.9l5-2.7 M8 9.9v5.6 M8 9.9L3 7.2"/>'],
+  ['price', 'Сначала дешевле', 'Сначала дороже', '<path d="M6 19V5h4a3.5 3.5 0 0 1 0 7H4 M4 15.5h7"/>'],
+  ['default', 'Как в книге: по производителям', 'Как в книге, наоборот', '<path d="M4 7h9M4 12h9M4 17h9"/>'],
+];
+const С = { a: { q: 'ялта', fit: false, sort: 'default', desc: false, open: true }, b: { q: 'ялта', fit: false, sort: 'default', desc: false, open: true } };
+const выбрана = 'ИзиСтим Ялта 35 в камне';
+function слова(q) { return q.toLowerCase().trim().split(/\s+/).filter(Boolean).map(с => [...new Set([с, перевод(с, ЛАТ, РУС), перевод(с, РУС, ЛАТ)])]); }
+function подсветить(имя, сл) {
+  let т = имя;
+  сл.forEach(вар => вар.forEach(с => { if (!с) return; const и = т.toLowerCase().indexOf(с); if (и >= 0 && т.indexOf('<mark>') < 0) т = т.slice(0, и) + '<mark>' + т.slice(и, и + с.length) + '</mark>' + т.slice(и + с.length); }));
+  return т;
+}
+function список(в) {
+  const с = С[в], сл = слова(с.q);
+  let м = ПЕЧИ.filter(п => сл.every(вар => вар.some(х => п[1].toLowerCase().includes(х))));
+  if (с.fit) м = м.filter(подходит);
+  const место = new Map(ПЕЧИ.map((п, i) => [п, i]));
+  if (с.sort === 'volume') м.sort((а, б) => а[2] - б[2] || а[3] - б[3] || а[4] - б[4]);
+  if (с.sort === 'price') м.sort((а, б) => а[4] - б[4] || место.get(а) - место.get(б));
+  if (с.desc) м.reverse();
+  const группы = с.sort === 'default';
+  let h = '';
+  if (в === 'b') h += '<label class="in"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input type="text" placeholder="Найти печь…" value="' + с.q.replace(/"/g, '&quot;') + '" aria-label="Найти печь"></label>';
+  h += '<div class="tg" data-tg><span class="sw' + (с.fit ? ' on' : '') + '"><i></i></span><b>Подходят к парной · 33,1 м³</b></div>';
+  h += '<div class="sr"><span>Порядок списка</span><span class="sbs">' + ПОРЯДКИ.map(([к, пр, об, глиф]) => {
+    const вкл = к === с.sort;
+    return '<button type="button" class="sb' + (вкл ? ' on' : '') + (вкл && с.desc ? ' desc' : '') + '" data-sort="' + к + '" title="' + (вкл && с.desc ? об : пр) + '" aria-pressed="' + вкл + '"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + глиф + СТР + '</svg></button>';
+  }).join('') + '</span></div>';
+  h += '<div class="op" data-pick="Без печи">Без печи</div>';
+  if (!м.length) h += '<div class="emp">' + (с.q.trim() ? 'Ничего не нашлось по «' + с.q.trim() + '»' : 'Нет печей на 33,1 м³') + '</div>';
+  let г = '';
+  м.forEach(п => {
+    if (группы && п[0] !== г) { г = п[0]; h += '<div class="gr">' + г + '</div>'; }
+    h += '<div class="op' + (п[1] === выбрана ? ' sel' : '') + '" data-pick="' + п[1] + '">' + подсветить(п[1], сл) + '<small><span>' + ч(п[2]) + '–' + ч(п[3]) + ' м³ · ' + р(п[4]) + '</span>' + (подходит(п) ? '<span class="fit">подходит</span>' : '') + '</small></div>';
+  });
+  if (!с.q.trim() || 'печь заказчика'.includes(с.q.trim().toLowerCase())) h += '<div class="gr">Монтаж печи заказчика</div><div class="op" data-pick="Печь заказчика">Печь заказчика<small><span>0 ₽</span></small></div>';
+  const д = document.getElementById('dd-' + в);
+  const фокус = document.activeElement && д.contains(document.activeElement) && document.activeElement.tagName === 'INPUT';
+  const поз = фокус ? document.activeElement.selectionStart : 0;
+  д.innerHTML = h;
+  д.hidden = !с.open;
+  if (фокус) { const и = д.querySelector('.in input'); и.focus(); и.setSelectionRange(поз, поз); }
+}
+['a', 'b'].forEach(в => {
+  const д = document.getElementById('dd-' + в);
+  д.addEventListener('click', e => {
+    if (e.target.closest('[data-tg]')) { С[в].fit = !С[в].fit; список(в); return; }
+    const б = e.target.closest('[data-sort]');
+    if (б) { const к = б.dataset.sort; if (С[в].sort === к) С[в].desc = !С[в].desc; else { С[в].sort = к; С[в].desc = false; } список(в); д.scrollTop = 0; return; }
+    const о = e.target.closest('[data-pick]');
+    if (о) { document.querySelector('.trig[data-v="' + в + '"] b').textContent = о.dataset.pick; С[в].open = false; if (в === 'b') С.b.q = ''; список(в); document.querySelector('.trig[data-v="' + в + '"]').classList.remove('open'); }
+  });
+  д.addEventListener('input', e => { if (e.target.matches('.in input')) { С[в].q = e.target.value; список(в); } });
+  document.querySelector('.trig[data-v="' + в + '"]').addEventListener('click', e => {
+    С[в].open = !С[в].open; e.currentTarget.classList.toggle('open', С[в].open); список(в);
+    if (С[в].open && в === 'b' && matchMedia('(hover: hover)').matches) д.querySelector('.in input').focus();
+  });
+  список(в);
+});
+const поле = document.querySelector('.srch[data-v="a"]');
+const обновитьКрест = () => поле.classList.toggle('has', !!поле.querySelector('input').value);
+поле.querySelector('input').addEventListener('input', e => { С.a.q = e.target.value; С.a.open = true; document.querySelector('.trig[data-v="a"]').classList.add('open'); список('a'); обновитьКрест(); });
+поле.querySelector('.x').addEventListener('click', e => { e.preventDefault(); поле.querySelector('input').value = ''; С.a.q = ''; список('a'); обновитьКрест(); });
+обновитьКрест();
+document.getElementById('nfit').textContent = ПЕЧИ.filter(подходит).length;
+</script>
