@@ -16,7 +16,15 @@
   • тип помещения: каркас под отделку и утепление по камню ставятся и
     снимаются сами, и база раздела меняется ровно на их цену;
   • размеры, счётчики, срок бригады вручную, «Снять базу», скидку;
-  • то, чего у парной в этой сборке нет (печать, платёжный план, пресет),
+  • строки как у каркаса (Константин, 27.10.2026: «Ручные/опции примечания
+    не добавить. Печать неактивная. Все иконки по выделению, глаз, избранные
+    должны как в каркасе работать»): подарок снимает цену с итога, выделение,
+    глаз и избранное ставятся и переживают перерисовку, своя позиция идёт в
+    сумму, своё примечание добавляется;
+  • печать открывается без попытки сохранить пресет; на листе «Бланка» —
+    помещение вместо толщины и суммы разделов парной, на других листах нет
+    ни кровли, ни утепления, ни толщины;
+  • то, чего у парной в этой сборке нет (платёжный план, пресет, поиск),
     отвечает словами и окна не открывает;
   • каркас и брус после парной — свои разделы, проекты и расчёт;
   • калитку: в бою пункт видит только администратор, на тесте — все;
@@ -25,7 +33,7 @@
 
     python3 check_steam_tab.py
 """
-import pathlib, sys
+import pathlib, re, sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import check_preset_chip as м
@@ -207,8 +215,72 @@ def расчёт(бр, порт):
     if в != [3, "stone", [], 1257216, "steam"]:
         плохо(f"«Сбросить всё» у парной: {в} — ждали 3 м, камень, без опций, 1 257 216 ₽")
 
+    # Строки как у каркаса: подарок, выделение, глаз, избранное, свои позиции и примечания.
+    стр.evaluate("ид => ид.forEach(к => document.getElementById('lbl_par_' + к).click())", МАКЕТ)
+    итог = "() => Number(document.getElementById('totalDisplay').textContent.replace(/\\D/g, ''))"
+    до = стр.evaluate(итог)
+    стр.click('#gift_par_spinki', force=True)
+    в = стр.evaluate("() => [giftedOpts.has('par_spinki'), !!document.querySelector('#lbl_par_spinki .opt-gift-badge'),"
+                     " document.getElementById('optprice_par_spinki').classList.contains('gifted')]")
+    if стр.evaluate(итог) != до - 14169 or в != [True, True, True]:
+        плохо(f"подарок у спинок: итог {стр.evaluate(итог)} при {до}, отметки {в} — ждали минус 14 169 ₽ и знак «В подарок»")
+    for к in ('hl', 'eye', 'star'):
+        стр.click(f'#{к}_par_okno', force=True)
+    в = стр.evaluate("() => [highlightedOpts.has('par_okno'), printPriceVisible.has('par_okno'), starredOpts.has('par_okno'), ПАР.вкл.has('okno')]")
+    if в != [True, True, True, True]:
+        плохо(f"выделение, глаз и избранное у окна: {в} — и строка не должна сниматься нажатием по кнопкам")
+    стр.click('#addBtn_par_st')
+    стр.fill('#addName_par_st', 'Полка-лежак из кедра')
+    стр.fill('#addPrice_par_st', '45000')
+    стр.click('#addForm_par_st .btn-confirm-add')
+    стр.click('#addNoteBtn_par_pech')
+    стр.fill('#noteText_par_pech', 'Дымоход до 6 м входит в расчёт')
+    стр.click('#addNoteForm_par_pech .btn-confirm-add')
+    в = стр.evaluate("() => [getCustomOpts('par_st').length, getCustomNotes('par_pech').length]")
+    if в != [1, 1] or стр.evaluate(итог) != до - 14169 + 45000:
+        плохо(f"своя позиция и примечание: {в}, итог {стр.evaluate(итог)} — ждали по одной и +45 000 ₽")
+    стр.evaluate("() => { renderOptionSections(); calc(); }")
+    в = стр.evaluate("() => [document.getElementById('lbl_par_okno').classList.contains('highlighted'),"
+                     " document.getElementById('star_par_okno').classList.contains('starred'),"
+                     " document.getElementById('eye_par_okno').classList.contains('active'),"
+                     " !!document.querySelector('#lbl_par_spinki .opt-gift-badge'),"
+                     " document.querySelectorAll('#list_par_st [data-custom-id]').length,"
+                     " document.querySelectorAll('#notesArea_par_pech .note-item').length]")
+    if в != [True, True, True, True, 1, 1]:
+        плохо(f"после перерисовки разделов отметки, своя позиция и примечание: {в}")
+    стр.evaluate("() => { ПАР.podsv = 1; calc(); }")
+    if стр.evaluate("() => document.getElementById('unit_par_podsv').textContent") != "уровень":
+        плохо("подсветка полков на одном уровне: подпись счётчика не «уровень»")
+    стр.evaluate("() => { ПАР.podsv = 2; calc(); }")
+
+    # Печать: открывается, пресет не сохраняет, лист — с помещением и суммами парной.
+    в = стр.evaluate("""async () => {
+      const т = []; const было = window.showToast; window.showToast = с => т.push(String(с));
+      try {
+        openPrintPreview(); await new Promise(r => setTimeout(r, 900));
+        setPrintStyle('blank'); await new Promise(r => setTimeout(r, 600));
+      } finally { window.showToast = было; }
+      return { тосты: т, открыта: document.getElementById('printOverlay').style.display,
+               лист: document.getElementById('printDoc').innerText };
+    }""")
+    лист = в["лист"]
+    разделы = стр.evaluate("() => ['par_st', 'par_pech', 'par_log'].map(к => document.getElementById('sec_total_' + к).textContent.replace(/\\s₽$/, ''))")
+    if в["открыта"] != "block" or в["тосты"]:
+        плохо(f"окно печати парной: показ {в['открыта']}, сообщения {в['тосты']}")
+    for нужно in ["ПОМЕЩЕНИЕ", "Камень, 3 × 4 × 2,3 м", "Парная 3 × 4 × 2,3 м", "Полка-лежак из кедра",
+                  "Полки из осины, 2 яруса — 3,75 м²", "Дымоход до 6 м входит в расчёт"] + разделы:
+        if нужно not in лист:
+            плохо(f"лист «Бланка» у парной: нет «{нужно}»")
+    for стиль in ("architect", "cards", "luxury", "classic"):
+        т = стр.evaluate("с => { setPrintStyle(с); return new Promise(r => setTimeout(() => r(document.getElementById('printDoc').innerText), 600)); }", стиль)
+        # Подпись стоит отдельной строкой; «Утепление базальтом…» — строка позиции, её не трогаем.
+        if re.search(r"(^|\n)\s*(Кровля|КРОВЛЯ|Утепление|УТЕПЛЕНИЕ|Толщина:?)\s*(\n|$)", т) or "Толщина:" in т:
+            плохо(f"лист «{стиль}» у парной печатает кровлю, утепление или толщину")
+    стр.evaluate("() => { setPrintStyle('blank'); closePrintPreview(); }")
+    стр.evaluate("() => resetEverything()")
+
     # Чего у парной нет — словами, без окон.
-    for вызов, окно in (("openPrintPreview()", "printOverlay"), ("openPaymentPlan()", "paymentPlanOverlay"),
+    for вызов, окно in (("openPaymentPlan()", "paymentPlanOverlay"),
                         ("savePreset()", "presetNameOverlay"), ("openOptSearch()", "optSearchOverlay")):
         в = стр.evaluate("""([вызов, окно]) => { const т = []; const было = window.showToast;
           window.showToast = с => т.push(String(с)); try { eval(вызов); } finally { window.showToast = было; }
@@ -224,7 +296,8 @@ def расчёт(бр, порт):
       строк: document.querySelectorAll('#optionSections .opt-item').length, парных: document.querySelectorAll('[id^="lbl_par_"]').length,
       проект: !!document.getElementById('projectSelectWrap').offsetParent, карточка: !!document.getElementById('steamRoomWrap').offsetParent,
       заголовок: document.getElementById('projectCardTitle').textContent })""")
-    if к["тех"] != "frame" or к["разделов"] != 12 or "par_" in к["ключи"] or к["парных"] or not к["итог"] \
+    к["позицийПарной"] = стр.evaluate("() => OPTIONS.filter(о => о.парная).length")
+    if к["тех"] != "frame" or к["разделов"] != 12 or "par_" in к["ключи"] or к["парных"] or not к["итог"] or к["позицийПарной"] \
             or not к["проект"] or к["карточка"] or к["заголовок"] != "Выбор проекта":
         плохо(f"каркас после парной: {к}")
     стр.evaluate("async () => { await switchTech('glulam'); await new Promise(r => setTimeout(r, 600)); selectProjectOption(0); }")
@@ -301,7 +374,7 @@ def main():
         sys.exit(1)
     print(f"Чисто: парная считает по книге (база 1 257 216 ₽, двенадцать опций — 2 313 757 ₽), шкала сборки "
           f"120 000 → 240 000 ₽, одна печь и один пол, тип помещения, размеры, счётчики, база и скидка; "
-          f"печать, план и пресет отвечают словами; каркас и брус после парной свои; вёрстка — {len(кадры)} кадров.")
+          f"печать работает, план и пресет отвечают словами; каркас и брус после парной свои; вёрстка — {len(кадры)} кадров.")
 
 
 if __name__ == "__main__":

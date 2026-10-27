@@ -2076,7 +2076,12 @@ body.tech-steam #projectCard > :not(.card-title):not(#steamRoomCard) { display: 
 .opt-qty-grp { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 /* Строка базы у парной — гибкая, с зазором вместо отступа слева: перенесённые
    на телефоне размеры и счётчик встают ровно под «Включено в базу». */
-.opt-item[data-par] .opt-included-row { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; row-gap: 6px; }
+.opt-item[data-par] .opt-included-row { display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; row-gap: 6px; }
+/* Просвет у кнопок строки здесь даёт зазор ряда — свой отступ слева у них
+   снят, иначе он складывался с зазором, а у перенесённой кнопки сдвигал её. */
+body .opt-item[data-par] .opt-included-row .opt-highlight-btn,
+body .opt-item[data-par] .opt-included-row .opt-gift-btn,
+body .opt-item[data-par] .opt-included-row .opt-chat-btn { margin-left: 0; }
 .opt-why[hidden], .opt-calc[hidden] { display: none !important; }
 .opt-dims { display: inline-flex; align-items: center; gap: 5px; color: var(--gray-light); }
 .opt-dims i { font-style: normal; font-size: .7rem; }
@@ -12440,7 +12445,7 @@ const TECH_H1    = { frame: 'Каркасный дом / Баня', glulam: 'К�
 const TECH_THICK = { frame:  ['100 мм', '150 мм', '200 мм'],
                      glulam: ['125х185', '160х185', '205х185'],
                      steam:  ['', '', ''] };
-const TECH_THICK_LABEL = { frame: 'Толщина утепления', glulam: 'Толщина бруса', steam: 'Толщина утепления' };
+const TECH_THICK_LABEL = { frame: 'Толщина утепления', glulam: 'Толщина бруса', steam: 'Помещение' };
 
 // Список каркаса — из базы (заполнитьСписокКаркаса). Он нужен и брусу: общие с
 // каркасом строки бруса берут у него название, окно в парную и монтаж
@@ -16044,7 +16049,10 @@ function renderOptionSections(опц) {
   });
 }
 function _нарисоватьРазделы() {
-  if (currentTech === 'steam') { парнаяОтрисовать(); return; }
+  // Парная подкладывает свои разделы и позиции и рисуется тем же кодом:
+  // примечания, свои позиции, формы добавления — общие (см. парнаяДанные).
+  const парная = currentTech === 'steam';
+  if (парная) парнаяДанные();
   const container = document.getElementById('optionSections');
   container.innerHTML = '';
   SECTIONS.forEach(sec => {
@@ -16066,7 +16074,7 @@ function _нарисоватьРазделы() {
         <span>${secTitleHtml(sec.name)}</span>
         <span class="section-total" id="sec_total_${sec.key}"></span>
       </div>
-      <div class="section-note" id="sec_note_${sec.key}"><span class="sec-note-t"></span><button type="button" class="sec-base-btn" id="sec_base_${sec.key}" onclick="переключитьБазуРаздела('${sec.key}')" hidden></button></div>
+      <div class="section-note" id="sec_note_${sec.key}"><span class="sec-note-t"></span><button type="button" class="sec-base-btn" id="sec_base_${sec.key}" onclick="${парная ? 'парнаяБаза' : 'переключитьБазуРаздела'}('${sec.key}')" hidden></button></div>
       <div style="padding:14px 16px 14px;" id="sec_opts_${sec.key}"></div>
     `;
     container.appendChild(card);
@@ -16078,7 +16086,7 @@ function _нарисоватьРазделы() {
 
     // Render preset options
     opts.forEach(opt => {
-      list.appendChild(buildOptItem(opt, false));
+      list.appendChild(парная ? парСтрока(opt) : buildOptItem(opt, false));
       checkedOptions[opt.id] = opt.included;
     });
     _парнаяБыла = null;   // галочки по умолчанию — окно парной выровняет правило
@@ -16288,16 +16296,9 @@ function режимТумблерHtml(opt) {
        </span>`;
 }
 
-function buildOptItem(opt, isCustom) {
-  const item = document.createElement('div');
-  item.className = 'opt-item' + (opt.included ? ' active' : '');
-  item.id = 'lbl_' + opt.id;
-  item.dataset.optId = opt.id;
-  // draggable is NOT set on the item — drag is handled only via the handle in initDragItem
-
-  const currentPrice = getOptPrice(opt);
-  const isCustomProject = !!(selectedProject && customProjects.includes(selectedProject));
-
+// Кнопки строки опции — выделение, подарок с «В чат» и глаз цены в печати.
+// Общие у каталога каркаса и бруса и у строк парной: вид и поведение одни.
+function кнопкиСтрокиHtml(opt) {
   const hlBtn = `<button class="opt-highlight-btn" id="hl_${opt.id}" onclick="toggleHighlight('${opt.id}', event)" title="Выделить опцию цветом">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l4-8 4 4 4-6 4 10"/><line x1="3" y1="21" x2="21" y2="21"/></svg>
     </button>`;
@@ -16308,6 +16309,21 @@ function buildOptItem(opt, isCustom) {
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
        </button>`
     : '';
+
+  return { hlBtn, giftBtn, eyeBtn };
+}
+
+function buildOptItem(opt, isCustom) {
+  const item = document.createElement('div');
+  item.className = 'opt-item' + (opt.included ? ' active' : '');
+  item.id = 'lbl_' + opt.id;
+  item.dataset.optId = opt.id;
+  // draggable is NOT set on the item — drag is handled only via the handle in initDragItem
+
+  const currentPrice = getOptPrice(opt);
+  const isCustomProject = !!(selectedProject && customProjects.includes(selectedProject));
+
+  const { hlBtn, giftBtn, eyeBtn } = кнопкиСтрокиHtml(opt);
 
   const modeToggle = режимТумблерHtml(opt);
 
@@ -20727,7 +20743,6 @@ function overlayTopOffset() {
 }
 
 function openPrintPreview() {
-  if (парнаяБезЭтого('Печать')) return;
   if (!selectedProject) return;
   logEvent('print', logDetails(selectedProject[0], [
     ['Шаблон', '', (typeof printStyle !== 'undefined' ? printStyle : '')],
@@ -21202,7 +21217,8 @@ function штампКодаДляПечати(код, полями) {
 
 function собратьЛистПечати() {
   if (!selectedProject) return;
-  const thickLabels = ['100 мм','150 мм','200 мм'];
+  // У парной на месте толщины — помещение: тип стен и размеры.
+  const thickLabels = currentTech === 'steam' ? Array(3).fill(парнаяПомещение()) : ['100 мм','150 мм','200 мм'];
   const prices = [selectedProject[1], selectedProject[2], selectedProject[3]];
   const basePrice = prices[currentThickness];
   // Процент берём не из поля, а у того, что задано рукой. В подпись он идёт
@@ -21256,6 +21272,12 @@ function собратьЛистПечати() {
     extra:      (sectionHasBaseChecked('extra') ? extra_base : 0) + sectionExtras['extra'],
     engineering:sectionExtras['engineering'],
   };
+  // Суммы разделов парной считает её расчёт — база по размерам, а не доля цены
+  // проекта; опции и свои позиции в них уже стоят.
+  if (currentTech === 'steam') {
+    Object.keys(secTotals).forEach(к => delete secTotals[к]);
+    Object.assign(secTotals, _secTotalsCache || {});
+  }
 
   // Число позиций стоит в реквизитах шапки у всех шаблонов, кроме «Классика»
   // и «Бланка», — считаем один раз здесь.
@@ -21495,7 +21517,7 @@ function собратьЛистПечати() {
   const clientVal  = client  !== '_______________' ? client  : '<span style="display:inline-block;border-bottom:1px solid #aaa;width:140px;">&nbsp;</span>';
 
   const techLabel = TECH_NAME[currentTech] || 'Каркас';
-  const roofLabel = названиеКровли(selectedProject) || '—';
+  const roofLabel = currentTech === 'steam' ? парнаяОбъёмПечати() : (названиеКровли(selectedProject) || '—');
 
   // Applied-kit name for print — shown inline next to «Общая стоимость», only when a kit is applied.
   // Kit name for the print caption — only when the kit is actually active (badge
@@ -21547,7 +21569,7 @@ function собратьЛистПечати() {
         </div>
       </div>
     </div>
-    ${printShowParams ? `<div class="pp-strip" style="display:flex;flex-wrap:wrap;border-top:1px solid #ddd;border-bottom:1px solid #ddd;margin-bottom:32px;"><div class="pp-cell" style="flex:1 1 140px;min-width:0;padding:12px 20px;"><div style="font-size:7pt;letter-spacing:0.12em;text-transform:uppercase;color:#bbb;margin-bottom:4px;">Технология</div><div style="font-size:10pt;font-weight:700;color:#222;">${techLabel}</div></div><div class="pp-div" style="width:1px;background:#ddd;height:32px;align-self:center;flex-shrink:0;"></div><div class="pp-cell" style="flex:1 1 140px;min-width:0;padding:12px 20px;"><div style="font-size:7pt;letter-spacing:0.12em;text-transform:uppercase;color:#bbb;margin-bottom:4px;">Утепление</div><div style="font-size:10pt;font-weight:700;color:#222;">${thickLabels[currentThickness]}</div></div><div class="pp-div" style="width:1px;background:#ddd;height:32px;align-self:center;flex-shrink:0;"></div><div class="pp-cell" style="flex:1 1 140px;min-width:0;padding:12px 20px;"><div style="font-size:7pt;letter-spacing:0.12em;text-transform:uppercase;color:#bbb;margin-bottom:4px;">Кровля</div><div style="font-size:10pt;font-weight:700;color:#222;">${roofLabel}</div></div><div class="pp-div" style="width:1px;background:#ddd;height:32px;align-self:center;flex-shrink:0;"></div><div class="pp-cell" style="flex:1 1 140px;min-width:0;padding:12px 20px;"><div style="font-size:7pt;letter-spacing:0.12em;text-transform:uppercase;color:#bbb;margin-bottom:4px;">Позиций в расчёте</div><div style="font-size:10pt;font-weight:700;color:#222;">${printPositions}</div></div></div>` : ""}
+    ${printShowParams ? `<div class="pp-strip" style="display:flex;flex-wrap:wrap;border-top:1px solid #ddd;border-bottom:1px solid #ddd;margin-bottom:32px;"><div class="pp-cell" style="flex:1 1 140px;min-width:0;padding:12px 20px;"><div style="font-size:7pt;letter-spacing:0.12em;text-transform:uppercase;color:#bbb;margin-bottom:4px;">Технология</div><div style="font-size:10pt;font-weight:700;color:#222;">${techLabel}</div></div><div class="pp-div" style="width:1px;background:#ddd;height:32px;align-self:center;flex-shrink:0;"></div><div class="pp-cell" style="flex:1 1 140px;min-width:0;padding:12px 20px;"><div style="font-size:7pt;letter-spacing:0.12em;text-transform:uppercase;color:#bbb;margin-bottom:4px;">${подписьПечатиПарной('Утепление')}</div><div style="font-size:10pt;font-weight:700;color:#222;">${thickLabels[currentThickness]}</div></div><div class="pp-div" style="width:1px;background:#ddd;height:32px;align-self:center;flex-shrink:0;"></div><div class="pp-cell" style="flex:1 1 140px;min-width:0;padding:12px 20px;"><div style="font-size:7pt;letter-spacing:0.12em;text-transform:uppercase;color:#bbb;margin-bottom:4px;">${подписьПечатиПарной('Кровля')}</div><div style="font-size:10pt;font-weight:700;color:#222;">${roofLabel}</div></div><div class="pp-div" style="width:1px;background:#ddd;height:32px;align-self:center;flex-shrink:0;"></div><div class="pp-cell" style="flex:1 1 140px;min-width:0;padding:12px 20px;"><div style="font-size:7pt;letter-spacing:0.12em;text-transform:uppercase;color:#bbb;margin-bottom:4px;">Позиций в расчёте</div><div style="font-size:10pt;font-weight:700;color:#222;">${printPositions}</div></div></div>` : ""}
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">
       <div style="font-size:12pt;font-weight:700;">${_totalCaption}</div>
       <div style="font-size:14pt;font-weight:800;color:#111;">${fmtP(totalAfterKit)} руб.</div>
@@ -21567,7 +21589,7 @@ function собратьЛистПечати() {
           <tr><td style="font-weight:bold;text-align:right;padding-right:10px;width:90px;">Менеджер:</td><td style="min-width:160px;">${managerVal}</td></tr>
           <tr><td style="font-weight:bold;text-align:right;padding-right:10px;width:90px;">Заказчик:</td><td style="min-width:160px;">${clientVal}</td></tr>
           <tr><td colspan="2" style="padding-top:12px;"></td></tr>
-          ${printShowParams ? `<tr><td style="font-weight:bold;text-align:right;padding-right:10px;">Технология:</td><td>${document.getElementById("techSelectLabel")?.textContent || "Каркас"}</td></tr><tr><td style="font-weight:bold;text-align:right;padding-right:10px;">Толщина:</td><td>${thickLabels[currentThickness]}</td></tr>` : ""}
+          ${printShowParams ? `<tr><td style="font-weight:bold;text-align:right;padding-right:10px;">Технология:</td><td>${document.getElementById("techSelectLabel")?.textContent || "Каркас"}</td></tr><tr><td style="font-weight:bold;text-align:right;padding-right:10px;">${подписьПечатиПарной('Толщина')}:</td><td>${thickLabels[currentThickness]}</td></tr>` : ""}
           <tr><td style="font-weight:bold;text-align:right;padding-right:10px;">Проект:</td><td>${selectedProject[0]}</td></tr>
         </table>
       </div>
@@ -22571,7 +22593,7 @@ ${тёмныйПары() ? `/* Тон-пара: блок итога — тёмн
         </div>
 
         <!-- Tech card -->
-        ${printShowParams ? `<div style="background:#fff;border-radius:14px;border:1px solid var(--br-89а);padding:14px 32px;margin-bottom:12px;display:flex;flex-wrap:wrap;row-gap:12px;gap:0;" class="pp-strip"><div class="pp-cell" style="flex:1 1 130px;min-width:0;padding-right:20px;border-right:1px solid #eef3f3;margin-right:20px;"><div style="font-size:7pt;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:2px;">Технология</div><div style="font-size:10pt;font-weight:700;color:#222;">${techLabel}</div></div><div class="pp-cell" style="flex:1 1 130px;min-width:0;padding-right:20px;border-right:1px solid #eef3f3;margin-right:20px;"><div style="font-size:7pt;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:2px;">Утепление</div><div style="font-size:10pt;font-weight:700;color:#222;">${thickLabels[currentThickness]}</div></div><div class="pp-cell" style="flex:1 1 130px;min-width:0;padding-right:20px;border-right:1px solid #eef3f3;margin-right:20px;"><div style="font-size:7pt;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:2px;">Кровля</div><div style="font-size:10pt;font-weight:700;color:#222;">${roofLabel}</div></div><div class="pp-cell" style="flex:1 1 130px;min-width:0;"><div style="font-size:7pt;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:2px;">Позиций в расчёте</div><div style="font-size:10pt;font-weight:700;color:#222;">${printPositions}</div></div></div>` : ""}
+        ${printShowParams ? `<div style="background:#fff;border-radius:14px;border:1px solid var(--br-89а);padding:14px 32px;margin-bottom:12px;display:flex;flex-wrap:wrap;row-gap:12px;gap:0;" class="pp-strip"><div class="pp-cell" style="flex:1 1 130px;min-width:0;padding-right:20px;border-right:1px solid #eef3f3;margin-right:20px;"><div style="font-size:7pt;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:2px;">Технология</div><div style="font-size:10pt;font-weight:700;color:#222;">${techLabel}</div></div><div class="pp-cell" style="flex:1 1 130px;min-width:0;padding-right:20px;border-right:1px solid #eef3f3;margin-right:20px;"><div style="font-size:7pt;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:2px;">${подписьПечатиПарной('Утепление')}</div><div style="font-size:10pt;font-weight:700;color:#222;">${thickLabels[currentThickness]}</div></div><div class="pp-cell" style="flex:1 1 130px;min-width:0;padding-right:20px;border-right:1px solid #eef3f3;margin-right:20px;"><div style="font-size:7pt;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:2px;">${подписьПечатиПарной('Кровля')}</div><div style="font-size:10pt;font-weight:700;color:#222;">${roofLabel}</div></div><div class="pp-cell" style="flex:1 1 130px;min-width:0;"><div style="font-size:7pt;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:2px;">Позиций в расчёте</div><div style="font-size:10pt;font-weight:700;color:#222;">${printPositions}</div></div></div>` : ""}
 
         <!-- Total card — green; в «Зелёном» графит, как карточка итога на экране:
              белое на светлом зелёном #70ad34 даёт 2,8:1, а цена со скидкой
@@ -22621,7 +22643,7 @@ ${тёмныйПары() ? `/* Тон-пара: блок итога — тёмн
       ? свернутьФИО(client)
       : 'Фамилия И.О.';
     const techLabelLux = TECH_NAME[currentTech] || 'Каркас';
-    const roofLabelLux = названиеКровли(selectedProject) || '—';
+    const roofLabelLux = currentTech === 'steam' ? парнаяОбъёмПечати() : (названиеКровли(selectedProject) || '—');
 
     // Build luxury spec rows — using same logic as other themes
     let luxRows = '';
@@ -22768,8 +22790,8 @@ hr{border:none;border-top:1px solid var(--rule);margin:0;}
 </div>
 ${printShowParams ? `<div class="tech-row">
   <div class="tech-item"><div class="tech-label">Технология</div><div class="tech-value">${techLabelLux}</div></div>
-  <div class="tech-item"><div class="tech-label">Утепление</div><div class="tech-value">${thickLabels[currentThickness]}</div></div>
-  <div class="tech-item"><div class="tech-label">Кровля</div><div class="tech-value">${roofLabelLux}</div></div>
+  <div class="tech-item"><div class="tech-label">${подписьПечатиПарной('Утепление')}</div><div class="tech-value">${thickLabels[currentThickness]}</div></div>
+  <div class="tech-item"><div class="tech-label">${подписьПечатиПарной('Кровля')}</div><div class="tech-value">${roofLabelLux}</div></div>
   <div class="tech-item"><div class="tech-label">Позиций в расчёте</div><div class="tech-value">${printPositions}</div></div>
 </div>` : '<hr style="margin-bottom:44px;">'}
 <div class="total-section">
@@ -22877,8 +22899,8 @@ ${(typeof appSettings === 'undefined' || appSettings.showDisclaimer) ? '<div cla
 </div>
 ${printShowParams ? `<div class="tech-row">
   <div class="tech-item"><div class="tech-label">Технология</div><div class="tech-value">${techLabelLux}</div></div>
-  <div class="tech-item"><div class="tech-label">Утепление</div><div class="tech-value">${thickLabels[currentThickness]}</div></div>
-  <div class="tech-item"><div class="tech-label">Кровля</div><div class="tech-value">${roofLabelLux}</div></div>
+  <div class="tech-item"><div class="tech-label">${подписьПечатиПарной('Утепление')}</div><div class="tech-value">${thickLabels[currentThickness]}</div></div>
+  <div class="tech-item"><div class="tech-label">${подписьПечатиПарной('Кровля')}</div><div class="tech-value">${roofLabelLux}</div></div>
   <div class="tech-item"><div class="tech-label">Позиций в расчёте</div><div class="tech-value">${printPositions}</div></div>
 </div>` : '<hr class="lux-hr" style="margin-bottom:44px;">'}
 <div class="total-section">
@@ -23107,6 +23129,8 @@ function htmlСпецификацииДляПечати() {
 function кодРасчётаДляПечати() {
   let код = _активныйПресетКод();
   if (код) return код;
+  // Пресетов у парной пока нет — лист печатается без кода.
+  if (currentTech === 'steam') return null;
   try {
     const state = collectState();
     const proj = state.project ? state.project.name : 'Без проекта';
@@ -27914,11 +27938,22 @@ const ДОКУМЕНТЫ_ДОГОВОРА = ['contract', 'consent', 'rules', 'ca
 // не зависит и остаётся.
 function документГотовится(e) {
   // Договоры и правила эксплуатации бруса — свои с 22.10.2026: заглушек нет.
+  // У парной печатаются спецификация, вид и план и согласие; договор -ПАР,
+  // правила и приходный ордер к нему — следующими сборками.
+  if (typeof currentTech !== 'undefined' && currentTech === 'steam') return e === 'contract' || e === 'rules' || e === 'cash';
   return false;
 }
 function заполнитьЗаглушкуДокумента(e) {
   const з = document.getElementById('contractPreviewStubTitle');
   const т = document.getElementById('contractPreviewStubText');
+  if (currentTech === 'steam') {
+    if (з) з.textContent = e === 'rules' ? 'Правила эксплуатации парной готовятся'
+      : e === 'cash' ? 'Приходный ордер к договору на парную готовится'
+      : 'Договор на парное отделение готовится';
+    if (т) т.textContent = 'У парной будет свой договор и правила эксплуатации. '
+      + 'Спецификация, вид и план и согласие на обработку данных печатаются как обычно.';
+    return;
+  }
   if (з) з.textContent = e === 'rules' ? 'Правила эксплуатации для клеёного бруса готовятся'
     : e === 'cash' ? 'Приходный ордер к договорам клеёного бруса готовится'
     : (договорОкна() === 2 ? 'Договор на отделку' : 'Основной договор') + ' для клеёного бруса готовится';
@@ -31421,13 +31456,20 @@ document.addEventListener('click', function(e) {
 // опций» v2.4 с ответами 26–27.10.2026, и на 3 × 4 × 2,3 м с двенадцатью
 // опциями макета расчёт совпадает с книгой до рубля (проба check_steam_tab.py).
 //
-// Проекта у парной нет — его место занимают размеры помещения и тип стен, —
-// поэтому `selectedProject` пуст, а страницу рисует и считает этот блок:
-// init(), calc() и перерисовка разделов уходят сюда по `currentTech ===
-// 'steam'`. Глобальные SECTIONS на время парной описывают её три раздела — по
-// ним работают нумерация позиций и боковая панель; OPTIONS и цены каркаса не
-// трогаются, и возврат на каркас поднимает их из памяти, как и прежде.
-// Пресеты, печать, договор и платёжный план у парной — следующими сборками.
+// Приём тот же, что у бруса: глобальные SECTIONS, SECTION_NOTES и OPTIONS на
+// время парной описывают её разделы и позиции (`парнаяДанные`), а возврат на
+// каркас или брус поднимает их данные из памяти (applyTechData). Поэтому
+// выделение, подарок, глаз цены, избранное, свои позиции, примечания,
+// нумерация, боковая панель и печать работают у парной тем же кодом, что у
+// каркаса (Константин, 27.10.2026, снимками теста: «Ручные/опции примечания
+// не добавить. Печать неактивная. Все иконки по выделению, глаз, избранные
+// должны как в каркасе работать»).
+//
+// Проекта у парной нет — его место занимают размеры помещения и тип стен.
+// `selectedProject` на это время — «проект» парной (`ПАР_ПРОЕКТ`): имя с
+// размерами и цена базы; печать и шапка берут их оттуда. Считает парную свой
+// расчёт: calc() уходит в `парнаяПосчитать` по `currentTech === 'steam'`.
+// Пресеты, договор и платёжный план у парной — следующими сборками.
 const ПАР_РАЗДЕЛЫ = [
   { key: 'par_st',   name: '1. Парное отделение' },
   { key: 'par_pech', name: '2. Печь и комплектующие' },
@@ -31567,50 +31609,67 @@ function парЧисло(ч) {
   return (Math.round(ч * 100) / 100).toLocaleString('ru-RU', { maximumFractionDigits: 2 });
 }
 function парРазмеры(п = ПАР) { return [п.L, п.W, п.H].map(парЧисло).join(' × ') + ' м'; }
+// Строка помещения для листа печати: «Камень, 3 × 4 × 2,3 м».
+function парнаяПомещение(п = ПАР) { return ПАР_ТИП[п.комн].split(':')[0] + ', ' + парРазмеры(п); }
+function парнаяОбъёмПечати(п = ПАР) { return парЧисло(парГеом(п).объём) + ' м³'; }
+// Подписи параметров на листе: у парной на месте утепления (толщины) —
+// помещение, на месте кровли — объём. Каркас и брус печатаются как прежде.
+function подписьПечатиПарной(подпись) {
+  if (typeof currentTech === 'undefined' || currentTech !== 'steam') return подпись;
+  return подпись === 'Кровля' ? 'Объём' : 'Помещение';
+}
 
-// ── Страница ──
-function парнаяОтрисовать() {
+// ── Данные ──
+// «Проект» парной: имя с размерами и цена базы на месте всех трёх толщин.
+// Площадей, этажей и кровли у него нет — пустые места.
+const ПАР_ПРОЕКТ = Object.assign(['Парная', 0, 0, 0, null, null, null, null, null, null, null, null], { _парная: true });
+function парнаяДанные() {
   SECTIONS.length = 0;
   ПАР_РАЗДЕЛЫ.forEach(с => SECTIONS.push(с));
   Object.keys(SECTION_NOTES).forEach(к => delete SECTION_NOTES[к]);
   Object.keys(ПАР_ПРИМЕЧАНИЯ).forEach(к => { SECTION_NOTES[к] = ПАР_ПРИМЕЧАНИЯ[к].slice(); });
-  const container = document.getElementById('optionSections');
-  if (!container) return;
-  container.innerHTML = '';
-  ПАР_РАЗДЕЛЫ.forEach(sec => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.style.padding = '0';
-    card.style.overflow = 'hidden';
-    card.innerHTML = `
-      <div class="section-header">
-        <span>${secTitleHtml(sec.name)}</span>
-        <span class="section-total" id="sec_total_${sec.key}"></span>
-      </div>
-      <div class="section-note" id="sec_note_${sec.key}"><span class="sec-note-t"></span><button type="button" class="sec-base-btn" id="sec_base_${sec.key}" onclick="парнаяБаза('${sec.key}')"></button></div>
-      <div style="padding:14px 16px 14px;" id="sec_opts_${sec.key}"></div>
-    `;
-    container.appendChild(card);
-    const список = document.createElement('div');
-    список.className = 'opts-list';
-    список.id = 'list_' + sec.key;
-    (ПАР_СТРОКИ[sec.key] || []).forEach(р => список.appendChild(парСтрока(...р)));
-    const место = card.querySelector('#sec_opts_' + sec.key);
-    место.appendChild(список);
-    const примечания = document.createElement('div');
-    примечания.id = 'notesArea_' + sec.key;
-    примечания.style.cssText = 'padding:4px 0 0;';
-    (SECTION_NOTES[sec.key] || []).forEach((текст, и) => {
-      примечания.appendChild(buildNoteItem(текст, true, sec.key, null, sec.key + '_' + и));
-    });
-    место.appendChild(примечания);
-    initDrag(список);
+  OPTIONS.length = 0;
+  Object.entries(ПАР_СТРОКИ).forEach(([раздел, строки]) => строки.forEach(([к, вид, имя, ед]) =>
+    OPTIONS.push({ id: 'par_' + к, section: раздел, name: имя, included: вид === 'b', price: null,
+                   парная: к, имяСтроки: имя, ед: ед || '' })));
+  selectedProject = ПАР_ПРОЕКТ;
+  парнаяВКаталог();
+}
+// Единица счётчика — по числу: «1 уровень», «2 уровня», «20 дней».
+function парЕдиница(к, ч) {
+  if (к === 'podsv') return склонение(ч, 'уровень', 'уровня', 'уровней');
+  if (к === 'brig') return склонение(ч, 'день', 'дня', 'дней');
+  const стр = OPTIONS.find(о => о.парная === к);
+  return стр ? стр.ед : '';
+}
+// Цены и имена позиций — в каталог, откуда их берут итог, печать и журнал.
+// Имя для документа несёт количество («Полки из осины, 2 яруса — 3,75 м²»):
+// на экране число стоит в счётчике, а на листе счётчика нет.
+function парнаяВКаталог(г = парГеом(), ц = парЦены(г)) {
+  const п = ПАР, м2 = ч => парЧисло(ч) + ' м²';
+  const сколько = {
+    dims: парРазмеры() + ' — стены и потолок ' + м2(г.отд) + ', пол ' + м2(г.пол) + ', объём ' + парЧисло(г.объём) + ' м³',
+    obr: м2(г.отд), par: м2(г.отд), osina: м2(г.отд), olha: м2(г.отд), polkiOlha: м2(п.polki),
+    polList: м2(г.пол), plitka: м2(г.пол),
+  };
+  Object.keys(ПАР_ШАГ).forEach(к => {
+    const ч = к === 'brig' ? парДни(г) : п[к];
+    сколько[к] = парЧисло(ч) + ' ' + парЕдиница(к, ч);
+  });
+  OPTIONS.forEach(о => {
+    if (!о.парная) return;
+    const к = о.парная;
+    о.name = к === 'dims' ? 'Парное отделение ' + сколько.dims
+           : сколько[к] ? о.имяСтроки + ' — ' + сколько[к] : о.имяСтроки;
+    if (!о.included) о.price = Math.round(ц[к] || 0);
   });
 }
 
-function парСтрока(к, вид, имя, ед) {
-  const ид = 'par_' + к;
-  const база = вид === 'b';
+// ── Страница ──
+// Разделы рисует общий _нарисоватьРазделы() — с примечаниями, своими позициями
+// и формами добавления; отсюда — только строки.
+function парСтрока(opt) {
+  const к = opt.парная, ид = opt.id, база = opt.included, имя = opt.имяСтроки, ед = opt.ед;
   const item = document.createElement('div');
   item.className = 'opt-item' + (база ? ' active' : '');
   item.id = 'lbl_' + ид;
@@ -31623,7 +31682,7 @@ function парСтрока(к, вид, имя, ед) {
         <button type="button" class="opt-qty-btn" title="Меньше" onclick="парнаяШаг('${к}',-1,event)">−</button>
         <span class="opt-qty-val" id="qtyval_${ид}"></span>
         <button type="button" class="opt-qty-btn" title="Больше" onclick="парнаяШаг('${к}',1,event)">+</button>
-      </div><span class="opt-unit">${ед}</span></span>`
+      </div><span class="opt-unit" id="unit_${ид}">${ед}</span></span>`
     : '';
   const размеры = к === 'dims'
     ? '<span class="opt-dims">' + [['L', 'Длина'], ['W', 'Ширина'], ['H', 'Высота']].map(([о, т]) =>
@@ -31632,9 +31691,10 @@ function парСтрока(к, вид, имя, ед) {
       + '<span class="opt-unit">м</span></span>'
     : '';
   const почему = `<span class="opt-why" id="why_${ид}" hidden></span>`;
+  const { hlBtn, giftBtn, eyeBtn } = кнопкиСтрокиHtml(opt);
   const ряд = база
-    ? `<div class="opt-included-row"><span class="opt-included" title="Включено в базовую комплектацию">✓ Включено в базу</span>${почему}${размеры}${шаги}</div>`
-    : `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><div class="opt-price" id="optprice_${ид}"></div>${почему}${шаги}</div>`;
+    ? `<div class="opt-included-row"><span class="opt-included" title="Включено в базовую комплектацию">✓ Включено в базу</span>${почему}${размеры}${шаги}${hlBtn}${giftBtn}</div>`
+    : `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><div class="opt-price" id="optprice_${ид}"></div>${почему}${шаги}${eyeBtn}${hlBtn}${giftBtn}</div>`;
   item.innerHTML = `
     <span class="drag-handle" title="Переместить">⠿</span>
     <input type="checkbox" id="chk_${ид}"${база ? ' checked' : ''}>
@@ -31644,9 +31704,26 @@ function парСтрока(к, вид, имя, ед) {
       <div class="opt-name" id="name_${ид}">${имя}</div>
       ${ряд}
       <div class="opt-calc" id="calc_${ид}" hidden></div>
-    </div>`;
+    </div>
+    <button class="opt-star-btn" id="star_${ид}" onclick="toggleStar('${ид}', event)" title="Закрепить опцию (не скрывается при фильтре)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    </button>`;
+  // Отметки строки переживают перерисовку: выделение, подарок, глаз, избранное.
+  const есть = (набор, ид2) => набор.has(ид2);
+  if (есть(highlightedOpts, ид)) { item.classList.add('highlighted'); item.querySelector('#hl_' + ид)?.classList.add('on'); }
+  if (есть(starredOpts, ид)) item.querySelector('#star_' + ид)?.classList.add('starred');
+  if (есть(printPriceVisible, ид)) {
+    const гл = item.querySelector('#eye_' + ид);
+    if (гл) { гл.classList.add('active'); гл.querySelector('svg').innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'; }
+  }
+  if (есть(giftedOpts, ид)) {
+    item.querySelector('#gift_' + ид)?.classList.add('on');
+    item.querySelector('#optprice_' + ид)?.classList.add('gifted');
+    const з = document.createElement('span'); з.className = 'opt-gift-badge'; з.textContent = 'В ПОДАРОК';
+    item.querySelector('.opt-name').appendChild(з);
+  }
   item.addEventListener('click', e => {
-    if (e.target.closest('.drag-handle, .opt-qty-stepper, .opt-dims, input')) return;
+    if (e.target.closest('.drag-handle, .opt-qty-stepper, .opt-dims, input, button')) return;
     if (e.target.closest('.opt-name') && window.getSelection().toString().length > 0) return;
     e.preventDefault();
     парнаяНажать(к);
@@ -31729,6 +31806,8 @@ function парнаяПосчитать() {
   const п = ПАР, г = парГеом(), ц = парЦены(г), б = парБазы(г);
   const n = парПремиумN();
   if (n) п.вкл.add('premium'); else п.вкл.delete('premium');
+  if (!OPTIONS.some(о => о.парная)) парнаяДанные();
+  парнаяВКаталог(г, ц);
   const эл = ид => document.getElementById(ид);
   const подпись = (к, т) => { const е = эл('calc_par_' + к); if (е) { е.textContent = т || ''; е.hidden = !т; } };
   const почему = (к, т, тревога) => {
@@ -31754,11 +31833,15 @@ function парнаяПосчитать() {
       if (стр) стр.classList.toggle('active', на);
       if (чк) чк.checked = на;
       if (!базовая) {
-        const цена = ц[к] || 0;
+        const цена = Math.round(ц[к] || 0);
         const е = эл('optprice_' + ид);
         if (е) е.textContent = fmt(цена);
-        if (на) сумма += цена;
+        // Подарок в сумму не идёт — как у каркаса.
+        if (на && !giftedOpts.has(ид)) сумма += цена;
       }
+    });
+    getCustomOpts(key).forEach(co => {
+      if (co.checked && co.price && !giftedOpts.has('custom_' + co.id)) сумма += co.price;
     });
     суммы[key] = сумма;
     всего += сумма;
@@ -31786,8 +31869,10 @@ function парнаяПосчитать() {
   const имя = эл('name_par_dims');
   if (имя) имя.textContent = 'Парное отделение ' + парРазмеры();
   Object.keys(ПАР_ШАГ).forEach(к => {
-    const в = эл('qtyval_par_' + к);
-    if (в) в.textContent = парЧисло(к === 'brig' ? парДни(г) : п[к]);
+    const ч = к === 'brig' ? парДни(г) : п[к];
+    const в = эл('qtyval_par_' + к), е = эл('unit_par_' + к);
+    if (в) в.textContent = парЧисло(ч);
+    if (е) е.textContent = парЕдиница(к, ч);
   });
   const м2 = ч => парЧисло(ч) + ' м²';
   подпись('dims', парЧисло(г.объём) + ' м³ · стены и потолок ' + м2(г.отд) + ' · пол ' + м2(г.пол)
@@ -31823,6 +31908,11 @@ function парнаяПосчитать() {
       + `<div class="info-chip" id="steamM3Chip" style="color:var(--green-dark);border-color:var(--green-mid);"><span class="ic-k">Цена за м³</span><strong>${fmt(всего / г.объём)}</strong></div>`;
   }
 
+  // «Проект» парной: имя с размерами, цена базы — им подписаны лист печати и шапка.
+  ПАР_ПРОЕКТ[0] = 'Парная ' + парРазмеры();
+  ПАР_ПРОЕКТ[1] = ПАР_ПРОЕКТ[2] = ПАР_ПРОЕКТ[3] = Math.round(база);
+  if (selectedProject !== ПАР_ПРОЕКТ) selectedProject = ПАР_ПРОЕКТ;
+
   // Итоги — те же места и тот же порядок, что у calc()
   window._итогДоСкидки = всего;
   const _ск = текущаяСкидка(всего);
@@ -31850,14 +31940,16 @@ function парнаяПосчитать() {
   if (поз) части.push(поз + ' ' + склонение(поз, 'позиция', 'позиции', 'позиций'));
   эл('baseDisplay').textContent = части.join(' · ');
   if (typeof syncTotalStrip === 'function') syncTotalStrip({ total: всего, base: база, thick: 0, disc: discount });
-  // Печати, комплектаций и платёжного плана у парной пока нет — кнопки
-  // гаснут, как без проекта.
-  [['printPreviewBtn', 'printPreviewWrap'], ['komplBtn', 'komplBtn']].forEach(([к, о]) => {
-    const кн = эл(к), об = эл(о);
-    if (кн) кн.style.opacity = '0.45';
-    if (об) об.style.pointerEvents = 'none';
+  // Печать работает; комплектаций и платёжного плана у парной пока нет —
+  // их кнопки гаснут, как без проекта.
+  { const кн = эл('printPreviewBtn'), об = эл('printPreviewWrap');
+    if (кн) кн.style.opacity = '1';
+    if (об) об.style.pointerEvents = ''; }
+  ['komplBtn', 'paymentPlanBtn'].forEach(ид => {
+    const кн = эл(ид);
+    if (кн) { кн.style.opacity = '0.45'; кн.style.pointerEvents = 'none'; }
   });
-  try { updatePaymentPlanBtn(); } catch (e) {}
+  try { updateResetDropdownVisibility(); } catch (e) {}
 
   let html = `
     <div class="bd-row bd-head">
@@ -39483,6 +39575,8 @@ function вернутьНапоминаниеПослеПравки() { верн
 
 function надоНапомнитьСохранить() {
   if (_напоминаниеСнято) return false;
+  // У парной пресетов пока нет — напоминать сохранить нечем.
+  if (typeof currentTech !== 'undefined' && currentTech === 'steam') return false;
   if (typeof selectedProject === 'undefined' || !selectedProject) return false;
   if (typeof activePresetId !== 'undefined' && activePresetId) return false;
   if (typeof _activeSharedCode !== 'undefined' && _activeSharedCode) return false;
