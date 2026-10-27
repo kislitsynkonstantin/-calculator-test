@@ -131,7 +131,15 @@ def расчёт(бр, порт):
       document.getElementById('projectCardTitle').textContent, document.getElementById('techSelectLabel').textContent,
       getComputedStyle(document.getElementById('projectSelectWrap')).display === 'none' || !document.getElementById('projectSelectWrap').offsetParent,
       !!document.getElementById('steamRoomWrap').offsetParent]""")
-    if заголовки != ["Парное отделение", "Парная в доме заказчика", "Парная", True, True]:
+    рядом = стр.evaluate("""() => { const п = document.querySelector('#techField > label').getBoundingClientRect();
+      const т = document.getElementById('techSelectTrigger'), тр = т.getBoundingClientRect();
+      const р = document.createRange(); р.selectNodeContents(document.getElementById('techSelectLabel'));
+      return [Math.round(тр.left - п.right), Math.round(р.getBoundingClientRect().left - тр.left), document.body.classList.contains('ui-blank')]; }""")
+    # Константин, 27.10.2026, снимком: «Тут поставь ближе к полю выбора. Для кого это расстояние».
+    if рядом[2] and (рядом[0] > 20 or рядом[1] > 4):
+        плохо(f"поле «Расчёт»: от подписи до поля {рядом[0]} px, текст от края линии {рядом[1]} px")
+    # Карточка — «Параметры парной» (Константин, 27.10.2026, снимком карточки).
+    if заголовки != ["Парное отделение", "Параметры парной", "Парная", True, True]:
         плохо(f"шапка и карточка парной: {заголовки}")
 
     стр.evaluate("ид => ид.forEach(к => document.getElementById('lbl_par_' + к).click())", МАКЕТ)
@@ -371,9 +379,33 @@ def расчёт(бр, порт):
     стр.evaluate("() => { setPrintStyle('blank'); closePrintPreview(); }")
     стр.evaluate("() => resetEverything()")
 
+    # Платёжный план парной (Константин, 27.10.2026: «аванс 60%, финал 50 тысяч
+    # (также все копейки сюда +/-5 тыс.), остаток в середину этап перед началом
+    # работ»): один договор -ПАР на три раздела; на 2 313 757 ₽ — задаток
+    # 1 390 000, перед началом работ 875 000, финальный 48 757.
+    стр.evaluate("ид => ид.forEach(к => document.getElementById('lbl_par_' + к).click())", МАКЕТ)
+    ПЛАН = """() => { const к = getPPContracts(), с = ppState[к[0].id] || {};
+      return { договоры: к.map(д => д.code + ':' + д.sections.join('+')), этапы: к[0].payments.map(р => р.label),
+               суммы: с.amounts, финал: с.finalAmt, итог: ppGetTotal(к[0]),
+               окно: document.getElementById('paymentPlanOverlay').style.display,
+               кнопка: getComputedStyle(document.getElementById('paymentPlanBtn')).pointerEvents }; }"""
+    стр.evaluate("() => openPaymentPlan()")
+    план = стр.evaluate(ПЛАН)
+    ждём = {"договоры": ["ПАР:par_st+par_pech+par_log"], "этапы": ["Задаток по договору", "Перед началом работ", "Финальный платёж"],
+            "суммы": [1390000, 875000], "финал": 48757, "итог": 2313757, "окно": "block", "кнопка": "auto"}
+    if план != ждём:
+        плохо(f"платёжный план парной: {план} — ждали {ждём}")
+    стр.evaluate("() => closePaymentPlan()")
+    # План идёт за ценой: «звёздное небо» +53 135 ₽ и сборка премиальной +30 000 ₽ → 2 396 892 ₽.
+    стр.evaluate("() => document.getElementById('lbl_par_zvezd').click()")
+    план = стр.evaluate(ПЛАН)
+    if (план["суммы"], план["финал"], план["итог"]) != ([1440000, 910000], 46892, 2396892):
+        плохо(f"платёжный план после «звёздного неба»: {план['суммы']}, финальный {план['финал']}, итог {план['итог']} — "
+              "ждали 1 440 000 / 910 000 / 46 892 при 2 396 892 ₽")
+    стр.evaluate("() => resetEverything()")
+
     # Чего у парной нет — словами, без окон.
-    for вызов, окно in (("openPaymentPlan()", "paymentPlanOverlay"),
-                        ("savePreset()", "presetNameOverlay"), ("openOptSearch()", "optSearchOverlay")):
+    for вызов, окно in (("savePreset()", "presetNameOverlay"), ("openOptSearch()", "optSearchOverlay")):
         в = стр.evaluate("""([вызов, окно]) => { const т = []; const было = window.showToast;
           window.showToast = с => т.push(String(с)); try { eval(вызов); } finally { window.showToast = было; }
           const о = document.getElementById(окно); return [т, !!(о && о.style.display && о.style.display !== 'none')]; }""", [вызов, окно])
@@ -389,8 +421,10 @@ def расчёт(бр, порт):
       проект: !!document.getElementById('projectSelectWrap').offsetParent, карточка: !!document.getElementById('steamRoomWrap').offsetParent,
       заголовок: document.getElementById('projectCardTitle').textContent })""")
     к["позицийПарной"] = стр.evaluate("() => OPTIONS.filter(о => о.парная).length")
+    # Договоры — снова каркаса, и в память браузера состав парной не лёг.
+    к["договоры"] = стр.evaluate("() => getPPContracts().map(д => д.code).join(',') + '|' + /par_/.test(localStorage.getItem('contractsConfig_v1') || '')")
     if к["тех"] != "frame" or к["разделов"] != 12 or "par_" in к["ключи"] or к["парных"] or not к["итог"] or к["позицийПарной"] \
-            or not к["проект"] or к["карточка"] or к["заголовок"] != "Выбор проекта":
+            or not к["проект"] or к["карточка"] or к["заголовок"] != "Выбор проекта" or к["договоры"] != "КАР,ОТД|false":
         плохо(f"каркас после парной: {к}")
     стр.evaluate("async () => { await switchTech('glulam'); await new Promise(r => setTimeout(r, 600)); selectProjectOption(0); }")
     стр.wait_for_timeout(600)
@@ -484,7 +518,8 @@ def main():
         sys.exit(1)
     print(f"Чисто: парная считает по книге (база 1 257 216 ₽, двенадцать опций — 2 313 757 ₽), шкала сборки "
           f"120 000 → 240 000 ₽, одна печь и один пол, тип помещения, размеры, счётчики, база и скидка; "
-          f"печать работает, план и пресет отвечают словами; каркас и брус после парной свои; вёрстка — {len(кадры)} кадров.")
+          f"печать работает, платёжный план 60 % / остаток / финальный до 50 000 ₽ и идёт за ценой, пресет отвечает словами; "
+          f"каркас и брус после парной свои; вёрстка — {len(кадры)} кадров.")
 
 
 if __name__ == "__main__":

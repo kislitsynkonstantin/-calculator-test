@@ -2072,6 +2072,13 @@ body.tech-steam #steamRoomCard { display: block; }
 body.tech-steam #projectCard > :not(.card-title):not(#steamRoomCard) { display: none !important; }
 #steamRoomArrow { flex-shrink: 0; opacity: 0.5; transition: transform 0.2s; }
 .custom-select-wrap.open #steamRoomArrow { transform: rotate(180deg); opacity: 0.8; }
+/* Поле «Расчёт» стоит отдельно от колонки реквизитов, под кнопкой «Данные для
+   договора», — и подпись в колонку шириной 96 px отрывалась от своего поля
+   пустотой (Константин, 27.10.2026, снимком: «Тут поставь ближе к полю выбора.
+   Для кого это расстояние»). Колонка подписи — по её ширине, значение — от края
+   линии, как у полей ввода выше. */
+body.ui-blank .page-wrap #techField { grid-template-columns: auto minmax(0, 1fr); }
+body.ui-blank .page-wrap #techField .custom-select-trigger { padding-left: 2px; }
 /* Строки парной: размеры помещения, единица счётчика, причина отметки
    («сам: стены — камень», «подходит: парная 27,6 м³») и подпись расчёта. */
 .opt-unit { font-size: .7rem; color: var(--gray-light); margin-left: 2px; }
@@ -11475,7 +11482,7 @@ function входПоказатьКто() {
           </div>
         </div>
       </div>
-      <!-- Размеры и печь задаются здесь, рядом с типом помещения, а не в
+      <!-- Размеры и печь задаются здесь, в карточке «Параметры парной», а не в
            строке раздела (Константин, 27.10.2026, двумя снимками: «вот это
            перенеси, вот тут чтобы задавать»). -->
       <div class="field" id="steamDimsField">
@@ -11862,7 +11869,7 @@ function входПоказатьКто() {
       .status-pill.ok { background:#e3f5e9 !important; color:#1f6c39 !important; }
       .status-pill.ok .pill-dot { background:#2e9d52 !important; }
     </style>
-    <div class="field" style="margin-top:18px;">
+    <div class="field" id="techField" style="margin-top:18px;">
       <!-- «Расчёт», а не «Технология»: с парной в списке стоит не только
            технология постройки, но и отделка готового помещения
            (Константин, 27.10.2026, со снимком поля: «Переименуй «Расчёт»,
@@ -18299,6 +18306,37 @@ function _процентВПоле(п) {
   return String(процентСкидкиДляПодписи(п));
 }
 
+// ── Скидка у каждого вида расчёта своя ──
+// Процент, сумма, главное поле, «за наличные» и «действительна до» остаются у
+// того расчёта, где их поставили: ушёл с каркаса на парную — у парной своя
+// скидка, вернулся — у каркаса прежняя. «Сбросить всё» забывает их у всех.
+// Константин, 27.10.2026, снимком блока скидки: «Вот эти параметры, когда
+// переключаешь технологию и не выбран проект, сделай, чтобы гуляли за типом
+// расчёта. Если в парной стоит скидка 50 000р, то когда переключаешь на каркас,
+// а там стояла базовая скидка 200 тыс., то так она должна и остаться. Это до
+// момента, как нажмём „Сбросить всё“».
+const СКИДКА_ТЕХ = {};
+function снятьСкидку() {
+  const поле = id => document.getElementById(id);
+  return { процент: (поле('discountPctInput') || {}).value || '0', режим: _режимСкидки, сумма: _скидкаСуммой,
+           наличные: !!(поле('cashDiscountCheck') || {}).checked, до: (поле('discountUntilDate') || {}).value || '' };
+}
+function положитьСкидку(с) {
+  с = с || { процент: '0', режим: 'процент', сумма: 0, наличные: false, до: '' };
+  const поле = id => document.getElementById(id);
+  if (поле('discountPctInput')) поле('discountPctInput').value = с.процент;
+  _режимСкидки = с.режим === 'сумма' ? 'сумма' : 'процент';
+  _скидкаСуммой = Number(с.сумма) || 0;
+  отметитьГлавноеПолеСкидки();
+  if (поле('cashDiscountCheck')) поле('cashDiscountCheck').checked = !!с.наличные;
+  if (поле('discountUntilDate')) поле('discountUntilDate').value = с.до || '';
+}
+function переложитьСкидку(из, в) {
+  if (!из || из === в) return;
+  СКИДКА_ТЕХ[из] = снятьСкидку();
+  положитьСкидку(СКИДКА_ТЕХ[в]);
+}
+
 function переключитьГлавноеПолеСкидки(режим) {
   if (режим !== 'сумма' && режим !== 'процент') return;
   if (режим === _режимСкидки) return;
@@ -20097,6 +20135,8 @@ function resetEverything() {
   if (cfg.hiddenNotes !== false) resetHiddenNotes(true);
 
   if (cfg.discount !== false) {
+    // Скидки, запомненные у других видов расчёта, — тоже.
+    Object.keys(СКИДКА_ТЕХ).forEach(к => delete СКИДКА_ТЕХ[к]);
     _режимСкидки = 'процент';
     _скидкаСуммой = 0;
     отметитьГлавноеПолеСкидки();
@@ -23533,7 +23573,10 @@ function loadContractsConfig() {
 // оно вернуло бы в базу то же самое, что только что оттуда прочитали.
 let _безПометкиПравки = false;
 function saveContractsConfig() {
-  localStorage.setItem('contractsConfig_v1', JSON.stringify(contractsConfig));
+  // Состав договоров парной в память браузера не ложится: при следующем запуске
+  // каркас поднял бы оттуда договор с разделами парной.
+  if (typeof currentTech === 'undefined' || currentTech !== 'steam')
+    localStorage.setItem('contractsConfig_v1', JSON.stringify(contractsConfig));
   updateSectionContractDots();
   if (!_безПометкиПравки && typeof пометитьПравку === 'function') пометитьПравку('pp');
 }
@@ -24652,6 +24695,19 @@ const PP_DEFAULT_PAYMENTS_GLULAM = {
   ],
   2: PP_DEFAULT_PAYMENTS[2],
 };
+// Парная — один договор (-ПАР) на все три раздела: задаток 60 %, остаток — перед
+// началом работ, финальный — 50 000 ₽ и собирает остатки округления (Константин,
+// 27.10.2026: «Платежный план сделай: аванс 60%, финал 50 тысяч (также все копейки
+// сюда +/-5 тыс.), остаток в середину этап перед началом работ»). Считает то же
+// правило, что у договора на отделку: задаток и середина кратны 5 000 вверх,
+// финальный выходит от 45 000 до 50 000 ₽.
+const PP_DEFAULT_PAYMENTS_STEAM = {
+  1: [
+    { label: 'Задаток по договору', sub: '', pct: 60 },
+    { label: 'Перед началом работ', sub: '', pct: 0 },
+    { label: 'Финальный платёж', sub: '', pct: 0, finalFixed: 50000 },
+  ],
+};
 // Покраска: всё — задатком, финальный — не больше 50 000 ₽ и собирает остатки
 // округления, как в договоре на отделку (Константин, 22.10.2026: «договор
 // покраску сделай все на задаток, а на финал также 50 тыс. оставь с копейками»).
@@ -24665,6 +24721,7 @@ function договорПокраски(c) { return !!c && (c.code === 'ПОК' 
 function платежиПоУмолчанию(c) {
   if (!c) return null;
   if (договорПокраски(c)) return PP_ПОКРАСКА;
+  if (typeof currentTech !== 'undefined' && currentTech === 'steam') return PP_DEFAULT_PAYMENTS_STEAM[c.id] || null;
   const брус = typeof currentTech !== 'undefined' && currentTech === 'glulam';
   return (брус ? PP_DEFAULT_PAYMENTS_GLULAM : PP_DEFAULT_PAYMENTS)[c.id] || null;
 }
@@ -29138,7 +29195,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 function openPaymentPlan() {
-  if (парнаяБезЭтого('Платёжный план')) return;
   if (!selectedProject) return;
   // Only init contracts that don't have state yet — preserves preset-loaded state
   getPPContracts().forEach(c => { if (!ppState[c.id]) ppInitContract(c); });
@@ -30189,6 +30245,10 @@ function ppCmSetColor(cid, color) {
 // жил только в кнопке, а сброс и смена проекта план не трогали вовсе — от
 // прежнего расчёта оставались и договоры, и разнесённые платежи.
 function составПоУмолчанию() {
+  // Парная — один договор на все три её раздела.
+  if (typeof currentTech !== 'undefined' && currentTech === 'steam') return [
+    { id:1, name:'Договор на парную', code:'ПАР', color:'#16a34a', sections:['par_st','par_pech','par_log'] },
+  ];
   // Клеёный брус — три договора: покраска отдельным договором (Константин,
   // 22.10.2026: «основной, отделка, покраска отдельно (3 договора)»).
   if (typeof currentTech !== 'undefined' && currentTech === 'glulam') return [
@@ -31259,6 +31319,8 @@ async function switchTech(код, опц) {
   // перекладываются раньше всего: после смены `currentTech` уже не понять,
   // чьи они были.
   переложитьРучные(_былаТех, код);
+  // Скидка — своя у каждого вида расчёта (см. СКИДКА_ТЕХ).
+  try { переложитьСкидку(_былаТех, код); } catch (e) {}
   currentTech = код;
   // Ручные проекты подменяются вместе с остальными данными технологии.
   customProjects = TECH_CUSTOM[код] || (TECH_CUSTOM[код] = []);
@@ -31297,6 +31359,9 @@ async function switchTech(код, опц) {
   try { init(); } catch (e) { console.warn('[технология] перерисовка', e); }
   applyTechChrome();
   calc();
+  // У парной свой состав договоров и свой план; уход из неё возвращает состав
+  // технологии. Восстановление расчёта кладёт свой состав позже, поверх.
+  if (код !== _былаТех && (код === 'steam' || _былаТех === 'steam')) { try { сбросПлатёжногоПлана(); } catch (e) {} }
   окнаПослеСменыТехнологии();
   try {
     if (код !== _былаТех && опц && опц.вЖурнал) {
@@ -31398,7 +31463,8 @@ function applyTechChrome() {
   // Парная: вместо выбора проекта — карточка помещения (см. #steamRoomCard).
   document.body.classList.toggle('tech-steam', t === 'steam');
   const карточка = document.getElementById('projectCardTitle');
-  if (карточка) карточка.textContent = t === 'steam' ? 'Парная в доме заказчика' : 'Выбор проекта';
+  // Константин, 27.10.2026, снимком карточки: «Тут напиши „Параметры парной“».
+  if (карточка) карточка.textContent = t === 'steam' ? 'Параметры парной' : 'Выбор проекта';
 }
 
 // Площадь, введённая руками, живёт в расчёте и попадает в сохранение.
@@ -32044,6 +32110,9 @@ function парнаяПосчитать() {
     getCustomOpts(key).forEach(co => {
       if (co.checked && co.price && !giftedOpts.has('custom_' + co.id)) сумма += co.price;
     });
+    // Сумма раздела — в целых рублях, как её показывает экран: доли копеек базы
+    // иначе доходили до финального платежа (48 757,46 ₽).
+    сумма = Math.round(сумма);
     суммы[key] = сумма;
     всего += сумма;
     const итог = эл('sec_total_' + key);
@@ -32102,7 +32171,7 @@ function парнаяПосчитать() {
   }
   подпись('brig', п.brig ? 'срок вписан вручную · по расчёту — ' + парДниАвто(г) + ' дн.' : 'срок — от площади отделки и полков');
 
-  // Карточка «Парная в доме заказчика»
+  // Карточка «Параметры парной»
   const ярлык = эл('steamRoomLabel');
   if (ярлык) ярлык.textContent = ПАР_ТИП[п.комн];
   document.querySelectorAll('#steamRoomDropdown .custom-select-option').forEach(о =>
@@ -32147,15 +32216,15 @@ function парнаяПосчитать() {
   if (поз) части.push(поз + ' ' + склонение(поз, 'позиция', 'позиции', 'позиций'));
   эл('baseDisplay').textContent = части.join(' · ');
   if (typeof syncTotalStrip === 'function') syncTotalStrip({ total: всего, base: база, thick: 0, disc: discount });
-  // Печать работает; комплектаций и платёжного плана у парной пока нет —
-  // их кнопки гаснут, как без проекта.
+  // Печать и платёжный план работают; комплектаций у парной нет — их кнопка
+  // гаснет, как без проекта.
   { const кн = эл('printPreviewBtn'), об = эл('printPreviewWrap');
     if (кн) кн.style.opacity = '1';
     if (об) об.style.pointerEvents = ''; }
-  ['komplBtn', 'paymentPlanBtn'].forEach(ид => {
-    const кн = эл(ид);
-    if (кн) { кн.style.opacity = '0.45'; кн.style.pointerEvents = 'none'; }
-  });
+  { const кн = эл('paymentPlanBtn');
+    if (кн) { кн.style.opacity = ''; кн.style.pointerEvents = ''; } }
+  { const кн = эл('komplBtn');
+    if (кн) { кн.style.opacity = '0.45'; кн.style.pointerEvents = 'none'; } }
   try { updateResetDropdownVisibility(); } catch (e) {}
 
   let html = `
@@ -32196,6 +32265,8 @@ function парнаяПосчитать() {
     document.querySelectorAll('.bd-pct').forEach(е => е.classList.add('pct-hidden'));
   }
   if (typeof updateSideNavInfo === 'function') { try { updateSideNavInfo(); } catch (e) {} }
+  // План идёт за ценой, как у каркаса: через этот пересчёт проходит любая правка.
+  try { следитьЗаПарнойВПлане(); } catch (e) {}
 }
 
 // ── Выгрузка парной в Excel ──
@@ -32317,7 +32388,8 @@ function парнаяВExcel() {
     });
     const до = S.length;
     S.push([]);
-    S.push(['', 'Итого по разделу', '', '', '', '', '', '', '', н(сумма, `SUM(J${от}:J${до})`, РУБ)]);
+    сумма = Math.round(сумма);
+    S.push(['', 'Итого по разделу', '', '', '', '', '', '', '', н(сумма, `ROUND(SUM(J${от}:J${до}),0)`, РУБ), 'в целых рублях, как в калькуляторе']);
     итоги[ключ] = { лист, строка: S.length, сумма };
     имена.push({ Name: 'Итог_' + ключ, Ref: имя(лист, '$J$' + S.length) });
     XL.book_append_sheet(wb, вЛист(S, [10, 62, 13, 10, 9, 10, 10, 13, 13, 13, 62]), лист);
