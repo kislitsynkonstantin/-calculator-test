@@ -6743,7 +6743,16 @@ body.ui-blank .sn-val {
     transform: none;
   }
   body.ui-blank.total-strip-on .side-nav { bottom: calc(var(--strip-h, 68px) + 8px); }
-  body.ui-blank .side-nav-panel { max-height: none; height: 100%; }
+  /* Высота панели — по содержимому, не больше просвета: у парной три раздела,
+     и растянутая до полоски итога панель была на две трети пустой
+     (Константин, 28.10.2026, снимком: «Боковая панель зачем такая большая»).
+     Длинный список, как у каркаса, по-прежнему доходит до полоски и
+     прокручивается. Нажатия под короткой панелью уходят странице: просвет
+     держит только сама панель. */
+  body.ui-blank .side-nav { align-items: flex-start; }
+  body.ui-blank .side-nav.open { pointer-events: none; }
+  body.ui-blank .side-nav.open .side-nav-panel { pointer-events: auto; }
+  body.ui-blank .side-nav-panel { height: auto; max-height: 100%; }
 }
 body.ui-blank .side-nav-item.sn-zero { opacity: .45; }
 body.ui-blank .side-nav-item.sn-zero .sn-val { color: var(--bl-ink3); }
@@ -23625,6 +23634,11 @@ function проставитьКодыСоставов() {
     (c.payments || []).forEach(п => {
       if (!п.custom && ПРЕЖНИЕ_ИМЕНА_ЭТАПОВ[п.label]) п.label = ПРЕЖНИЕ_ИМЕНА_ЭТАПОВ[п.label];
     });
+    // Договор парной называется «Договор подряда» везде — в окне печати, в
+    // плане и в боковой панели (Константин, 28.10.2026: «В парных подпиши
+    // „Договор подряда“, так как там один всего договор»); составы, сохранённые
+    // со старым именем, берут новое сами.
+    if (c.code === 'ПАР' && c.name === 'Договор на парную') c.name = 'Договор подряда';
     if (c.code) return;
     if (c.id === 1 || /основн/i.test(c.name || '')) c.code = 'КАР';
     else if (c.id === 2 || /отделк/i.test(c.name || '')) c.code = 'ОТД';
@@ -30468,7 +30482,7 @@ function ppCmSetColor(cid, color) {
 function составПоУмолчанию() {
   // Парная — один договор на все три её раздела.
   if (typeof currentTech !== 'undefined' && currentTech === 'steam') return [
-    { id:1, name:'Договор на парную', code:'ПАР', color:'#16a34a', sections:['par_st','par_pech','par_log'] },
+    { id:1, name:'Договор подряда', code:'ПАР', color:'#16a34a', sections:['par_st','par_pech','par_log'] },
   ];
   // Клеёный брус — три договора: покраска отдельным договором (Константин,
   // 22.10.2026: «основной, отделка, покраска отдельно (3 договора)»).
@@ -33551,15 +33565,19 @@ function updateSideNavInfo() {
   // Цена за м² берётся из строки параметров проекта, а не считается заново:
   // так числа не разойдутся, и видна она тогда же, когда и там, — при
   // включённой настройке и известной площади тёплого контура.
+  // У парной площади проекта нет: строка берёт «Цену за м³» из карточки
+  // «Параметры парной». Чип цены за м² в это время стоит в скрытой карточке
+  // проекта и держит число последнего каркаса — панель парной показывала его.
   const заМетр = document.getElementById('snHeadM2');
   if (заМетр) {
-    const чип = document.getElementById('pricePerM2Chip');
+    const парная = currentTech === 'steam';
+    const чип = document.getElementById(парная ? 'steamM3Chip' : 'pricePerM2Chip');
     const число = чип && чип.style.display !== 'none' ? чип.querySelector('strong') : null;
     заМетр.textContent = '';
     if (число && число.textContent.trim()) {
       const в = document.createElement('b');
-      в.textContent = число.textContent.trim() + ' ₽';
-      заМетр.append('Цена за м² ', в);
+      в.textContent = число.textContent.trim().replace(/\s?₽$/, '') + ' ₽';
+      заМетр.append(парная ? 'Цена за м³ ' : 'Цена за м² ', в);
     }
   }
   const картинок = document.getElementById('snValImages');
