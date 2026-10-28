@@ -187,7 +187,8 @@ def прогон(бр, порт, ш, полный):
         номера.append(ном)
     стр.locator("#koDate").fill(дни[1]); стр.wait_for_timeout(300)
     if стр.evaluate("() => document.getElementById('koNum').value") != номера[1]:
-        плохо(f"{н} вернули прежний день — номер не вернулся: {стр.evaluate('() => document.getElementById(\"koNum\").value')} вместо {номера[1]}")
+        номер_сейчас = стр.evaluate("() => document.getElementById('koNum').value")
+        плохо(f"{н} вернули прежний день — номер не вернулся: {номер_сейчас} вместо {номера[1]}")
     # Номера по дням переживают сохранение расчёта.
     есть = стр.evaluate("() => typeof сменитьДеньОрдера === 'function' && typeof новыйНомерОрдера === 'function'")
     if not есть:
