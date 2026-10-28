@@ -22,7 +22,10 @@ fi
     return 0
   fi
   echo "· ставим $2…"
-  if pip install --quiet --disable-pip-version-check "$2" 2>&1 | tail -3; then
+  # Ставит тот же python3, который потом импортирует: 28.10.2026 в образе
+  # `pip` принадлежал python 3.13, а `python3` был 3.11, и пакет уходил мимо —
+  # хук писал «поставился, но не подключается», и пробы падали на импорте.
+  if python3 -m pip install --quiet --disable-pip-version-check "$2" 2>&1 | tail -3; then
     python3 -c "import $1" 2>/dev/null \
       && echo "· $2 готов" \
       || echo "‼ $2 поставился, но не подключается"

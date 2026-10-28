@@ -44,6 +44,10 @@ def главная():
         for пакет in ("playwright", "pillow"):
             if пакет not in итог.stdout:
                 НАХОДКИ.append(f"хук ничего не сказал про {пакет}")
+        # Поставлено тому python3, которым пробы запускаются: 28.10.2026 `pip`
+        # в образе принадлежал другому питону, и пакет уходил мимо.
+        if "не подключается" in итог.stdout or subprocess.run(["python3", "-c", "import playwright, PIL"]).returncode:
+            НАХОДКИ.append("после хука python3 не видит playwright или pillow — поставлено не тому питону")
         if "браузер:" not in итог.stdout:
             НАХОДКИ.append("хук не назвал путь к браузеру")
         записано = файл.read_text(encoding="utf-8") if файл.exists() else ""
