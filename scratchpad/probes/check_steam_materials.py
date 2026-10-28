@@ -121,7 +121,15 @@ def расчёт(бр, порт):
     if р != {'вкл': True, 'имя': 'Вагонка из липы (сорт Экстра) вместо осины', 'цена': ждём, 'отм': True} or ярл != 'Липа, сорт Экстра' \
             or стр.evaluate(ИТОГ) != до + ждём:
         плохо(f"вагонка из липы в поле: строка {р}, поле «{ярл}», итог {стр.evaluate(ИТОГ)} при {до} — ждали +{ждём} ₽")
-    стр.click('#steamLiningTrigger'); стр.click('#steamLiningDropdown [data-mat="kedr-sib"]', force=True)
+    стр.click('#steamLiningTrigger')
+    # Наведение не красит недоступный пункт: подсветка в списке значит «выберется».
+    фон = "() => getComputedStyle(document.querySelector('#steamLiningDropdown [data-mat=\"kedr-sib\"]')).backgroundColor"
+    до_наведения = стр.evaluate(фон)
+    стр.hover('#steamLiningDropdown [data-mat="kedr-sib"]')
+    стр.wait_for_timeout(250)
+    if стр.evaluate(фон) != до_наведения:
+        плохо(f"сибирский кедр без цены подсвечивается под курсором: {до_наведения} → {стр.evaluate(фон)}")
+    стр.click('#steamLiningDropdown [data-mat="kedr-sib"]', force=True)
     if стр.evaluate("() => ПАР.матВагонки") != 'lipa' or not стр.evaluate("() => document.getElementById('steamLiningWrap').classList.contains('open')"):
         плохо("нажатие по сибирскому кедру без цены что-то выбрало или закрыло список")
     стр.click('#steamLiningDropdown [data-mat="osina"]')

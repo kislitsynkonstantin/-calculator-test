@@ -2109,8 +2109,9 @@ body.ui-blank .page-wrap #steamDimsField .steam-dims-hint { grid-column: 2; marg
 .steam-mat-arrow { flex-shrink: 0; opacity: 0.5; transition: transform 0.2s; }
 .custom-select-wrap.open .steam-mat-arrow { transform: rotate(180deg); opacity: 0.8; }
 .steam-mat-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.custom-select-option.cso-off { cursor: default; color: var(--gray-light); }
-.custom-select-option.cso-off:hover { background: none; }
+/* Наведение не красит недоступный материал: подсветка у списка значит «выберется». */
+body .custom-select-option.cso-off, body .custom-select-option.cso-off:hover { cursor: default; color: var(--gray-light); background: none; }
+body.ui-blank .custom-select-option.cso-off, body.ui-blank .custom-select-option.cso-off:hover { color: var(--bl-ink3); background: none; }
 .cso-nop { font-size: .58rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #c06010;
   background: #f7efe6; border-radius: 20px; padding: 1px 7px; white-space: nowrap; }
 body.dark .cso-nop { color: #e0b070; background: rgba(224,176,112,.12); }
